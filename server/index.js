@@ -5,7 +5,7 @@ import { createViteMiddleware } from "./vite.js";
 import { registerRoutes } from "./routes.js";
 
 const app = express();
-const PORT = parseInt(process.env.PORT || "5000");
+const PORT = process.env.PORT || 5000;
 
 // Use memory store instead of requiring PostgreSQL
 const MemStore = MemoryStore(session);
@@ -28,15 +28,11 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Register API routes first
-registerRoutes(app);
+// Create Vite middleware for development
+createViteMiddleware(app);
 
-// Setup Vite middleware for development in a non-blocking way
-createViteMiddleware(app).then(() => {
-  console.log('[vite] middleware setup complete');
-}).catch((error) => {
-  console.error('[vite] middleware setup failed:', error);
-});
+// Register API routes
+registerRoutes(app);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`[express] serving on port ${PORT}`);
