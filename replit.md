@@ -7,6 +7,7 @@ BlogCraft is a full-stack blog platform built with a React frontend and Express 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framework instead of shadcn/ui.
 
 ## System Architecture
 
