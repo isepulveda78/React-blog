@@ -9,6 +9,15 @@ BlogCraft is a full-stack blog platform built with a React frontend and Express 
 Preferred communication style: Simple, everyday language.
 Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framework instead of shadcn/ui.
 
+## Recent Changes (August 2025)
+
+- Successfully converted entire codebase from TypeScript to JavaScript (JSX) 
+- Replaced all shadcn/ui components with Bootstrap 5 components and styling
+- Removed complex Vite middleware setup for simpler static file serving approach
+- Implemented browser-based React and JSX transpilation using CDN libraries
+- Cleaned up server-side TypeScript files, now using only JavaScript files
+- Application now runs with simplified Express server serving static files directly
+
 ## System Architecture
 
 ### Frontend Architecture
