@@ -1,8 +1,12 @@
 import express from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
-import { createViteMiddleware } from "./vite.js";
+import path from "path";
+import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || "5000");
@@ -31,11 +35,25 @@ app.use(express.urlencoded({ extended: true }));
 // Register API routes first
 registerRoutes(app);
 
-// Setup Vite middleware for development in a non-blocking way
-createViteMiddleware(app).then(() => {
-  console.log('[vite] middleware setup complete');
-}).catch((error) => {
-  console.error('[vite] middleware setup failed:', error);
+// Serve static files from client directory
+app.use(express.static(path.join(__dirname, '../client')));
+
+// Serve React modules with proper MIME types
+app.get('*.jsx', (req, res, next) => {
+  res.type('text/javascript');
+  next();
+});
+
+app.get('*.js', (req, res, next) => {
+  res.type('text/javascript');
+  next();
+});
+
+// Handle client-side routing - send index.html for non-API routes
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../client/index.html'));
+  }
 });
 
 app.listen(PORT, "0.0.0.0", () => {
