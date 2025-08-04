@@ -72,18 +72,16 @@ const HomePage = () => {
 };
 
 // Comment Thread Component with Reply functionality
-const CommentThread = ({ comment, postId, onReplySubmit }) => {
+const CommentThread = ({ comment, postId, onReplySubmit, user }) => {
   const [showReplyForm, setShowReplyForm] = React.useState(false);
   const [replyData, setReplyData] = React.useState({
-    authorName: '',
-    authorEmail: '',
     content: ''
   });
   const [submittingReply, setSubmittingReply] = React.useState(false);
 
   const handleReplySubmit = async (e) => {
     e.preventDefault();
-    if (!replyData.authorName || !replyData.authorEmail || !replyData.content) {
+    if (!replyData.content.trim()) {
       return;
     }
 
@@ -96,14 +94,14 @@ const CommentThread = ({ comment, postId, onReplySubmit }) => {
         },
         credentials: 'include',
         body: JSON.stringify({
-          ...replyData,
+          content: replyData.content,
           postId: postId,
           parentId: comment.id
         })
       });
 
       if (response.ok) {
-        setReplyData({ authorName: '', authorEmail: '', content: '' });
+        setReplyData({ content: '' });
         setShowReplyForm(false);
         alert('Reply submitted successfully! It will appear after approval.');
         onReplySubmit(replyData);
@@ -130,7 +128,8 @@ const CommentThread = ({ comment, postId, onReplySubmit }) => {
           )
         ),
         React.createElement('p', { className: 'card-text mb-2' }, comment.content),
-        React.createElement('button', {
+        // Only show reply button if user is logged in
+        user && React.createElement('button', {
           className: 'btn btn-sm btn-outline-primary',
           onClick: () => setShowReplyForm(!showReplyForm)
         }, showReplyForm ? 'Cancel Reply' : 'Reply')
@@ -167,28 +166,6 @@ const CommentThread = ({ comment, postId, onReplySubmit }) => {
           ),
           React.createElement('div', { className: 'card-body' },
             React.createElement('form', { onSubmit: handleReplySubmit },
-              React.createElement('div', { className: 'row mb-2' },
-                React.createElement('div', { className: 'col-md-6' },
-                  React.createElement('input', {
-                    type: 'text',
-                    className: 'form-control form-control-sm',
-                    placeholder: 'Your name *',
-                    value: replyData.authorName,
-                    onChange: (e) => setReplyData({...replyData, authorName: e.target.value}),
-                    required: true
-                  })
-                ),
-                React.createElement('div', { className: 'col-md-6' },
-                  React.createElement('input', {
-                    type: 'email',
-                    className: 'form-control form-control-sm',
-                    placeholder: 'Your email *',
-                    value: replyData.authorEmail,
-                    onChange: (e) => setReplyData({...replyData, authorEmail: e.target.value}),
-                    required: true
-                  })
-                )
-              ),
               React.createElement('div', { className: 'mb-2' },
                 React.createElement('textarea', {
                   className: 'form-control form-control-sm',
@@ -203,7 +180,7 @@ const CommentThread = ({ comment, postId, onReplySubmit }) => {
                 React.createElement('button', {
                   type: 'submit',
                   className: 'btn btn-primary btn-sm',
-                  disabled: submittingReply
+                  disabled: submittingReply || !replyData.content.trim()
                 }, submittingReply ? 'Submitting...' : 'Post Reply'),
                 React.createElement('button', {
                   type: 'button',
@@ -390,6 +367,7 @@ const BlogPostDetail = ({ slug, onBack, user }) => {
                       key: comment.id, 
                       comment: comment, 
                       postId: post.id,
+                      user: user,
                       onReplySubmit: (replyData) => {
                         // Reload comments after reply is submitted
                         loadComments(post.id);
