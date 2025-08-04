@@ -213,6 +213,11 @@ export default function AdminDashboard() {
                         ✏️ Write New Post
                       </Button>
                     </Link>
+                    <a href="/admin-access">
+                      <Button variant="info" className="w-100">
+                        ⚡ Admin Quick Access
+                      </Button>
+                    </a>
                     <a href="/seo-management" target="_blank">
                       <Button 
                         variant="warning" 
