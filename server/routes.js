@@ -107,6 +107,21 @@ export function registerRoutes(app) {
     }
   );
 
+  // Authentication status endpoint
+  app.get("/api/auth/me", async (req, res) => {
+    try {
+      if (req.session?.user) {
+        // Return user from session
+        res.json(req.session.user);
+      } else {
+        res.status(401).json({ message: "Not authenticated" });
+      }
+    } catch (error) {
+      console.error("Auth me error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
@@ -185,12 +200,7 @@ export function registerRoutes(app) {
     }
   });
 
-  app.get("/api/auth/me", (req, res) => {
-    if (!req.session.user) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    res.json(req.session.user);
-  });
+
 
   app.post("/api/auth/logout", (req, res) => {
     req.session.destroy();
