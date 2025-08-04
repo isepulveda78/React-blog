@@ -3,6 +3,75 @@ const { StrictMode, useState, useEffect, createContext, useContext, useRef } =
   React;
 const { createRoot } = ReactDOM;
 
+// ===== COMPONENTS SECTION =====
+// All components are defined here instead of separate files
+
+const Hero = ({ user }) => {
+  return React.createElement(
+    "section",
+    { className: "bg-gradient-to-br from-blue-50 to-purple-50 py-5 mb-5" },
+    React.createElement(
+      "div",
+      { className: "container" },
+      React.createElement(
+        "div",
+        { className: "row align-items-center min-vh-50" },
+        React.createElement(
+          "div",
+          { className: "col-lg-6" },
+          React.createElement(
+            "div",
+            { className: "hero-content" },
+            React.createElement(
+              "h1",
+              { className: "display-4 fw-bold text-primary mb-4" },
+              user ? `Welcome back, ${user.username}!` : "Welcome to Mr. S Teaches"
+            ),
+            React.createElement(
+              "p",
+              { className: "lead text-muted mb-4" },
+              "Discover amazing content, share your thoughts, and connect with a community of learners and educators."
+            ),
+            !user && React.createElement(
+              "div",
+              { className: "d-flex gap-3" },
+              React.createElement(
+                "a",
+                { 
+                  href: "/api/auth/google",
+                  className: "btn btn-primary btn-lg px-4 py-2"
+                },
+                "Sign In with Google"
+              ),
+              React.createElement(
+                "button",
+                { 
+                  className: "btn btn-outline-primary btn-lg px-4 py-2",
+                  onClick: () => window.showLoginModal()
+                },
+                "Email Login"
+              )
+            )
+          )
+        ),
+        React.createElement(
+          "div",
+          { className: "col-lg-6 text-center" },
+          React.createElement(
+            "div",
+            { className: "hero-image" },
+            React.createElement("img", {
+              src: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
+              alt: "Learning and teaching community",
+              className: "img-fluid rounded-3 shadow-lg"
+            })
+          )
+        )
+      )
+    )
+  );
+};
+
 // Simple auth context for inline React app
 const AuthContext = createContext(null);
 
@@ -315,7 +384,7 @@ const BlogPostsList = () => {
         ),
       ),
     ),
-
+<Hero />,
     // Filters Section
     React.createElement(
       "section",
@@ -638,8 +707,10 @@ const Footer = () => {
           { className: "col-lg-4 mb-4 footer-section" },
           React.createElement(
             "h5",
-            { className: "fw-bold mb-3" },
-            "Mr. S Teaches - UPDATED",
+            {
+              className: "fw-bold mb-3 ama-font text-white shadow-for-ama fs-3",
+            },
+            "Mr. S Teaches",
           ),
           React.createElement(
             "p",
@@ -3644,7 +3715,8 @@ const SimpleHome = () => {
         React.createElement(
           "a",
           {
-            className: "navbar-brand text-white fw-bold fs-3",
+            className:
+              "navbar-brand text-white fw-bold fs-1 ama-font shadow-for-ama",
             href: "#",
             onClick: (e) => {
               e.preventDefault();
@@ -3747,7 +3819,7 @@ const SimpleHome = () => {
                   React.createElement(
                     "button",
                     {
-                      className: "btn btn-outline-light btn-sm",
+                      className: "btn btn-primary",
                       onClick: () => {
                         logout();
                         closeMobileMenu();
@@ -3808,104 +3880,7 @@ const SimpleHome = () => {
     ),
 
     // Main Content
-    React.createElement(
-      "div",
-      { className: "container mt-5" },
-      React.createElement(
-        "div",
-        { className: "row justify-content-center" },
-        React.createElement(
-          "div",
-          { className: "col-lg-8 text-center" },
-          React.createElement(
-            "h1",
-            { className: "display-4 fw-bold mb-4" },
-            "Welcome to Mr. S Teaches ⚡ Hot Reload Test",
-          ),
 
-          React.createElement(
-            "div",
-            null,
-            React.createElement(
-              "p",
-              { className: "lead text-muted mb-4" },
-              "Discover amazing stories, insights, and ideas from our community of writers.",
-            ),
-
-            // URL message for Google OAuth pending approval
-            urlMessage &&
-              React.createElement(
-                "div",
-                {
-                  className: "alert alert-warning mx-auto mb-4",
-                  style: { maxWidth: "500px" },
-                },
-                React.createElement(
-                  "h6",
-                  { className: "alert-heading" },
-                  "Registration Pending",
-                ),
-                React.createElement("p", { className: "mb-0" }, urlMessage),
-              ),
-
-            // Status message based on user state
-            !user
-              ? React.createElement(
-                  "div",
-                  {
-                    className: "alert alert-info mx-auto mb-4",
-                    style: { maxWidth: "500px" },
-                  },
-                  React.createElement(
-                    "h6",
-                    { className: "alert-heading" },
-                    "Join Our Community",
-                  ),
-                  React.createElement(
-                    "p",
-                    { className: "mb-0" },
-                    "Sign up to read full articles and join the discussion!",
-                  ),
-                )
-              : !user.approved
-                ? React.createElement(
-                    "div",
-                    {
-                      className: "alert alert-warning mx-auto mb-4",
-                      style: { maxWidth: "500px" },
-                    },
-                    React.createElement(
-                      "h6",
-                      { className: "alert-heading" },
-                      "Account Pending Approval",
-                    ),
-                    React.createElement(
-                      "p",
-                      { className: "mb-0" },
-                      "Your account is being reviewed. You'll be able to read articles once approved!",
-                    ),
-                  )
-                : React.createElement(
-                    "div",
-                    {
-                      className: "alert alert-success mx-auto mb-4",
-                      style: { maxWidth: "500px" },
-                    },
-                    React.createElement(
-                      "h6",
-                      { className: "alert-heading" },
-                      "Welcome Back!",
-                    ),
-                    React.createElement(
-                      "p",
-                      { className: "mb-0" },
-                      "You have full access to all our content.",
-                    ),
-                  ),
-          ),
-        ),
-      ),
-    ),
 
     // Blog Posts Section - Show to everyone
     React.createElement(
