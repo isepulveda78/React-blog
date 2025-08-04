@@ -201,8 +201,12 @@ export function registerRoutes(app) {
   // User management endpoints (admin only)
   app.get('/api/users', async (req, res) => {
     try {
+      console.log('[debug] Session data:', req.session);
+      console.log('[debug] Session user:', req.session.user);
+      
       // Check if user is admin
       if (!req.session.user?.isAdmin) {
+        console.log('[debug] User access denied - not admin or not logged in');
         return res.status(403).json({ message: "Admin access required" });
       }
 
