@@ -1,0 +1,1 @@
+NODE_ENV=development concurrently "vite --port 3000" "tsx server/index.ts"

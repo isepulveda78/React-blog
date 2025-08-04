@@ -9,6 +9,7 @@ BlogCraft is a full-stack blog platform built with a React frontend and Express 
 Preferred communication style: Simple, everyday language.
 Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framework instead of shadcn/ui.
 Development preference: Fast iteration with immediate visual feedback - expects changes to be visible immediately after making edits.
+Cache management: Implemented hot reload system for instant change detection and automatic page refresh.
 
 ## Recent Changes (August 2025)
 
@@ -69,6 +70,8 @@ Development preference: Fast iteration with immediate visual feedback - expects 
 - **Blog Posts Listing Page**: Comprehensive blog posts page with pagination, category filtering, and search functionality at `/blog` route
 - **Enhanced Navigation**: Added "All Posts" button to navigation menu for easy access to blog posts listing
 - **Access Control Integration**: Blog posts page respects user authentication and approval status with appropriate messaging
+- **Hot Reload System**: Implemented automatic page refresh system for instant development feedback
+- **Cache Management**: Implemented cache clearing functionality for fresh UI updates
 
 ## System Architecture
 
