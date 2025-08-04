@@ -234,9 +234,212 @@ const Router = () => {
 
   if (currentPath === '/admin') {
     return React.createElement(AdminDashboard);
+  } else if (currentPath === '/admin/posts') {
+    return React.createElement(AdminPosts);
+  } else if (currentPath === '/admin/users') {
+    return React.createElement(AdminUsers);
+  } else if (currentPath === '/admin/comments') {
+    return React.createElement(AdminComments);
   }
   
   return React.createElement(SimpleHome);
+};
+
+// Admin Posts Management Component
+const AdminPosts = () => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/posts')
+      .then(res => res.json())
+      .then(data => {
+        setPosts(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError('Failed to load posts');
+        setLoading(false);
+      });
+  }, []);
+
+  const deletePost = async (postId) => {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    
+    try {
+      const response = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
+      if (response.ok) {
+        setPosts(posts.filter(p => p.id !== postId));
+      } else {
+        alert('Failed to delete post');
+      }
+    } catch (err) {
+      alert('Error deleting post');
+    }
+  };
+
+  const toggleStatus = async (postId, currentStatus) => {
+    const newStatus = currentStatus === 'published' ? 'draft' : 'published';
+    try {
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (response.ok) {
+        setPosts(posts.map(p => p.id === postId ? {...p, status: newStatus} : p));
+      }
+    } catch (err) {
+      alert('Error updating post status');
+    }
+  };
+
+  if (loading) return React.createElement('div', { className: 'container mt-5' },
+    React.createElement('div', { className: 'text-center' },
+      React.createElement('div', { className: 'spinner-border' }, 
+        React.createElement('span', { className: 'visually-hidden' }, 'Loading...')
+      )
+    )
+  );
+
+  return React.createElement('div', { className: 'container mt-4' },
+    React.createElement('div', { className: 'row' },
+      React.createElement('div', { className: 'col-12' },
+        React.createElement('div', { className: 'd-flex justify-content-between align-items-center mb-4' },
+          React.createElement('h2', null, 'Manage Posts'),
+          React.createElement('div', null,
+            React.createElement('button', {
+              className: 'btn btn-secondary me-2',
+              onClick: () => {
+                window.history.pushState({}, '', '/admin');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }
+            }, 'Back to Dashboard'),
+            React.createElement('button', {
+              className: 'btn btn-primary',
+              onClick: () => {
+                // TODO: Implement new post creation
+                alert('New post creation coming soon!');
+              }
+            }, 'New Post')
+          )
+        ),
+        
+        error && React.createElement('div', { className: 'alert alert-danger' }, error),
+        
+        posts.length === 0 ? 
+          React.createElement('div', { className: 'text-center py-5' },
+            React.createElement('p', { className: 'text-muted' }, 'No posts found')
+          ) :
+          React.createElement('div', { className: 'card' },
+            React.createElement('div', { className: 'card-body p-0' },
+              React.createElement('div', { className: 'table-responsive' },
+                React.createElement('table', { className: 'table table-hover mb-0' },
+                  React.createElement('thead', { className: 'table-light' },
+                    React.createElement('tr', null,
+                      React.createElement('th', null, 'Title'),
+                      React.createElement('th', null, 'Author'),
+                      React.createElement('th', null, 'Status'),
+                      React.createElement('th', null, 'Created'),
+                      React.createElement('th', null, 'Actions')
+                    )
+                  ),
+                  React.createElement('tbody', null,
+                    posts.map(post => 
+                      React.createElement('tr', { key: post.id },
+                        React.createElement('td', null,
+                          React.createElement('div', null,
+                            React.createElement('h6', { className: 'mb-1' }, post.title),
+                            React.createElement('small', { className: 'text-muted' }, 
+                              post.excerpt ? post.excerpt.substring(0, 80) + '...' : ''
+                            )
+                          )
+                        ),
+                        React.createElement('td', null, post.authorName || 'Unknown'),
+                        React.createElement('td', null,
+                          React.createElement('span', {
+                            className: `badge ${post.status === 'published' ? 'bg-success' : 'bg-warning'}`
+                          }, post.status || 'draft')
+                        ),
+                        React.createElement('td', null, 
+                          new Date(post.createdAt).toLocaleDateString()
+                        ),
+                        React.createElement('td', null,
+                          React.createElement('div', { className: 'btn-group btn-group-sm' },
+                            React.createElement('button', {
+                              className: 'btn btn-outline-primary',
+                              onClick: () => {
+                                // TODO: Implement edit functionality
+                                alert('Edit functionality coming soon!');
+                              }
+                            }, 'Edit'),
+                            React.createElement('button', {
+                              className: `btn btn-outline-${post.status === 'published' ? 'warning' : 'success'}`,
+                              onClick: () => toggleStatus(post.id, post.status)
+                            }, post.status === 'published' ? 'Unpublish' : 'Publish'),
+                            React.createElement('button', {
+                              className: 'btn btn-outline-danger',
+                              onClick: () => deletePost(post.id)
+                            }, 'Delete')
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+      )
+    )
+  );
+};
+
+// Admin Users Management Component  
+const AdminUsers = () => {
+  return React.createElement('div', { className: 'container mt-4' },
+    React.createElement('div', { className: 'row' },
+      React.createElement('div', { className: 'col-12' },
+        React.createElement('div', { className: 'd-flex justify-content-between align-items-center mb-4' },
+          React.createElement('h2', null, 'Manage Users'),
+          React.createElement('button', {
+            className: 'btn btn-secondary',
+            onClick: () => {
+              window.history.pushState({}, '', '/admin');
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            }
+          }, 'Back to Dashboard')
+        ),
+        React.createElement('div', { className: 'alert alert-info' },
+          'User management interface coming soon!'
+        )
+      )
+    )
+  );
+};
+
+// Admin Comments Management Component
+const AdminComments = () => {
+  return React.createElement('div', { className: 'container mt-4' },
+    React.createElement('div', { className: 'row' },
+      React.createElement('div', { className: 'col-12' },
+        React.createElement('div', { className: 'd-flex justify-content-between align-items-center mb-4' },
+          React.createElement('h2', null, 'Manage Comments'),
+          React.createElement('button', {
+            className: 'btn btn-secondary',
+            onClick: () => {
+              window.history.pushState({}, '', '/admin');
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            }
+          }, 'Back to Dashboard')
+        ),
+        React.createElement('div', { className: 'alert alert-info' },
+          'Comment management interface coming soon!'
+        )
+      )
+    )
+  );
 };
 
 // Admin Dashboard Component

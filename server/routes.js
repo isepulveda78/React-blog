@@ -282,6 +282,36 @@ export function registerRoutes(app) {
     }
   });
 
+  app.patch("/api/posts/:id", async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      const postData = req.body;
+      
+      // Add category name if categoryId is provided
+      if (postData.categoryId) {
+        const category = await storage.getCategoryById(postData.categoryId);
+        if (category) {
+          postData.categoryName = category.name;
+        }
+      }
+
+      const post = await storage.updatePost(id, postData);
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      res.json(post);
+    } catch (error) {
+      console.error("Error updating post:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.delete("/api/posts/:id", async (req, res) => {
     try {
       // Check if user is admin
