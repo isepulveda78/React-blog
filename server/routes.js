@@ -27,17 +27,20 @@ const upload = multer({
   }
 });
 
-// Configure Google OAuth Strategy
+// Configure Google OAuth Strategy  
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL: "/api/auth/google/callback"
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    console.log('[google-auth] Processing Google login for:', profile.emails[0].value);
+    
     // Check if user exists with this Google ID
     let user = await storage.getUserByGoogleId(profile.id);
     
     if (user) {
+      console.log('[google-auth] Found existing user with Google ID');
       return done(null, user);
     }
 
@@ -45,11 +48,13 @@ passport.use(new GoogleStrategy({
     user = await storage.getUserByEmail(profile.emails[0].value);
     
     if (user) {
+      console.log('[google-auth] Linking Google account to existing user');
       // Link Google account to existing user
       await storage.linkGoogleAccount(user.id, profile.id);
       return done(null, user);
     }
 
+    console.log('[google-auth] Creating new user from Google profile');
     // Create new user with Google account
     const newUser = await storage.createUser({
       email: profile.emails[0].value,
@@ -62,6 +67,7 @@ passport.use(new GoogleStrategy({
 
     return done(null, newUser);
   } catch (error) {
+    console.error('[google-auth] Error:', error);
     return done(error, null);
   }
 }));
@@ -90,20 +96,32 @@ export function registerRoutes(app) {
   );
 
   app.get('/api/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/' }),
+    passport.authenticate('google', { 
+      failureRedirect: '/?error=google-auth-failed',
+      failureMessage: true 
+    }),
     async (req, res) => {
-      // Check if user is approved
-      if (!req.user.approved) {
-        // Don't set session for unapproved users
-        req.logout((err) => {
-          if (err) console.error('Logout error:', err);
-        });
-        return res.redirect('/?message=pending-approval');
+      try {
+        console.log('[google-callback] User authenticated:', req.user?.email);
+        
+        // Check if user is approved
+        if (!req.user.approved) {
+          console.log('[google-callback] User not approved, logging out');
+          // Don't set session for unapproved users
+          req.logout((err) => {
+            if (err) console.error('Logout error:', err);
+          });
+          return res.redirect('/?message=pending-approval');
+        }
+        
+        console.log('[google-callback] Setting user session');
+        // Set session for approved users
+        req.session.user = req.user;
+        res.redirect('/');
+      } catch (error) {
+        console.error('[google-callback] Error:', error);
+        res.redirect('/?error=callback-error');
       }
-      
-      // Set session for approved users
-      req.session.user = req.user;
-      res.redirect('/');
     }
   );
 
