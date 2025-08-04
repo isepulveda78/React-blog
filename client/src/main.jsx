@@ -318,53 +318,80 @@ const PostEditor = ({ postId }) => {
   // Initialize Quill editor
   useEffect(() => {
     if (quillRef.current && !quillEditor) {
+      console.log('Initializing Quill editor...');
+      
       // Load Quill from CDN if not already loaded
       if (!window.Quill) {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.quilljs.com/1.3.6/quill.min.js';
-        script.onload = () => {
-          initializeQuill();
-        };
-        document.head.appendChild(script);
-
+        console.log('Loading Quill from CDN...');
+        
         const link = document.createElement('link');
         link.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
         link.rel = 'stylesheet';
         document.head.appendChild(link);
+
+        const script = document.createElement('script');
+        script.src = 'https://cdn.quilljs.com/1.3.6/quill.min.js';
+        script.onload = () => {
+          console.log('Quill loaded, initializing...');
+          setTimeout(initializeQuill, 100); // Small delay to ensure DOM is ready
+        };
+        script.onerror = () => {
+          console.error('Failed to load Quill');
+          setError('Failed to load rich text editor');
+        };
+        document.head.appendChild(script);
       } else {
-        initializeQuill();
+        console.log('Quill already loaded, initializing...');
+        setTimeout(initializeQuill, 100);
       }
     }
-  }, [quillEditor]);
+  }, [quillRef.current, quillEditor]);
 
   const initializeQuill = () => {
-    if (quillRef.current && window.Quill) {
-      const quill = new window.Quill(quillRef.current, {
-        theme: 'snow',
-        modules: {
-          toolbar: [
-            [{ 'header': [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            ['blockquote', 'code-block'],
-            ['link', 'image'],
-            ['clean']
-          ]
+    if (quillRef.current && window.Quill && !quillEditor) {
+      console.log('Creating Quill instance...');
+      
+      try {
+        const quill = new window.Quill(quillRef.current, {
+          theme: 'snow',
+          modules: {
+            toolbar: [
+              [{ 'header': [1, 2, 3, false] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+              ['blockquote', 'code-block'],
+              ['link', 'image'],
+              ['clean']
+            ]
+          }
+        });
+
+        console.log('Quill instance created successfully');
+
+        // Set initial content if editing
+        if (formData.content) {
+          console.log('Setting initial content...');
+          quill.root.innerHTML = formData.content;
         }
-      });
 
-      // Set initial content if editing
-      if (formData.content) {
-        quill.root.innerHTML = formData.content;
+        // Listen for content changes
+        quill.on('text-change', () => {
+          const content = quill.root.innerHTML;
+          setFormData(prev => ({ ...prev, content }));
+        });
+
+        setQuillEditor(quill);
+        setError(''); // Clear any previous errors
+      } catch (err) {
+        console.error('Failed to initialize Quill:', err);
+        setError('Failed to initialize rich text editor: ' + err.message);
       }
-
-      // Listen for content changes
-      quill.on('text-change', () => {
-        const content = quill.root.innerHTML;
-        setFormData(prev => ({ ...prev, content }));
+    } else {
+      console.log('Quill initialization skipped:', {
+        hasRef: !!quillRef.current,
+        hasQuill: !!window.Quill,
+        hasEditor: !!quillEditor
       });
-
-      setQuillEditor(quill);
     }
   };
 
@@ -500,8 +527,12 @@ const PostEditor = ({ postId }) => {
                   React.createElement('label', { className: 'form-label' }, 'Content'),
                   React.createElement('div', {
                     ref: quillRef,
-                    style: { height: '300px', marginBottom: '42px' }
-                  })
+                    style: { minHeight: '300px', marginBottom: '42px' },
+                    className: 'border rounded'
+                  }),
+                  !quillEditor && React.createElement('div', { className: 'text-muted small' },
+                    'Loading rich text editor...'
+                  )
                 ),
 
                 // Excerpt
