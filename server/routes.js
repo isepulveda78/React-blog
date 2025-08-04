@@ -27,11 +27,19 @@ const upload = multer({
   }
 });
 
-// Configure Google OAuth Strategy  
+// Configure Google OAuth Strategy with environment-based callback URL
+const getCallbackURL = () => {
+  // Use environment variable if set, otherwise use the custom domain
+  return process.env.GOOGLE_CALLBACK_URL || "https://mr-s-teaches.com/api/auth/google/callback";
+};
+
+console.log('[google-oauth] Callback URL:', getCallbackURL());
+console.log('[google-oauth] Client ID:', process.env.GOOGLE_CLIENT_ID ? 'Set' : 'Missing');
+
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "https://mr-s-teaches.com/api/auth/google/callback"
+  callbackURL: getCallbackURL()
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     console.log('[google-auth] Processing Google login for:', profile.emails[0].value);
@@ -90,10 +98,24 @@ export function registerRoutes(app) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Google OAuth routes
-  app.get('/api/auth/google',
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-  );
+  // Google OAuth routes with error handling
+  app.get('/api/auth/google', (req, res, next) => {
+    console.log('[google-auth] Starting Google OAuth flow');
+    console.log('[google-auth] Request host:', req.get('host'));
+    console.log('[google-auth] Request protocol:', req.protocol);
+    console.log('[google-auth] X-Forwarded-Proto:', req.get('x-forwarded-proto'));
+    console.log('[google-auth] Callback URL:', getCallbackURL());
+    
+    try {
+      passport.authenticate('google', { 
+        scope: ['profile', 'email'],
+        failureMessage: true 
+      })(req, res, next);
+    } catch (error) {
+      console.error('[google-auth] Error during authentication:', error);
+      res.redirect('/?error=google-setup-error');
+    }
+  });
 
   app.get('/api/auth/google/callback',
     passport.authenticate('google', { 
