@@ -377,33 +377,14 @@ const Navigation = ({ user, onLogout }) => {
             </button>
             
             {user ? (
-              <div className="nav-item dropdown">
-                <a
-                  className="nav-link dropdown-toggle d-flex align-items-center"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
+              <div className="d-flex align-items-center gap-2">
+                <span className="text-muted">Welcome, {user.username}!</span>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={handleLogout}
                 >
-                  {user.profileImage && (
-                    <img
-                      src={user.profileImage}
-                      alt={user.username}
-                      className="rounded-circle me-2"
-                      style={{ width: "32px", height: "32px", objectFit: "cover" }}
-                    />
-                  )}
-                  {user.username}
-                </a>
-                <ul className="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <button
-                      className="dropdown-item"
-                      onClick={handleLogout}
-                    >
-                      Logout
-                    </button>
-                  </li>
-                </ul>
+                  Logout
+                </button>
               </div>
             ) : (
               <div className="d-flex gap-2">
