@@ -809,6 +809,79 @@ const AdminPosts = () => {
 
 // Admin Users Management Component  
 const AdminUsers = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/users', { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Users API response:', data);
+        if (Array.isArray(data)) {
+          setUsers(data);
+        } else {
+          console.error('Expected array, got:', typeof data, data);
+          setUsers([]);
+          setError('Invalid users data format');
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Users loading error:', err);
+        setError('Failed to load users: ' + err.message);
+        setLoading(false);
+        setUsers([]);
+      });
+  }, []);
+
+  const toggleUserApproval = async (userId, currentStatus) => {
+    const newStatus = !currentStatus;
+    try {
+      const response = await fetch(`/api/users/${userId}/approval`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ approved: newStatus })
+      });
+      if (response.ok) {
+        setUsers(users.map(u => u.id === userId ? {...u, approved: newStatus} : u));
+      }
+    } catch (err) {
+      alert('Error updating user approval');
+    }
+  };
+
+  const toggleUserRole = async (userId, currentRole) => {
+    const newRole = !currentRole;
+    try {
+      const response = await fetch(`/api/users/${userId}/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ isAdmin: newRole })
+      });
+      if (response.ok) {
+        setUsers(users.map(u => u.id === userId ? {...u, isAdmin: newRole} : u));
+      }
+    } catch (err) {
+      alert('Error updating user role');
+    }
+  };
+
+  if (loading) return React.createElement('div', { className: 'container mt-5' },
+    React.createElement('div', { className: 'text-center' },
+      React.createElement('div', { className: 'spinner-border' }, 
+        React.createElement('span', { className: 'visually-hidden' }, 'Loading...')
+      )
+    )
+  );
+
   return React.createElement('div', { className: 'container mt-4' },
     React.createElement('div', { className: 'row' },
       React.createElement('div', { className: 'col-12' },
@@ -822,9 +895,70 @@ const AdminUsers = () => {
             }
           }, 'Back to Dashboard')
         ),
-        React.createElement('div', { className: 'alert alert-info' },
-          'User management interface coming soon!'
-        )
+
+        error && React.createElement('div', { className: 'alert alert-danger' }, error),
+
+        users.length === 0 ? 
+          React.createElement('div', { className: 'text-center py-5' },
+            React.createElement('p', { className: 'text-muted' }, 'No users found')
+          ) :
+          React.createElement('div', { className: 'card' },
+            React.createElement('div', { className: 'card-body p-0' },
+              React.createElement('div', { className: 'table-responsive' },
+                React.createElement('table', { className: 'table table-hover mb-0' },
+                  React.createElement('thead', { className: 'table-light' },
+                    React.createElement('tr', null,
+                      React.createElement('th', null, 'User'),
+                      React.createElement('th', null, 'Email'),
+                      React.createElement('th', null, 'Role'),
+                      React.createElement('th', null, 'Status'),
+                      React.createElement('th', null, 'Joined'),
+                      React.createElement('th', null, 'Actions')
+                    )
+                  ),
+                  React.createElement('tbody', null,
+                    users.map(user => 
+                      React.createElement('tr', { key: user.id },
+                        React.createElement('td', null,
+                          React.createElement('div', null,
+                            React.createElement('h6', { className: 'mb-1' }, user.name || 'Unknown'),
+                            React.createElement('small', { className: 'text-muted' }, `@${user.username}`)
+                          )
+                        ),
+                        React.createElement('td', null, user.email),
+                        React.createElement('td', null,
+                          React.createElement('span', {
+                            className: `badge ${user.isAdmin ? 'bg-danger' : 'bg-secondary'}`
+                          }, user.isAdmin ? 'Admin' : 'User')
+                        ),
+                        React.createElement('td', null,
+                          React.createElement('span', {
+                            className: `badge ${user.approved ? 'bg-success' : 'bg-warning'}`
+                          }, user.approved ? 'Approved' : 'Pending')
+                        ),
+                        React.createElement('td', null, 
+                          new Date(user.createdAt).toLocaleDateString()
+                        ),
+                        React.createElement('td', null,
+                          React.createElement('div', { className: 'btn-group btn-group-sm' },
+                            React.createElement('button', {
+                              className: `btn btn-outline-${user.approved ? 'warning' : 'success'}`,
+                              onClick: () => toggleUserApproval(user.id, user.approved)
+                            }, user.approved ? 'Unapprove' : 'Approve'),
+                            React.createElement('button', {
+                              className: `btn btn-outline-${user.isAdmin ? 'secondary' : 'danger'}`,
+                              onClick: () => toggleUserRole(user.id, user.isAdmin),
+                              disabled: user.id === 'current-admin' // Prevent admin from removing their own admin status
+                            }, user.isAdmin ? 'Remove Admin' : 'Make Admin')
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
       )
     )
   );
