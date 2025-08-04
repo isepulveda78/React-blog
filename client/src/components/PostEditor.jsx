@@ -17,6 +17,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -61,6 +62,96 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   const handleKeywordsChange = (value) => {
     const keywords = value.split(',').map(kw => kw.trim()).filter(kw => kw);
     handleChange('metaKeywords', keywords);
+  };
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    setImageUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        handleChange('featuredImage', data.url);
+        alert('Image uploaded successfully!');
+      } else {
+        const error = await response.json();
+        alert('Upload failed: ' + (error.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Upload failed: ' + error.message);
+    }
+
+    setImageUploading(false);
+    // Clear the file input
+    event.target.value = '';
+  };
+
+  const insertImageInContent = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    setImageUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const imageHtml = `\n<img src="${data.url}" alt="Uploaded image" class="img-fluid my-3" />\n`;
+        setFormData(prev => ({ ...prev, content: prev.content + imageHtml }));
+        alert('Image inserted into content!');
+      } else {
+        const error = await response.json();
+        alert('Upload failed: ' + (error.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Upload failed: ' + error.message);
+    }
+
+    setImageUploading(false);
+    event.target.value = '';
   };
 
   const handleSave = async () => {
@@ -146,6 +237,37 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
                     <div className="mb-3">
                       <label className="form-label">Content *</label>
+                      
+                      {/* Image upload for content */}
+                      <div className="mb-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={insertImageInContent}
+                          className="form-control"
+                          id="contentImageUpload"
+                          style={{ display: 'none' }}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary btn-sm"
+                          onClick={() => document.getElementById('contentImageUpload').click()}
+                          disabled={imageUploading}
+                        >
+                          {imageUploading ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2"></span>
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fas fa-image me-2"></i>
+                              Insert Image
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      
                       <div className="position-relative">
                         <textarea
                           className="form-control"
@@ -208,14 +330,58 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                     </div>
 
                     <div className="mb-3">
-                      <label className="form-label">Featured Image URL</label>
+                      <label className="form-label">Featured Image</label>
+                      
+                      {/* Image upload button */}
+                      <div className="mb-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="form-control"
+                          id="featuredImageUpload"
+                          style={{ display: 'none' }}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm w-100"
+                          onClick={() => document.getElementById('featuredImageUpload').click()}
+                          disabled={imageUploading}
+                        >
+                          {imageUploading ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2"></span>
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fas fa-cloud-upload-alt me-2"></i>
+                              Upload Featured Image
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      
+                      {/* Manual URL input */}
                       <input
                         type="url"
                         className="form-control"
                         value={formData.featuredImage}
                         onChange={(e) => handleChange('featuredImage', e.target.value)}
-                        placeholder="https://example.com/image.jpg"
+                        placeholder="Or paste image URL"
                       />
+                      
+                      {/* Image preview */}
+                      {formData.featuredImage && (
+                        <div className="mt-2">
+                          <img
+                            src={formData.featuredImage}
+                            alt="Featured image preview"
+                            className="img-fluid rounded"
+                            style={{ maxHeight: '200px', objectFit: 'cover' }}
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="mb-3">
