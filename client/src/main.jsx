@@ -266,9 +266,33 @@ const Router = () => {
 
   console.log('Current path:', currentPath);
 
-  // For admin routes, load the modern React app
-  if (currentPath.startsWith('/admin') || currentPath === '/test-route') {
-    console.log('Loading modern React app for admin route:', currentPath);
+  // Handle specific admin routes
+  if (currentPath === '/admin' || currentPath === '/admin-access') {
+    console.log('Loading admin dashboard for:', currentPath);
+    return React.createElement(ModernReactApp);
+  } else if (currentPath === '/admin/posts') {
+    console.log('Loading posts management');
+    return React.createElement(AdminPostsManager);
+  } else if (currentPath === '/admin/users') {
+    console.log('Loading user management');
+    return React.createElement(AdminUsersManager);
+  } else if (currentPath === '/admin/comments') {
+    console.log('Loading comments management');
+    return React.createElement(AdminCommentsManager);
+  } else if (currentPath === '/admin/categories') {
+    console.log('Loading categories management');
+    return React.createElement(AdminCategoriesManager);
+  } else if (currentPath === '/admin/posts/new') {
+    console.log('Loading post editor');
+    return React.createElement(AdminPostEditor);
+  } else if (currentPath.startsWith('/admin/posts/edit/')) {
+    const postId = currentPath.split('/').pop();
+    console.log('Loading post editor for post:', postId);
+    return React.createElement(AdminPostEditor, { postId });
+  } else if (currentPath === '/admin/seo') {
+    console.log('Loading SEO management');
+    return React.createElement(AdminSEOManager);
+  } else if (currentPath === '/test-route') {
     return React.createElement(ModernReactApp);
   } else if (currentPath.startsWith('/posts/')) {
     return React.createElement(BlogPostReader);
@@ -2130,6 +2154,930 @@ const AdminDashboardInline = () => {
               )
             )
           )
+        )
+      )
+    )
+  );
+};
+
+// Admin Posts Manager
+const AdminPostsManager = () => {
+  const { user } = useAuth();
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [deletePostId, setDeletePostId] = useState(null);
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  const loadPosts = async () => {
+    try {
+      const response = await fetch('/api/posts', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setPosts(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error loading posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deletePost = async (postId) => {
+    try {
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (response.ok) {
+        setPosts(posts.filter(p => p.id !== postId));
+        setDeletePostId(null);
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
+  };
+
+  const navigateTo = (path) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  return React.createElement('div', { style: { backgroundColor: '#f8f9fa', minHeight: '100vh' } },
+    // Header
+    React.createElement('div', {
+      style: { 
+        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', 
+        color: 'white',
+        padding: '30px 0'
+      }
+    },
+      React.createElement('div', { className: 'container' },
+        React.createElement('div', { className: 'row align-items-center' },
+          React.createElement('div', { className: 'col' },
+            React.createElement('h1', { className: 'h2 fw-bold mb-0' }, 'Blog Posts Management'),
+            React.createElement('p', { className: 'mb-0 opacity-75' }, `Managing ${posts.length} posts`)
+          ),
+          React.createElement('div', { className: 'col-auto' },
+            React.createElement('button', {
+              className: 'btn btn-outline-light me-2',
+              onClick: () => navigateTo('/admin')
+            }, 'Back to Dashboard'),
+            React.createElement('button', {
+              className: 'btn btn-light',
+              onClick: () => navigateTo('/admin/posts/new')
+            }, 'Create New Post')
+          )
+        )
+      )
+    ),
+
+    React.createElement('div', { className: 'container mt-4' },
+      loading ? React.createElement('div', { className: 'text-center py-5' },
+        React.createElement('div', { className: 'spinner-border text-primary' }),
+        React.createElement('p', { className: 'mt-3' }, 'Loading posts...')
+      ) : posts.length === 0 ? React.createElement('div', { className: 'text-center py-5' },
+        React.createElement('h3', null, 'No Posts Yet'),
+        React.createElement('p', { className: 'text-muted' }, 'Create your first blog post to get started.'),
+        React.createElement('button', {
+          className: 'btn btn-primary',
+          onClick: () => navigateTo('/admin/posts/new')
+        }, 'Create First Post')
+      ) : React.createElement('div', { className: 'row' },
+        posts.map(post => 
+          React.createElement('div', { key: post.id, className: 'col-lg-6 mb-4' },
+            React.createElement('div', { className: 'card border-0 shadow-sm h-100' },
+              post.featuredImage && React.createElement('img', {
+                src: post.featuredImage,
+                className: 'card-img-top',
+                style: { height: '200px', objectFit: 'cover' }
+              }),
+              React.createElement('div', { className: 'card-body' },
+                React.createElement('div', { className: 'd-flex justify-content-between align-items-start mb-2' },
+                  React.createElement('span', {
+                    className: `badge ${post.status === 'published' ? 'bg-success' : 'bg-warning'}`
+                  }, post.status),
+                  React.createElement('small', { className: 'text-muted' },
+                    new Date(post.createdAt).toLocaleDateString()
+                  )
+                ),
+                React.createElement('h5', { className: 'card-title' }, post.title),
+                React.createElement('p', { className: 'card-text text-muted' },
+                  post.excerpt || (post.content ? post.content.replace(/<[^>]*>/g, '').substring(0, 100) + '...' : 'No content')
+                ),
+                React.createElement('div', { className: 'mt-3' },
+                  React.createElement('div', { className: 'btn-group w-100' },
+                    React.createElement('button', {
+                      className: 'btn btn-outline-primary',
+                      onClick: () => navigateTo(`/admin/posts/edit/${post.id}`)
+                    }, 'Edit'),
+                    React.createElement('button', {
+                      className: 'btn btn-outline-danger',
+                      onClick: () => setDeletePostId(post.id)
+                    }, 'Delete')
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    ),
+
+    // Delete Confirmation Modal
+    deletePostId && React.createElement('div', {
+      className: 'modal fade show',
+      style: { display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }
+    },
+      React.createElement('div', { className: 'modal-dialog' },
+        React.createElement('div', { className: 'modal-content' },
+          React.createElement('div', { className: 'modal-header' },
+            React.createElement('h5', { className: 'modal-title' }, 'Confirm Delete'),
+            React.createElement('button', {
+              type: 'button',
+              className: 'btn-close',
+              onClick: () => setDeletePostId(null)
+            })
+          ),
+          React.createElement('div', { className: 'modal-body' },
+            React.createElement('p', null, 'Are you sure you want to delete this post? This action cannot be undone.')
+          ),
+          React.createElement('div', { className: 'modal-footer' },
+            React.createElement('button', {
+              className: 'btn btn-secondary',
+              onClick: () => setDeletePostId(null)
+            }, 'Cancel'),
+            React.createElement('button', {
+              className: 'btn btn-danger',
+              onClick: () => deletePost(deletePostId)
+            }, 'Delete Post')
+          )
+        )
+      )
+    )
+  );
+};
+
+// Admin Users Manager
+const AdminUsersManager = () => {
+  const { user: currentUser } = useAuth();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      const response = await fetch('/api/users', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleUserApproval = async (userId, currentStatus) => {
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approved: !currentStatus }),
+        credentials: 'include'
+      });
+      if (response.ok) {
+        setUsers(users.map(u => 
+          u.id === userId ? { ...u, approved: !currentStatus } : u
+        ));
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
+  };
+
+  const toggleAdminStatus = async (userId, currentStatus) => {
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAdmin: !currentStatus }),
+        credentials: 'include'
+      });
+      if (response.ok) {
+        setUsers(users.map(u => 
+          u.id === userId ? { ...u, isAdmin: !currentStatus } : u
+        ));
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
+  };
+
+  const navigateTo = (path) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  return React.createElement('div', { style: { backgroundColor: '#f8f9fa', minHeight: '100vh' } },
+    // Header
+    React.createElement('div', {
+      style: { 
+        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', 
+        color: 'white',
+        padding: '30px 0'
+      }
+    },
+      React.createElement('div', { className: 'container' },
+        React.createElement('div', { className: 'row align-items-center' },
+          React.createElement('div', { className: 'col' },
+            React.createElement('h1', { className: 'h2 fw-bold mb-0' }, 'User Management'),
+            React.createElement('p', { className: 'mb-0 opacity-75' }, `Managing ${users.length} users`)
+          ),
+          React.createElement('div', { className: 'col-auto' },
+            React.createElement('button', {
+              className: 'btn btn-outline-light',
+              onClick: () => navigateTo('/admin')
+            }, 'Back to Dashboard')
+          )
+        )
+      )
+    ),
+
+    React.createElement('div', { className: 'container mt-4' },
+      loading ? React.createElement('div', { className: 'text-center py-5' },
+        React.createElement('div', { className: 'spinner-border text-primary' }),
+        React.createElement('p', { className: 'mt-3' }, 'Loading users...')
+      ) : React.createElement('div', { className: 'card border-0 shadow-sm' },
+        React.createElement('div', { className: 'card-body p-0' },
+          React.createElement('div', { className: 'table-responsive' },
+            React.createElement('table', { className: 'table table-hover mb-0' },
+              React.createElement('thead', { className: 'table-light' },
+                React.createElement('tr', null,
+                  React.createElement('th', null, 'User'),
+                  React.createElement('th', null, 'Email'),
+                  React.createElement('th', null, 'Status'),
+                  React.createElement('th', null, 'Role'),
+                  React.createElement('th', null, 'Joined'),
+                  React.createElement('th', null, 'Actions')
+                )
+              ),
+              React.createElement('tbody', null,
+                users.map(user => 
+                  React.createElement('tr', { key: user.id },
+                    React.createElement('td', null,
+                      React.createElement('div', { className: 'd-flex align-items-center' },
+                        React.createElement('div', {
+                          className: 'rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3',
+                          style: { width: '40px', height: '40px', fontSize: '16px' }
+                        }, (user.name || user.email).charAt(0).toUpperCase()),
+                        React.createElement('div', null,
+                          React.createElement('div', { className: 'fw-medium' }, user.name || 'No name'),
+                          React.createElement('small', { className: 'text-muted' }, user.username)
+                        )
+                      )
+                    ),
+                    React.createElement('td', null, user.email),
+                    React.createElement('td', null,
+                      React.createElement('span', {
+                        className: `badge ${user.approved ? 'bg-success' : 'bg-warning'}`
+                      }, user.approved ? 'Approved' : 'Pending')
+                    ),
+                    React.createElement('td', null,
+                      React.createElement('span', {
+                        className: `badge ${user.isAdmin ? 'bg-primary' : 'bg-secondary'}`
+                      }, user.isAdmin ? 'Admin' : 'User')
+                    ),
+                    React.createElement('td', null,
+                      React.createElement('small', { className: 'text-muted' },
+                        new Date(user.createdAt).toLocaleDateString()
+                      )
+                    ),
+                    React.createElement('td', null,
+                      React.createElement('div', { className: 'btn-group btn-group-sm' },
+                        React.createElement('button', {
+                          className: `btn btn-outline-${user.approved ? 'warning' : 'success'}`,
+                          onClick: () => toggleUserApproval(user.id, user.approved),
+                          disabled: user.id === currentUser?.id
+                        }, user.approved ? 'Unapprove' : 'Approve'),
+                        React.createElement('button', {
+                          className: `btn btn-outline-${user.isAdmin ? 'secondary' : 'primary'}`,
+                          onClick: () => toggleAdminStatus(user.id, user.isAdmin),
+                          disabled: user.id === currentUser?.id
+                        }, user.isAdmin ? 'Remove Admin' : 'Make Admin')
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+};
+
+// Admin Comments Manager
+const AdminCommentsManager = () => {
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadComments();
+  }, []);
+
+  const loadComments = async () => {
+    try {
+      const response = await fetch('/api/comments', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setComments(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleCommentApproval = async (commentId, currentStatus) => {
+    try {
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: currentStatus === 'approved' ? 'pending' : 'approved' }),
+        credentials: 'include'
+      });
+      if (response.ok) {
+        setComments(comments.map(c => 
+          c.id === commentId ? { ...c, status: currentStatus === 'approved' ? 'pending' : 'approved' } : c
+        ));
+      }
+    } catch (error) {
+      console.error('Error updating comment:', error);
+    }
+  };
+
+  const deleteComment = async (commentId) => {
+    try {
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (response.ok) {
+        setComments(comments.filter(c => c.id !== commentId));
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    }
+  };
+
+  const navigateTo = (path) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  return React.createElement('div', { style: { backgroundColor: '#f8f9fa', minHeight: '100vh' } },
+    // Header
+    React.createElement('div', {
+      style: { 
+        background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', 
+        color: 'white',
+        padding: '30px 0'
+      }
+    },
+      React.createElement('div', { className: 'container' },
+        React.createElement('div', { className: 'row align-items-center' },
+          React.createElement('div', { className: 'col' },
+            React.createElement('h1', { className: 'h2 fw-bold mb-0' }, 'Comments Management'),
+            React.createElement('p', { className: 'mb-0 opacity-75' }, `Managing ${comments.length} comments`)
+          ),
+          React.createElement('div', { className: 'col-auto' },
+            React.createElement('button', {
+              className: 'btn btn-outline-light',
+              onClick: () => navigateTo('/admin')
+            }, 'Back to Dashboard')
+          )
+        )
+      )
+    ),
+
+    React.createElement('div', { className: 'container mt-4' },
+      loading ? React.createElement('div', { className: 'text-center py-5' },
+        React.createElement('div', { className: 'spinner-border text-primary' }),
+        React.createElement('p', { className: 'mt-3' }, 'Loading comments...')
+      ) : comments.length === 0 ? React.createElement('div', { className: 'text-center py-5' },
+        React.createElement('h3', null, 'No Comments Yet'),
+        React.createElement('p', { className: 'text-muted' }, 'Comments will appear here when users start discussing your posts.')
+      ) : React.createElement('div', { className: 'row' },
+        comments.map(comment => 
+          React.createElement('div', { key: comment.id, className: 'col-12 mb-3' },
+            React.createElement('div', { className: 'card border-0 shadow-sm' },
+              React.createElement('div', { className: 'card-body' },
+                React.createElement('div', { className: 'd-flex justify-content-between align-items-start mb-3' },
+                  React.createElement('div', null,
+                    React.createElement('h6', { className: 'mb-1' }, comment.authorName || 'Anonymous'),
+                    React.createElement('small', { className: 'text-muted' },
+                      `on "${comment.postTitle}" • ${new Date(comment.createdAt).toLocaleDateString()}`
+                    )
+                  ),
+                  React.createElement('span', {
+                    className: `badge ${comment.status === 'approved' ? 'bg-success' : 'bg-warning'}`
+                  }, comment.status || 'pending')
+                ),
+                React.createElement('p', { className: 'mb-3' }, comment.content),
+                React.createElement('div', { className: 'btn-group btn-group-sm' },
+                  React.createElement('button', {
+                    className: `btn btn-outline-${comment.status === 'approved' ? 'warning' : 'success'}`,
+                    onClick: () => toggleCommentApproval(comment.id, comment.status)
+                  }, comment.status === 'approved' ? 'Unapprove' : 'Approve'),
+                  React.createElement('button', {
+                    className: 'btn btn-outline-danger',
+                    onClick: () => deleteComment(comment.id)
+                  }, 'Delete')
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+};
+
+// Admin Categories Manager
+const AdminCategoriesManager = () => {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [formData, setFormData] = useState({ name: '', description: '' });
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const response = await fetch('/api/categories', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveCategory = async () => {
+    try {
+      const url = editingCategory ? `/api/categories/${editingCategory.id}` : '/api/categories';
+      const method = editingCategory ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const savedCategory = await response.json();
+        if (editingCategory) {
+          setCategories(categories.map(c => c.id === editingCategory.id ? savedCategory : c));
+        } else {
+          setCategories([...categories, savedCategory]);
+        }
+        setShowModal(false);
+        setEditingCategory(null);
+        setFormData({ name: '', description: '' });
+      }
+    } catch (error) {
+      console.error('Error saving category:', error);
+    }
+  };
+
+  const deleteCategory = async (categoryId) => {
+    try {
+      const response = await fetch(`/api/categories/${categoryId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (response.ok) {
+        setCategories(categories.filter(c => c.id !== categoryId));
+      }
+    } catch (error) {
+      console.error('Error deleting category:', error);
+    }
+  };
+
+  const handleEdit = (category) => {
+    setEditingCategory(category);
+    setFormData({ name: category.name, description: category.description || '' });
+    setShowModal(true);
+  };
+
+  const handleAdd = () => {
+    setEditingCategory(null);
+    setFormData({ name: '', description: '' });
+    setShowModal(true);
+  };
+
+  const navigateTo = (path) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  return React.createElement('div', { style: { backgroundColor: '#f8f9fa', minHeight: '100vh' } },
+    // Header
+    React.createElement('div', {
+      style: { 
+        background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', 
+        color: 'white',
+        padding: '30px 0'
+      }
+    },
+      React.createElement('div', { className: 'container' },
+        React.createElement('div', { className: 'row align-items-center' },
+          React.createElement('div', { className: 'col' },
+            React.createElement('h1', { className: 'h2 fw-bold mb-0' }, 'Categories Management'),
+            React.createElement('p', { className: 'mb-0 opacity-75' }, `Managing ${categories.length} categories`)
+          ),
+          React.createElement('div', { className: 'col-auto' },
+            React.createElement('button', {
+              className: 'btn btn-outline-light me-2',
+              onClick: () => navigateTo('/admin')
+            }, 'Back to Dashboard'),
+            React.createElement('button', {
+              className: 'btn btn-light',
+              onClick: handleAdd
+            }, 'Add Category')
+          )
+        )
+      )
+    ),
+
+    React.createElement('div', { className: 'container mt-4' },
+      loading ? React.createElement('div', { className: 'text-center py-5' },
+        React.createElement('div', { className: 'spinner-border text-primary' }),
+        React.createElement('p', { className: 'mt-3' }, 'Loading categories...')
+      ) : categories.length === 0 ? React.createElement('div', { className: 'text-center py-5' },
+        React.createElement('h3', null, 'No Categories Yet'),
+        React.createElement('p', { className: 'text-muted' }, 'Create categories to organize your blog posts.'),
+        React.createElement('button', {
+          className: 'btn btn-primary',
+          onClick: handleAdd
+        }, 'Create First Category')
+      ) : React.createElement('div', { className: 'row' },
+        categories.map(category => 
+          React.createElement('div', { key: category.id, className: 'col-lg-4 col-md-6 mb-4' },
+            React.createElement('div', { className: 'card border-0 shadow-sm h-100' },
+              React.createElement('div', { className: 'card-body' },
+                React.createElement('h5', { className: 'card-title' }, category.name),
+                React.createElement('p', { className: 'card-text text-muted' },
+                  category.description || 'No description provided'
+                ),
+                React.createElement('div', { className: 'text-muted small mb-3' },
+                  `${category.postCount || 0} posts`
+                ),
+                React.createElement('div', { className: 'btn-group w-100' },
+                  React.createElement('button', {
+                    className: 'btn btn-outline-primary',
+                    onClick: () => handleEdit(category)
+                  }, 'Edit'),
+                  React.createElement('button', {
+                    className: 'btn btn-outline-danger',
+                    onClick: () => deleteCategory(category.id)
+                  }, 'Delete')
+                )
+              )
+            )
+          )
+        )
+      )
+    ),
+
+    // Category Modal
+    showModal && React.createElement('div', {
+      className: 'modal fade show',
+      style: { display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }
+    },
+      React.createElement('div', { className: 'modal-dialog' },
+        React.createElement('div', { className: 'modal-content' },
+          React.createElement('div', { className: 'modal-header' },
+            React.createElement('h5', { className: 'modal-title' },
+              editingCategory ? 'Edit Category' : 'Add Category'
+            ),
+            React.createElement('button', {
+              type: 'button',
+              className: 'btn-close',
+              onClick: () => setShowModal(false)
+            })
+          ),
+          React.createElement('div', { className: 'modal-body' },
+            React.createElement('div', { className: 'mb-3' },
+              React.createElement('label', { className: 'form-label' }, 'Category Name'),
+              React.createElement('input', {
+                type: 'text',
+                className: 'form-control',
+                value: formData.name,
+                onChange: (e) => setFormData({ ...formData, name: e.target.value }),
+                placeholder: 'Enter category name'
+              })
+            ),
+            React.createElement('div', { className: 'mb-3' },
+              React.createElement('label', { className: 'form-label' }, 'Description'),
+              React.createElement('textarea', {
+                className: 'form-control',
+                rows: 3,
+                value: formData.description,
+                onChange: (e) => setFormData({ ...formData, description: e.target.value }),
+                placeholder: 'Enter category description (optional)'
+              })
+            )
+          ),
+          React.createElement('div', { className: 'modal-footer' },
+            React.createElement('button', {
+              className: 'btn btn-secondary',
+              onClick: () => setShowModal(false)
+            }, 'Cancel'),
+            React.createElement('button', {
+              className: 'btn btn-primary',
+              onClick: saveCategory,
+              disabled: !formData.name.trim()
+            }, editingCategory ? 'Update Category' : 'Create Category')
+          )
+        )
+      )
+    )
+  );
+};
+
+// Admin Post Editor
+const AdminPostEditor = ({ postId }) => {
+  const [post, setPost] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(!!postId);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    content: '',
+    excerpt: '',
+    categoryId: '',
+    status: 'draft',
+    featuredImage: ''
+  });
+
+  useEffect(() => {
+    loadCategories();
+    if (postId) {
+      loadPost();
+    }
+  }, [postId]);
+
+  const loadPost = async () => {
+    try {
+      const response = await fetch(`/api/posts/${postId}`, { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setPost(data);
+        setFormData({
+          title: data.title || '',
+          content: data.content || '',
+          excerpt: data.excerpt || '',
+          categoryId: data.categoryId || '',
+          status: data.status || 'draft',
+          featuredImage: data.featuredImage || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error loading post:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const response = await fetch('/api/categories', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
+
+  const savePost = async () => {
+    setSaving(true);
+    try {
+      const url = postId ? `/api/posts/${postId}` : '/api/posts';
+      const method = postId ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const savedPost = await response.json();
+        // Navigate back to posts list
+        window.history.pushState({}, '', '/admin/posts');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+    } catch (error) {
+      console.error('Error saving post:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const navigateTo = (path) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  if (loading) {
+    return React.createElement('div', { 
+      className: 'd-flex justify-content-center align-items-center',
+      style: { minHeight: '100vh' }
+    },
+      React.createElement('div', { className: 'text-center' },
+        React.createElement('div', { className: 'spinner-border text-primary' }),
+        React.createElement('p', { className: 'mt-3' }, 'Loading post...')
+      )
+    );
+  }
+
+  return React.createElement('div', { style: { backgroundColor: '#f8f9fa', minHeight: '100vh' } },
+    // Header
+    React.createElement('div', {
+      style: { 
+        background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', 
+        color: 'white',
+        padding: '30px 0'
+      }
+    },
+      React.createElement('div', { className: 'container' },
+        React.createElement('div', { className: 'row align-items-center' },
+          React.createElement('div', { className: 'col' },
+            React.createElement('h1', { className: 'h2 fw-bold mb-0' },
+              postId ? 'Edit Post' : 'Create New Post'
+            ),
+            React.createElement('p', { className: 'mb-0 opacity-75' },
+              postId ? `Editing: ${formData.title || 'Untitled'}` : 'Write your next blog post'
+            )
+          ),
+          React.createElement('div', { className: 'col-auto' },
+            React.createElement('button', {
+              className: 'btn btn-outline-light me-2',
+              onClick: () => navigateTo('/admin/posts')
+            }, 'Back to Posts'),
+            React.createElement('button', {
+              className: 'btn btn-light',
+              onClick: savePost,
+              disabled: saving || !formData.title.trim()
+            }, saving ? 'Saving...' : 'Save Post')
+          )
+        )
+      )
+    ),
+
+    React.createElement('div', { className: 'container mt-4' },
+      React.createElement('div', { className: 'row' },
+        React.createElement('div', { className: 'col-lg-8' },
+          React.createElement('div', { className: 'card border-0 shadow-sm mb-4' },
+            React.createElement('div', { className: 'card-body' },
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label fw-bold' }, 'Post Title'),
+                React.createElement('input', {
+                  type: 'text',
+                  className: 'form-control form-control-lg',
+                  value: formData.title,
+                  onChange: (e) => setFormData({ ...formData, title: e.target.value }),
+                  placeholder: 'Enter an engaging title for your post'
+                })
+              ),
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label fw-bold' }, 'Content'),
+                React.createElement('textarea', {
+                  className: 'form-control',
+                  rows: 15,
+                  value: formData.content,
+                  onChange: (e) => setFormData({ ...formData, content: e.target.value }),
+                  placeholder: 'Write your post content here...'
+                })
+              )
+            )
+          )
+        ),
+        React.createElement('div', { className: 'col-lg-4' },
+          React.createElement('div', { className: 'card border-0 shadow-sm mb-4' },
+            React.createElement('div', { className: 'card-header bg-light' },
+              React.createElement('h6', { className: 'mb-0 fw-bold' }, 'Post Settings')
+            ),
+            React.createElement('div', { className: 'card-body' },
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label' }, 'Status'),
+                React.createElement('select', {
+                  className: 'form-select',
+                  value: formData.status,
+                  onChange: (e) => setFormData({ ...formData, status: e.target.value })
+                },
+                  React.createElement('option', { value: 'draft' }, 'Draft'),
+                  React.createElement('option', { value: 'published' }, 'Published')
+                )
+              ),
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label' }, 'Category'),
+                React.createElement('select', {
+                  className: 'form-select',
+                  value: formData.categoryId,
+                  onChange: (e) => setFormData({ ...formData, categoryId: e.target.value })
+                },
+                  React.createElement('option', { value: '' }, 'Select category'),
+                  categories.map(cat => 
+                    React.createElement('option', { key: cat.id, value: cat.id }, cat.name)
+                  )
+                )
+              ),
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label' }, 'Excerpt'),
+                React.createElement('textarea', {
+                  className: 'form-control',
+                  rows: 3,
+                  value: formData.excerpt,
+                  onChange: (e) => setFormData({ ...formData, excerpt: e.target.value }),
+                  placeholder: 'Brief description for preview'
+                })
+              ),
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label' }, 'Featured Image URL'),
+                React.createElement('input', {
+                  type: 'url',
+                  className: 'form-control',
+                  value: formData.featuredImage,
+                  onChange: (e) => setFormData({ ...formData, featuredImage: e.target.value }),
+                  placeholder: 'https://example.com/image.jpg'
+                })
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+};
+
+// Admin SEO Manager
+const AdminSEOManager = () => {
+  const navigateTo = (path) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  return React.createElement('div', { style: { backgroundColor: '#f8f9fa', minHeight: '100vh' } },
+    // Header
+    React.createElement('div', {
+      style: { 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+        color: 'white',
+        padding: '30px 0'
+      }
+    },
+      React.createElement('div', { className: 'container' },
+        React.createElement('div', { className: 'row align-items-center' },
+          React.createElement('div', { className: 'col' },
+            React.createElement('h1', { className: 'h2 fw-bold mb-0' }, 'SEO Management'),
+            React.createElement('p', { className: 'mb-0 opacity-75' }, 'Optimize your blog for search engines')
+          ),
+          React.createElement('div', { className: 'col-auto' },
+            React.createElement('button', {
+              className: 'btn btn-outline-light',
+              onClick: () => navigateTo('/admin')
+            }, 'Back to Dashboard')
+          )
+        )
+      )
+    ),
+
+    React.createElement('div', { className: 'container mt-4' },
+      React.createElement('div', { className: 'alert alert-info' },
+        React.createElement('h5', { className: 'alert-heading' }, 'SEO Tools Coming Soon'),
+        React.createElement('p', { className: 'mb-0' }, 
+          'Advanced SEO management tools including meta tag optimization, structured data, and analytics will be available here.'
         )
       )
     )
