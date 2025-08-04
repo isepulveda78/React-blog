@@ -1,5 +1,29 @@
 import bcrypt from "bcryptjs";
 import { storage } from "./storage.js";
+import { v2 as cloudinary } from 'cloudinary';
+import multer from 'multer';
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
 
 export function registerRoutes(app) {
   // Authentication routes
@@ -402,6 +426,85 @@ export function registerRoutes(app) {
     } catch (error) {
       console.error("Error deleting comment:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Image upload endpoint
+  app.post('/api/upload/image', upload.single('image'), async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'No image file provided' });
+      }
+
+      // Check if Cloudinary is configured
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        return res.status(500).json({ 
+          message: 'Cloudinary not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.' 
+        });
+      }
+
+      // Upload to Cloudinary
+      const uploadPromise = new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'image',
+            folder: 'blog-images',
+            transformation: [
+              { width: 1200, height: 800, crop: 'limit' },
+              { quality: 'auto' },
+              { fetch_format: 'auto' }
+            ]
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(req.file.buffer);
+      });
+
+      const result = await uploadPromise;
+      
+      res.json({
+        url: result.secure_url,
+        publicId: result.public_id,
+        width: result.width,
+        height: result.height,
+        format: result.format,
+        size: result.bytes
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      res.status(500).json({ message: 'Failed to upload image' });
+    }
+  });
+
+  // Delete image endpoint
+  app.delete('/api/upload/image/:publicId', async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { publicId } = req.params;
+      const decodedPublicId = decodeURIComponent(publicId);
+      
+      // Delete from Cloudinary
+      const result = await cloudinary.uploader.destroy(decodedPublicId);
+      
+      if (result.result === 'ok') {
+        res.json({ message: 'Image deleted successfully' });
+      } else {
+        res.status(404).json({ message: 'Image not found' });
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      res.status(500).json({ message: 'Failed to delete image' });
     }
   });
 }

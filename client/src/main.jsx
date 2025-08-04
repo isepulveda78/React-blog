@@ -64,6 +64,7 @@ const BlogPostEditor = ({ user, onBack }) => {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
   const [success, setSuccess] = React.useState('');
+  const [uploadingImage, setUploadingImage] = React.useState(false);
 
   React.useEffect(() => {
     fetch('/api/categories', { credentials: 'include' })
@@ -137,6 +138,43 @@ const BlogPostEditor = ({ user, onBack }) => {
     }
   };
 
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload image');
+      }
+
+      const imageData = await response.json();
+      
+      // Insert image HTML at cursor position in content
+      const imageHtml = `<img src="${imageData.url}" alt="Blog image" style="max-width: 100%; height: auto; margin: 10px 0;" />`;
+      setContent(prevContent => prevContent + '\n\n' + imageHtml + '\n\n');
+      
+      setSuccess('Image uploaded successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   return React.createElement('div', null,
     React.createElement('div', { className: 'mb-3' },
       React.createElement('button', { 
@@ -192,6 +230,19 @@ const BlogPostEditor = ({ user, onBack }) => {
               placeholder: 'Write your blog post content here. You can use HTML tags for formatting...',
               required: true
             })
+          ),
+          React.createElement('div', { className: 'mb-3' },
+            React.createElement('label', { className: 'form-label' }, 'Add Image'),
+            React.createElement('input', {
+              type: 'file',
+              className: 'form-control',
+              accept: 'image/*',
+              onChange: handleImageUpload,
+              disabled: uploadingImage
+            }),
+            React.createElement('small', { className: 'form-text text-muted' }, 
+              uploadingImage ? 'Uploading image...' : 'Upload an image to insert into your blog post content'
+            )
           )
         ),
         React.createElement('div', { className: 'col-md-4' },
