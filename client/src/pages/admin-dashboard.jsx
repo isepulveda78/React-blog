@@ -30,9 +30,9 @@ function AdminSidebar() {
             </Link>
           </li>
           <li className="mb-2">
-            <a href="/seo-management" target="_blank" className="text-light text-decoration-none d-block p-2 rounded">
+            <Link href="/admin/seo" className="text-light text-decoration-none d-block p-2 rounded">
               🔍 SEO Management
-            </a>
+            </Link>
           </li>
           <li className="mb-2">
             <Link href="/admin/users" className="text-light text-decoration-none d-block p-2 rounded">
@@ -51,25 +51,32 @@ function AdminSidebar() {
 }
 
 export default function AdminDashboard() {
-  const { user, isAdmin, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   
-  console.log('Dashboard auth state:', { user: user ? {email: user.email, isAdmin: user.isAdmin} : null, isAdmin, isLoading });
-  console.log('Dashboard rendered for user:', user?.email, 'isAdmin:', isAdmin);
+  console.log('Admin Dashboard loading, user:', user?.email);
 
-  // Skip data fetching and just render the dashboard
-  const posts = [];
-  const categories = [];
-  const comments = [];
-  const users = [];
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-3">Loading admin dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Always render the dashboard - no auth or data loading blocks
-  console.log('Dashboard force rendering with SEO button');
-
+  // Simple stats for now - can be enhanced later with real data
   const totalPosts = 0;
   const publishedPosts = 0;
   const draftPosts = 0;
   const pendingComments = 0;
   const pendingUsers = 0;
+  const posts = [];
+  const categories = [];
+  const users = [];
 
   return (
     <div className="d-flex">
@@ -77,22 +84,21 @@ export default function AdminDashboard() {
       
       <div className="flex-grow-1">
         {/* Header */}
-        <div className="p-4" style={{ background: 'var(--primary-gradient)', color: 'white' }}>
+        <div className="p-4" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
           <h1 className="h2 mb-2 fw-bold">Admin Dashboard</h1>
-          <p className="mb-0" style={{ opacity: 0.9 }}>Welcome to your blog administration panel</p>
+          <p className="mb-0" style={{ opacity: 0.9 }}>Welcome to your blog administration panel - {user?.name || user?.email}</p>
         </div>
 
         <Container fluid className="p-4">
           {/* Stats Cards */}
           <Row className="mb-4">
             <Col lg={3} md={6} className="mb-3">
-              <div className="stats-card">
-                <div className="text-center mb-3">
-                  <i className="bi bi-file-text" style={{ fontSize: '2.5rem', color: '#667eea' }}></i>
-                </div>
-                <div className="stats-number">{totalPosts}</div>
-                <h6>Total Posts</h6>
-              </div>
+              <Card className="bg-primary text-white">
+                <Card.Body>
+                  <h3 className="mb-0">{totalPosts}</h3>
+                  <p className="mb-0">Total Posts</p>
+                </Card.Body>
+              </Card>
             </Col>
             <Col lg={3} md={6} className="mb-3">
               <Card className="bg-success text-white">
@@ -219,7 +225,7 @@ export default function AdminDashboard() {
                         ⚡ Admin Quick Access
                       </Button>
                     </a>
-                    <a href="/seo-management" target="_blank">
+                    <Link href="/admin/seo">
                       <Button 
                         variant="warning" 
                         className="w-100" 
@@ -234,7 +240,7 @@ export default function AdminDashboard() {
                       >
                         🔍 SEO Management System
                       </Button>
-                    </a>
+                    </Link>
                     <Link href="/admin/categories">
                       <Button variant="outline-primary" className="w-100">
                         🏷️ Manage Categories
