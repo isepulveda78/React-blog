@@ -18,6 +18,7 @@ class MemStorage {
   async getUserById(id) { return this.users.find(u => u.id === id); }
   async getUserByEmail(email) { return this.users.find(u => u.email === email); }
   async getUserByUsername(username) { return this.users.find(u => u.username === username); }
+  async getUserByGoogleId(googleId) { return this.users.find(u => u.googleId === googleId); }
   async createUser(userData) {
     const user = { id: nanoid(), ...userData, createdAt: new Date().toISOString() };
     this.users.push(user);
@@ -28,6 +29,13 @@ class MemStorage {
     const index = this.users.findIndex(u => u.id === userId);
     if (index === -1) return null;
     this.users[index] = { ...this.users[index], isAdmin };
+    return this.users[index];
+  }
+
+  async linkGoogleAccount(userId, googleId) {
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return null;
+    this.users[index] = { ...this.users[index], googleId };
     return this.users[index];
   }
 
@@ -675,6 +683,11 @@ export class MongoStorage {
     return await this.db.collection('users').findOne({ username });
   }
 
+  async getUserByGoogleId(googleId) {
+    await this.connect();
+    return await this.db.collection('users').findOne({ googleId });
+  }
+
   async createUser(userData) {
     await this.connect();
     const user = {
@@ -701,6 +714,16 @@ export class MongoStorage {
     const result = await this.db.collection('users').findOneAndUpdate(
       { id: userId },
       { $set: { approved } },
+      { returnDocument: 'after' }
+    );
+    return result.value;
+  }
+
+  async linkGoogleAccount(userId, googleId) {
+    await this.connect();
+    const result = await this.db.collection('users').findOneAndUpdate(
+      { id: userId },
+      { $set: { googleId } },
       { returnDocument: 'after' }
     );
     return result.value;

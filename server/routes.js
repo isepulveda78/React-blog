@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import { storage } from "./storage.js";
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -25,7 +27,86 @@ const upload = multer({
   }
 });
 
+// Configure Google OAuth Strategy
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: "/api/auth/google/callback"
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    // Check if user exists with this Google ID
+    let user = await storage.getUserByGoogleId(profile.id);
+    
+    if (user) {
+      return done(null, user);
+    }
+
+    // Check if user exists with this email
+    user = await storage.getUserByEmail(profile.emails[0].value);
+    
+    if (user) {
+      // Link Google account to existing user
+      await storage.linkGoogleAccount(user.id, profile.id);
+      return done(null, user);
+    }
+
+    // Create new user with Google account
+    const newUser = await storage.createUser({
+      email: profile.emails[0].value,
+      username: profile.emails[0].value.split('@')[0] + '_google',
+      name: profile.displayName,
+      googleId: profile.id,
+      isAdmin: false,
+      approved: false  // New users start as unapproved
+    });
+
+    return done(null, newUser);
+  } catch (error) {
+    return done(error, null);
+  }
+}));
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await storage.getUserById(id);
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
+});
+
 export function registerRoutes(app) {
+  // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Google OAuth routes
+  app.get('/api/auth/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
+
+  app.get('/api/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/' }),
+    async (req, res) => {
+      // Check if user is approved
+      if (!req.user.approved) {
+        // Don't set session for unapproved users
+        req.logout((err) => {
+          if (err) console.error('Logout error:', err);
+        });
+        return res.redirect('/?message=pending-approval');
+      }
+      
+      // Set session for approved users
+      req.session.user = req.user;
+      res.redirect('/');
+    }
+  );
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
