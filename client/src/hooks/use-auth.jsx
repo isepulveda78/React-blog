@@ -7,12 +7,34 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    // Check server-side session first, then fall back to localStorage
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('/api/auth/user', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+          localStorage.setItem('user', JSON.stringify(userData));
+        } else {
+          // Server says not authenticated, clear local storage
+          localStorage.removeItem('user');
+          setUser(null);
+        }
+      } catch (error) {
+        // Network error, fall back to localStorage
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuthStatus();
   }, []);
 
   const login = async (credentials) => {

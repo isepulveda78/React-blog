@@ -164,6 +164,17 @@ export function registerRoutes(app) {
     }
   });
 
+  // Get current user endpoint
+  app.get("/api/auth/user", (req, res) => {
+    if (req.session.user) {
+      console.log('[auth] User session found:', req.session.user.email, 'isAdmin:', req.session.user.isAdmin);
+      res.json(req.session.user);
+    } else {
+      console.log('[auth] No user session found');
+      res.status(401).json({ message: "Not authenticated" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
