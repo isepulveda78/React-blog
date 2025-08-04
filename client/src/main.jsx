@@ -245,6 +245,8 @@ const Router = () => {
     return React.createElement(AdminUsers);
   } else if (currentPath === '/admin/comments') {
     return React.createElement(AdminComments);
+  } else if (currentPath.startsWith('/posts/')) {
+    return React.createElement(BlogPostReader);
   }
   
   return React.createElement(SimpleHome);
@@ -964,6 +966,276 @@ const AdminUsers = () => {
   );
 };
 
+// Blog Post Reading Component
+const BlogPostReader = () => {
+  const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [newComment, setNewComment] = useState('');
+  const [replyingTo, setReplyingTo] = useState(null);
+  const { user, logout } = useAuth();
+
+  // Get slug from URL
+  const slug = window.location.pathname.split('/posts/')[1];
+
+  useEffect(() => {
+    if (!slug) return;
+
+    // Load post content (authenticated endpoint)
+    fetch(`/api/posts/${slug}`, { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        setPost(data);
+        return fetch(`/api/posts/${data.id}/comments`, { credentials: 'include' });
+      })
+      .then(res => res.ok ? res.json() : [])
+      .then(commentsData => {
+        setComments(Array.isArray(commentsData) ? commentsData : []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error loading post:', err);
+        setError('Failed to load post: ' + err.message);
+        setLoading(false);
+      });
+  }, [slug]);
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          postId: post.id,
+          content: newComment.trim(),
+          parentId: replyingTo
+        })
+      });
+
+      if (response.ok) {
+        setNewComment('');
+        setReplyingTo(null);
+        // Refresh comments
+        const commentsRes = await fetch(`/api/posts/${post.id}/comments`, { credentials: 'include' });
+        if (commentsRes.ok) {
+          const commentsData = await commentsRes.json();
+          setComments(Array.isArray(commentsData) ? commentsData : []);
+        }
+      } else {
+        alert('Failed to post comment');
+      }
+    } catch (err) {
+      alert('Error posting comment');
+    }
+  };
+
+  if (loading) return React.createElement('div', { className: 'container mt-5' },
+    React.createElement('div', { className: 'text-center' },
+      React.createElement('div', { className: 'spinner-border' }, 
+        React.createElement('span', { className: 'visually-hidden' }, 'Loading...')
+      )
+    )
+  );
+
+  if (error) return React.createElement('div', { className: 'container mt-5' },
+    React.createElement('div', { className: 'alert alert-danger' }, error),
+    React.createElement('button', {
+      className: 'btn btn-primary',
+      onClick: () => {
+        window.history.pushState({}, '', '/');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+    }, 'Back to Home')
+  );
+
+  if (!post) return React.createElement('div', { className: 'container mt-5' },
+    React.createElement('div', { className: 'alert alert-warning' }, 'Post not found'),
+    React.createElement('button', {
+      className: 'btn btn-primary',
+      onClick: () => {
+        window.history.pushState({}, '', '/');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+    }, 'Back to Home')
+  );
+
+  return React.createElement('div', { className: 'min-vh-100', style: { backgroundColor: '#f8f9fa' } },
+    // Navigation
+    React.createElement('nav', { className: 'navbar navbar-expand-lg navbar-dark bg-primary' },
+      React.createElement('div', { className: 'container' },
+        React.createElement('a', { 
+          className: 'navbar-brand fw-bold',
+          href: '/',
+          onClick: (e) => {
+            e.preventDefault();
+            window.history.pushState({}, '', '/');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
+        }, 'BlogCraft'),
+        React.createElement('div', { className: 'navbar-nav ms-auto' },
+          React.createElement('div', { className: 'd-flex align-items-center' },
+            React.createElement('span', { className: 'text-light me-3' }, `Welcome, ${user.name}`),
+            user.isAdmin && React.createElement('button', {
+              className: 'btn btn-outline-light btn-sm me-2',
+              onClick: () => {
+                window.history.pushState({}, '', '/admin');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }
+            }, 'Dashboard'),
+            React.createElement('button', {
+              className: 'btn btn-outline-light btn-sm',
+              onClick: logout
+            }, 'Logout')
+          )
+        )
+      )
+    ),
+
+    // Post Content
+    React.createElement('div', { className: 'container mt-4' },
+      React.createElement('div', { className: 'row justify-content-center' },
+        React.createElement('div', { className: 'col-lg-8' },
+          
+          // Back button
+          React.createElement('div', { className: 'mb-3' },
+            React.createElement('button', {
+              className: 'btn btn-outline-secondary',
+              onClick: () => {
+                window.history.pushState({}, '', '/');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }
+            }, '← Back to Home')
+          ),
+
+          // Post header
+          React.createElement('div', { className: 'card mb-4' },
+            post.featuredImage && React.createElement('img', {
+              src: post.featuredImage,
+              className: 'card-img-top',
+              alt: post.title,
+              style: { height: '300px', objectFit: 'cover' }
+            }),
+            React.createElement('div', { className: 'card-body' },
+              React.createElement('div', { className: 'mb-3' },
+                post.categoryName && React.createElement('span', { className: 'badge bg-primary me-2' }, post.categoryName),
+                post.featured && React.createElement('span', { className: 'badge bg-warning' }, 'Featured')
+              ),
+              React.createElement('h1', { className: 'card-title mb-3' }, post.title),
+              React.createElement('div', { className: 'text-muted mb-3' },
+                React.createElement('small', null, 
+                  `By ${post.authorName} • ${new Date(post.publishedAt).toLocaleDateString()}`
+                )
+              ),
+              post.excerpt && React.createElement('p', { className: 'lead text-muted' }, post.excerpt)
+            )
+          ),
+
+          // Post content
+          React.createElement('div', { className: 'card mb-4' },
+            React.createElement('div', { 
+              className: 'card-body',
+              dangerouslySetInnerHTML: { __html: post.content }
+            })
+          ),
+
+          // Comments section
+          React.createElement('div', { className: 'card' },
+            React.createElement('div', { className: 'card-header' },
+              React.createElement('h5', { className: 'mb-0' }, `Comments (${comments.length})`)
+            ),
+            React.createElement('div', { className: 'card-body' },
+              
+              // Comment form
+              React.createElement('form', { onSubmit: handleCommentSubmit, className: 'mb-4' },
+                React.createElement('div', { className: 'mb-3' },
+                  React.createElement('label', { className: 'form-label' }, 
+                    replyingTo ? 'Reply to comment' : 'Leave a comment'
+                  ),
+                  React.createElement('textarea', {
+                    className: 'form-control',
+                    rows: 3,
+                    value: newComment,
+                    onChange: (e) => setNewComment(e.target.value),
+                    placeholder: 'Share your thoughts...'
+                  })
+                ),
+                React.createElement('div', { className: 'd-flex gap-2' },
+                  React.createElement('button', {
+                    type: 'submit',
+                    className: 'btn btn-primary'
+                  }, replyingTo ? 'Post Reply' : 'Post Comment'),
+                  replyingTo && React.createElement('button', {
+                    type: 'button',
+                    className: 'btn btn-secondary',
+                    onClick: () => setReplyingTo(null)
+                  }, 'Cancel Reply')
+                )
+              ),
+
+              // Comments list
+              comments.length === 0 ? React.createElement('p', { className: 'text-muted' }, 
+                'No comments yet. Be the first to share your thoughts!'
+              ) : React.createElement('div', null,
+                comments.map(comment => 
+                  React.createElement('div', { 
+                    key: comment.id,
+                    className: 'border-bottom pb-3 mb-3'
+                  },
+                    React.createElement('div', { className: 'mb-2' },
+                      React.createElement('strong', null, comment.authorName || 'Anonymous'),
+                      React.createElement('small', { className: 'text-muted ms-2' }, 
+                        new Date(comment.createdAt).toLocaleDateString()
+                      )
+                    ),
+                    React.createElement('p', { className: 'mb-2' }, comment.content),
+                    React.createElement('button', {
+                      className: 'btn btn-sm btn-outline-primary',
+                      onClick: () => {
+                        setReplyingTo(comment.id);
+                        document.querySelector('textarea').focus();
+                      }
+                    }, 'Reply'),
+                    
+                    // Show replies
+                    comment.replies && comment.replies.length > 0 && React.createElement('div', { 
+                      className: 'ms-4 mt-3' 
+                    },
+                      comment.replies.map(reply =>
+                        React.createElement('div', {
+                          key: reply.id,
+                          className: 'border-start border-3 border-light ps-3 mb-3'
+                        },
+                          React.createElement('div', { className: 'mb-1' },
+                            React.createElement('strong', null, reply.authorName || 'Anonymous'),
+                            React.createElement('small', { className: 'text-muted ms-2' }, 
+                              new Date(reply.createdAt).toLocaleDateString()
+                            )
+                          ),
+                          React.createElement('p', { className: 'mb-0' }, reply.content)
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+};
+
 // Admin Comments Management Component
 const AdminComments = () => {
   const [comments, setComments] = useState([]);
@@ -1341,8 +1613,9 @@ const SimpleHome = () => {
       // Show message for unapproved users
       alert('Your account is pending approval. Please wait for an administrator to approve your account before you can read blog posts.');
     } else {
-      // Approved users can access posts (for now just show an alert, later we can implement full post view)
-      alert(`You can now read: ${post.title}\n\n(Full post reading functionality will be implemented next)`);
+      // Approved users can access posts - navigate to post reading page
+      window.history.pushState({}, '', `/posts/${post.slug}`);
+      window.dispatchEvent(new PopStateEvent('popstate'));
     }
   };
 

@@ -607,6 +607,57 @@ export function registerRoutes(app) {
     }
   });
 
+  // Post new comment
+  app.post("/api/comments", async (req, res) => {
+    try {
+      // Check if user is authenticated and approved
+      if (!req.session.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      if (!req.session.user.approved) {
+        return res.status(403).json({ message: "Account approval required" });
+      }
+
+      const { postId, content, parentId } = req.body;
+
+      if (!postId || !content) {
+        return res.status(400).json({ message: "Post ID and content are required" });
+      }
+
+      const commentData = {
+        postId,
+        content: content.trim(),
+        parentId: parentId || null,
+        authorName: req.session.user.name,
+        authorEmail: req.session.user.email
+      };
+
+      const comment = await storage.createComment(commentData);
+      res.json(comment);
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get comments for a specific post
+  app.get("/api/posts/:postId/comments", async (req, res) => {
+    try {
+      // Check if user is authenticated and approved for comment access
+      if (!req.session.user?.approved) {
+        return res.status(403).json({ message: "Account approval required" });
+      }
+
+      const { postId } = req.params;
+      const comments = await storage.getCommentsByPostId(postId);
+      res.json(comments);
+    } catch (error) {
+      console.error("Error fetching post comments:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Comments routes
   app.get("/api/comments", async (req, res) => {
     try {
