@@ -98,6 +98,338 @@ const AuthProvider = ({ children }) => {
 
 const useAuth = () => useContext(AuthContext);
 
+// Blog Posts List Component with Pagination, Filtering, and Search
+const BlogPostsList = () => {
+  const { user } = useAuth();
+  const [posts, setPosts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [postsPerPage] = useState(6);
+  const [totalPosts, setTotalPosts] = useState(0);
+
+  // Load posts and categories
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [postsRes, categoriesRes] = await Promise.all([
+          fetch('/api/posts/public', { credentials: 'include' }),
+          fetch('/api/categories', { credentials: 'include' })
+        ]);
+
+        const postsData = postsRes.ok ? await postsRes.json() : [];
+        const categoriesData = categoriesRes.ok ? await categoriesRes.json() : [];
+
+        setPosts(Array.isArray(postsData) ? postsData : []);
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+        setTotalPosts(Array.isArray(postsData) ? postsData.length : 0);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setPosts([]);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // Filter posts based on search and category
+  const filteredPosts = posts.filter(post => {
+    const matchesSearch = !searchTerm || 
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (post.excerpt && post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesCategory = !selectedCategory || post.categoryName === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  // Pagination logic
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+
+  const handlePostClick = (post) => {
+    if (!user) {
+      alert('Please sign in to read blog posts.');
+      window.history.pushState({}, '', '/');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    } else if (!user.approved) {
+      alert('Your account is pending approval. Please wait for an administrator to approve your account before you can read blog posts.');
+    } else {
+      window.history.pushState({}, '', `/posts/${post.slug}`);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('');
+    setCurrentPage(1);
+  };
+
+  const navigateHome = () => {
+    window.history.pushState({}, '', '/');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  if (loading) {
+    return React.createElement('div', { 
+      className: 'd-flex justify-content-center align-items-center',
+      style: { minHeight: '100vh' }
+    },
+      React.createElement('div', { className: 'text-center' },
+        React.createElement('div', { className: 'spinner-border text-primary mb-3' }),
+        React.createElement('p', null, 'Loading blog posts...')
+      )
+    );
+  }
+
+  return React.createElement('div', { className: 'min-vh-100', style: { backgroundColor: '#f8f9fa' } },
+    // Navigation
+    React.createElement('nav', { 
+      className: 'navbar navbar-expand-lg',
+      style: { 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+      }
+    },
+      React.createElement('div', { className: 'container' },
+        React.createElement('a', { 
+          className: 'navbar-brand text-white fw-bold fs-3',
+          href: '#',
+          onClick: (e) => {
+            e.preventDefault();
+            navigateHome();
+          }
+        }, 'Mr. S Teaches'),
+        React.createElement('div', { className: 'navbar-nav ms-auto' },
+          React.createElement('button', {
+            className: 'btn btn-outline-light',
+            onClick: navigateHome
+          }, 'Back to Home')
+        )
+      )
+    ),
+
+    // Header Section
+    React.createElement('section', { 
+      className: 'py-5',
+      style: { 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white'
+      }
+    },
+      React.createElement('div', { className: 'container text-center' },
+        React.createElement('h1', { className: 'display-4 fw-bold mb-3' }, 'All Blog Posts'),
+        React.createElement('p', { className: 'lead mb-4' }, 
+          `Explore our collection of ${totalPosts} blog posts`
+        ),
+        React.createElement('div', { className: 'row justify-content-center' },
+          React.createElement('div', { className: 'col-md-8' },
+            React.createElement('div', { className: 'input-group input-group-lg' },
+              React.createElement('input', {
+                type: 'text',
+                className: 'form-control',
+                placeholder: 'Search blog posts...',
+                value: searchTerm,
+                onChange: (e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }
+              }),
+              React.createElement('button', {
+                className: 'btn btn-light',
+                type: 'button',
+                onClick: clearFilters
+              },
+                React.createElement('i', { className: 'bi bi-x-circle me-2' }),
+                'Clear'
+              )
+            )
+          )
+        )
+      )
+    ),
+
+    // Filters Section
+    React.createElement('section', { className: 'py-4 bg-white border-bottom' },
+      React.createElement('div', { className: 'container' },
+        React.createElement('div', { className: 'row align-items-center' },
+          React.createElement('div', { className: 'col-md-6' },
+            React.createElement('div', { className: 'd-flex align-items-center' },
+              React.createElement('label', { className: 'me-3 fw-semibold' }, 'Filter by Category:'),
+              React.createElement('select', {
+                className: 'form-select',
+                style: { maxWidth: '200px' },
+                value: selectedCategory,
+                onChange: (e) => {
+                  setSelectedCategory(e.target.value);
+                  setCurrentPage(1);
+                }
+              },
+                React.createElement('option', { value: '' }, 'All Categories'),
+                categories.map(category =>
+                  React.createElement('option', { 
+                    key: category.id, 
+                    value: category.name 
+                  }, category.name)
+                )
+              )
+            )
+          ),
+          React.createElement('div', { className: 'col-md-6 text-md-end' },
+            React.createElement('span', { className: 'text-muted' },
+              `Showing ${currentPosts.length} of ${filteredPosts.length} posts`
+            )
+          )
+        )
+      )
+    ),
+
+    // Posts Grid
+    React.createElement('section', { className: 'py-5' },
+      React.createElement('div', { className: 'container' },
+        filteredPosts.length === 0 ? 
+          React.createElement('div', { className: 'text-center py-5' },
+            React.createElement('i', { className: 'bi bi-search display-1 text-muted mb-3' }),
+            React.createElement('h3', { className: 'text-muted' }, 'No posts found'),
+            React.createElement('p', { className: 'text-muted' }, 
+              searchTerm || selectedCategory ? 
+                'Try adjusting your search or filter criteria.' :
+                'No blog posts available at the moment.'
+            ),
+            (searchTerm || selectedCategory) && React.createElement('button', {
+              className: 'btn btn-primary mt-3',
+              onClick: clearFilters
+            }, 'Clear Filters')
+          ) :
+          React.createElement('div', { className: 'row' },
+            currentPosts.map(post =>
+              React.createElement('div', { 
+                key: post.id, 
+                className: 'col-lg-4 col-md-6 mb-4' 
+              },
+                React.createElement('div', { 
+                  className: 'card h-100 shadow-sm card-hover',
+                  style: { cursor: 'pointer', transition: 'all 0.3s ease' },
+                  onClick: () => handlePostClick(post)
+                },
+                  post.featuredImage && React.createElement('img', {
+                    src: post.featuredImage,
+                    className: 'card-img-top',
+                    alt: post.title,
+                    style: { 
+                      height: '200px', 
+                      objectFit: 'cover'
+                    }
+                  }),
+                  React.createElement('div', { className: 'card-body d-flex flex-column' },
+                    React.createElement('h5', { className: 'card-title' }, post.title),
+                    React.createElement('p', { className: 'card-text flex-grow-1 text-muted' }, 
+                      post.excerpt || (post.content.replace(/<[^>]*>/g, '').substring(0, 120) + '...')
+                    ),
+                    React.createElement('div', { className: 'mt-auto' },
+                      React.createElement('div', { className: 'd-flex justify-content-between align-items-center mb-2' },
+                        React.createElement('small', { className: 'text-muted' }, 
+                          `By ${post.authorName}`
+                        ),
+                        React.createElement('small', { className: 'text-muted' }, 
+                          new Date(post.publishedAt).toLocaleDateString()
+                        )
+                      ),
+                      React.createElement('div', { className: 'd-flex justify-content-between align-items-center' },
+                        post.categoryName && React.createElement('span', { 
+                          className: 'badge bg-secondary' 
+                        }, post.categoryName),
+                        React.createElement('span', { 
+                          className: `badge ${!user ? 'bg-primary' : !user.approved ? 'bg-warning' : 'bg-success'}`
+                        }, !user ? 'Sign in to read' : !user.approved ? 'Approval needed' : 'Click to read')
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+      )
+    ),
+
+    // Pagination
+    totalPages > 1 && React.createElement('section', { className: 'py-4 bg-light' },
+      React.createElement('div', { className: 'container' },
+        React.createElement('nav', { 'aria-label': 'Blog posts pagination' },
+          React.createElement('ul', { className: 'pagination justify-content-center mb-0' },
+            // Previous button
+            React.createElement('li', { 
+              className: `page-item ${currentPage === 1 ? 'disabled' : ''}`
+            },
+              React.createElement('button', {
+                className: 'page-link',
+                onClick: () => currentPage > 1 && handlePageChange(currentPage - 1),
+                disabled: currentPage === 1
+              }, 'Previous')
+            ),
+            
+            // Page numbers
+            Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+              if (
+                page === 1 || 
+                page === totalPages || 
+                (page >= currentPage - 2 && page <= currentPage + 2)
+              ) {
+                return React.createElement('li', { 
+                  key: page,
+                  className: `page-item ${currentPage === page ? 'active' : ''}`
+                },
+                  React.createElement('button', {
+                    className: 'page-link',
+                    onClick: () => handlePageChange(page)
+                  }, page)
+                );
+              } else if (page === currentPage - 3 || page === currentPage + 3) {
+                return React.createElement('li', { 
+                  key: page,
+                  className: 'page-item disabled'
+                },
+                  React.createElement('span', { className: 'page-link' }, '...')
+                );
+              }
+              return null;
+            }),
+            
+            // Next button
+            React.createElement('li', { 
+              className: `page-item ${currentPage === totalPages ? 'disabled' : ''}`
+            },
+              React.createElement('button', {
+                className: 'page-link',
+                onClick: () => currentPage < totalPages && handlePageChange(currentPage + 1),
+                disabled: currentPage === totalPages
+              }, 'Next')
+            )
+          )
+        )
+      )
+    ),
+
+    // Footer
+    React.createElement(Footer)
+  );
+};
+
 // Footer Component
 const Footer = () => {
   return React.createElement('footer', { 
@@ -499,6 +831,12 @@ const Router = () => {
 
   console.log('Current path:', currentPath);
 
+  // Handle blog posts route
+  if (currentPath === '/blog') {
+    console.log('Loading blog posts listing');
+    return React.createElement(BlogPostsList);
+  }
+  
   // Handle specific admin routes
   if (currentPath === '/admin' || currentPath === '/admin-access') {
     console.log('Loading admin dashboard for:', currentPath);
@@ -2106,6 +2444,17 @@ const SimpleHome = () => {
                 className: 'text-white navbar-text d-block d-lg-inline mb-2 mb-lg-0' 
               }, `Welcome, ${user.name}`),
               
+              React.createElement('button', {
+                className: 'btn btn-outline-light btn-sm mb-2 mb-lg-0 me-lg-2',
+                onClick: (e) => {
+                  e.preventDefault();
+                  window.history.pushState({}, '', '/blog');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                  closeMobileMenu();
+                },
+                style: { width: '100%', maxWidth: '200px' }
+              }, 'All Posts'),
+
               user.isAdmin && React.createElement('button', {
                 className: 'btn btn-outline-light btn-sm mb-2 mb-lg-0 me-lg-2',
                 onClick: (e) => {
@@ -2127,6 +2476,15 @@ const SimpleHome = () => {
                 style: { width: '100%', maxWidth: '200px' }
               }, 'Logout')
             ) : React.createElement('div', { className: 'd-flex d-lg-inline-flex flex-column flex-lg-row gap-2' },
+              React.createElement('button', {
+                className: 'btn btn-outline-light btn-sm mb-2 mb-lg-0 me-lg-2',
+                onClick: () => {
+                  window.history.pushState({}, '', '/blog');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                  closeMobileMenu();
+                },
+                style: { width: '100%', maxWidth: '200px' }
+              }, 'All Posts'),
               React.createElement('button', {
                 className: 'btn btn-outline-light btn-sm',
                 onClick: () => {
