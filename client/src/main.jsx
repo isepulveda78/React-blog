@@ -1,5 +1,5 @@
 // Import React and ReactDOM from CDN (already loaded in HTML)
-const { StrictMode, useState, useEffect, createContext, useContext } = React;
+const { StrictMode, useState, useEffect, createContext, useContext, useRef } = React;
 const { createRoot } = ReactDOM;
 
 // Simple auth context for inline React app
@@ -256,6 +256,7 @@ const PostEditor = ({ postId }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(!!postId);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   
   const [formData, setFormData] = useState({
@@ -266,6 +267,10 @@ const PostEditor = ({ postId }) => {
     status: 'draft',
     featuredImage: ''
   });
+
+  // Initialize Quill editor after component mounts
+  const [quillEditor, setQuillEditor] = useState(null);
+  const quillRef = useRef(null);
 
   // Load post data if editing
   useEffect(() => {
@@ -310,8 +315,96 @@ const PostEditor = ({ postId }) => {
       .catch(console.error);
   }, []);
 
+  // Initialize Quill editor
+  useEffect(() => {
+    if (quillRef.current && !quillEditor) {
+      // Load Quill from CDN if not already loaded
+      if (!window.Quill) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.quilljs.com/1.3.6/quill.min.js';
+        script.onload = () => {
+          initializeQuill();
+        };
+        document.head.appendChild(script);
+
+        const link = document.createElement('link');
+        link.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      } else {
+        initializeQuill();
+      }
+    }
+  }, [quillEditor]);
+
+  const initializeQuill = () => {
+    if (quillRef.current && window.Quill) {
+      const quill = new window.Quill(quillRef.current, {
+        theme: 'snow',
+        modules: {
+          toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['blockquote', 'code-block'],
+            ['link', 'image'],
+            ['clean']
+          ]
+        }
+      });
+
+      // Set initial content if editing
+      if (formData.content) {
+        quill.root.innerHTML = formData.content;
+      }
+
+      // Listen for content changes
+      quill.on('text-change', () => {
+        const content = quill.root.innerHTML;
+        setFormData(prev => ({ ...prev, content }));
+      });
+
+      setQuillEditor(quill);
+    }
+  };
+
+  // Update Quill content when formData.content changes (for loading existing posts)
+  useEffect(() => {
+    if (quillEditor && formData.content !== quillEditor.root.innerHTML) {
+      quillEditor.root.innerHTML = formData.content;
+    }
+  }, [formData.content, quillEditor]);
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = async (file) => {
+    setUploading(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      return result.imageUrl;
+    } catch (err) {
+      setError('Image upload failed: ' + err.message);
+      throw err;
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -402,15 +495,12 @@ const PostEditor = ({ postId }) => {
                   })
                 ),
 
-                // Content
+                // Content - Rich Text Editor
                 React.createElement('div', { className: 'mb-3' },
                   React.createElement('label', { className: 'form-label' }, 'Content'),
-                  React.createElement('textarea', {
-                    className: 'form-control',
-                    rows: 12,
-                    value: formData.content,
-                    onChange: (e) => handleInputChange('content', e.target.value),
-                    placeholder: 'Write your post content here...'
+                  React.createElement('div', {
+                    ref: quillRef,
+                    style: { height: '300px', marginBottom: '42px' }
                   })
                 ),
 
@@ -456,16 +546,47 @@ const PostEditor = ({ postId }) => {
                   )
                 ),
 
-                // Featured Image
+                // Featured Image Upload
                 React.createElement('div', { className: 'mb-3' },
-                  React.createElement('label', { className: 'form-label' }, 'Featured Image URL'),
+                  React.createElement('label', { className: 'form-label' }, 'Featured Image'),
+                  React.createElement('input', {
+                    type: 'file',
+                    className: 'form-control mb-2',
+                    accept: 'image/*',
+                    onChange: async (e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        try {
+                          const imageUrl = await handleImageUpload(file);
+                          handleInputChange('featuredImage', imageUrl);
+                        } catch (err) {
+                          console.error('Upload failed:', err);
+                        }
+                      }
+                    },
+                    disabled: uploading
+                  }),
+                  React.createElement('small', { className: 'text-muted' }, 
+                    'Upload an image or paste URL below'
+                  )
+                ),
+
+                // Featured Image URL (alternative)
+                React.createElement('div', { className: 'mb-3' },
                   React.createElement('input', {
                     type: 'url',
                     className: 'form-control',
                     value: formData.featuredImage,
                     onChange: (e) => handleInputChange('featuredImage', e.target.value),
-                    placeholder: 'https://example.com/image.jpg'
+                    placeholder: 'Or paste image URL here...'
                   })
+                ),
+
+                uploading && React.createElement('div', { className: 'mb-3' },
+                  React.createElement('div', { className: 'text-center' },
+                    React.createElement('div', { className: 'spinner-border spinner-border-sm me-2' }),
+                    React.createElement('span', null, 'Uploading image...')
+                  )
                 ),
 
                 formData.featuredImage && React.createElement('div', { className: 'mb-3' },

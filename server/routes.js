@@ -333,6 +333,49 @@ export function registerRoutes(app) {
     }
   });
 
+  // Image upload endpoint
+  app.post('/api/upload-image', upload.single('image'), async (req, res) => {
+    try {
+      // Check if user is authenticated and admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'No image file provided' });
+      }
+
+      // Upload to Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            resource_type: 'image',
+            folder: 'blogcraft-images',
+            transformation: [
+              { width: 1200, height: 800, crop: 'limit' },
+              { quality: 'auto' }
+            ]
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(req.file.buffer);
+      });
+
+      res.json({
+        imageUrl: result.secure_url,
+        publicId: result.public_id
+      });
+    } catch (error) {
+      console.error('Image upload error:', error);
+      res.status(500).json({ 
+        message: 'Image upload failed',
+        error: error.message 
+      });
+    }
+  });
+
   // Categories routes
   app.get("/api/categories", async (req, res) => {
     try {
