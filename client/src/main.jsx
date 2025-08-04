@@ -223,16 +223,38 @@ const App = () => {
       // Navigation
       React.createElement('nav', { className: 'navbar navbar-expand-lg navbar-dark bg-primary' },
         React.createElement('div', { className: 'container' },
-          React.createElement('a', { className: 'navbar-brand', href: '/' }, 'BlogCraft'),
+          React.createElement('a', { 
+            className: 'navbar-brand', 
+            href: '#/', 
+            onClick: (e) => { 
+              e.preventDefault(); 
+              window.location.hash = '#/';
+              window.location.reload();
+            }
+          }, 'BlogCraft'),
           React.createElement('div', { className: 'navbar-nav ms-auto' },
+            user && React.createElement('a', { 
+              key: 'home',
+              className: 'nav-link me-3', 
+              href: '#/',
+              onClick: (e) => { 
+                e.preventDefault(); 
+                window.location.hash = '#/';
+                window.location.reload();
+              }
+            }, 'Home'),
             user ? [
               React.createElement('span', { key: 'welcome', className: 'navbar-text me-3' }, `Welcome, ${user.name || user.username}!`),
               user.isAdmin && React.createElement('a', { 
                 key: 'admin', 
                 className: 'nav-link', 
-                href: '/admin',
-                onClick: (e) => { e.preventDefault(); window.location.hash = '/admin'; }
-              }, 'Admin'),
+                href: '#/admin',
+                onClick: (e) => { 
+                  e.preventDefault(); 
+                  window.location.hash = '#/admin';
+                  window.location.reload(); // Force reload to update view
+                }
+              }, 'Admin Dashboard'),
               React.createElement('button', { 
                 key: 'logout',
                 className: 'btn btn-outline-light btn-sm', 
@@ -251,9 +273,17 @@ const App = () => {
       
       // Main content
       React.createElement('main', { className: 'container my-4' },
-        user?.isAdmin && window.location.hash === '/admin' ? 
-          React.createElement(AdminDashboard, { user }) :
-          React.createElement(HomePage)
+        React.createElement('div', null,
+          // Show admin info for debugging
+          user && React.createElement('div', { className: 'alert alert-info mb-3' },
+            `Logged in as: ${user.name || user.username} | Admin: ${user.isAdmin ? 'Yes' : 'No'} | Hash: ${window.location.hash}`
+          ),
+          
+          // Main content based on current view
+          user?.isAdmin && window.location.hash === '#/admin' ? 
+            React.createElement(AdminDashboard, { user }) :
+            React.createElement(HomePage)
+        )
       ),
       
       // Login Modal
