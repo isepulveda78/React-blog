@@ -158,6 +158,9 @@ function CommentsSection({ postId, user }) {
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Debug logging
+  console.log('CommentsSection - postId:', postId, 'user:', user);
 
   const fetchComments = async () => {
     if (!user?.approved || !postId) return;

@@ -170,6 +170,9 @@ const AppRoutes = () => {
     );
   }
 
+  // Make user available globally for all components
+  window.currentUser = user;
+  
   // Simple routing based on location
   let CurrentComponent = Home;
   let componentProps = { user };
