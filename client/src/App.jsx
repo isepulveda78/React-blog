@@ -1,3 +1,4 @@
+import React from "react";
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -18,6 +19,17 @@ import TestSEO from "./pages/test-seo";
 import SimpleSEO from "./pages/simple-seo";
 import NotFound from "./pages/not-found";
 
+function AdminQuickAccess() {
+  // Redirect to the HTML page
+  React.useEffect(() => {
+    window.location.href = '/admin-quick-access.html';
+  }, []);
+
+  return React.createElement('div', { className: 'text-center mt-5' },
+    React.createElement('p', null, 'Redirecting to Admin Quick Access...')
+  );
+}
+
 function Router() {
   return (
     <Switch>
@@ -27,7 +39,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/posts/:slug" component={BlogPost} />
       <Route path="/admin" component={AdminDashboard} />
-      <Route path="/admin-access" component={() => window.location.href = '/admin-quick-access.html'} />
+      <Route path="/admin-access" component={AdminQuickAccess} />
       <Route path="/admin/posts" component={AdminPosts} />
       <Route path="/admin/posts/new" component={AdminPostEditor} />
       <Route path="/admin/posts/edit/:id" component={AdminPostEditor} />
