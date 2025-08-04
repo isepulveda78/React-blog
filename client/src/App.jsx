@@ -19,6 +19,7 @@ import TestSEO from "./pages/test-seo";
 import SimpleSEO from "./pages/simple-seo";
 import NotFound from "./pages/not-found";
 import AdminAccess from "./pages/admin-access";
+import AdminSuccess from "./pages/admin-success";
 
 function Router() {
   return (
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/posts/:slug" component={BlogPost} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin-access" component={AdminAccess} />
+      <Route path="/admin-success" component={AdminSuccess} />
       <Route path="/admin/posts" component={AdminPosts} />
       <Route path="/admin/posts/new" component={AdminPostEditor} />
       <Route path="/admin/posts/edit/:id" component={AdminPostEditor} />
