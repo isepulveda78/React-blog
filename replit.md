@@ -17,6 +17,9 @@ Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framew
 - Implemented browser-based React and JSX transpilation using CDN libraries
 - Cleaned up server-side TypeScript files, now using only JavaScript files
 - Application now runs with simplified Express server serving static files directly
+- **MongoDB Integration Added**: Replaced in-memory storage with MongoDB database support
+- **Fallback Storage**: Application gracefully falls back to in-memory storage if MongoDB connection fails
+- **Environment Configuration**: Uses MONGODB_URI environment variable from Replit Secrets
 
 ## System Architecture
 
@@ -30,12 +33,12 @@ Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framew
 - **Forms**: React Hook Form with Zod validation
 
 ### Backend Architecture
-- **Framework**: Express.js with TypeScript
-- **Database ORM**: Drizzle ORM for type-safe database operations
-- **Database**: PostgreSQL with Neon Database serverless driver
+- **Framework**: Express.js with JavaScript
+- **Database**: MongoDB with native driver for data persistence
+- **Storage Fallback**: Graceful fallback to in-memory storage if MongoDB unavailable
 - **Authentication**: Session-based authentication with bcrypt password hashing
 - **API Design**: RESTful API endpoints with proper HTTP status codes
-- **Storage**: In-memory storage interface with database implementation
+- **Data Collections**: Users, posts, categories, and comments stored in MongoDB collections
 
 ### Project Structure
 - **Monorepo Layout**: Shared code between client and server in `/shared` directory

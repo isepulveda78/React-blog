@@ -1,18 +1,231 @@
 import { nanoid } from "nanoid";
+import { MongoClient } from "mongodb";
 
-// In-memory storage for development
-export class MemStorage {
+// In-memory storage fallback
+class MemStorage {
   constructor() {
     this.users = [];
     this.posts = [];
     this.categories = [];
     this.comments = [];
-    
-    // Initialize with sample data
+    console.log('[storage] Using in-memory storage');
     this.initializeSampleData();
   }
 
+  // All methods for MemStorage (synchronous versions)
+  async getUsers() { return this.users; }
+  async getUserById(id) { return this.users.find(u => u.id === id); }
+  async getUserByEmail(email) { return this.users.find(u => u.email === email); }
+  async getUserByUsername(username) { return this.users.find(u => u.username === username); }
+  async createUser(userData) {
+    const user = { id: nanoid(), ...userData, createdAt: new Date().toISOString() };
+    this.users.push(user);
+    return user;
+  }
+
+  async getPosts() { return this.posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
+  async getPostById(id) { return this.posts.find(p => p.id === id); }
+  async getPostBySlug(slug) { return this.posts.find(p => p.slug === slug); }
+  async createPost(postData) {
+    const post = {
+      id: nanoid(),
+      ...postData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      publishedAt: postData.status === 'published' ? new Date().toISOString() : null
+    };
+    this.posts.push(post);
+    if (post.categoryId) {
+      const category = this.categories.find(cat => cat.id === post.categoryId);
+      if (category) category.postCount = this.posts.filter(p => p.categoryId === post.categoryId).length;
+    }
+    return post;
+  }
+
+  async updatePost(id, postData) {
+    const index = this.posts.findIndex(p => p.id === id);
+    if (index === -1) return null;
+    this.posts[index] = { ...this.posts[index], ...postData, updatedAt: new Date().toISOString() };
+    return this.posts[index];
+  }
+
+  async deletePost(id) {
+    const index = this.posts.findIndex(p => p.id === id);
+    if (index === -1) return false;
+    this.posts.splice(index, 1);
+    this.comments = this.comments.filter(c => c.postId !== id);
+    return true;
+  }
+
+  async getCategories() { return this.categories.sort((a, b) => a.name.localeCompare(b.name)); }
+  async getCategoryById(id) { return this.categories.find(c => c.id === id); }
+  async getCategoryBySlug(slug) { return this.categories.find(c => c.slug === slug); }
+  async createCategory(categoryData) {
+    const category = { id: nanoid(), ...categoryData, postCount: 0, createdAt: new Date().toISOString() };
+    this.categories.push(category);
+    return category;
+  }
+
+  async updateCategory(id, categoryData) {
+    const index = this.categories.findIndex(c => c.id === id);
+    if (index === -1) return null;
+    this.categories[index] = { ...this.categories[index], ...categoryData, updatedAt: new Date().toISOString() };
+    return this.categories[index];
+  }
+
+  async deleteCategory(id) {
+    const index = this.categories.findIndex(c => c.id === id);
+    if (index === -1) return false;
+    this.categories.splice(index, 1);
+    return true;
+  }
+
+  async getComments() { return this.comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
+  async getCommentsByPostId(postId) {
+    return this.comments.filter(c => c.postId === postId && c.status === 'approved').sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  }
+  async getCommentById(id) { return this.comments.find(c => c.id === id); }
+  async createComment(commentData) {
+    const post = this.posts.find(p => p.id === commentData.postId);
+    const comment = {
+      id: nanoid(),
+      ...commentData,
+      postTitle: post?.title || '',
+      postSlug: post?.slug || '',
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+    this.comments.push(comment);
+    return comment;
+  }
+
+  async updateComment(id, commentData) {
+    const index = this.comments.findIndex(c => c.id === id);
+    if (index === -1) return null;
+    this.comments[index] = { ...this.comments[index], ...commentData, updatedAt: new Date().toISOString() };
+    return this.comments[index];
+  }
+
+  async deleteComment(id) {
+    const index = this.comments.findIndex(c => c.id === id);
+    if (index === -1) return false;
+    this.comments.splice(index, 1);
+    return true;
+  }
+
   initializeSampleData() {
+    // Same sample data initialization as before but synchronous
+    const adminUser = {
+      id: nanoid(),
+      email: "admin@example.com",
+      username: "admin",
+      password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptpgxnhPKBpxzFgpa", // password
+      firstName: "Admin",
+      lastName: "User",
+      isAdmin: true,
+      createdAt: new Date().toISOString()
+    };
+
+    const regularUser = {
+      id: nanoid(),
+      email: "user@example.com",
+      username: "user",
+      password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptpgxnhPKBpxzFgpa", // password
+      firstName: "Regular",
+      lastName: "User", 
+      isAdmin: false,
+      createdAt: new Date().toISOString()
+    };
+
+    this.users.push(adminUser, regularUser);
+
+    const techCategory = {
+      id: nanoid(),
+      name: "Technology",
+      slug: "technology",
+      description: "Latest trends and insights in technology",
+      postCount: 0,
+      createdAt: new Date().toISOString()
+    };
+
+    const designCategory = {
+      id: nanoid(),
+      name: "Design",
+      slug: "design",
+      description: "UI/UX design principles and best practices",
+      postCount: 0,
+      createdAt: new Date().toISOString()
+    };
+
+    this.categories.push(techCategory, designCategory);
+
+    // Add sample posts...
+    const post1 = {
+      id: nanoid(),
+      title: "The Future of JavaScript Frameworks",
+      slug: "future-javascript-frameworks",
+      content: "<h2>The Ever-Evolving JavaScript Ecosystem</h2><p>JavaScript frameworks continue to evolve rapidly...</p>",
+      excerpt: "Exploring the current state and future trends in JavaScript frameworks and web development.",
+      categoryId: techCategory.id,
+      categoryName: techCategory.name,
+      authorId: adminUser.id,
+      authorName: adminUser.firstName + " " + adminUser.lastName,
+      status: "published",
+      featured: true,
+      tags: ["javascript", "frameworks", "react", "vue", "future trends"],
+      publishedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    this.posts.push(post1);
+    techCategory.postCount = 1;
+  }
+}
+
+// MongoDB storage for production
+export class MongoStorage {
+  constructor() {
+    this.client = null;
+    this.db = null;
+    this.connected = false;
+  }
+
+  async connect() {
+    if (this.connected) return;
+
+    if (!process.env.MONGODB_URI) {
+      throw new Error('[mongodb] MONGODB_URI environment variable not set');
+    }
+
+    try {
+      console.log('[mongodb] Attempting to connect to MongoDB...');
+      this.client = new MongoClient(process.env.MONGODB_URI);
+      await this.client.connect();
+      this.db = this.client.db(); // Use default database from connection string
+      this.connected = true;
+      console.log('[mongodb] Connected successfully');
+      
+      // Initialize with sample data if collections are empty
+      await this.initializeSampleData();
+    } catch (error) {
+      console.error('[mongodb] Connection failed:', error.message);
+      throw error;
+    }
+  }
+
+  async disconnect() {
+    if (this.client) {
+      await this.client.close();
+      this.connected = false;
+      console.log('[mongodb] Disconnected');
+    }
+  }
+
+  async initializeSampleData() {
+    // Check if data already exists
+    const existingUsers = await this.db.collection('users').countDocuments();
+    if (existingUsers > 0) return; // Data already exists
     // Create sample users
     const adminUser = {
       id: nanoid(),
@@ -34,7 +247,7 @@ export class MemStorage {
       createdAt: new Date().toISOString()
     };
     
-    this.users.push(adminUser, regularUser);
+    await this.db.collection('users').insertMany([adminUser, regularUser]);
     
     // Create sample categories
     const techCategory = {
@@ -55,7 +268,7 @@ export class MemStorage {
       createdAt: new Date().toISOString()
     };
     
-    this.categories.push(techCategory, designCategory);
+    await this.db.collection('categories').insertMany([techCategory, designCategory]);
     
     // Create sample posts
     const post1 = {
@@ -212,54 +425,69 @@ export class MemStorage {
       updatedAt: new Date().toISOString()
     };
     
-    this.posts.push(post1, post2, post3);
+    await this.db.collection('posts').insertMany([post1, post2, post3]);
     
     // Update category post counts
-    techCategory.postCount = this.posts.filter(p => p.categoryId === techCategory.id).length;
-    designCategory.postCount = this.posts.filter(p => p.categoryId === designCategory.id).length;
+    await this.db.collection('categories').updateOne(
+      { id: techCategory.id },
+      { $set: { postCount: 2 } }
+    );
+    await this.db.collection('categories').updateOne(
+      { id: designCategory.id },
+      { $set: { postCount: 1 } }
+    );
   }
 
   // User methods
   async getUsers() {
-    return this.users;
+    await this.connect();
+    return await this.db.collection('users').find({}).toArray();
   }
 
   async getUserById(id) {
-    return this.users.find(user => user.id === id);
+    await this.connect();
+    return await this.db.collection('users').findOne({ id });
   }
 
   async getUserByEmail(email) {
-    return this.users.find(user => user.email === email);
+    await this.connect();
+    return await this.db.collection('users').findOne({ email });
   }
 
   async getUserByUsername(username) {
-    return this.users.find(user => user.username === username);
+    await this.connect();
+    return await this.db.collection('users').findOne({ username });
   }
 
   async createUser(userData) {
+    await this.connect();
     const user = {
       id: nanoid(),
       ...userData,
       createdAt: new Date().toISOString()
     };
-    this.users.push(user);
+    await this.db.collection('users').insertOne(user);
     return user;
   }
 
   // Post methods
   async getPosts() {
-    return this.posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    await this.connect();
+    return await this.db.collection('posts').find({}).sort({ createdAt: -1 }).toArray();
   }
 
   async getPostById(id) {
-    return this.posts.find(post => post.id === id);
+    await this.connect();
+    return await this.db.collection('posts').findOne({ id });
   }
 
   async getPostBySlug(slug) {
-    return this.posts.find(post => post.slug === slug);
+    await this.connect();
+    return await this.db.collection('posts').findOne({ slug });
   }
 
   async createPost(postData) {
+    await this.connect();
     const post = {
       id: nanoid(),
       ...postData,
@@ -267,152 +495,169 @@ export class MemStorage {
       updatedAt: new Date().toISOString(),
       publishedAt: postData.status === 'published' ? new Date().toISOString() : null
     };
-    this.posts.push(post);
+    await this.db.collection('posts').insertOne(post);
     
     // Update category post count
     if (post.categoryId) {
-      const category = this.categories.find(cat => cat.id === post.categoryId);
-      if (category) {
-        category.postCount = this.posts.filter(p => p.categoryId === post.categoryId).length;
-      }
+      const postCount = await this.db.collection('posts').countDocuments({ categoryId: post.categoryId });
+      await this.db.collection('categories').updateOne(
+        { id: post.categoryId },
+        { $set: { postCount } }
+      );
     }
     
     return post;
   }
 
   async updatePost(id, postData) {
-    const index = this.posts.findIndex(post => post.id === id);
-    if (index === -1) return null;
+    await this.connect();
+    const existingPost = await this.db.collection('posts').findOne({ id });
+    if (!existingPost) return null;
     
-    const oldCategoryId = this.posts[index].categoryId;
-    
-    this.posts[index] = {
-      ...this.posts[index],
+    const oldCategoryId = existingPost.categoryId;
+    const updatedPost = {
+      ...existingPost,
       ...postData,
       updatedAt: new Date().toISOString(),
-      publishedAt: postData.status === 'published' && !this.posts[index].publishedAt 
+      publishedAt: postData.status === 'published' && !existingPost.publishedAt 
         ? new Date().toISOString() 
-        : this.posts[index].publishedAt
+        : existingPost.publishedAt
     };
+    
+    await this.db.collection('posts').updateOne({ id }, { $set: updatedPost });
     
     // Update category post counts
     if (oldCategoryId !== postData.categoryId) {
       if (oldCategoryId) {
-        const oldCategory = this.categories.find(cat => cat.id === oldCategoryId);
-        if (oldCategory) {
-          oldCategory.postCount = this.posts.filter(p => p.categoryId === oldCategoryId).length;
-        }
+        const oldPostCount = await this.db.collection('posts').countDocuments({ categoryId: oldCategoryId });
+        await this.db.collection('categories').updateOne(
+          { id: oldCategoryId },
+          { $set: { postCount: oldPostCount } }
+        );
       }
       if (postData.categoryId) {
-        const newCategory = this.categories.find(cat => cat.id === postData.categoryId);
-        if (newCategory) {
-          newCategory.postCount = this.posts.filter(p => p.categoryId === postData.categoryId).length;
-        }
+        const newPostCount = await this.db.collection('posts').countDocuments({ categoryId: postData.categoryId });
+        await this.db.collection('categories').updateOne(
+          { id: postData.categoryId },
+          { $set: { postCount: newPostCount } }
+        );
       }
     }
     
-    return this.posts[index];
+    return updatedPost;
   }
 
   async deletePost(id) {
-    const index = this.posts.findIndex(post => post.id === id);
-    if (index === -1) return false;
+    await this.connect();
+    const post = await this.db.collection('posts').findOne({ id });
+    if (!post) return false;
     
-    const post = this.posts[index];
-    this.posts.splice(index, 1);
+    await this.db.collection('posts').deleteOne({ id });
     
     // Update category post count
     if (post.categoryId) {
-      const category = this.categories.find(cat => cat.id === post.categoryId);
-      if (category) {
-        category.postCount = this.posts.filter(p => p.categoryId === post.categoryId).length;
-      }
+      const postCount = await this.db.collection('posts').countDocuments({ categoryId: post.categoryId });
+      await this.db.collection('categories').updateOne(
+        { id: post.categoryId },
+        { $set: { postCount } }
+      );
     }
     
     // Delete associated comments
-    this.comments = this.comments.filter(comment => comment.postId !== id);
+    await this.db.collection('comments').deleteMany({ postId: id });
     
     return true;
   }
 
   // Category methods
   async getCategories() {
-    return this.categories.sort((a, b) => a.name.localeCompare(b.name));
+    await this.connect();
+    return await this.db.collection('categories').find({}).sort({ name: 1 }).toArray();
   }
 
   async getCategoryById(id) {
-    return this.categories.find(category => category.id === id);
+    await this.connect();
+    return await this.db.collection('categories').findOne({ id });
   }
 
   async getCategoryBySlug(slug) {
-    return this.categories.find(category => category.slug === slug);
+    await this.connect();
+    return await this.db.collection('categories').findOne({ slug });
   }
 
   async createCategory(categoryData) {
+    await this.connect();
     const category = {
       id: nanoid(),
       ...categoryData,
       postCount: 0,
       createdAt: new Date().toISOString()
     };
-    this.categories.push(category);
+    await this.db.collection('categories').insertOne(category);
     return category;
   }
 
   async updateCategory(id, categoryData) {
-    const index = this.categories.findIndex(category => category.id === id);
-    if (index === -1) return null;
+    await this.connect();
+    const existingCategory = await this.db.collection('categories').findOne({ id });
+    if (!existingCategory) return null;
     
-    this.categories[index] = {
-      ...this.categories[index],
+    const updatedCategory = {
+      ...existingCategory,
       ...categoryData,
       updatedAt: new Date().toISOString()
     };
     
-    // Update posts with new category name
-    this.posts.forEach(post => {
-      if (post.categoryId === id) {
-        post.categoryName = categoryData.name;
-      }
-    });
+    await this.db.collection('categories').updateOne({ id }, { $set: updatedCategory });
     
-    return this.categories[index];
+    // Update posts with new category name
+    if (categoryData.name) {
+      await this.db.collection('posts').updateMany(
+        { categoryId: id },
+        { $set: { categoryName: categoryData.name } }
+      );
+    }
+    
+    return updatedCategory;
   }
 
   async deleteCategory(id) {
-    const index = this.categories.findIndex(category => category.id === id);
-    if (index === -1) return false;
+    await this.connect();
+    const result = await this.db.collection('categories').deleteOne({ id });
     
-    this.categories.splice(index, 1);
+    if (result.deletedCount > 0) {
+      // Update posts to remove category reference
+      await this.db.collection('posts').updateMany(
+        { categoryId: id },
+        { $set: { categoryId: null, categoryName: null } }
+      );
+    }
     
-    // Update posts to remove category reference
-    this.posts.forEach(post => {
-      if (post.categoryId === id) {
-        post.categoryId = null;
-        post.categoryName = null;
-      }
-    });
-    
-    return true;
+    return result.deletedCount > 0;
   }
 
   // Comment methods
   async getComments() {
-    return this.comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    await this.connect();
+    return await this.db.collection('comments').find({}).sort({ createdAt: -1 }).toArray();
   }
 
   async getCommentsByPostId(postId) {
-    return this.comments
-      .filter(comment => comment.postId === postId && comment.status === 'approved')
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    await this.connect();
+    return await this.db.collection('comments')
+      .find({ postId, status: 'approved' })
+      .sort({ createdAt: 1 })
+      .toArray();
   }
 
   async getCommentById(id) {
-    return this.comments.find(comment => comment.id === id);
+    await this.connect();
+    return await this.db.collection('comments').findOne({ id });
   }
 
   async createComment(commentData) {
-    const post = this.posts.find(p => p.id === commentData.postId);
+    await this.connect();
+    const post = await this.db.collection('posts').findOne({ id: commentData.postId });
     const comment = {
       id: nanoid(),
       ...commentData,
@@ -421,30 +666,45 @@ export class MemStorage {
       status: 'pending',
       createdAt: new Date().toISOString()
     };
-    this.comments.push(comment);
+    await this.db.collection('comments').insertOne(comment);
     return comment;
   }
 
   async updateComment(id, commentData) {
-    const index = this.comments.findIndex(comment => comment.id === id);
-    if (index === -1) return null;
+    await this.connect();
+    const existingComment = await this.db.collection('comments').findOne({ id });
+    if (!existingComment) return null;
     
-    this.comments[index] = {
-      ...this.comments[index],
+    const updatedComment = {
+      ...existingComment,
       ...commentData,
       updatedAt: new Date().toISOString()
     };
     
-    return this.comments[index];
+    await this.db.collection('comments').updateOne({ id }, { $set: updatedComment });
+    return updatedComment;
   }
 
   async deleteComment(id) {
-    const index = this.comments.findIndex(comment => comment.id === id);
-    if (index === -1) return false;
-    
-    this.comments.splice(index, 1);
-    return true;
+    await this.connect();
+    const result = await this.db.collection('comments').deleteOne({ id });
+    return result.deletedCount > 0;
   }
 }
 
-export const storage = new MemStorage();
+// Create storage instance with fallback
+let storage;
+try {
+  if (process.env.MONGODB_URI) {
+    console.log('[storage] Attempting MongoDB connection...');
+    storage = new MongoStorage();
+  } else {
+    console.log('[storage] No MongoDB URI found, using in-memory storage');
+    storage = new MemStorage();
+  }
+} catch (error) {
+  console.log('[storage] MongoDB failed, falling back to in-memory storage:', error.message);
+  storage = new MemStorage();
+}
+
+export { storage };
