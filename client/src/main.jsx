@@ -270,8 +270,13 @@ const PostEditor = ({ postId }) => {
   // Load post data if editing
   useEffect(() => {
     if (postId) {
-      fetch(`/api/posts/${postId}`)
-        .then(res => res.json())
+      fetch(`/api/posts/${postId}`, { credentials: 'include' })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          }
+          return res.json();
+        })
         .then(data => {
           setPost(data);
           setFormData({
@@ -285,7 +290,7 @@ const PostEditor = ({ postId }) => {
           setLoading(false);
         })
         .catch(err => {
-          setError('Failed to load post');
+          setError('Failed to load post: ' + err.message);
           setLoading(false);
         });
     }
@@ -293,9 +298,15 @@ const PostEditor = ({ postId }) => {
 
   // Load categories
   useEffect(() => {
-    fetch('/api/categories')
+    fetch('/api/categories', { credentials: 'include' })
       .then(res => res.json())
-      .then(setCategories)
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCategories(data);
+        } else {
+          setCategories([]);
+        }
+      })
       .catch(console.error);
   }, []);
 
@@ -319,6 +330,7 @@ const PostEditor = ({ postId }) => {
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           ...formData,
           authorId: post?.authorId || 'current-user', // You might want to get this from auth context
@@ -480,15 +492,30 @@ const AdminPosts = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/api/posts')
-      .then(res => res.json())
+    fetch('/api/posts', { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
       .then(data => {
-        setPosts(data);
+        console.log('Posts API response:', data);
+        // Ensure data is an array
+        if (Array.isArray(data)) {
+          setPosts(data);
+        } else {
+          console.error('Expected array, got:', typeof data, data);
+          setPosts([]);
+          setError('Invalid posts data format');
+        }
         setLoading(false);
       })
       .catch(err => {
-        setError('Failed to load posts');
+        console.error('Posts loading error:', err);
+        setError('Failed to load posts: ' + err.message);
         setLoading(false);
+        setPosts([]);
       });
   }, []);
 
@@ -496,7 +523,10 @@ const AdminPosts = () => {
     if (!confirm('Are you sure you want to delete this post?')) return;
     
     try {
-      const response = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
+      const response = await fetch(`/api/posts/${postId}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      });
       if (response.ok) {
         setPosts(posts.filter(p => p.id !== postId));
       } else {
@@ -513,6 +543,7 @@ const AdminPosts = () => {
       const response = await fetch(`/api/posts/${postId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ status: newStatus })
       });
       if (response.ok) {
