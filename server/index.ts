@@ -37,6 +37,11 @@ app.use(express.urlencoded({ extended: true }));
 // Register API routes first
 registerRoutes(app);
 
+// Serve the SEO management page directly
+app.get('/seo-management', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/seo-management.html'));
+});
+
 // Serve static files from client directory
 app.use(express.static(path.join(__dirname, '../client')));
 
