@@ -3,6 +3,7 @@ const Hero = window.Hero;
 const BlogCard = window.BlogCard;
 
 const Home = ({ user }) => {
+  const [showLogin, setShowLogin] = useState(false);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 

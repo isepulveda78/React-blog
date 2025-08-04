@@ -131,6 +131,40 @@ const Navigation = ({ user, onLogout }) => {
                 </ul>
               </li>
             )}
+            
+            {/* Quick Admin Login for Testing */}
+            {!user && (
+              <li className="nav-item">
+                <button
+                  className="btn btn-outline-primary btn-sm me-2"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          email: 'admin@example.com',
+                          password: 'password'
+                        })
+                      });
+                      
+                      if (response.ok) {
+                        const userData = await response.json();
+                        console.log('Admin login successful:', userData);
+                        window.location.reload();
+                      } else {
+                        alert('Login failed');
+                      }
+                    } catch (error) {
+                      alert('Login error: ' + error.message);
+                    }
+                  }}
+                >
+                  Admin Login
+                </button>
+              </li>
+            )}
           </ul>
           
           <div className="navbar-nav">
