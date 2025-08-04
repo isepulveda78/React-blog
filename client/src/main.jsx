@@ -8,7 +8,7 @@ const HomePage = () => {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    fetch('/api/posts')
+    fetch('/api/posts', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         setPosts(data);
@@ -66,7 +66,7 @@ const BlogPostEditor = ({ user, onBack }) => {
   const [success, setSuccess] = React.useState('');
 
   React.useEffect(() => {
-    fetch('/api/categories')
+    fetch('/api/categories', { credentials: 'include' })
       .then(r => r.json())
       .then(setCategories)
       .catch(console.error);
@@ -111,6 +111,7 @@ const BlogPostEditor = ({ user, onBack }) => {
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(postData)
       });
 
@@ -277,8 +278,16 @@ const UserManagement = ({ user, onBack }) => {
 
   const loadUsers = async () => {
     try {
-      const response = await fetch('/api/users');
-      if (!response.ok) throw new Error('Failed to load users');
+      const response = await fetch('/api/users', {
+        credentials: 'include' // Include cookies for session
+      });
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('Admin access required. Please make sure you are logged in as an admin.');
+        }
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to load users');
+      }
       const usersData = await response.json();
       setUsers(usersData);
     } catch (err) {
@@ -297,6 +306,7 @@ const UserManagement = ({ user, onBack }) => {
       const response = await fetch(`/api/users/${userId}/role`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Include cookies for session
         body: JSON.stringify({ isAdmin: !currentIsAdmin })
       });
 
@@ -402,10 +412,10 @@ const AdminDashboard = ({ user }) => {
 
   React.useEffect(() => {
     Promise.all([
-      fetch('/api/posts').then(r => r.json()),
-      fetch('/api/categories').then(r => r.json()),
-      fetch('/api/comments').then(r => r.json()),
-      fetch('/api/users').then(r => r.json())
+      fetch('/api/posts', { credentials: 'include' }).then(r => r.json()),
+      fetch('/api/categories', { credentials: 'include' }).then(r => r.json()),
+      fetch('/api/comments', { credentials: 'include' }).then(r => r.json()),
+      fetch('/api/users', { credentials: 'include' }).then(r => r.json())
     ]).then(([postsData, categories, comments, users]) => {
       setPosts(postsData);
       setStats({
@@ -533,6 +543,7 @@ const App = () => {
         const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', // Include cookies for session
           body: JSON.stringify(credentials),
         });
 
