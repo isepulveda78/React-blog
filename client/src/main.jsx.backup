@@ -113,7 +113,7 @@ const Footer = () => {
       React.createElement('div', { className: 'row' },
         // About section
         React.createElement('div', { className: 'col-lg-4 mb-4 footer-section' },
-          React.createElement('h5', { className: 'fw-bold mb-3' }, 'Mr. S Teaches - UPDATED'),
+          React.createElement('h5', { className: 'fw-bold mb-3' }, 'Mr. S Teaches'),
           React.createElement('p', { className: 'mb-3', style: { opacity: 0.9 } },
             'Discover amazing stories, insights, and ideas from our community of writers. Join us in exploring knowledge and sharing experiences.'
           ),
