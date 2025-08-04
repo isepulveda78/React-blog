@@ -35,12 +35,119 @@ const HomePage = () => {
     React.createElement('div', { className: 'row' },
       posts.map(post => 
         React.createElement('div', { key: post.id, className: 'col-md-6 col-lg-4 mb-4' },
-          React.createElement('div', { className: 'card h-100' },
+          React.createElement('div', { 
+            className: 'card h-100',
+            style: { cursor: 'pointer' },
+            onClick: () => {
+              window.location.hash = `#/post/${post.slug}`;
+              window.location.reload();
+            }
+          },
             React.createElement('div', { className: 'card-body' },
               React.createElement('h5', { className: 'card-title' }, post.title),
               React.createElement('p', { className: 'card-text' }, post.excerpt),
               React.createElement('small', { className: 'text-muted' }, 
                 `By ${post.authorName} • ${new Date(post.publishedAt).toLocaleDateString()}`
+              ),
+              React.createElement('div', { className: 'mt-2' },
+                React.createElement('span', { className: 'btn btn-primary btn-sm' }, 'Read More →')
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+};
+
+// Blog Post Detail Component
+const BlogPostDetail = ({ slug, onBack }) => {
+  const [post, setPost] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+
+  React.useEffect(() => {
+    fetch(`/api/posts/slug/${slug}`, { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Post not found');
+        }
+        return res.json();
+      })
+      .then(data => {
+        setPost(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [slug]);
+
+  if (loading) {
+    return React.createElement('div', { className: 'text-center' },
+      React.createElement('div', { className: 'spinner-border' })
+    );
+  }
+
+  if (error) {
+    return React.createElement('div', { className: 'container' },
+      React.createElement('div', { className: 'alert alert-danger' }, error),
+      React.createElement('button', { 
+        className: 'btn btn-primary',
+        onClick: () => {
+          window.location.hash = '#/';
+          window.location.reload();
+        }
+      }, '← Back to Home')
+    );
+  }
+
+  if (!post) {
+    return React.createElement('div', { className: 'container' },
+      React.createElement('div', { className: 'alert alert-warning' }, 'Post not found'),
+      React.createElement('button', { 
+        className: 'btn btn-primary',
+        onClick: () => {
+          window.location.hash = '#/';
+          window.location.reload();
+        }
+      }, '← Back to Home')
+    );
+  }
+
+  return React.createElement('div', { className: 'container' },
+    React.createElement('div', { className: 'row justify-content-center' },
+      React.createElement('div', { className: 'col-lg-8' },
+        React.createElement('button', { 
+          className: 'btn btn-outline-primary mb-4',
+          onClick: () => {
+            window.location.hash = '#/';
+            window.location.reload();
+          }
+        }, '← Back to Home'),
+        React.createElement('article', { className: 'blog-post' },
+          React.createElement('header', { className: 'mb-4' },
+            React.createElement('h1', { className: 'display-4 mb-3' }, post.title),
+            React.createElement('div', { className: 'text-muted mb-3' },
+              React.createElement('span', null, `By ${post.authorName} • `),
+              React.createElement('span', null, new Date(post.publishedAt).toLocaleDateString()),
+              post.categoryName && React.createElement('span', null, ` • ${post.categoryName}`)
+            ),
+            post.excerpt && React.createElement('p', { className: 'lead' }, post.excerpt)
+          ),
+          React.createElement('div', { 
+            className: 'post-content',
+            dangerouslySetInnerHTML: { __html: post.content }
+          }),
+          post.tags && post.tags.length > 0 && React.createElement('div', { className: 'mt-4' },
+            React.createElement('h6', null, 'Tags:'),
+            React.createElement('div', null,
+              post.tags.map(tag => 
+                React.createElement('span', { 
+                  key: tag, 
+                  className: 'badge bg-secondary me-2' 
+                }, tag)
               )
             )
           )
@@ -807,9 +914,17 @@ const App = () => {
         React.createElement('div', null,
 
           // Main content based on current view
-          user?.isAdmin && window.location.hash === '#/admin' ? 
-            React.createElement(AdminDashboard, { user }) :
-            React.createElement(HomePage)
+          (() => {
+            const hash = window.location.hash;
+            if (user?.isAdmin && hash === '#/admin') {
+              return React.createElement(AdminDashboard, { user });
+            } else if (hash.startsWith('#/post/')) {
+              const slug = hash.replace('#/post/', '');
+              return React.createElement(BlogPostDetail, { slug });
+            } else {
+              return React.createElement(HomePage);
+            }
+          })()
         )
       ),
       
