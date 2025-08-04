@@ -848,7 +848,8 @@ const Footer = () => {
                 "Business",
               ),
             ),
-          ),),
+          ),
+        ),
       ),
 
       // Copyright section
@@ -1293,7 +1294,9 @@ const Router = () => {
   } else if (currentPath.startsWith("/admin/posts/edit/")) {
     const postId = currentPath.split("/").pop();
     console.log("Loading post editor for post:", postId);
-    return ProtectedAdminRoute(React.createElement(AdminPostEditor, { postId }));
+    return ProtectedAdminRoute(
+      React.createElement(AdminPostEditor, { postId }),
+    );
   } else if (currentPath === "/admin/seo") {
     console.log("Loading SEO management");
     return ProtectedAdminRoute(React.createElement(AdminSEOManager));
