@@ -51,7 +51,9 @@ function AdminSidebar() {
 }
 
 export default function AdminDashboard() {
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, isLoading } = useAuth();
+  
+  console.log('Dashboard auth state:', { user: user ? {email: user.email, isAdmin: user.isAdmin} : null, isAdmin, isLoading });
 
   const { data: posts = [] } = useQuery({
     queryKey: ["/api/posts"],
@@ -73,7 +75,25 @@ export default function AdminDashboard() {
     enabled: isAdmin,
   });
 
-  if (!isAdmin) {
+  // Show loading state while authentication is being checked
+  if (isLoading) {
+    return (
+      <Container className="py-5">
+        <Row className="justify-content-center">
+          <Col lg={6}>
+            <div className="text-center">
+              <div className="spinner-border mb-3" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p>Loading dashboard...</p>
+            </div>
+          </Col>
+        </Row>
+      </Container>
+    );
+  }
+
+  if (!user || !isAdmin) {
     return (
       <Container className="py-5">
         <Row className="justify-content-center">
@@ -81,9 +101,13 @@ export default function AdminDashboard() {
             <Alert variant="warning">
               <h4>Access Denied</h4>
               <p>You don't have permission to access the admin area.</p>
+              <p>Debug: User: {user ? 'Found' : 'Not found'}, Admin: {isAdmin ? 'Yes' : 'No'}</p>
               <Link href="/">
                 <Button variant="primary">Return to Blog</Button>
               </Link>
+              <Button variant="success" className="ms-2" onClick={() => window.location.reload()}>
+                Refresh Page
+              </Button>
             </Alert>
           </Col>
         </Row>
