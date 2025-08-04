@@ -556,6 +556,77 @@ export class MongoStorage {
       { id: designCategory.id },
       { $set: { postCount: 1 } }
     );
+    
+    // Create sample comments
+    const comment1 = {
+      id: nanoid(),
+      postId: post1.id,
+      postTitle: post1.title,
+      postSlug: post1.slug,
+      authorName: "John Doe",
+      authorEmail: "john@example.com",
+      content: "Great article! I really enjoyed reading about the modern web development approaches. React has definitely changed how I build applications.",
+      parentId: null,
+      status: "approved",
+      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 24 hours ago
+    };
+
+    const comment2 = {
+      id: nanoid(),
+      postId: post1.id,
+      postTitle: post1.title,
+      postSlug: post1.slug,
+      authorName: "Jane Smith",
+      authorEmail: "jane@example.com",
+      content: "This is very insightful. I'm particularly interested in the performance improvements mentioned. Do you have any specific benchmarks?",
+      parentId: null,
+      status: "pending",
+      createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() // 12 hours ago
+    };
+
+    const comment3 = {
+      id: nanoid(),
+      postId: post2.id,
+      postTitle: post2.title,
+      postSlug: post2.slug,
+      authorName: "Mike Johnson",
+      authorEmail: "mike@example.com",
+      content: "Accessibility is so important but often overlooked. Thanks for the practical tips!",
+      parentId: null,
+      status: "approved",
+      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() // 6 hours ago
+    };
+
+    // Add a reply to comment1
+    const reply1 = {
+      id: nanoid(),
+      postId: post1.id,
+      postTitle: post1.title,
+      postSlug: post1.slug,
+      authorName: "Sarah Wilson",
+      authorEmail: "sarah@example.com",
+      content: "@John Doe I totally agree! Have you tried the new React 18 features? The concurrent rendering is a game changer.",
+      parentId: comment1.id,
+      status: "approved",
+      createdAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString() // 18 hours ago
+    };
+
+    // Add a reply to comment2
+    const reply2 = {
+      id: nanoid(),
+      postId: post1.id,
+      postTitle: post1.title,
+      postSlug: post1.slug,
+      authorName: adminUser.name,
+      authorEmail: adminUser.email,
+      content: "@Jane Smith Great question! I'll be publishing a detailed performance comparison article next week with comprehensive benchmarks.",
+      parentId: comment2.id,
+      status: "approved",
+      createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString() // 8 hours ago
+    };
+
+    await this.db.collection('comments').insertMany([comment1, comment2, comment3, reply1, reply2]);
+    console.log('[mongodb] Sample comments created');
   }
 
   // User methods
