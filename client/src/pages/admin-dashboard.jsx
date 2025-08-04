@@ -77,21 +77,22 @@ export default function AdminDashboard() {
       
       <div className="flex-grow-1">
         {/* Header */}
-        <div className="bg-white shadow-sm p-4">
-          <h1 className="h3 mb-0">Admin Dashboard</h1>
-          <p className="text-muted mb-0">Welcome to your blog administration panel</p>
+        <div className="p-4" style={{ background: 'var(--primary-gradient)', color: 'white' }}>
+          <h1 className="h2 mb-2 fw-bold">Admin Dashboard</h1>
+          <p className="mb-0" style={{ opacity: 0.9 }}>Welcome to your blog administration panel</p>
         </div>
 
         <Container fluid className="p-4">
           {/* Stats Cards */}
           <Row className="mb-4">
             <Col lg={3} md={6} className="mb-3">
-              <Card className="bg-primary text-white">
-                <Card.Body>
-                  <h3 className="mb-0">{totalPosts}</h3>
-                  <p className="mb-0">Total Posts</p>
-                </Card.Body>
-              </Card>
+              <div className="stats-card">
+                <div className="text-center mb-3">
+                  <i className="bi bi-file-text" style={{ fontSize: '2.5rem', color: '#667eea' }}></i>
+                </div>
+                <div className="stats-number">{totalPosts}</div>
+                <h6>Total Posts</h6>
+              </div>
             </Col>
             <Col lg={3} md={6} className="mb-3">
               <Card className="bg-success text-white">
