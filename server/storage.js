@@ -190,6 +190,45 @@ class MemStorage {
 
     this.posts.push(post1);
     techCategory.postCount = 1;
+
+    // Add sample comments
+    const comment1 = {
+      id: nanoid(),
+      postId: post1.id,
+      postTitle: post1.title,
+      postSlug: post1.slug,
+      authorName: "John Doe",
+      authorEmail: "john@example.com",
+      content: "Great article! I really enjoyed reading about the future of JavaScript frameworks. React and Vue have been amazing to work with.",
+      status: "pending",
+      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+    };
+
+    const comment2 = {
+      id: nanoid(),
+      postId: post1.id,
+      postTitle: post1.title,
+      postSlug: post1.slug,
+      authorName: "Jane Smith",
+      authorEmail: "jane@example.com",
+      content: "This is very insightful. I'm particularly interested in the performance improvements mentioned. Do you have any specific benchmarks?",
+      status: "approved",
+      createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() // 12 hours ago
+    };
+
+    const comment3 = {
+      id: nanoid(),
+      postId: post1.id,
+      postTitle: post1.title,
+      postSlug: post1.slug,
+      authorName: "Mike Johnson",
+      authorEmail: "mike@example.com",
+      content: "Interesting perspective, but I think you're missing some important aspects about Angular. It's still very relevant in enterprise environments.",
+      status: "pending",
+      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() // 6 hours ago
+    };
+
+    this.comments.push(comment1, comment2, comment3);
   }
 }
 
