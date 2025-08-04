@@ -34,6 +34,10 @@ Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framew
 - **Dual Authentication Support**: Users can register/login with either email/password or Google accounts
 - **Google Account Linking**: Existing email accounts can be linked to Google accounts automatically
 - **Unified Approval System**: Both email and Google registrations require admin approval before accessing content
+- **Complete User Management System**: Full CRUD operations for user accounts with comprehensive admin interface
+- **Delete User Feature**: Safe user deletion with confirmation dialogs and protection against self-deletion
+- **Admin Safety Measures**: Main admin account cannot be deleted, users cannot delete themselves
+- **Real-time User Interface**: Instant updates without page refresh for all user management operations
 
 ## System Architecture
 
