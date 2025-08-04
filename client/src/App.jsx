@@ -13,6 +13,7 @@ const AdminUsers = window.AdminUsers;
 const AdminComments = window.AdminComments;
 const AdminPostEditor = window.AdminPostEditor;
 const SEOManagement = window.SEOManagement;
+const UserProfile = window.UserProfile;
 const NotFound = window.NotFound;
 
 // Auth Context
@@ -192,6 +193,8 @@ const AppRoutes = () => {
     CurrentComponent = AdminComments;
   } else if (location === '/seo-management' && user && user.isAdmin) {
     CurrentComponent = SEOManagement;
+  } else if (location === '/profile' && user && user.approved) {
+    CurrentComponent = UserProfile;
   } else if (location !== '/') {
     CurrentComponent = NotFound;
     componentProps = {};

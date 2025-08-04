@@ -3,6 +3,12 @@ const { React, useState, useEffect } = window;
 const AdminUsers = ({ user }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   if (!user || !user.isAdmin) {
     return (
@@ -97,6 +103,52 @@ const AdminUsers = ({ user }) => {
     }
   };
 
+  const openPasswordModal = (userItem) => {
+    setSelectedUser(userItem);
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordError('');
+    setShowPasswordModal(true);
+  };
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters long');
+      return;
+    }
+
+    setIsResettingPassword(true);
+
+    try {
+      const response = await fetch(`/api/admin/users/${selectedUser.id}/password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ newPassword })
+      });
+
+      if (response.ok) {
+        alert(`Password reset successfully for ${selectedUser.name || selectedUser.username}`);
+        setShowPasswordModal(false);
+      } else {
+        const errorData = await response.json();
+        setPasswordError(errorData.message || 'Failed to reset password');
+      }
+    } catch (error) {
+      setPasswordError('Failed to reset password');
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container py-5">
@@ -173,6 +225,13 @@ const AdminUsers = ({ user }) => {
                       {userItem.isAdmin ? 'Remove Admin' : 'Make Admin'}
                     </button>
                     <button 
+                      className="btn btn-outline-info"
+                      onClick={() => openPasswordModal(userItem)}
+                      title="Reset Password"
+                    >
+                      Reset Password
+                    </button>
+                    <button 
                       className="btn btn-outline-danger"
                       onClick={() => deleteUser(userItem.id)}
                       disabled={userItem.id === user.id}
@@ -190,6 +249,79 @@ const AdminUsers = ({ user }) => {
       {users.length === 0 && (
         <div className="text-center py-5">
           <h4>No users found</h4>
+        </div>
+      )}
+
+      {/* Password Reset Modal */}
+      {showPasswordModal && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  Reset Password for {selectedUser?.name || selectedUser?.username}
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setShowPasswordModal(false)}
+                ></button>
+              </div>
+              <form onSubmit={handlePasswordReset}>
+                <div className="modal-body">
+                  {passwordError && (
+                    <div className="alert alert-danger">{passwordError}</div>
+                  )}
+                  <div className="mb-3">
+                    <label className="form-label">New Password</label>
+                    <input
+                      type="password"
+                      className="form-control"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      minLength="6"
+                      required
+                    />
+                    <div className="form-text">Minimum 6 characters</div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Confirm Password</label>
+                    <input
+                      type="password"
+                      className="form-control"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      minLength="6"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    onClick={() => setShowPasswordModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary"
+                    disabled={isResettingPassword}
+                  >
+                    {isResettingPassword ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        Resetting...
+                      </>
+                    ) : (
+                      'Reset Password'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
     </div>

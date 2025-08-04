@@ -355,7 +355,20 @@ const Navigation = ({ user, onLogout }) => {
                 </ul>
               </li>
             )}
-            
+            {user && user.approved && (
+              <li className="nav-item">
+                <a
+                  className={`nav-link ${isActive('/profile') ? 'active' : ''}`}
+                  href="/profile"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo('/profile');
+                  }}
+                >
+                  My Profile
+                </a>
+              </li>
+            )}
 
           </ul>
           

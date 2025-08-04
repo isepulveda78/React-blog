@@ -265,6 +265,125 @@ export function registerRoutes(app) {
     res.json({ message: "Logged out successfully" });
   });
 
+  // Authentication middleware
+  const requireAuth = (req, res, next) => {
+    if (req.session && req.session.userId) {
+      next();
+    } else {
+      res.status(401).json({ message: "Authentication required" });
+    }
+  };
+
+  // User profile management
+  app.get("/api/user/profile", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUserById(req.session.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const { password: _, ...userProfile } = user;
+      res.json(userProfile);
+    } catch (error) {
+      console.error("Profile fetch error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/user/profile", requireAuth, async (req, res) => {
+    try {
+      const { name, username, email } = req.body;
+      const userId = req.session.userId;
+
+      // Check if username or email is already taken by another user
+      if (username) {
+        const existingUsername = await storage.getUserByUsername(username);
+        if (existingUsername && existingUsername.id !== userId) {
+          return res.status(400).json({ message: "Username is already taken" });
+        }
+      }
+
+      if (email) {
+        const existingEmail = await storage.getUserByEmail(email);
+        if (existingEmail && existingEmail.id !== userId) {
+          return res.status(400).json({ message: "Email is already taken" });
+        }
+      }
+
+      const updatedUser = await storage.updateUserProfile(userId, { name, username, email });
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Update session
+      const { password: _, ...userResponse } = updatedUser;
+      req.session.user = userResponse;
+
+      res.json(userResponse);
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/user/password", requireAuth, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      const userId = req.session.userId;
+
+      // Get current user
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Verify current password
+      const isValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isValid) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      await storage.updateUserPassword(userId, hashedPassword);
+
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      console.error("Password update error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Admin password reset
+  app.put("/api/admin/users/:userId/password", requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUserById(req.session.userId);
+      if (!currentUser?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const { newPassword } = req.body;
+
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      await storage.updateUserPassword(userId, hashedPassword);
+
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      console.error("Admin password update error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Development route to reset data (only in development)
   if (process.env.NODE_ENV === 'development') {
     app.post("/api/reset-data", async (req, res) => {

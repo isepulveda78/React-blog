@@ -151,6 +151,20 @@ class MemStorage {
     return this.users[index];
   }
 
+  async updateUserProfile(userId, profileData) {
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return null;
+    this.users[index] = { ...this.users[index], ...profileData, updatedAt: new Date().toISOString() };
+    return this.users[index];
+  }
+
+  async updateUserPassword(userId, hashedPassword) {
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return null;
+    this.users[index] = { ...this.users[index], password: hashedPassword, updatedAt: new Date().toISOString() };
+    return this.users[index];
+  }
+
   async updateUserRole(userId, isAdmin) {
     const index = this.users.findIndex(u => u.id === userId);
     if (index === -1) return null;
@@ -806,6 +820,26 @@ export class MongoStorage {
     console.log('[mongodb] Delete result:', result.deletedCount, 'users deleted');
     
     return result.deletedCount > 0;
+  }
+
+  async updateUserProfile(userId, profileData) {
+    await this.connect();
+    const result = await this.db.collection('users').findOneAndUpdate(
+      { id: userId },
+      { $set: { ...profileData, updatedAt: new Date().toISOString() } },
+      { returnDocument: 'after' }
+    );
+    return result || result.value;
+  }
+
+  async updateUserPassword(userId, hashedPassword) {
+    await this.connect();
+    const result = await this.db.collection('users').findOneAndUpdate(
+      { id: userId },
+      { $set: { password: hashedPassword, updatedAt: new Date().toISOString() } },
+      { returnDocument: 'after' }
+    );
+    return result || result.value;
   }
 
   async linkGoogleAccount(userId, googleId) {
