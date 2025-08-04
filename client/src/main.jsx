@@ -446,8 +446,9 @@ const BlogPostDetail = ({ slug, onBack }) => {
   );
 };
 
-// Blog Post Editor Component
-const BlogPostEditor = ({ user, onBack }) => {
+// Blog Post Editor Component (supports both new posts and editing)
+const BlogPostEditor = ({ user, onBack, editingPost = null }) => {
+  const isEditing = !!editingPost;
   const [title, setTitle] = React.useState('');
   const [slug, setSlug] = React.useState('');
   const [excerpt, setExcerpt] = React.useState('');
@@ -469,7 +470,19 @@ const BlogPostEditor = ({ user, onBack }) => {
       .then(r => r.json())
       .then(setCategories)
       .catch(console.error);
-  }, []);
+
+    // If editing, populate the form with existing post data
+    if (editingPost) {
+      setTitle(editingPost.title || '');
+      setSlug(editingPost.slug || '');
+      setExcerpt(editingPost.excerpt || '');
+      setContent(editingPost.content || '');
+      setCategoryId(editingPost.categoryId || '');
+      setTags(editingPost.tags ? editingPost.tags.join(', ') : '');
+      setFeatured(editingPost.featured || false);
+      setStatus(editingPost.status || 'draft');
+    }
+  }, [editingPost]);
 
   // Initialize Quill editor
   React.useEffect(() => {
@@ -556,8 +569,11 @@ const BlogPostEditor = ({ user, onBack }) => {
         authorName: user.name || user.username
       };
 
-      const response = await fetch('/api/posts', {
-        method: 'POST',
+      const url = isEditing ? `/api/posts/${editingPost.id}` : '/api/posts';
+      const method = isEditing ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(postData)
@@ -565,19 +581,21 @@ const BlogPostEditor = ({ user, onBack }) => {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to create post');
+        throw new Error(error.message || `Failed to ${isEditing ? 'update' : 'create'} post`);
       }
 
-      setSuccess('Blog post created successfully!');
-      // Reset form
-      setTitle('');
-      setSlug('');
-      setExcerpt('');
-      setContent('');
-      setCategoryId('');
-      setTags('');
-      setFeatured(false);
-      setStatus('draft');
+      setSuccess(`Blog post ${isEditing ? 'updated' : 'created'} successfully!`);
+      // Reset form only if creating new post
+      if (!isEditing) {
+        setTitle('');
+        setSlug('');
+        setExcerpt('');
+        setContent('');
+        setCategoryId('');
+        setTags('');
+        setFeatured(false);
+        setStatus('draft');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -636,7 +654,7 @@ const BlogPostEditor = ({ user, onBack }) => {
         onClick: onBack 
       }, '← Back to Dashboard')
     ),
-    React.createElement('h1', { className: 'mb-4' }, 'Write New Blog Post'),
+    React.createElement('h1', { className: 'mb-4' }, isEditing ? 'Edit Blog Post' : 'Write New Blog Post'),
     
     error && React.createElement('div', { className: 'alert alert-danger' }, error),
     success && React.createElement('div', { className: 'alert alert-success' }, success),
@@ -1142,9 +1160,150 @@ const CommentManagement = ({ user, onBack }) => {
   );
 };
 
+// Post Management Component
+const PostManagement = ({ user, onBack, onEditPost }) => {
+  const [posts, setPosts] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+
+  React.useEffect(() => {
+    loadPosts();
+  }, []);
+
+  const loadPosts = async () => {
+    try {
+      const response = await fetch('/api/posts', {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to load posts');
+      }
+      
+      const postsData = await response.json();
+      setPosts(postsData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePost = async (postId, postTitle) => {
+    if (!confirm(`Are you sure you want to delete "${postTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete post');
+      }
+
+      loadPosts();
+    } catch (err) {
+      alert('Failed to delete post: ' + err.message);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return React.createElement('div', { className: 'text-center py-5' },
+      React.createElement('div', { className: 'spinner-border' }),
+      React.createElement('p', { className: 'mt-2' }, 'Loading posts...')
+    );
+  }
+
+  if (error) {
+    return React.createElement('div', { className: 'alert alert-danger' }, error);
+  }
+
+  return React.createElement('div', null,
+    React.createElement('div', { className: 'mb-3' },
+      React.createElement('button', { 
+        className: 'btn btn-secondary', 
+        onClick: onBack 
+      }, '← Back to Dashboard')
+    ),
+    React.createElement('div', { className: 'd-flex justify-content-between align-items-center mb-4' },
+      React.createElement('h1', { className: 'mb-0' }, 'Manage Posts'),
+      React.createElement('div', { className: 'text-muted' }, `${posts.length} total posts`)
+    ),
+
+    posts.length === 0 ? 
+      React.createElement('div', { className: 'text-center py-5' },
+        React.createElement('h5', { className: 'text-muted' }, 'No posts found'),
+        React.createElement('p', { className: 'text-muted' }, 'Create your first blog post to get started!')
+      ) :
+      React.createElement('div', { className: 'table-responsive' },
+        React.createElement('table', { className: 'table table-hover' },
+          React.createElement('thead', { className: 'table-dark' },
+            React.createElement('tr', {},
+              React.createElement('th', {}, 'Title'),
+              React.createElement('th', {}, 'Status'),
+              React.createElement('th', {}, 'Category'),
+              React.createElement('th', {}, 'Created'),
+              React.createElement('th', {}, 'Actions')
+            )
+          ),
+          React.createElement('tbody', {},
+            posts.map(post =>
+              React.createElement('tr', { key: post.id },
+                React.createElement('td', {},
+                  React.createElement('div', {},
+                    React.createElement('strong', {}, post.title),
+                    React.createElement('br'),
+                    React.createElement('small', { className: 'text-muted' }, post.excerpt || 'No excerpt')
+                  )
+                ),
+                React.createElement('td', {},
+                  React.createElement('span', {
+                    className: `badge ${
+                      post.status === 'published' ? 'bg-success' :
+                      post.status === 'draft' ? 'bg-secondary' :
+                      'bg-warning'
+                    }`
+                  }, post.status.charAt(0).toUpperCase() + post.status.slice(1))
+                ),
+                React.createElement('td', { className: 'text-muted' }, post.categoryName || 'Uncategorized'),
+                React.createElement('td', { className: 'text-muted' }, formatDate(post.createdAt)),
+                React.createElement('td', {},
+                  React.createElement('div', { className: 'btn-group btn-group-sm' },
+                    React.createElement('button', {
+                      className: 'btn btn-outline-primary',
+                      onClick: () => onEditPost(post),
+                      title: 'Edit post'
+                    }, 'Edit'),
+                    React.createElement('button', {
+                      className: 'btn btn-outline-danger',
+                      onClick: () => handleDeletePost(post.id, post.title),
+                      title: 'Delete post'
+                    }, 'Delete')
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+  );
+};
+
 // AdminDashboard component
 const AdminDashboard = ({ user }) => {
   const [currentView, setCurrentView] = React.useState('dashboard');
+  const [editingPost, setEditingPost] = React.useState(null);
   const [stats, setStats] = React.useState({ posts: 0, categories: 0, comments: 0, users: 0 });
   const [posts, setPosts] = React.useState([]);
 
@@ -1165,10 +1324,25 @@ const AdminDashboard = ({ user }) => {
     }).catch(console.error);
   }, [currentView]);
 
-  if (currentView === 'write') {
+  if (currentView === 'write' || editingPost) {
     return React.createElement(BlogPostEditor, { 
       user, 
-      onBack: () => setCurrentView('dashboard') 
+      editingPost: editingPost,
+      onBack: () => {
+        setEditingPost(null);
+        setCurrentView('dashboard');
+      }
+    });
+  }
+
+  if (currentView === 'posts') {
+    return React.createElement(PostManagement, { 
+      user, 
+      onBack: () => setCurrentView('dashboard'),
+      onEditPost: (post) => {
+        setEditingPost(post);
+        setCurrentView('write');
+      }
     });
   }
 
@@ -1195,6 +1369,10 @@ const AdminDashboard = ({ user }) => {
         className: 'btn btn-primary btn-lg me-3',
         onClick: () => setCurrentView('write')
       }, '📝 Write New Blog Post'),
+      React.createElement('button', {
+        className: 'btn btn-success btn-lg me-3',
+        onClick: () => setCurrentView('posts')
+      }, '📄 Manage Posts'),
       React.createElement('button', {
         className: 'btn btn-info btn-lg me-3',
         onClick: () => setCurrentView('users')
