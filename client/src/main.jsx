@@ -1913,31 +1913,226 @@ const ModernReactApp = () => {
     );
   }
 
-  // For now, render our TestAdmin component directly
-  return React.createElement(TestAdminInline);
+  // Render the proper admin dashboard
+  return React.createElement(AdminDashboardInline);
 };
 
-// Inline Test Admin Component
-const TestAdminInline = () => {
-  const { user } = useAuth();
-  
-  return React.createElement('div', {
-    style: { 
-      padding: '50px', 
-      backgroundColor: '#ff6b6b', 
-      color: 'white', 
-      minHeight: '100vh' 
+// Admin Dashboard Component
+const AdminDashboardInline = () => {
+  const { user, logout } = useAuth();
+  const [stats, setStats] = useState({
+    users: 0,
+    posts: 0,
+    comments: 0,
+    categories: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Load dashboard stats
+    const loadStats = async () => {
+      try {
+        const [usersRes, postsRes, commentsRes, categoriesRes] = await Promise.all([
+          fetch('/api/users', { credentials: 'include' }),
+          fetch('/api/posts', { credentials: 'include' }),
+          fetch('/api/comments', { credentials: 'include' }),
+          fetch('/api/categories', { credentials: 'include' })
+        ]);
+
+        const users = usersRes.ok ? await usersRes.json() : [];
+        const posts = postsRes.ok ? await postsRes.json() : [];
+        const comments = commentsRes.ok ? await commentsRes.json() : [];
+        const categories = categoriesRes.ok ? await categoriesRes.json() : [];
+
+        setStats({
+          users: Array.isArray(users) ? users.length : 0,
+          posts: Array.isArray(posts) ? posts.length : 0,
+          comments: Array.isArray(comments) ? comments.length : 0,
+          categories: Array.isArray(categories) ? categories.length : 0
+        });
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStats();
+  }, []);
+
+  const navigateTo = (path) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  const adminTools = [
+    {
+      title: 'SEO Management',
+      description: 'Optimize meta tags, structured data, and search engine visibility',
+      icon: '🔍',
+      path: '/admin/seo',
+      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      featured: true
+    },
+    {
+      title: 'Blog Posts',
+      description: `Manage ${stats.posts} blog posts and create new content`,
+      icon: '📝',
+      path: '/admin/posts',
+      color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+    },
+    {
+      title: 'User Management',
+      description: `Manage ${stats.users} users and approval settings`,
+      icon: '👥',
+      path: '/admin/users',
+      color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+    },
+    {
+      title: 'Comments',
+      description: `Moderate ${stats.comments} comments and discussions`,
+      icon: '💬',
+      path: '/admin/comments',
+      color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+    },
+    {
+      title: 'Categories',
+      description: `Organize content with ${stats.categories} categories`,
+      icon: '📂',
+      path: '/admin/categories',
+      color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+    },
+    {
+      title: 'Create New Post',
+      description: 'Write and publish new blog content',
+      icon: '✏️',
+      path: '/admin/posts/new',
+      color: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
     }
+  ];
+
+  return React.createElement('div', { 
+    style: { backgroundColor: '#f8f9fa', minHeight: '100vh' }
   },
-    React.createElement('h1', null, 'TEST ADMIN PAGE - SUCCESS!'),
-    React.createElement('p', null, 'The routing is now working correctly!'),
-    React.createElement('p', null, `Current time: ${new Date().toLocaleString()}`),
-    React.createElement('p', null, 'This proves the admin routing system is functional.'),
-    React.createElement('hr'),
-    React.createElement('h3', null, 'Auth Debug Info:'),
-    React.createElement('p', null, `User Email: ${user?.email || 'No user'}`),
-    React.createElement('p', null, `Is Admin: ${user?.isAdmin ? 'YES' : 'NO'}`),
-    React.createElement('p', null, `User Object: ${JSON.stringify(user, null, 2)}`)
+    // Header
+    React.createElement('div', {
+      style: { 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+        color: 'white',
+        padding: '40px 0'
+      }
+    },
+      React.createElement('div', { className: 'container' },
+        React.createElement('div', { className: 'row align-items-center' },
+          React.createElement('div', { className: 'col' },
+            React.createElement('h1', { className: 'display-5 fw-bold mb-2' }, 'Admin Dashboard'),
+            React.createElement('p', { className: 'lead mb-0' }, `Welcome back, ${user?.name || user?.email}`)
+          ),
+          React.createElement('div', { className: 'col-auto' },
+            React.createElement('button', {
+              className: 'btn btn-outline-light',
+              onClick: () => navigateTo('/')
+            }, 'View Site'),
+            React.createElement('button', {
+              className: 'btn btn-light ms-2',
+              onClick: logout
+            }, 'Logout')
+          )
+        )
+      )
+    ),
+
+    // Stats Cards
+    loading ? React.createElement('div', { 
+      className: 'container mt-5 text-center' 
+    },
+      React.createElement('div', { className: 'spinner-border text-primary' }),
+      React.createElement('p', { className: 'mt-3' }, 'Loading dashboard...')
+    ) : React.createElement('div', { className: 'container mt-5' },
+      React.createElement('div', { className: 'row mb-5' },
+        React.createElement('div', { className: 'col-md-3 mb-3' },
+          React.createElement('div', { className: 'card border-0 shadow-sm h-100' },
+            React.createElement('div', { 
+              className: 'card-body text-center',
+              style: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }
+            },
+              React.createElement('h3', { className: 'mb-2' }, stats.posts),
+              React.createElement('p', { className: 'mb-0' }, 'Blog Posts')
+            )
+          )
+        ),
+        React.createElement('div', { className: 'col-md-3 mb-3' },
+          React.createElement('div', { className: 'card border-0 shadow-sm h-100' },
+            React.createElement('div', { 
+              className: 'card-body text-center',
+              style: { background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }
+            },
+              React.createElement('h3', { className: 'mb-2' }, stats.users),
+              React.createElement('p', { className: 'mb-0' }, 'Users')
+            )
+          )
+        ),
+        React.createElement('div', { className: 'col-md-3 mb-3' },
+          React.createElement('div', { className: 'card border-0 shadow-sm h-100' },
+            React.createElement('div', { 
+              className: 'card-body text-center',
+              style: { background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white' }
+            },
+              React.createElement('h3', { className: 'mb-2' }, stats.comments),
+              React.createElement('p', { className: 'mb-0' }, 'Comments')
+            )
+          )
+        ),
+        React.createElement('div', { className: 'col-md-3 mb-3' },
+          React.createElement('div', { className: 'card border-0 shadow-sm h-100' },
+            React.createElement('div', { 
+              className: 'card-body text-center',
+              style: { background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white' }
+            },
+              React.createElement('h3', { className: 'mb-2' }, stats.categories),
+              React.createElement('p', { className: 'mb-0' }, 'Categories')
+            )
+          )
+        )
+      ),
+
+      // Admin Tools Grid
+      React.createElement('h2', { className: 'mb-4' }, 'Management Tools'),
+      React.createElement('div', { className: 'row' },
+        adminTools.map((tool, index) => 
+          React.createElement('div', { 
+            key: index,
+            className: tool.featured ? 'col-lg-6 mb-4' : 'col-lg-4 col-md-6 mb-4'
+          },
+            React.createElement('div', { 
+              className: 'card border-0 shadow-sm h-100',
+              style: { cursor: 'pointer', transition: 'transform 0.2s' },
+              onClick: () => navigateTo(tool.path),
+              onMouseEnter: (e) => e.target.style.transform = 'translateY(-5px)',
+              onMouseLeave: (e) => e.target.style.transform = 'translateY(0)'
+            },
+              React.createElement('div', { className: 'card-body text-center p-4' },
+                React.createElement('div', {
+                  style: { 
+                    fontSize: '3rem',
+                    background: tool.color,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    marginBottom: '20px'
+                  }
+                }, tool.icon),
+                React.createElement('h4', { className: 'card-title mb-3' }, tool.title),
+                React.createElement('p', { className: 'card-text text-muted' }, tool.description),
+                React.createElement('div', {
+                  className: 'btn btn-outline-primary',
+                  style: { pointerEvents: 'none' }
+                }, 'Manage')
+              )
+            )
+          )
+        )
+      )
+    )
   );
 };
 
