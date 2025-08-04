@@ -130,7 +130,32 @@ export function registerRoutes(app) {
     });
   }
 
-  // Posts routes
+  // Public posts route - shows post previews to everyone (no content access)
+  app.get("/api/posts/public", async (req, res) => {
+    try {
+      const posts = await storage.getPosts();
+      // Return posts with limited information for public viewing
+      const publicPosts = posts.map(post => ({
+        id: post.id,
+        title: post.title,
+        excerpt: post.excerpt,
+        authorName: post.authorName,
+        publishedAt: post.publishedAt,
+        categoryName: post.categoryName,
+        categoryId: post.categoryId,
+        featuredImage: post.featuredImage,
+        slug: post.slug,
+        // Include content for excerpt generation but limit it
+        content: post.content ? post.content.substring(0, 200) : ''
+      }));
+      res.json(publicPosts);
+    } catch (error) {
+      console.error("Error fetching public posts:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Posts routes (authenticated users only)
   app.get("/api/posts", async (req, res) => {
     try {
       // Check if user is authenticated and approved

@@ -196,6 +196,29 @@ const SimpleHome = () => {
   const { user, logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load posts for everyone to see (but not access)
+  useEffect(() => {
+    // Always use the public endpoint to show post previews to everyone
+    fetch('/api/posts/public', { credentials: 'include' })
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+        throw new Error('Failed to fetch posts');
+      })
+      .then(data => {
+        setPosts(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error loading posts:', err);
+        setPosts([]);
+        setLoading(false);
+      });
+  }, []);
 
   const handleShowAuth = (isLogin) => {
     setIsLoginMode(isLogin);
@@ -204,6 +227,20 @@ const SimpleHome = () => {
 
   const handleToggleAuthMode = () => {
     setIsLoginMode(!isLoginMode);
+  };
+
+  const handlePostClick = (post) => {
+    if (!user) {
+      // Show login modal for unauthenticated users
+      setIsLoginMode(true);
+      setShowAuthModal(true);
+    } else if (!user.approved) {
+      // Show message for unapproved users
+      alert('Your account is pending approval. Please wait for an administrator to approve your account before you can read blog posts.');
+    } else {
+      // Approved users can access posts (for now just show an alert, later we can implement full post view)
+      alert(`You can now read: ${post.title}\n\n(Full post reading functionality will be implemented next)`);
+    }
   };
 
   return React.createElement('div', { className: 'min-vh-100', style: { backgroundColor: '#f8f9fa' } },
@@ -242,38 +279,92 @@ const SimpleHome = () => {
         React.createElement('div', { className: 'col-lg-8 text-center' },
           React.createElement('h1', { className: 'display-4 fw-bold mb-4' }, 'Welcome to BlogCraft'),
           
-          !user ? React.createElement('div', null,
+          React.createElement('div', null,
             React.createElement('p', { className: 'lead text-muted mb-4' },
-              'Join our community of writers and readers. Sign up to access exclusive blog content.'
+              'Discover amazing stories, insights, and ideas from our community of writers.'
             ),
-            React.createElement('div', {
-              className: 'alert alert-info mx-auto',
+            
+            // Status message based on user state
+            !user ? React.createElement('div', {
+              className: 'alert alert-info mx-auto mb-4',
               style: { maxWidth: '500px' }
             },
-              React.createElement('h5', { className: 'alert-heading' }, 'Authentication Required'),
-              React.createElement('p', { className: 'mb-0' }, 'Please sign in or create an account to view blog posts.')
+              React.createElement('h6', { className: 'alert-heading' }, 'Join Our Community'),
+              React.createElement('p', { className: 'mb-0' }, 'Sign up to read full articles and join the discussion!')
+            ) : !user.approved ? React.createElement('div', {
+              className: 'alert alert-warning mx-auto mb-4',
+              style: { maxWidth: '500px' }
+            },
+              React.createElement('h6', { className: 'alert-heading' }, 'Account Pending Approval'),
+              React.createElement('p', { className: 'mb-0' }, 'Your account is being reviewed. You\'ll be able to read articles once approved!')
+            ) : React.createElement('div', {
+              className: 'alert alert-success mx-auto mb-4',
+              style: { maxWidth: '500px' }
+            },
+              React.createElement('h6', { className: 'alert-heading' }, 'Welcome Back!'),
+              React.createElement('p', { className: 'mb-0' }, 'You have full access to all our content.')
             )
-          ) : !user.approved ? React.createElement('div', null,
-            React.createElement('p', { className: 'lead text-muted mb-4' },
-              'Your account is being reviewed by our administrators.'
-            ),
-            React.createElement('div', {
-              className: 'alert alert-warning mx-auto',
-              style: { maxWidth: '500px' }
-            },
-              React.createElement('h5', { className: 'alert-heading' }, 'Account Pending Approval'),
-              React.createElement('p', { className: 'mb-0' }, 'Your account has been created successfully! Please wait for an administrator to approve your account before you can access blog posts.')
-            )
-          ) : React.createElement('div', null,
-            React.createElement('p', { className: 'lead text-muted mb-4' },
-              'Welcome back! You now have full access to our blog content.'
-            ),
-            React.createElement('div', {
-              className: 'alert alert-success mx-auto',
-              style: { maxWidth: '500px' }
-            },
-              React.createElement('h5', { className: 'alert-heading' }, 'Access Granted'),
-              React.createElement('p', { className: 'mb-0' }, 'Your account has been approved. You can now view all blog posts and interact with the community.')
+          )
+        )
+      )
+    ),
+
+    // Blog Posts Section - Show to everyone
+    React.createElement('div', { className: 'container mt-5' },
+      React.createElement('div', { className: 'row' },
+        React.createElement('div', { className: 'col-12' },
+          React.createElement('h2', { className: 'text-center mb-4' }, 'Latest Articles'),
+          
+          loading ? React.createElement('div', { className: 'text-center' },
+            React.createElement('div', { className: 'spinner-border text-primary' })
+          ) : posts.length === 0 ? React.createElement('div', { className: 'text-center' },
+            React.createElement('p', { className: 'text-muted' }, 'No articles available yet.')
+          ) : React.createElement('div', { className: 'row' },
+            posts.slice(0, 6).map(post => 
+              React.createElement('div', { 
+                key: post.id, 
+                className: 'col-md-6 col-lg-4 mb-4' 
+              },
+                React.createElement('div', { 
+                  className: 'card h-100 shadow-sm',
+                  style: { cursor: 'pointer' },
+                  onClick: () => handlePostClick(post)
+                },
+                  post.featuredImage && React.createElement('img', {
+                    src: post.featuredImage,
+                    className: 'card-img-top',
+                    alt: post.title,
+                    style: { 
+                      height: '200px', 
+                      objectFit: 'cover'
+                    }
+                  }),
+                  React.createElement('div', { className: 'card-body d-flex flex-column' },
+                    React.createElement('h5', { className: 'card-title' }, post.title),
+                    React.createElement('p', { className: 'card-text flex-grow-1 text-muted' }, 
+                      post.excerpt || (post.content.replace(/<[^>]*>/g, '').substring(0, 100) + '...')
+                    ),
+                    React.createElement('div', { className: 'mt-auto' },
+                      React.createElement('div', { className: 'd-flex justify-content-between align-items-center' },
+                        React.createElement('small', { className: 'text-muted' }, 
+                          `By ${post.authorName}`
+                        ),
+                        React.createElement('small', { className: 'text-muted' }, 
+                          new Date(post.publishedAt).toLocaleDateString()
+                        )
+                      ),
+                      post.categoryName && React.createElement('div', { className: 'mt-2' },
+                        React.createElement('span', { className: 'badge bg-secondary' }, post.categoryName)
+                      ),
+                      React.createElement('div', { className: 'mt-2' },
+                        React.createElement('span', { 
+                          className: `badge ${!user ? 'bg-primary' : !user.approved ? 'bg-warning' : 'bg-success'}`
+                        }, !user ? 'Sign in to read' : !user.approved ? 'Approval needed' : 'Read now')
+                      )
+                    )
+                  )
+                )
+              )
             )
           )
         )
