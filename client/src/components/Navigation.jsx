@@ -367,6 +367,16 @@ const Navigation = ({ user, onLogout }) => {
               🔧 Admin Dashboard
             </button>
             
+            {/* Test logout button - temporary for testing */}
+            {user && (
+              <button
+                className="btn btn-warning btn-sm me-2"
+                onClick={handleLogout}
+              >
+                Test Logout
+              </button>
+            )}
+            
             {user ? (
               <div className="nav-item dropdown">
                 <a
