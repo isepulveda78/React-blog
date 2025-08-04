@@ -252,9 +252,13 @@ const SimpleHome = () => {
           user ? React.createElement('div', { className: 'd-flex align-items-center' },
             React.createElement('span', { className: 'text-light me-3' }, `Welcome, ${user.name}`),
             user.isAdmin && React.createElement('a', {
-              href: '/admin',
-              className: 'btn btn-outline-light btn-sm me-2'
-            }, 'Admin'),
+              href: '#',
+              className: 'btn btn-outline-light btn-sm me-2',
+              onClick: (e) => {
+                e.preventDefault();
+                window.location.href = '/admin';
+              }
+            }, 'Dashboard'),
             React.createElement('button', {
               className: 'btn btn-outline-light btn-sm',
               onClick: logout

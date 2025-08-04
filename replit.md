@@ -27,6 +27,9 @@ Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framew
 - **Streamlined Comment System**: Removed manual name/email entry - comments now automatically use logged-in user's session data
 - **Threaded Comment Replies**: Implemented nested reply structure where replies appear visually indented within parent comments
 - **Comment Authentication**: Only logged-in users can comment or reply, with proper session validation
+- **Blog Post Preview System**: Implemented public blog post display with authentication-gated access
+- **Access Control Model**: Blog posts visible on homepage to everyone, but clicking requires login and approval
+- **Public API Endpoint**: Added `/api/posts/public` route for non-authenticated post previews
 
 ## System Architecture
 
