@@ -407,9 +407,18 @@ export function registerRoutes(app) {
   app.post("/api/posts/:postId/comments", async (req, res) => {
     try {
       const { postId } = req.params;
+      
+      // Check if user is logged in
+      if (!req.session.user) {
+        return res.status(401).json({ message: "Please log in to leave a comment" });
+      }
+      
       const commentData = {
         ...req.body,
-        postId
+        postId,
+        // Use logged-in user's information
+        authorName: req.session.user.name || req.session.user.username,
+        authorEmail: req.session.user.email
       };
 
       const comment = await storage.createComment(commentData);

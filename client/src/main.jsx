@@ -219,15 +219,13 @@ const CommentThread = ({ comment, postId, onReplySubmit }) => {
 };
 
 // Blog Post Detail Component
-const BlogPostDetail = ({ slug, onBack }) => {
+const BlogPostDetail = ({ slug, onBack, user }) => {
   const [post, setPost] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState('');
   const [comments, setComments] = React.useState([]);
   const [commentLoading, setCommentLoading] = React.useState(false);
   const [newComment, setNewComment] = React.useState({
-    authorName: '',
-    authorEmail: '',
     content: ''
   });
   const [submittingComment, setSubmittingComment] = React.useState(false);
@@ -271,7 +269,7 @@ const BlogPostDetail = ({ slug, onBack }) => {
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
-    if (!post || !newComment.authorName || !newComment.authorEmail || !newComment.content) {
+    if (!post || !newComment.content.trim()) {
       return;
     }
 
@@ -284,13 +282,13 @@ const BlogPostDetail = ({ slug, onBack }) => {
         },
         credentials: 'include',
         body: JSON.stringify({
-          ...newComment,
+          content: newComment.content,
           postId: post.id
         })
       });
 
       if (response.ok) {
-        setNewComment({ authorName: '', authorEmail: '', content: '' });
+        setNewComment({ content: '' });
         // Show success message
         alert('Comment submitted successfully! It will appear after approval.');
         // Reload comments to show any immediately approved ones
@@ -401,36 +399,14 @@ const BlogPostDetail = ({ slug, onBack }) => {
                 ) :
                 React.createElement('p', { className: 'text-muted mb-4' }, 'No comments yet. Be the first to comment!'),
 
-            // Comment Form
+            // Comment Form - only show if a user is logged in  
             React.createElement('div', { className: 'card' },
               React.createElement('div', { className: 'card-header' },
                 React.createElement('h5', { className: 'mb-0' }, 'Leave a Comment')
               ),
               React.createElement('div', { className: 'card-body' },
-                React.createElement('form', { onSubmit: handleCommentSubmit },
-                  React.createElement('div', { className: 'row mb-3' },
-                    React.createElement('div', { className: 'col-md-6' },
-                      React.createElement('label', { className: 'form-label' }, 'Name *'),
-                      React.createElement('input', {
-                        type: 'text',
-                        className: 'form-control',
-                        value: newComment.authorName,
-                        onChange: (e) => setNewComment({...newComment, authorName: e.target.value}),
-                        required: true
-                      })
-                    ),
-                    React.createElement('div', { className: 'col-md-6' },
-                      React.createElement('label', { className: 'form-label' }, 'Email *'),
-                      React.createElement('input', {
-                        type: 'email',
-                        className: 'form-control',
-                        value: newComment.authorEmail,
-                        onChange: (e) => setNewComment({...newComment, authorEmail: e.target.value}),
-                        required: true
-                      }),
-                      React.createElement('small', { className: 'form-text text-muted' }, 'Your email will not be published')
-                    )
-                  ),
+                // Show form only if user is logged in
+                user ? React.createElement('form', { onSubmit: handleCommentSubmit },
                   React.createElement('div', { className: 'mb-3' },
                     React.createElement('label', { className: 'form-label' }, 'Comment *'),
                     React.createElement('textarea', {
@@ -445,8 +421,10 @@ const BlogPostDetail = ({ slug, onBack }) => {
                   React.createElement('button', {
                     type: 'submit',
                     className: 'btn btn-primary',
-                    disabled: submittingComment
+                    disabled: submittingComment || !newComment.content.trim()
                   }, submittingComment ? 'Submitting...' : 'Post Comment')
+                ) : React.createElement('div', { className: 'alert alert-info text-center' },
+                  'Please log in to leave a comment.'
                 )
               )
             )
@@ -1863,7 +1841,7 @@ const App = () => {
               return React.createElement(AdminDashboard, { user });
             } else if (hash.startsWith('#/post/')) {
               const slug = hash.replace('#/post/', '');
-              return React.createElement(BlogPostDetail, { slug });
+              return React.createElement(BlogPostDetail, { slug, user });
             } else {
               return React.createElement(HomePage);
             }
