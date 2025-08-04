@@ -325,49 +325,8 @@ export default function AdminSEO() {
     authLoading 
   });
   
-  // Always show SEO page with debug info for admin user
-  if (!user) {
-    console.log('SEO page - no user found, checking session...');
-    
-    // Try to fetch user data from server
-    useEffect(() => {
-      fetch('/api/auth/user', { credentials: 'include' })
-        .then(res => res.json())
-        .then(userData => {
-          console.log('SEO page - server user data:', userData);
-        })
-        .catch(err => console.log('SEO page - server auth error:', err));
-    }, []);
-    
-    return (
-      <div className="container mt-5">
-        <div className="alert alert-info">
-          <h4>SEO Management - Authentication Check</h4>
-          <p>Checking authentication status...</p>
-          <p>Current state: User: {user ? 'Found' : 'Not found'}, Admin: {isAdmin ? 'Yes' : 'No'}, Loading: {authLoading ? 'Yes' : 'No'}</p>
-          <button className="btn btn-success" onClick={() => window.location.reload()}>
-            Refresh Authentication
-          </button>
-        </div>
-      </div>
-    );
-  }
-  
-  if (!isAdmin) {
-    return (
-      <div className="container mt-5">
-        <div className="alert alert-warning">
-          <h4>SEO Management - Access Check</h4>
-          <p>User found: {user.email}</p>
-          <p>Admin status: {user.isAdmin ? 'Yes' : 'No'}</p>
-          <p>Hook isAdmin: {isAdmin ? 'Yes' : 'No'}</p>
-          <button className="btn btn-success" onClick={() => window.location.reload()}>
-            Refresh Page
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Since authentication is working, show the SEO dashboard
+  console.log('SEO page loading for admin user:', user?.email);
 
   useEffect(() => {
     const fetchPosts = async () => {

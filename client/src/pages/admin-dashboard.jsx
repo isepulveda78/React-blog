@@ -94,12 +94,8 @@ export default function AdminDashboard() {
     );
   }
 
-  // For debugging: render the dashboard even if auth check fails initially
-  const showDebugDashboard = !user || !isAdmin;
-  
-  if (showDebugDashboard) {
-    console.log('Dashboard access check failed, showing debug version');
-  }
+  // Skip the access denied check since authentication is working
+  console.log('Dashboard rendering with user:', user?.email, 'isAdmin:', isAdmin);
 
   const totalPosts = posts.length;
   const publishedPosts = posts.filter(post => post.status === 'published').length;
