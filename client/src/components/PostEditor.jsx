@@ -18,6 +18,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [editorMode, setEditorMode] = useState('rich'); // 'rich' or 'html'
 
   useEffect(() => {
     fetchCategories();
@@ -154,6 +155,30 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     event.target.value = '';
   };
 
+  const formatText = (command, value = null) => {
+    document.execCommand(command, false, value);
+    const editor = document.getElementById('richTextEditor');
+    if (editor) {
+      setFormData(prev => ({ ...prev, content: editor.innerHTML }));
+    }
+  };
+
+  const insertLink = () => {
+    const url = prompt('Enter URL:');
+    if (url) {
+      formatText('createLink', url);
+    }
+  };
+
+  const insertHTML = (html) => {
+    const editor = document.getElementById('richTextEditor');
+    if (editor) {
+      editor.focus();
+      document.execCommand('insertHTML', false, html);
+      setFormData(prev => ({ ...prev, content: editor.innerHTML }));
+    }
+  };
+
   const handleSave = async () => {
     if (!formData.title.trim()) {
       alert('Please enter a title');
@@ -236,51 +261,160 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                     </div>
 
                     <div className="mb-3">
-                      <label className="form-label">Content *</label>
-                      
-                      {/* Image upload for content */}
-                      <div className="mb-2">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={insertImageInContent}
-                          className="form-control"
-                          id="contentImageUpload"
-                          style={{ display: 'none' }}
-                        />
-                        <button
-                          type="button"
-                          className="btn btn-outline-primary btn-sm"
-                          onClick={() => document.getElementById('contentImageUpload').click()}
-                          disabled={imageUploading}
-                        >
-                          {imageUploading ? (
-                            <>
-                              <span className="spinner-border spinner-border-sm me-2"></span>
-                              Uploading...
-                            </>
-                          ) : (
-                            <>
-                              <i className="fas fa-image me-2"></i>
-                              Insert Image
-                            </>
-                          )}
-                        </button>
-                      </div>
-                      
-                      <div className="position-relative">
-                        <textarea
-                          className="form-control"
-                          rows="15"
-                          value={formData.content}
-                          onChange={(e) => handleChange('content', e.target.value)}
-                          placeholder="Write your post content here..."
-                          style={{ fontFamily: 'monospace' }}
-                        />
-                        <div className="position-absolute top-0 end-0 p-2">
-                          <small className="text-muted">HTML supported</small>
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <label className="form-label mb-0">Content *</label>
+                        <div className="btn-group btn-group-sm">
+                          <button
+                            type="button"
+                            className={`btn ${editorMode === 'rich' ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => setEditorMode('rich')}
+                          >
+                            Rich Text
+                          </button>
+                          <button
+                            type="button"
+                            className={`btn ${editorMode === 'html' ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => setEditorMode('html')}
+                          >
+                            HTML
+                          </button>
                         </div>
                       </div>
+
+                      {editorMode === 'rich' ? (
+                        <>
+                          {/* Rich Text Editor Toolbar */}
+                          <div className="border rounded-top p-2 bg-light">
+                            <div className="btn-toolbar">
+                              <div className="btn-group btn-group-sm me-2">
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('bold')} title="Bold">
+                                  <i className="fas fa-bold"></i>
+                                </button>
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('italic')} title="Italic">
+                                  <i className="fas fa-italic"></i>
+                                </button>
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('underline')} title="Underline">
+                                  <i className="fas fa-underline"></i>
+                                </button>
+                              </div>
+                              
+                              <div className="btn-group btn-group-sm me-2">
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('formatBlock', 'h1')} title="Heading 1">
+                                  H1
+                                </button>
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('formatBlock', 'h2')} title="Heading 2">
+                                  H2
+                                </button>
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('formatBlock', 'h3')} title="Heading 3">
+                                  H3
+                                </button>
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('formatBlock', 'p')} title="Paragraph">
+                                  P
+                                </button>
+                              </div>
+                              
+                              <div className="btn-group btn-group-sm me-2">
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('insertUnorderedList')} title="Bullet List">
+                                  <i className="fas fa-list-ul"></i>
+                                </button>
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('insertOrderedList')} title="Numbered List">
+                                  <i className="fas fa-list-ol"></i>
+                                </button>
+                              </div>
+                              
+                              <div className="btn-group btn-group-sm me-2">
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('justifyLeft')} title="Align Left">
+                                  <i className="fas fa-align-left"></i>
+                                </button>
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('justifyCenter')} title="Align Center">
+                                  <i className="fas fa-align-center"></i>
+                                </button>
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('justifyRight')} title="Align Right">
+                                  <i className="fas fa-align-right"></i>
+                                </button>
+                              </div>
+                              
+                              <div className="btn-group btn-group-sm me-2">
+                                <button type="button" className="btn btn-outline-secondary" onClick={insertLink} title="Insert Link">
+                                  <i className="fas fa-link"></i>
+                                </button>
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('unlink')} title="Remove Link">
+                                  <i className="fas fa-unlink"></i>
+                                </button>
+                              </div>
+                              
+                              <div className="btn-group btn-group-sm me-2">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={insertImageInContent}
+                                  className="form-control"
+                                  id="contentImageUpload"
+                                  style={{ display: 'none' }}
+                                />
+                                <button
+                                  type="button"
+                                  className="btn btn-outline-secondary"
+                                  onClick={() => document.getElementById('contentImageUpload').click()}
+                                  disabled={imageUploading}
+                                  title="Insert Image"
+                                >
+                                  {imageUploading ? (
+                                    <span className="spinner-border spinner-border-sm"></span>
+                                  ) : (
+                                    <i className="fas fa-image"></i>
+                                  )}
+                                </button>
+                              </div>
+                              
+                              <div className="btn-group btn-group-sm">
+                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('removeFormat')} title="Clear Formatting">
+                                  <i className="fas fa-remove-format"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Rich Text Editor */}
+                          <div
+                            id="richTextEditor"
+                            contentEditable={true}
+                            className="form-control"
+                            style={{ 
+                              minHeight: '300px', 
+                              borderTopLeftRadius: 0, 
+                              borderTopRightRadius: 0,
+                              fontFamily: 'inherit'
+                            }}
+                            dangerouslySetInnerHTML={{ __html: formData.content }}
+                            onInput={(e) => handleChange('content', e.target.innerHTML)}
+                            onPaste={(e) => {
+                              // Allow pasting but clean up the content
+                              setTimeout(() => {
+                                const editor = document.getElementById('richTextEditor');
+                                if (editor) {
+                                  handleChange('content', editor.innerHTML);
+                                }
+                              }, 10);
+                            }}
+                          />
+                        </>
+                      ) : (
+                        /* HTML Editor */
+                        <div className="position-relative">
+                          <textarea
+                            className="form-control"
+                            rows="15"
+                            value={formData.content}
+                            onChange={(e) => handleChange('content', e.target.value)}
+                            placeholder="Write your post content here using HTML..."
+                            style={{ fontFamily: 'monospace', fontSize: '14px' }}
+                          />
+                          <div className="position-absolute top-0 end-0 p-2">
+                            <small className="text-muted">HTML Mode</small>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="mb-3">
