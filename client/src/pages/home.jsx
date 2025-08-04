@@ -265,7 +265,7 @@ export default function Home() {
         {/* Hero Section */}
         <Row className="mb-5">
           <Col lg={8} className="mx-auto text-center">
-            <h1 className="display-4 fw-bold mb-4">Welcome to BlogCraft</h1>
+            <h1 className="display-4 fw-bold mb-4">Welcome to Mr. S Teaches</h1>
 
             {!user ? (
               <div>
@@ -483,7 +483,7 @@ export default function Home() {
         <Container>
           <Row>
             <Col className="text-center">
-              <p>&copy; 2024 BlogCraft. Built with React and Bootstrap.</p>
+              <p>&copy; 2024 Mr. S Teaches. Built with React and Bootstrap.</p>
             </Col>
           </Row>
         </Container>

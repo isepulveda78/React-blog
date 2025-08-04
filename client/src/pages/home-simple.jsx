@@ -9,14 +9,14 @@ export default function SimpleHome() {
   // Update homepage SEO meta tags
   useEffect(() => {
     updateMetaTags({
-      title: 'BlogCraft - Modern Blog Platform',
+      title: 'Mr. S Teaches - Modern Blog Platform',
       description: 'Join our community of writers and readers. Access exclusive blog content, engage with authors, and share your thoughts.',
       keywords: ['blog', 'platform', 'community', 'writing', 'reading', 'content'],
-      ogTitle: 'BlogCraft - Modern Blog Platform',
+      ogTitle: 'Mr. S Teaches - Modern Blog Platform',
       ogDescription: 'Join our community of writers and readers. Access exclusive blog content and engage with authors.',
       ogImage: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=630',
       canonicalUrl: window.location.href,
-      seoTitle: 'BlogCraft - Modern Blog Platform for Writers and Readers'
+      seoTitle: 'Mr. S Teaches - Modern Blog Platform for Writers and Readers'
     });
   }, []);
 

@@ -165,7 +165,7 @@ function SEOAnalysis({ posts = [] }) {
 
 function SiteSettings() {
   const [settings, setSettings] = useState({
-    siteName: 'BlogCraft',
+    siteName: 'Mr. S Teaches',
     siteDescription: 'A modern blog platform featuring advanced content management, user authentication, and SEO optimization tools.',
     defaultOgImage: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=630',
     googleAnalyticsId: '',

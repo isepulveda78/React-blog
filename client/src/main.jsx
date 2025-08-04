@@ -1730,7 +1730,7 @@ const SimpleHome = () => {
     // Navigation
     React.createElement('nav', { className: 'navbar navbar-expand-lg navbar-dark bg-primary' },
       React.createElement('div', { className: 'container' },
-        React.createElement('a', { className: 'navbar-brand fw-bold' }, 'BlogCraft'),
+        React.createElement('a', { className: 'navbar-brand fw-bold' }, 'Mr. S Teaches'),
         React.createElement('div', { className: 'navbar-nav ms-auto' },
           user ? React.createElement('div', { className: 'd-flex align-items-center' },
             React.createElement('span', { className: 'text-light me-3' }, `Welcome, ${user.name}`),

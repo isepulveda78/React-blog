@@ -193,7 +193,7 @@ export default function BlogPost() {
     if (post) {
       updateMetaTags({
         title: post.seoTitle || post.title,
-        description: post.metaDescription || post.excerpt || 'Read this blog post on BlogCraft',
+        description: post.metaDescription || post.excerpt || 'Read this blog post on Mr. S Teaches',
         keywords: post.metaKeywords || post.tags || [],
         ogTitle: post.ogTitle || post.title,
         ogDescription: post.ogDescription || post.excerpt || post.metaDescription,
@@ -215,7 +215,7 @@ export default function BlogPost() {
       <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <Container>
           <Link href="/" className="navbar-brand fw-bold text-primary fs-3">
-            BlogCraft
+            Mr. S Teaches
           </Link>
           <Link href="/" className="btn btn-outline-primary">
             ← Back to Blog
