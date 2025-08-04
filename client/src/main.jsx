@@ -779,17 +779,23 @@ const CommentManagement = ({ user, onBack }) => {
 
   const loadComments = async () => {
     try {
+      console.log('Loading comments...');
       const response = await fetch('/api/comments', {
         credentials: 'include'
       });
       
+      console.log('Comments response status:', response.status);
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Comments error:', errorData);
         throw new Error(errorData.message || 'Failed to load comments');
       }
       const commentsData = await response.json();
+      console.log('Comments loaded:', commentsData);
       setComments(commentsData);
     } catch (err) {
+      console.error('Load comments error:', err);
       setError(err.message);
     } finally {
       setLoading(false);

@@ -98,6 +98,13 @@ export function registerRoutes(app) {
     }
   });
 
+  app.get("/api/auth/me", (req, res) => {
+    if (!req.session.user) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    res.json(req.session.user);
+  });
+
   app.post("/api/auth/logout", (req, res) => {
     req.session.destroy();
     res.json({ message: "Logged out successfully" });
@@ -359,12 +366,16 @@ export function registerRoutes(app) {
   // Comments routes
   app.get("/api/comments", async (req, res) => {
     try {
+      console.log('[debug] Session user:', req.session.user);
+      console.log('[debug] Is admin?:', req.session.user?.isAdmin);
+      
       // Check if user is admin
       if (!req.session.user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const comments = await storage.getComments();
+      console.log('[debug] Comments found:', comments.length);
       res.json(comments);
     } catch (error) {
       console.error("Error fetching comments:", error);
