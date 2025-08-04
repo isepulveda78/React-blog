@@ -370,10 +370,23 @@ export class MongoStorage {
     await this.initializeSampleData();
   }
 
+  async fixAdminUser() {
+    console.log('[mongodb] Fixing admin user permissions...');
+    const result = await this.db.collection('users').updateOne(
+      { email: "admin@example.com" },
+      { $set: { isAdmin: true } }
+    );
+    console.log('[mongodb] Admin user fix result:', result.modifiedCount, 'documents modified');
+  }
+
   async initializeSampleData() {
     // Check if data already exists
     const existingUsers = await this.db.collection('users').countDocuments();
-    if (existingUsers > 0) return; // Data already exists
+    if (existingUsers > 0) {
+      // Fix admin user if data exists
+      await this.fixAdminUser();
+      return; // Data already exists
+    }
     
     console.log('[mongodb] Initializing sample data...');
     
