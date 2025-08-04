@@ -3062,34 +3062,13 @@ const AdminPostEditor = ({ postId }) => {
                 })
               ),
               React.createElement('div', { className: 'mb-3' },
-                React.createElement('div', { className: 'd-flex justify-content-between align-items-center mb-2' },
-                  React.createElement('label', { className: 'form-label fw-bold mb-0' }, 'Content'),
-                  React.createElement('div', null,
-                    React.createElement('input', {
-                      type: 'file',
-                      id: 'content-image-upload',
-                      accept: 'image/*',
-                      style: { display: 'none' },
-                      onChange: insertImageIntoContent
-                    }),
-                    React.createElement('button', {
-                      type: 'button',
-                      className: 'btn btn-outline-primary btn-sm',
-                      onClick: () => document.getElementById('content-image-upload').click(),
-                      disabled: uploadingImage
-                    }, uploadingImage ? 'Uploading...' : '📷 Add Image')
-                  )
-                ),
-                React.createElement('textarea', {
-                  className: 'form-control',
-                  rows: 15,
+                React.createElement('label', { className: 'form-label fw-bold' }, 'Content'),
+                React.createElement(RichTextEditor, {
                   value: formData.content,
-                  onChange: (e) => setFormData({ ...formData, content: e.target.value }),
-                  placeholder: 'Write your post content here...'
-                }),
-                React.createElement('small', { className: 'form-text text-muted' },
-                  'Use the "Add Image" button to upload and insert images directly into your content.'
-                )
+                  onChange: (content) => setFormData({ ...formData, content }),
+                  onImageUpload: insertImageIntoContent,
+                  uploadingImage
+                })
               )
             )
           )
@@ -3180,6 +3159,181 @@ const AdminPostEditor = ({ postId }) => {
             )
           )
         )
+      )
+    )
+  );
+};
+
+// Rich Text Editor Component
+const RichTextEditor = ({ value, onChange, onImageUpload, uploadingImage }) => {
+  const editorRef = useRef(null);
+  const [showSourceCode, setShowSourceCode] = useState(false);
+
+  const execCommand = (command, value = null) => {
+    document.execCommand(command, false, value);
+    updateContent();
+  };
+
+  const updateContent = () => {
+    if (editorRef.current) {
+      const content = editorRef.current.innerHTML;
+      onChange(content);
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain');
+    document.execCommand('insertText', false, text);
+  };
+
+  const insertLink = () => {
+    const url = prompt('Enter the URL:');
+    if (url) {
+      execCommand('createLink', url);
+    }
+  };
+
+  const insertImage = () => {
+    const url = prompt('Enter image URL:');
+    if (url) {
+      execCommand('insertImage', url);
+    }
+  };
+
+  const formatBlock = (tag) => {
+    execCommand('formatBlock', tag);
+  };
+
+  const toggleSourceCode = () => {
+    if (showSourceCode) {
+      // Switch back to visual editor
+      editorRef.current.innerHTML = editorRef.current.textContent;
+      editorRef.current.contentEditable = true;
+      setShowSourceCode(false);
+    } else {
+      // Switch to source code view
+      editorRef.current.textContent = editorRef.current.innerHTML;
+      editorRef.current.contentEditable = true;
+      setShowSourceCode(true);
+    }
+  };
+
+  useEffect(() => {
+    if (editorRef.current && !showSourceCode) {
+      editorRef.current.innerHTML = value || '';
+    }
+  }, [value]);
+
+  const toolbarButtons = [
+    { command: 'bold', icon: 'B', title: 'Bold', style: { fontWeight: 'bold' } },
+    { command: 'italic', icon: 'I', title: 'Italic', style: { fontStyle: 'italic' } },
+    { command: 'underline', icon: 'U', title: 'Underline', style: { textDecoration: 'underline' } },
+    { command: 'strikeThrough', icon: 'S', title: 'Strikethrough', style: { textDecoration: 'line-through' } },
+    null, // separator
+    { command: () => formatBlock('h1'), icon: 'H1', title: 'Heading 1' },
+    { command: () => formatBlock('h2'), icon: 'H2', title: 'Heading 2' },
+    { command: () => formatBlock('h3'), icon: 'H3', title: 'Heading 3' },
+    { command: () => formatBlock('p'), icon: 'P', title: 'Paragraph' },
+    null, // separator
+    { command: 'insertUnorderedList', icon: '•', title: 'Bullet List' },
+    { command: 'insertOrderedList', icon: '1.', title: 'Numbered List' },
+    { command: 'outdent', icon: '←', title: 'Decrease Indent' },
+    { command: 'indent', icon: '→', title: 'Increase Indent' },
+    null, // separator
+    { command: 'justifyLeft', icon: '⫷', title: 'Align Left' },
+    { command: 'justifyCenter', icon: '⫸', title: 'Align Center' },
+    { command: 'justifyRight', icon: '⫸', title: 'Align Right' },
+    null, // separator
+    { command: insertLink, icon: '🔗', title: 'Insert Link' },
+    { command: insertImage, icon: '🖼️', title: 'Insert Image URL' },
+    { command: 'removeFormat', icon: '🧹', title: 'Clear Formatting' }
+  ];
+
+  return React.createElement('div', { className: 'rich-text-editor border rounded' },
+    // Toolbar
+    React.createElement('div', { 
+      className: 'border-bottom p-2 bg-light d-flex flex-wrap gap-1 align-items-center' 
+    },
+      ...toolbarButtons.map((button, index) => {
+        if (button === null) {
+          return React.createElement('div', { 
+            key: index, 
+            className: 'border-end mx-1',
+            style: { height: '24px', width: '1px' }
+          });
+        }
+        
+        return React.createElement('button', {
+          key: index,
+          type: 'button',
+          className: 'btn btn-outline-secondary btn-sm',
+          style: { 
+            minWidth: '32px', 
+            height: '32px', 
+            padding: '4px',
+            fontSize: '12px',
+            ...button.style 
+          },
+          title: button.title,
+          onClick: () => {
+            if (typeof button.command === 'function') {
+              button.command();
+            } else {
+              execCommand(button.command);
+            }
+          }
+        }, button.icon);
+      }),
+      
+      // Image Upload Button
+      React.createElement('div', { className: 'ms-auto d-flex gap-2' },
+        React.createElement('input', {
+          type: 'file',
+          id: 'editor-image-upload',
+          accept: 'image/*',
+          style: { display: 'none' },
+          onChange: onImageUpload
+        }),
+        React.createElement('button', {
+          type: 'button',
+          className: 'btn btn-outline-primary btn-sm',
+          onClick: () => document.getElementById('editor-image-upload').click(),
+          disabled: uploadingImage,
+          title: 'Upload Image'
+        }, uploadingImage ? 'Uploading...' : '📷'),
+        
+        React.createElement('button', {
+          type: 'button',
+          className: `btn btn-outline-secondary btn-sm ${showSourceCode ? 'active' : ''}`,
+          onClick: toggleSourceCode,
+          title: 'Toggle Source Code'
+        }, showSourceCode ? 'Visual' : 'HTML')
+      )
+    ),
+    
+    // Editor Content
+    React.createElement('div', {
+      ref: editorRef,
+      contentEditable: true,
+      className: 'p-3',
+      style: { 
+        minHeight: '400px', 
+        outline: 'none',
+        fontSize: '16px',
+        lineHeight: '1.6',
+        fontFamily: showSourceCode ? 'Monaco, Consolas, monospace' : 'inherit',
+        whiteSpace: showSourceCode ? 'pre-wrap' : 'normal'
+      },
+      onInput: updateContent,
+      onPaste: handlePaste,
+      dangerouslySetInnerHTML: showSourceCode ? null : { __html: value || '' }
+    }, showSourceCode ? value : null),
+    
+    // Help Text
+    React.createElement('div', { className: 'border-top p-2 bg-light' },
+      React.createElement('small', { className: 'text-muted' },
+        'Use the toolbar for formatting, upload images, or switch to HTML view for advanced editing.'
       )
     )
   );
