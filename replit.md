@@ -30,6 +30,10 @@ Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framew
 - **Blog Post Preview System**: Implemented public blog post display with authentication-gated access
 - **Access Control Model**: Blog posts visible on homepage to everyone, but clicking requires login and approval
 - **Public API Endpoint**: Added `/api/posts/public` route for non-authenticated post previews
+- **Google OAuth Integration**: Added Google Sign-In authentication with passport-google-oauth20
+- **Dual Authentication Support**: Users can register/login with either email/password or Google accounts
+- **Google Account Linking**: Existing email accounts can be linked to Google accounts automatically
+- **Unified Approval System**: Both email and Google registrations require admin approval before accessing content
 
 ## System Architecture
 
