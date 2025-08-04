@@ -31,6 +31,7 @@ function Router() {
       <Route path="/debug" component={DebugDashboard} />
       <Route path="/" component={Home} />
       <Route path="/posts/:slug" component={BlogPost} />
+      <Route path="/test-route" component={TestAdmin} />
       <Route path="/admin" component={TestAdmin} />
       <Route path="/admin-access" component={AdminAccess} />
       <Route path="/admin-success" component={AdminSuccess} />
