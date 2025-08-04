@@ -198,6 +198,67 @@ export function registerRoutes(app) {
     }
   });
 
+  // User management endpoints (admin only)
+  app.get('/api/users', async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const users = await storage.getUsers();
+      // Remove sensitive data like passwords
+      const safeUsers = users.map(user => ({
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        name: user.name,
+        isAdmin: user.isAdmin,
+        createdAt: user.createdAt
+      }));
+      res.json(safeUsers);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: 'Failed to fetch users' });
+    }
+  });
+
+  app.patch('/api/users/:userId/role', async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const { isAdmin } = req.body;
+
+      if (typeof isAdmin !== 'boolean') {
+        return res.status(400).json({ message: 'isAdmin must be a boolean' });
+      }
+
+      const updatedUser = await storage.updateUserRole(userId, isAdmin);
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Return safe user data
+      const safeUser = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        username: updatedUser.username,
+        name: updatedUser.name,
+        isAdmin: updatedUser.isAdmin,
+        createdAt: updatedUser.createdAt
+      };
+
+      res.json(safeUser);
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      res.status(500).json({ message: 'Failed to update user role' });
+    }
+  });
+
   app.post("/api/categories", async (req, res) => {
     try {
       // Check if user is admin

@@ -24,6 +24,13 @@ class MemStorage {
     return user;
   }
 
+  async updateUserRole(userId, isAdmin) {
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return null;
+    this.users[index] = { ...this.users[index], isAdmin };
+    return this.users[index];
+  }
+
   async getPosts() { return this.posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
   async getPostById(id) { return this.posts.find(p => p.id === id); }
   async getPostBySlug(slug) { return this.posts.find(p => p.slug === slug); }
@@ -471,6 +478,16 @@ export class MongoStorage {
     };
     await this.db.collection('users').insertOne(user);
     return user;
+  }
+
+  async updateUserRole(userId, isAdmin) {
+    await this.connect();
+    const result = await this.db.collection('users').findOneAndUpdate(
+      { id: userId },
+      { $set: { isAdmin } },
+      { returnDocument: 'after' }
+    );
+    return result.value;
   }
 
   // Post methods

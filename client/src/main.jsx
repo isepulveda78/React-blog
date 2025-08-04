@@ -263,23 +263,156 @@ const BlogPostEditor = ({ user, onBack }) => {
   );
 };
 
+// User Management Component
+const UserManagement = ({ user, onBack }) => {
+  const [users, setUsers] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+  const [success, setSuccess] = React.useState('');
+  const [updatingUserId, setUpdatingUserId] = React.useState(null);
+
+  React.useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (!response.ok) throw new Error('Failed to load users');
+      const usersData = await response.json();
+      setUsers(usersData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleUserRole = async (userId, currentIsAdmin) => {
+    setUpdatingUserId(userId);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch(`/api/users/${userId}/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAdmin: !currentIsAdmin })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update user role');
+      }
+
+      // Update local state
+      setUsers(users.map(u => 
+        u.id === userId ? { ...u, isAdmin: !currentIsAdmin } : u
+      ));
+      
+      setSuccess(`User role updated successfully!`);
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUpdatingUserId(null);
+    }
+  };
+
+  if (loading) {
+    return React.createElement('div', { className: 'text-center' },
+      React.createElement('div', { className: 'spinner-border' })
+    );
+  }
+
+  return React.createElement('div', null,
+    React.createElement('div', { className: 'mb-3' },
+      React.createElement('button', { 
+        className: 'btn btn-secondary', 
+        onClick: onBack 
+      }, '← Back to Dashboard')
+    ),
+    React.createElement('h1', { className: 'mb-4' }, 'User Management'),
+    React.createElement('p', { className: 'text-muted mb-4' }, 'Manage user roles and permissions. Only admin users can access this area.'),
+    
+    error && React.createElement('div', { className: 'alert alert-danger' }, error),
+    success && React.createElement('div', { className: 'alert alert-success' }, success),
+    
+    React.createElement('div', { className: 'card' },
+      React.createElement('div', { className: 'card-header' },
+        React.createElement('h5', { className: 'mb-0' }, `All Users (${users.length})`)
+      ),
+      React.createElement('div', { className: 'card-body p-0' },
+        React.createElement('div', { className: 'table-responsive' },
+          React.createElement('table', { className: 'table table-hover mb-0' },
+            React.createElement('thead', { className: 'table-light' },
+              React.createElement('tr', null,
+                React.createElement('th', null, 'Name'),
+                React.createElement('th', null, 'Email'),
+                React.createElement('th', null, 'Username'),
+                React.createElement('th', null, 'Role'),
+                React.createElement('th', null, 'Joined'),
+                React.createElement('th', null, 'Actions')
+              )
+            ),
+            React.createElement('tbody', null,
+              users.map(u => 
+                React.createElement('tr', { key: u.id },
+                  React.createElement('td', null,
+                    React.createElement('strong', null, u.name || u.username),
+                    u.id === user.id && React.createElement('span', { className: 'badge bg-primary ms-2' }, 'You')
+                  ),
+                  React.createElement('td', null, u.email),
+                  React.createElement('td', null, u.username),
+                  React.createElement('td', null,
+                    React.createElement('span', { 
+                      className: `badge ${u.isAdmin ? 'bg-danger' : 'bg-secondary'}` 
+                    }, u.isAdmin ? 'Admin' : 'User')
+                  ),
+                  React.createElement('td', null, 
+                    u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Unknown'
+                  ),
+                  React.createElement('td', null,
+                    u.id === user.id ? 
+                      React.createElement('span', { className: 'text-muted' }, 'Current User') :
+                      React.createElement('button', {
+                        className: `btn btn-sm ${u.isAdmin ? 'btn-outline-warning' : 'btn-outline-success'}`,
+                        onClick: () => toggleUserRole(u.id, u.isAdmin),
+                        disabled: updatingUserId === u.id
+                      }, 
+                        updatingUserId === u.id ? 'Updating...' : 
+                        u.isAdmin ? 'Remove Admin' : 'Make Admin'
+                      )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+};
+
 // AdminDashboard component
 const AdminDashboard = ({ user }) => {
   const [currentView, setCurrentView] = React.useState('dashboard');
-  const [stats, setStats] = React.useState({ posts: 0, categories: 0, comments: 0 });
+  const [stats, setStats] = React.useState({ posts: 0, categories: 0, comments: 0, users: 0 });
   const [posts, setPosts] = React.useState([]);
 
   React.useEffect(() => {
     Promise.all([
       fetch('/api/posts').then(r => r.json()),
       fetch('/api/categories').then(r => r.json()),
-      fetch('/api/comments').then(r => r.json())
-    ]).then(([postsData, categories, comments]) => {
+      fetch('/api/comments').then(r => r.json()),
+      fetch('/api/users').then(r => r.json())
+    ]).then(([postsData, categories, comments, users]) => {
       setPosts(postsData);
       setStats({
         posts: postsData.length,
         categories: categories.length,
-        comments: comments.length
+        comments: comments.length,
+        users: users.length
       });
     }).catch(console.error);
   }, [currentView]);
@@ -291,19 +424,30 @@ const AdminDashboard = ({ user }) => {
     });
   }
 
+  if (currentView === 'users') {
+    return React.createElement(UserManagement, { 
+      user, 
+      onBack: () => setCurrentView('dashboard') 
+    });
+  }
+
   return React.createElement('div', null,
     React.createElement('h1', { className: 'mb-4' }, 'Admin Dashboard'),
     React.createElement('p', { className: 'lead' }, `Welcome back, ${user.name || user.username}!`),
     
     React.createElement('div', { className: 'mb-4' },
       React.createElement('button', {
-        className: 'btn btn-primary btn-lg',
+        className: 'btn btn-primary btn-lg me-3',
         onClick: () => setCurrentView('write')
-      }, '✍️ Write New Blog Post')
+      }, '✍️ Write New Blog Post'),
+      React.createElement('button', {
+        className: 'btn btn-info btn-lg',
+        onClick: () => setCurrentView('users')
+      }, '👥 Manage Users')
     ),
     
     React.createElement('div', { className: 'row mb-4' },
-      React.createElement('div', { className: 'col-md-4' },
+      React.createElement('div', { className: 'col-md-3' },
         React.createElement('div', { className: 'card text-center' },
           React.createElement('div', { className: 'card-body' },
             React.createElement('h5', { className: 'card-title' }, 'Posts'),
@@ -311,7 +455,7 @@ const AdminDashboard = ({ user }) => {
           )
         )
       ),
-      React.createElement('div', { className: 'col-md-4' },
+      React.createElement('div', { className: 'col-md-3' },
         React.createElement('div', { className: 'card text-center' },
           React.createElement('div', { className: 'card-body' },
             React.createElement('h5', { className: 'card-title' }, 'Categories'),
@@ -319,11 +463,19 @@ const AdminDashboard = ({ user }) => {
           )
         )
       ),
-      React.createElement('div', { className: 'col-md-4' },
+      React.createElement('div', { className: 'col-md-3' },
         React.createElement('div', { className: 'card text-center' },
           React.createElement('div', { className: 'card-body' },
             React.createElement('h5', { className: 'card-title' }, 'Comments'),
             React.createElement('p', { className: 'card-text display-4' }, stats.comments)
+          )
+        )
+      ),
+      React.createElement('div', { className: 'col-md-3' },
+        React.createElement('div', { className: 'card text-center' },
+          React.createElement('div', { className: 'card-body' },
+            React.createElement('h5', { className: 'card-title' }, 'Users'),
+            React.createElement('p', { className: 'card-text display-4' }, stats.users)
           )
         )
       )
