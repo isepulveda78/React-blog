@@ -30,9 +30,9 @@ function AdminSidebar() {
             </Link>
           </li>
           <li className="mb-2">
-            <Link href="/admin/seo" className="text-light text-decoration-none d-block p-2 rounded">
+            <a href="/seo-management" target="_blank" className="text-light text-decoration-none d-block p-2 rounded">
               🔍 SEO Management
-            </Link>
+            </a>
           </li>
           <li className="mb-2">
             <Link href="/admin/users" className="text-light text-decoration-none d-block p-2 rounded">
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
                         ✏️ Write New Post
                       </Button>
                     </Link>
-                    <Link href="/admin/seo">
+                    <a href="/seo-management" target="_blank">
                       <Button 
                         variant="warning" 
                         className="w-100" 
@@ -243,7 +243,7 @@ export default function AdminDashboard() {
                       >
                         🔍 SEO Management System
                       </Button>
-                    </Link>
+                    </a>
                     <Link href="/admin/categories">
                       <Button variant="outline-primary" className="w-100">
                         🏷️ Manage Categories
