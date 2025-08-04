@@ -60,6 +60,153 @@ const HomePage = () => {
   );
 };
 
+// Comment Thread Component with Reply functionality
+const CommentThread = ({ comment, postId, onReplySubmit }) => {
+  const [showReplyForm, setShowReplyForm] = React.useState(false);
+  const [replyData, setReplyData] = React.useState({
+    authorName: '',
+    authorEmail: '',
+    content: ''
+  });
+  const [submittingReply, setSubmittingReply] = React.useState(false);
+
+  const handleReplySubmit = async (e) => {
+    e.preventDefault();
+    if (!replyData.authorName || !replyData.authorEmail || !replyData.content) {
+      return;
+    }
+
+    setSubmittingReply(true);
+    try {
+      const response = await fetch(`/api/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...replyData,
+          postId: postId,
+          parentId: comment.id
+        })
+      });
+
+      if (response.ok) {
+        setReplyData({ authorName: '', authorEmail: '', content: '' });
+        setShowReplyForm(false);
+        alert('Reply submitted successfully! It will appear after approval.');
+        onReplySubmit(replyData);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Failed to submit reply');
+      }
+    } catch (err) {
+      console.error('Error submitting reply:', err);
+      alert('Failed to submit reply');
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  return React.createElement('div', { className: 'comment-thread mb-4' },
+    // Main Comment
+    React.createElement('div', { className: 'card' },
+      React.createElement('div', { className: 'card-body' },
+        React.createElement('div', { className: 'd-flex justify-content-between align-items-start mb-2' },
+          React.createElement('h6', { className: 'card-title mb-0' }, comment.authorName),
+          React.createElement('small', { className: 'text-muted' }, 
+            new Date(comment.createdAt).toLocaleDateString()
+          )
+        ),
+        React.createElement('p', { className: 'card-text mb-2' }, comment.content),
+        React.createElement('button', {
+          className: 'btn btn-sm btn-outline-primary',
+          onClick: () => setShowReplyForm(!showReplyForm)
+        }, showReplyForm ? 'Cancel Reply' : 'Reply')
+      )
+    ),
+
+    // Replies
+    comment.replies && comment.replies.length > 0 &&
+      React.createElement('div', { className: 'replies ms-4 mt-3' },
+        comment.replies.map(reply =>
+          React.createElement('div', { 
+            key: reply.id,
+            className: 'card mb-2 border-start border-primary border-3' 
+          },
+            React.createElement('div', { className: 'card-body py-2' },
+              React.createElement('div', { className: 'd-flex justify-content-between align-items-start mb-1' },
+                React.createElement('small', { className: 'fw-bold text-primary' }, reply.authorName),
+                React.createElement('small', { className: 'text-muted' }, 
+                  new Date(reply.createdAt).toLocaleDateString()
+                )
+              ),
+              React.createElement('p', { className: 'card-text small mb-0' }, reply.content)
+            )
+          )
+        )
+      ),
+
+    // Reply Form
+    showReplyForm &&
+      React.createElement('div', { className: 'reply-form ms-4 mt-3' },
+        React.createElement('div', { className: 'card border-primary' },
+          React.createElement('div', { className: 'card-header bg-primary text-white py-2' },
+            React.createElement('small', { className: 'mb-0' }, `Replying to ${comment.authorName}`)
+          ),
+          React.createElement('div', { className: 'card-body' },
+            React.createElement('form', { onSubmit: handleReplySubmit },
+              React.createElement('div', { className: 'row mb-2' },
+                React.createElement('div', { className: 'col-md-6' },
+                  React.createElement('input', {
+                    type: 'text',
+                    className: 'form-control form-control-sm',
+                    placeholder: 'Your name *',
+                    value: replyData.authorName,
+                    onChange: (e) => setReplyData({...replyData, authorName: e.target.value}),
+                    required: true
+                  })
+                ),
+                React.createElement('div', { className: 'col-md-6' },
+                  React.createElement('input', {
+                    type: 'email',
+                    className: 'form-control form-control-sm',
+                    placeholder: 'Your email *',
+                    value: replyData.authorEmail,
+                    onChange: (e) => setReplyData({...replyData, authorEmail: e.target.value}),
+                    required: true
+                  })
+                )
+              ),
+              React.createElement('div', { className: 'mb-2' },
+                React.createElement('textarea', {
+                  className: 'form-control form-control-sm',
+                  rows: 3,
+                  placeholder: 'Write your reply...',
+                  value: replyData.content,
+                  onChange: (e) => setReplyData({...replyData, content: e.target.value}),
+                  required: true
+                })
+              ),
+              React.createElement('div', { className: 'd-flex gap-2' },
+                React.createElement('button', {
+                  type: 'submit',
+                  className: 'btn btn-primary btn-sm',
+                  disabled: submittingReply
+                }, submittingReply ? 'Submitting...' : 'Post Reply'),
+                React.createElement('button', {
+                  type: 'button',
+                  className: 'btn btn-secondary btn-sm',
+                  onClick: () => setShowReplyForm(false)
+                }, 'Cancel')
+              )
+            )
+          )
+        )
+      )
+  );
+};
+
 // Blog Post Detail Component
 const BlogPostDetail = ({ slug, onBack }) => {
   const [post, setPost] = React.useState(null);
@@ -230,20 +377,15 @@ const BlogPostDetail = ({ slug, onBack }) => {
               comments.length > 0 ? 
                 React.createElement('div', { className: 'mb-5' },
                   comments.map(comment => 
-                    React.createElement('div', { 
+                    React.createElement(CommentThread, { 
                       key: comment.id, 
-                      className: 'card mb-3' 
-                    },
-                      React.createElement('div', { className: 'card-body' },
-                        React.createElement('div', { className: 'd-flex justify-content-between align-items-start mb-2' },
-                          React.createElement('h6', { className: 'card-title mb-0' }, comment.authorName),
-                          React.createElement('small', { className: 'text-muted' }, 
-                            new Date(comment.createdAt).toLocaleDateString()
-                          )
-                        ),
-                        React.createElement('p', { className: 'card-text' }, comment.content)
-                      )
-                    )
+                      comment: comment, 
+                      postId: post.id,
+                      onReplySubmit: (replyData) => {
+                        // Reload comments after reply is submitted
+                        loadComments(post.id);
+                      }
+                    })
                   )
                 ) :
                 React.createElement('p', { className: 'text-muted mb-4' }, 'No comments yet. Be the first to comment!'),
@@ -779,23 +921,17 @@ const CommentManagement = ({ user, onBack }) => {
 
   const loadComments = async () => {
     try {
-      console.log('Loading comments...');
       const response = await fetch('/api/comments', {
         credentials: 'include'
       });
       
-      console.log('Comments response status:', response.status);
-      
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Comments error:', errorData);
         throw new Error(errorData.message || 'Failed to load comments');
       }
       const commentsData = await response.json();
-      console.log('Comments loaded:', commentsData);
       setComments(commentsData);
     } catch (err) {
-      console.error('Load comments error:', err);
       setError(err.message);
     } finally {
       setLoading(false);

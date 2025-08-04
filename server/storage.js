@@ -90,7 +90,20 @@ class MemStorage {
 
   async getComments() { return this.comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
   async getCommentsByPostId(postId) {
-    return this.comments.filter(c => c.postId === postId && c.status === 'approved').sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    // Get all approved comments for the post and organize them in a threaded structure
+    const allComments = this.comments.filter(c => c.postId === postId && c.status === 'approved');
+    
+    // Separate top-level comments and replies
+    const topLevelComments = allComments.filter(c => !c.parentId);
+    const replies = allComments.filter(c => c.parentId);
+    
+    // Add replies to their parent comments
+    const commentsWithReplies = topLevelComments.map(comment => ({
+      ...comment,
+      replies: replies.filter(r => r.parentId === comment.id).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    }));
+    
+    return commentsWithReplies.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   }
   async getCommentById(id) { return this.comments.find(c => c.id === id); }
   async createComment(commentData) {
@@ -100,6 +113,7 @@ class MemStorage {
       ...commentData,
       postTitle: post?.title || '',
       postSlug: post?.slug || '',
+      parentId: commentData.parentId || null, // For replies
       status: 'pending',
       createdAt: new Date().toISOString()
     };
@@ -191,7 +205,7 @@ class MemStorage {
     this.posts.push(post1);
     techCategory.postCount = 1;
 
-    // Add sample comments
+    // Add sample comments with replies
     const comment1 = {
       id: nanoid(),
       postId: post1.id,
@@ -200,7 +214,8 @@ class MemStorage {
       authorName: "John Doe",
       authorEmail: "john@example.com",
       content: "Great article! I really enjoyed reading about the future of JavaScript frameworks. React and Vue have been amazing to work with.",
-      status: "pending",
+      parentId: null,
+      status: "approved",
       createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
     };
 
@@ -212,6 +227,7 @@ class MemStorage {
       authorName: "Jane Smith",
       authorEmail: "jane@example.com",
       content: "This is very insightful. I'm particularly interested in the performance improvements mentioned. Do you have any specific benchmarks?",
+      parentId: null,
       status: "approved",
       createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString() // 12 hours ago
     };
@@ -224,11 +240,40 @@ class MemStorage {
       authorName: "Mike Johnson",
       authorEmail: "mike@example.com",
       content: "Interesting perspective, but I think you're missing some important aspects about Angular. It's still very relevant in enterprise environments.",
-      status: "pending",
+      parentId: null,
+      status: "approved",
       createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() // 6 hours ago
     };
 
-    this.comments.push(comment1, comment2, comment3);
+    // Add a reply to comment1
+    const reply1 = {
+      id: nanoid(),
+      postId: post1.id,
+      postTitle: post1.title,
+      postSlug: post1.slug,
+      authorName: "Sarah Wilson",
+      authorEmail: "sarah@example.com",
+      content: "@John Doe I totally agree! Have you tried the new React 18 features? The concurrent rendering is a game changer.",
+      parentId: comment1.id,
+      status: "approved",
+      createdAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString() // 18 hours ago
+    };
+
+    // Add a reply to comment2
+    const reply2 = {
+      id: nanoid(),
+      postId: post1.id,
+      postTitle: post1.title,
+      postSlug: post1.slug,
+      authorName: "Admin User",
+      authorEmail: "admin@example.com",
+      content: "@Jane Smith Great question! I'll be publishing a detailed performance comparison article next week with comprehensive benchmarks.",
+      parentId: comment2.id,
+      status: "approved",
+      createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString() // 8 hours ago
+    };
+
+    this.comments.push(comment1, comment2, comment3, reply1, reply2);
   }
 }
 
