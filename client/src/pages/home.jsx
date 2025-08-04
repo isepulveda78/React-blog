@@ -156,7 +156,7 @@ function BlogNavbar() {
             href="/"
             className="fw-bold text-primary fs-3"
           >
-            Mr. S Teaches
+            Mr. S Teaches test
           </Navbar.Brand>
           <Navbar.Toggle />
           <Navbar.Collapse>
