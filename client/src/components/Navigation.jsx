@@ -238,12 +238,8 @@ const Navigation = ({ user, onLogout }) => {
         
         {/* Emergency logout link - always visible */}
         <a 
-          href="#" 
+          href="/logout-test.html"
           className="btn btn-warning btn-sm ms-auto me-2"
-          onClick={(e) => {
-            e.preventDefault();
-            handleLogout();
-          }}
           style={{ position: 'absolute', right: '10px', top: '10px', zIndex: 1000 }}
         >
           LOGOUT
