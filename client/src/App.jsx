@@ -18,21 +18,7 @@ import DebugDashboard from "./pages/debug-dashboard";
 import TestSEO from "./pages/test-seo";
 import SimpleSEO from "./pages/simple-seo";
 import NotFound from "./pages/not-found";
-
-function AdminQuickAccess() {
-  // Redirect to the HTML page immediately
-  React.useEffect(() => {
-    console.log('AdminQuickAccess component mounted, redirecting...');
-    window.location.replace('/admin-quick-access.html');
-  }, []);
-
-  return React.createElement('div', { className: 'container text-center mt-5' },
-    React.createElement('div', { className: 'spinner-border', role: 'status' },
-      React.createElement('span', { className: 'visually-hidden' }, 'Loading...')
-    ),
-    React.createElement('p', { className: 'mt-3' }, 'Redirecting to Admin Quick Access...')
-  );
-}
+import AdminAccess from "./pages/admin-access";
 
 function Router() {
   return (
@@ -43,7 +29,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/posts/:slug" component={BlogPost} />
       <Route path="/admin" component={AdminDashboard} />
-      <Route path="/admin-access" component={AdminQuickAccess} />
+      <Route path="/admin-access" component={AdminAccess} />
       <Route path="/admin/posts" component={AdminPosts} />
       <Route path="/admin/posts/new" component={AdminPostEditor} />
       <Route path="/admin/posts/edit/:id" component={AdminPostEditor} />
