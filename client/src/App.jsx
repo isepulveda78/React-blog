@@ -20,6 +20,7 @@ import SimpleSEO from "./pages/simple-seo";
 import NotFound from "./pages/not-found";
 import AdminAccess from "./pages/admin-access";
 import AdminSuccess from "./pages/admin-success";
+import SimpleAdmin from "./pages/simple-admin";
 
 function Router() {
   return (
@@ -29,7 +30,7 @@ function Router() {
       <Route path="/debug" component={DebugDashboard} />
       <Route path="/" component={Home} />
       <Route path="/posts/:slug" component={BlogPost} />
-      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin" component={SimpleAdmin} />
       <Route path="/admin-access" component={AdminAccess} />
       <Route path="/admin-success" component={AdminSuccess} />
       <Route path="/admin/posts" component={AdminPosts} />
