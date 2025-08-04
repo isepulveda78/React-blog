@@ -239,6 +239,11 @@ export default function AdminDashboard() {
                         ✏️ Write New Post
                       </Button>
                     </Link>
+                    <Link href="/admin/seo">
+                      <Button variant="warning" className="w-100">
+                        🔍 SEO Management
+                      </Button>
+                    </Link>
                     <Link href="/admin/categories">
                       <Button variant="outline-primary" className="w-100">
                         🏷️ Manage Categories
