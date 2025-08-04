@@ -317,17 +317,38 @@ export class MongoStorage {
     }
   }
 
+  async clearAll() {
+    if (!this.connected) await this.connect();
+    
+    // Drop all collections
+    await this.db.collection('users').deleteMany({});
+    await this.db.collection('categories').deleteMany({});
+    await this.db.collection('posts').deleteMany({});
+    await this.db.collection('comments').deleteMany({});
+    
+    console.log('[mongodb] All data cleared');
+    
+    // Reinitialize sample data
+    await this.initializeSampleData();
+  }
+
   async initializeSampleData() {
     // Check if data already exists
     const existingUsers = await this.db.collection('users').countDocuments();
     if (existingUsers > 0) return; // Data already exists
-    // Create sample users
+    
+    console.log('[mongodb] Initializing sample data...');
+    
+    // Import bcrypt for password hashing
+    const bcrypt = await import('bcryptjs');
+    
+    // Create sample users with properly hashed passwords
     const adminUser = {
       id: nanoid(),
       email: "admin@example.com",
       username: "admin",
       name: "Admin User",
-      password: "$2a$10$rQ3VF4v5bJ.A4I2Dkz2hIu4.J8K9L0M1N2O3P4Q5R6S7T8U9V0W1X", // "password"
+      password: await bcrypt.hash("password", 10),
       isAdmin: true,
       createdAt: new Date().toISOString()
     };
@@ -337,12 +358,13 @@ export class MongoStorage {
       email: "user@example.com", 
       username: "user",
       name: "Regular User",
-      password: "$2a$10$rQ3VF4v5bJ.A4I2Dkz2hIu4.J8K9L0M1N2O3P4Q5R6S7T8U9V0W1X", // "password"
+      password: await bcrypt.hash("password", 10),
       isAdmin: false,
       createdAt: new Date().toISOString()
     };
     
     await this.db.collection('users').insertMany([adminUser, regularUser]);
+    console.log('[mongodb] Sample users created');
     
     // Create sample categories
     const techCategory = {

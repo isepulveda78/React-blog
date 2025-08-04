@@ -110,6 +110,20 @@ export function registerRoutes(app) {
     res.json({ message: "Logged out successfully" });
   });
 
+  // Development route to reset data (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    app.post("/api/reset-data", async (req, res) => {
+      try {
+        await storage.clearAll();
+        console.log('[reset] All data cleared and reinitialized');
+        res.json({ message: "Data reset successfully" });
+      } catch (error) {
+        console.error('[reset] Error:', error);
+        res.status(500).json({ message: "Reset failed" });
+      }
+    });
+  }
+
   // Posts routes
   app.get("/api/posts", async (req, res) => {
     try {
