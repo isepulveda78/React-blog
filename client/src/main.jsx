@@ -50,28 +50,259 @@ const HomePage = () => {
   );
 };
 
+// Blog Post Editor Component
+const BlogPostEditor = ({ user, onBack }) => {
+  const [title, setTitle] = React.useState('');
+  const [slug, setSlug] = React.useState('');
+  const [excerpt, setExcerpt] = React.useState('');
+  const [content, setContent] = React.useState('');
+  const [categoryId, setCategoryId] = React.useState('');
+  const [tags, setTags] = React.useState('');
+  const [featured, setFeatured] = React.useState(false);
+  const [status, setStatus] = React.useState('draft');
+  const [categories, setCategories] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const [success, setSuccess] = React.useState('');
+
+  React.useEffect(() => {
+    fetch('/api/categories')
+      .then(r => r.json())
+      .then(setCategories)
+      .catch(console.error);
+  }, []);
+
+  const generateSlug = (title) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
+
+  const handleTitleChange = (e) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+    if (!slug || slug === generateSlug(title)) {
+      setSlug(generateSlug(newTitle));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const postData = {
+        title,
+        slug,
+        excerpt,
+        content,
+        categoryId,
+        categoryName: categories.find(c => c.id === categoryId)?.name || '',
+        tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        featured,
+        status,
+        authorId: user.id,
+        authorName: user.name || user.username
+      };
+
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create post');
+      }
+
+      setSuccess('Blog post created successfully!');
+      // Reset form
+      setTitle('');
+      setSlug('');
+      setExcerpt('');
+      setContent('');
+      setCategoryId('');
+      setTags('');
+      setFeatured(false);
+      setStatus('draft');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return React.createElement('div', null,
+    React.createElement('div', { className: 'mb-3' },
+      React.createElement('button', { 
+        className: 'btn btn-secondary', 
+        onClick: onBack 
+      }, '← Back to Dashboard')
+    ),
+    React.createElement('h1', { className: 'mb-4' }, 'Write New Blog Post'),
+    
+    error && React.createElement('div', { className: 'alert alert-danger' }, error),
+    success && React.createElement('div', { className: 'alert alert-success' }, success),
+    
+    React.createElement('form', { onSubmit: handleSubmit },
+      React.createElement('div', { className: 'row' },
+        React.createElement('div', { className: 'col-md-8' },
+          React.createElement('div', { className: 'mb-3' },
+            React.createElement('label', { className: 'form-label' }, 'Title *'),
+            React.createElement('input', {
+              type: 'text',
+              className: 'form-control',
+              value: title,
+              onChange: handleTitleChange,
+              required: true
+            })
+          ),
+          React.createElement('div', { className: 'mb-3' },
+            React.createElement('label', { className: 'form-label' }, 'Slug *'),
+            React.createElement('input', {
+              type: 'text',
+              className: 'form-control',
+              value: slug,
+              onChange: (e) => setSlug(e.target.value),
+              required: true
+            })
+          ),
+          React.createElement('div', { className: 'mb-3' },
+            React.createElement('label', { className: 'form-label' }, 'Excerpt'),
+            React.createElement('textarea', {
+              className: 'form-control',
+              rows: 3,
+              value: excerpt,
+              onChange: (e) => setExcerpt(e.target.value),
+              placeholder: 'Brief description for the blog post...'
+            })
+          ),
+          React.createElement('div', { className: 'mb-3' },
+            React.createElement('label', { className: 'form-label' }, 'Content *'),
+            React.createElement('textarea', {
+              className: 'form-control',
+              rows: 15,
+              value: content,
+              onChange: (e) => setContent(e.target.value),
+              placeholder: 'Write your blog post content here. You can use HTML tags for formatting...',
+              required: true
+            })
+          )
+        ),
+        React.createElement('div', { className: 'col-md-4' },
+          React.createElement('div', { className: 'card' },
+            React.createElement('div', { className: 'card-header' },
+              React.createElement('h6', { className: 'mb-0' }, 'Post Settings')
+            ),
+            React.createElement('div', { className: 'card-body' },
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label' }, 'Category'),
+                React.createElement('select', {
+                  className: 'form-select',
+                  value: categoryId,
+                  onChange: (e) => setCategoryId(e.target.value)
+                },
+                  React.createElement('option', { value: '' }, 'Select Category'),
+                  categories.map(cat => 
+                    React.createElement('option', { key: cat.id, value: cat.id }, cat.name)
+                  )
+                )
+              ),
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label' }, 'Tags'),
+                React.createElement('input', {
+                  type: 'text',
+                  className: 'form-control',
+                  value: tags,
+                  onChange: (e) => setTags(e.target.value),
+                  placeholder: 'tag1, tag2, tag3'
+                })
+              ),
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label' }, 'Status'),
+                React.createElement('select', {
+                  className: 'form-select',
+                  value: status,
+                  onChange: (e) => setStatus(e.target.value)
+                },
+                  React.createElement('option', { value: 'draft' }, 'Draft'),
+                  React.createElement('option', { value: 'published' }, 'Published')
+                )
+              ),
+              React.createElement('div', { className: 'form-check mb-3' },
+                React.createElement('input', {
+                  type: 'checkbox',
+                  className: 'form-check-input',
+                  id: 'featured',
+                  checked: featured,
+                  onChange: (e) => setFeatured(e.target.checked)
+                }),
+                React.createElement('label', { className: 'form-check-label', htmlFor: 'featured' }, 'Featured Post')
+              )
+            )
+          )
+        )
+      ),
+      React.createElement('div', { className: 'mt-4' },
+        React.createElement('button', {
+          type: 'submit',
+          className: 'btn btn-primary me-2',
+          disabled: loading
+        }, loading ? 'Publishing...' : 'Publish Post'),
+        React.createElement('button', {
+          type: 'button',
+          className: 'btn btn-outline-secondary',
+          onClick: onBack
+        }, 'Cancel')
+      )
+    )
+  );
+};
+
 // AdminDashboard component
 const AdminDashboard = ({ user }) => {
+  const [currentView, setCurrentView] = React.useState('dashboard');
   const [stats, setStats] = React.useState({ posts: 0, categories: 0, comments: 0 });
+  const [posts, setPosts] = React.useState([]);
 
   React.useEffect(() => {
     Promise.all([
       fetch('/api/posts').then(r => r.json()),
       fetch('/api/categories').then(r => r.json()),
       fetch('/api/comments').then(r => r.json())
-    ]).then(([posts, categories, comments]) => {
+    ]).then(([postsData, categories, comments]) => {
+      setPosts(postsData);
       setStats({
-        posts: posts.length,
+        posts: postsData.length,
         categories: categories.length,
         comments: comments.length
       });
     }).catch(console.error);
-  }, []);
+  }, [currentView]);
+
+  if (currentView === 'write') {
+    return React.createElement(BlogPostEditor, { 
+      user, 
+      onBack: () => setCurrentView('dashboard') 
+    });
+  }
 
   return React.createElement('div', null,
     React.createElement('h1', { className: 'mb-4' }, 'Admin Dashboard'),
     React.createElement('p', { className: 'lead' }, `Welcome back, ${user.name || user.username}!`),
-    React.createElement('div', { className: 'row' },
+    
+    React.createElement('div', { className: 'mb-4' },
+      React.createElement('button', {
+        className: 'btn btn-primary btn-lg',
+        onClick: () => setCurrentView('write')
+      }, '✍️ Write New Blog Post')
+    ),
+    
+    React.createElement('div', { className: 'row mb-4' },
       React.createElement('div', { className: 'col-md-4' },
         React.createElement('div', { className: 'card text-center' },
           React.createElement('div', { className: 'card-body' },
@@ -93,6 +324,36 @@ const AdminDashboard = ({ user }) => {
           React.createElement('div', { className: 'card-body' },
             React.createElement('h5', { className: 'card-title' }, 'Comments'),
             React.createElement('p', { className: 'card-text display-4' }, stats.comments)
+          )
+        )
+      )
+    ),
+    
+    React.createElement('h3', { className: 'mb-3' }, 'Recent Posts'),
+    React.createElement('div', { className: 'table-responsive' },
+      React.createElement('table', { className: 'table table-striped' },
+        React.createElement('thead', null,
+          React.createElement('tr', null,
+            React.createElement('th', null, 'Title'),
+            React.createElement('th', null, 'Status'),
+            React.createElement('th', null, 'Category'),
+            React.createElement('th', null, 'Published'),
+            React.createElement('th', null, 'Featured')
+          )
+        ),
+        React.createElement('tbody', null,
+          posts.slice(0, 10).map(post =>
+            React.createElement('tr', { key: post.id },
+              React.createElement('td', null, post.title),
+              React.createElement('td', null,
+                React.createElement('span', { 
+                  className: `badge ${post.status === 'published' ? 'bg-success' : 'bg-warning'}` 
+                }, post.status)
+              ),
+              React.createElement('td', null, post.categoryName || 'Uncategorized'),
+              React.createElement('td', null, post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : '-'),
+              React.createElement('td', null, post.featured ? '⭐' : '')
+            )
           )
         )
       )
