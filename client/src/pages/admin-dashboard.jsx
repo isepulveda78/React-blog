@@ -240,8 +240,19 @@ export default function AdminDashboard() {
                       </Button>
                     </Link>
                     <Link href="/admin/seo">
-                      <Button variant="warning" className="w-100" style={{ backgroundColor: '#ffc107', borderColor: '#ffc107', color: '#000' }}>
-                        🔍 SEO Management
+                      <Button 
+                        variant="warning" 
+                        className="w-100" 
+                        style={{ 
+                          backgroundColor: '#ffc107', 
+                          borderColor: '#ffc107', 
+                          color: '#000',
+                          fontSize: '16px',
+                          fontWeight: 'bold',
+                          padding: '12px'
+                        }}
+                      >
+                        🔍 SEO Management System
                       </Button>
                     </Link>
                     <Link href="/admin/categories">

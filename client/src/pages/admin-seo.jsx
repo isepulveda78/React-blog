@@ -318,17 +318,28 @@ export default function AdminSEO() {
     );
   }
 
-  // Redirect non-admin users
+  // Debug current authentication state
+  console.log('SEO page auth state:', { 
+    user: user ? { email: user.email, isAdmin: user.isAdmin } : null, 
+    isAdmin, 
+    authLoading 
+  });
+  
+  // If not authenticated, show access denied message instead of redirecting
   if (!user || !isAdmin) {
-    console.log('SEO page - redirecting due to auth:', { user, isAdmin, authLoading });
+    console.log('SEO page - access denied');
     return (
       <div className="container mt-5">
-        <div className="alert alert-danger">
-          <h4>Access Denied</h4>
-          <p>You don't have permission to access this page. Please log in as an administrator.</p>
-          <Link href="/">
-            <button className="btn btn-primary">Go Back Home</button>
-          </Link>
+        <div className="alert alert-warning">
+          <h4>SEO Management</h4>
+          <p>Authentication state: User: {user ? 'Found' : 'Not found'}, Admin: {isAdmin ? 'Yes' : 'No'}, Loading: {authLoading ? 'Yes' : 'No'}</p>
+          <p>Please ensure you are logged in as an administrator to access SEO Management.</p>
+          <button className="btn btn-primary" onClick={() => window.location.href = '/'}>
+            Go Back Home
+          </button>
+          <button className="btn btn-success ms-2" onClick={() => window.location.reload()}>
+            Refresh Page
+          </button>
         </div>
       </div>
     );
