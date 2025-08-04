@@ -548,8 +548,13 @@ export function registerRoutes(app) {
 
   app.patch('/api/users/:userId/role', async (req, res) => {
     try {
+      console.log('[role] Request from:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
+      console.log('[role] Target userId:', req.params.userId);
+      console.log('[role] Request body:', req.body);
+      
       // Check if user is admin
       if (!req.session.user?.isAdmin) {
+        console.log('[role] Access denied - user is not admin');
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -557,13 +562,19 @@ export function registerRoutes(app) {
       const { isAdmin } = req.body;
 
       if (typeof isAdmin !== 'boolean') {
+        console.log('[role] Invalid isAdmin value:', typeof isAdmin, isAdmin);
         return res.status(400).json({ message: 'isAdmin must be a boolean' });
       }
 
+      console.log('[role] Calling storage.updateUserRole...');
       const updatedUser = await storage.updateUserRole(userId, isAdmin);
+      
       if (!updatedUser) {
+        console.log('[role] User not found:', userId);
         return res.status(404).json({ message: 'User not found' });
       }
+
+      console.log('[role] User role updated successfully:', updatedUser.email, 'isAdmin:', updatedUser.isAdmin);
 
       // Return safe user data
       const safeUser = {
@@ -578,7 +589,7 @@ export function registerRoutes(app) {
 
       res.json(safeUser);
     } catch (error) {
-      console.error('Error updating user role:', error);
+      console.error('[role] Error updating user role:', error);
       res.status(500).json({ message: 'Failed to update user role' });
     }
   });

@@ -152,6 +152,13 @@ class MemStorage {
     return this.users[index];
   }
 
+  async updateUserRole(userId, isAdmin) {
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return null;
+    this.users[index] = { ...this.users[index], isAdmin };
+    return this.users[index];
+  }
+
   initializeSampleData() {
     // Same sample data initialization as before but synchronous
     const hashedPassword = bcrypt.hashSync('password', 10);

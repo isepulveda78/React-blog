@@ -907,6 +907,8 @@ const AdminUsers = () => {
 
   const toggleUserRole = async (userId, currentRole) => {
     const newRole = !currentRole;
+    console.log(`Toggling role for user ${userId}: ${currentRole} -> ${newRole}`);
+    
     try {
       const response = await fetch(`/api/users/${userId}/role`, {
         method: 'PATCH',
@@ -914,11 +916,21 @@ const AdminUsers = () => {
         credentials: 'include',
         body: JSON.stringify({ isAdmin: newRole })
       });
+      
+      console.log('Role response status:', response.status);
+      
       if (response.ok) {
+        const updatedUser = await response.json();
+        console.log('User role updated:', updatedUser);
         setUsers(users.map(u => u.id === userId ? {...u, isAdmin: newRole} : u));
+      } else {
+        const errorData = await response.text();
+        console.error('Role update failed:', response.status, errorData);
+        alert(`Error updating user role: ${response.status} ${errorData}`);
       }
     } catch (err) {
-      alert('Error updating user role');
+      console.error('Role update error:', err);
+      alert('Error updating user role: ' + err.message);
     }
   };
 
