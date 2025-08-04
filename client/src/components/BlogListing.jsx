@@ -1,0 +1,135 @@
+const { React, useState, useEffect } = window;
+const BlogCard = window.BlogCard;
+
+const BlogListing = ({ user }) => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    // Fetch all posts and categories
+    Promise.all([
+      fetch('/api/posts/public'),
+      fetch('/api/categories')
+    ])
+    .then(([postsRes, categoriesRes]) => 
+      Promise.all([postsRes.json(), categoriesRes.json()])
+    )
+    .then(([postsData, categoriesData]) => {
+      setPosts(Array.isArray(postsData) ? postsData : []);
+      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error('Error loading data:', err);
+      setPosts([]);
+      setCategories([]);
+      setLoading(false);
+    });
+  }, []);
+
+  const handleReadMore = (post) => {
+    if (!user) {
+      window.location.href = '/api/auth/google';
+      return;
+    }
+    
+    if (!user.approved) {
+      alert('Your account is pending approval. Please wait for admin approval to access posts.');
+      return;
+    }
+    
+    // Navigate to blog post
+    window.history.pushState({}, '', `/blog/${post.slug}`);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  // Filter posts based on search and category
+  const filteredPosts = posts.filter(post => {
+    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         post.content.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !selectedCategory || post.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  return (
+    <div className="container py-5">
+      <div className="row mb-5">
+        <div className="col-12 text-center">
+          <h1 className="display-4 fw-bold text-primary mb-3">All Blog Posts</h1>
+          <p className="lead text-muted">
+            Explore our complete collection of articles and insights
+          </p>
+        </div>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="row mb-4">
+        <div className="col-md-8">
+          <input
+            type="text"
+            className="form-control form-control-lg"
+            placeholder="Search posts..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="col-md-4">
+          <select
+            className="form-select form-select-lg"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+          >
+            <option value="">All Categories</option>
+            {categories.map(category => (
+              <option key={category.id} value={category.name}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      ) : filteredPosts.length > 0 ? (
+        <>
+          <div className="mb-3">
+            <small className="text-muted">
+              Showing {filteredPosts.length} of {posts.length} posts
+            </small>
+          </div>
+          <div className="row">
+            {filteredPosts.map(post => (
+              <BlogCard
+                key={post.id}
+                post={post}
+                onReadMore={handleReadMore}
+              />
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-5">
+          <div className="alert alert-info">
+            <h4>No posts found</h4>
+            <p>
+              {searchTerm || selectedCategory 
+                ? 'Try adjusting your search or filter criteria.'
+                : 'Check back soon for new content!'
+              }
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+window.BlogListing = BlogListing;

@@ -49,25 +49,29 @@ registerRoutes(app);
 
 // Remove hardcoded HTML routes - let React router handle these paths
 
+// Configure Express to serve JSX files with JavaScript MIME type
+express.static.mime.define({'application/javascript': ['jsx']});
+
 // Serve static files from client directory
 app.use(express.static(path.join(__dirname, '../client')));
 
-// Serve React modules with proper MIME types
-app.get('*.jsx', (req, res, next) => {
-  res.type('text/javascript');
-  next();
-});
-
-app.get('*.js', (req, res, next) => {
-  res.type('text/javascript');
-  next();
-});
-
-// Handle client-side routing - send index.html for non-API routes
+// Handle client-side routing - but not for static files
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ message: 'API endpoint not found' });
   }
+  
+  // Don't redirect component files and other static assets
+  if (req.path.startsWith('/src/') || 
+      req.path.endsWith('.js') || 
+      req.path.endsWith('.jsx') || 
+      req.path.endsWith('.css') ||
+      req.path.endsWith('.png') ||
+      req.path.endsWith('.jpg') ||
+      req.path.endsWith('.ico')) {
+    return res.status(404).send('File not found');
+  }
+  
   console.log('Serving index.html for path:', req.path);
   res.sendFile(path.join(__dirname, '../client/index.html'));
 });
