@@ -58,6 +58,34 @@ export default function SimpleHome() {
                   <Alert.Heading>Access Granted</Alert.Heading>
                   <p>Your account has been approved. You can now view all blog posts and interact with the community.</p>
                 </Alert>
+                
+                {user?.isAdmin && (
+                  <div className="text-center mt-4">
+                    <h5>Admin Quick Access</h5>
+                    <div className="d-flex justify-content-center gap-3 flex-wrap">
+                      <button 
+                        className="btn btn-primary"
+                        onClick={() => window.location.href = '/admin'}
+                      >
+                        📊 Dashboard
+                      </button>
+                      <a 
+                        href="/admin-access" 
+                        className="btn btn-info"
+                      >
+                        ⚡ Admin Tools
+                      </a>
+                      <a 
+                        href="/seo-management" 
+                        target="_blank"
+                        className="btn btn-warning"
+                        style={{ backgroundColor: '#ffc107', borderColor: '#ffc107', color: '#000', fontWeight: 'bold' }}
+                      >
+                        🔍 SEO Management
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </Col>
