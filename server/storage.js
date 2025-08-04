@@ -14,7 +14,7 @@ class MemStorage {
   }
 
   // All methods for MemStorage (synchronous versions)
-  async getUsers() { return this.users; }
+  async getUsers() { return this.users.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
   async getUserById(id) { return this.users.find(u => u.id === id); }
   async getUserByEmail(email) { return this.users.find(u => u.email === email); }
   async getUserByUsername(username) { return this.users.find(u => u.username === username); }
@@ -135,24 +135,7 @@ class MemStorage {
     return true;
   }
 
-  // User methods
-  async getUsers() { return this.users.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
-  async getUserById(id) { return this.users.find(u => u.id === id); }
-  async getUserByEmail(email) { return this.users.find(u => u.email === email); }
-  async getUserByUsername(username) { return this.users.find(u => u.username === username); }
-  
-  async createUser(userData) {
-    const user = { id: nanoid(), ...userData, createdAt: new Date().toISOString() };
-    this.users.push(user);
-    return user;
-  }
 
-  async updateUserRole(userId, isAdmin) {
-    const index = this.users.findIndex(u => u.id === userId);
-    if (index === -1) return null;
-    this.users[index] = { ...this.users[index], isAdmin };
-    return this.users[index];
-  }
 
   async updateUserApproval(userId, approved) {
     const index = this.users.findIndex(u => u.id === userId);
@@ -321,8 +304,22 @@ export class MongoStorage {
 
     try {
       console.log('[mongodb] Attempting to connect to MongoDB...');
-      this.client = new MongoClient(process.env.MONGODB_URI);
-      await this.client.connect();
+      
+      // Create client with timeout options
+      this.client = new MongoClient(process.env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000, // 5 second timeout
+        connectTimeoutMS: 10000, // 10 second timeout
+        socketTimeoutMS: 10000
+      });
+      
+      // Connect with timeout
+      await Promise.race([
+        this.client.connect(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('MongoDB connection timeout')), 10000)
+        )
+      ]);
+      
       this.db = this.client.db(); // Use default database from connection string
       this.connected = true;
       console.log('[mongodb] Connected successfully');
@@ -955,13 +952,11 @@ export class MongoStorage {
 
   async updateCommentStatus(commentId, status) {
     await this.connect();
-    console.log(`[mongodb] Updating comment ${commentId} status to ${status}`);
     const result = await this.db.collection('comments').findOneAndUpdate(
       { id: commentId },
       { $set: { status, updatedAt: new Date().toISOString() } },
       { returnDocument: 'after' }
     );
-    console.log(`[mongodb] Update result:`, result);
     return result || null;
   }
 
@@ -987,18 +982,38 @@ export class MongoStorage {
   }
 }
 
-// Create storage instance with fallback
+// Create storage instance with improved fallback
 let storage;
-try {
-  if (process.env.MONGODB_URI) {
-    console.log('[storage] Attempting MongoDB connection...');
-    storage = new MongoStorage();
-  } else {
-    console.log('[storage] No MongoDB URI found, using in-memory storage');
+
+async function initializeStorage() {
+  try {
+    if (process.env.MONGODB_URI) {
+      console.log('[storage] Attempting MongoDB connection...');
+      const mongoStorage = new MongoStorage();
+      await mongoStorage.connect(); // Test connection
+      storage = mongoStorage;
+      console.log('[storage] MongoDB initialized successfully');
+    } else {
+      console.log('[storage] No MongoDB URI found, using in-memory storage');
+      storage = new MemStorage();
+    }
+  } catch (error) {
+    console.error('[storage] MongoDB connection failed, falling back to in-memory storage:', error.message);
     storage = new MemStorage();
   }
-} catch (error) {
-  console.log('[storage] MongoDB failed, falling back to in-memory storage:', error.message);
+}
+
+// Initialize storage but don't block startup
+initializeStorage().catch(error => {
+  console.error('[storage] Storage initialization failed:', error);
+  // Fallback to in-memory storage if everything fails
+  if (!storage) {
+    storage = new MemStorage();
+  }
+});
+
+// Provide immediate fallback
+if (!storage) {
   storage = new MemStorage();
 }
 

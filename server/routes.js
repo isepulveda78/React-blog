@@ -564,24 +564,19 @@ export function registerRoutes(app) {
     try {
       // Check if user is admin
       if (!req.session.user?.isAdmin) {
-        console.log('[routes] Admin access denied for user:', req.session.user);
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const { commentId } = req.params;
       const { status } = req.body;
-      
-      console.log(`[routes] Updating comment ${commentId} to status ${status}`);
 
       if (!status || !['approved', 'pending'].includes(status)) {
         return res.status(400).json({ message: 'Status must be "approved" or "pending"' });
       }
 
       const updatedComment = await storage.updateCommentStatus(commentId, status);
-      console.log('[routes] Updated comment result:', updatedComment);
       
       if (!updatedComment) {
-        console.log(`[routes] Comment ${commentId} not found`);
         return res.status(404).json({ message: 'Comment not found' });
       }
 
