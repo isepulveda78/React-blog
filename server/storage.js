@@ -845,10 +845,33 @@ export class MongoStorage {
 
   async getCommentsByPostId(postId) {
     await this.connect();
-    return await this.db.collection('comments')
+    const allComments = await this.db.collection('comments')
       .find({ postId, status: 'approved' })
       .sort({ createdAt: 1 })
       .toArray();
+    
+    // Organize comments into threaded structure
+    const commentMap = new Map();
+    const rootComments = [];
+    
+    // First pass: create map of all comments
+    allComments.forEach(comment => {
+      comment.replies = [];
+      commentMap.set(comment.id, comment);
+    });
+    
+    // Second pass: organize into threads
+    allComments.forEach(comment => {
+      if (comment.parentId && commentMap.has(comment.parentId)) {
+        // This is a reply, add it to parent's replies array
+        commentMap.get(comment.parentId).replies.push(comment);
+      } else {
+        // This is a root comment
+        rootComments.push(comment);
+      }
+    });
+    
+    return rootComments;
   }
 
   async getCommentById(id) {
