@@ -721,22 +721,48 @@ export class MongoStorage {
 
   async updateUserRole(userId, isAdmin) {
     await this.connect();
+    console.log('[mongodb] Looking for user with id:', userId);
+    
+    // First check if user exists
+    const existingUser = await this.db.collection('users').findOne({ id: userId });
+    if (!existingUser) {
+      console.log('[mongodb] User not found with id:', userId);
+      return null;
+    }
+    
+    console.log('[mongodb] Found user:', existingUser.email, 'updating isAdmin to:', isAdmin);
+    
     const result = await this.db.collection('users').findOneAndUpdate(
       { id: userId },
       { $set: { isAdmin } },
       { returnDocument: 'after' }
     );
-    return result.value;
+    
+    console.log('[mongodb] Update result:', result);
+    return result || result.value;
   }
 
   async updateUserApproval(userId, approved) {
     await this.connect();
+    console.log('[mongodb] Looking for user with id:', userId);
+    
+    // First check if user exists
+    const existingUser = await this.db.collection('users').findOne({ id: userId });
+    if (!existingUser) {
+      console.log('[mongodb] User not found with id:', userId);
+      return null;
+    }
+    
+    console.log('[mongodb] Found user:', existingUser.email, 'updating approved to:', approved);
+    
     const result = await this.db.collection('users').findOneAndUpdate(
       { id: userId },
       { $set: { approved } },
       { returnDocument: 'after' }
     );
-    return result.value;
+    
+    console.log('[mongodb] Update result:', result);
+    return result || result.value;
   }
 
   async linkGoogleAccount(userId, googleId) {
