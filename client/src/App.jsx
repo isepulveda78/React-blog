@@ -20,13 +20,17 @@ import SimpleSEO from "./pages/simple-seo";
 import NotFound from "./pages/not-found";
 
 function AdminQuickAccess() {
-  // Redirect to the HTML page
+  // Redirect to the HTML page immediately
   React.useEffect(() => {
-    window.location.href = '/admin-quick-access.html';
+    console.log('AdminQuickAccess component mounted, redirecting...');
+    window.location.replace('/admin-quick-access.html');
   }, []);
 
-  return React.createElement('div', { className: 'text-center mt-5' },
-    React.createElement('p', null, 'Redirecting to Admin Quick Access...')
+  return React.createElement('div', { className: 'container text-center mt-5' },
+    React.createElement('div', { className: 'spinner-border', role: 'status' },
+      React.createElement('span', { className: 'visually-hidden' }, 'Loading...')
+    ),
+    React.createElement('p', { className: 'mt-3' }, 'Redirecting to Admin Quick Access...')
   );
 }
 
