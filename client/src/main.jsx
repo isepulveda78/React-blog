@@ -329,30 +329,20 @@ const UserManagement = ({ user, onBack }) => {
 
   const loadUsers = async () => {
     try {
-      console.log('[debug] Attempting to load users...');
-      console.log('[debug] Current user:', user);
-      
       const response = await fetch('/api/users', {
-        credentials: 'include' // Include cookies for session
+        credentials: 'include'
       });
-      
-      console.log('[debug] Response status:', response.status);
-      console.log('[debug] Response headers:', [...response.headers.entries()]);
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.log('[debug] Error response:', errorData);
-        
         if (response.status === 403) {
-          throw new Error(`Admin access required. Please make sure you are logged in as an admin. User: ${JSON.stringify(user)}`);
+          throw new Error('Admin access required. Please make sure you are logged in as an admin.');
         }
         throw new Error(errorData.message || 'Failed to load users');
       }
       const usersData = await response.json();
-      console.log('[debug] Successfully loaded users:', usersData);
       setUsers(usersData);
     } catch (err) {
-      console.error('[debug] Load users error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -602,16 +592,12 @@ const App = () => {
 
     const login = async (credentials) => {
       try {
-        console.log('[debug] Attempting login...');
         const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', // Include cookies for session
+          credentials: 'include',
           body: JSON.stringify(credentials),
         });
-
-        console.log('[debug] Login response status:', response.status);
-        console.log('[debug] Login response headers:', [...response.headers.entries()]);
 
         if (!response.ok) {
           const error = await response.json();
@@ -619,13 +605,11 @@ const App = () => {
         }
 
         const userData = await response.json();
-        console.log('[debug] Login successful, user data:', userData);
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         setShowLogin(false);
         return userData;
       } catch (error) {
-        console.error('[debug] Login error:', error);
         throw error;
       }
     };
@@ -766,11 +750,7 @@ const App = () => {
       // Main content
       React.createElement('main', { className: 'container my-4' },
         React.createElement('div', null,
-          // Show admin info for debugging
-          user && React.createElement('div', { className: 'alert alert-info mb-3' },
-            `Logged in as: ${user.name || user.username} | Admin: ${user.isAdmin ? 'Yes' : 'No'} | Hash: ${window.location.hash}`
-          ),
-          
+
           // Main content based on current view
           user?.isAdmin && window.location.hash === '#/admin' ? 
             React.createElement(AdminDashboard, { user }) :
