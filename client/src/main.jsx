@@ -19,6 +19,7 @@ const AuthProvider = ({ children }) => {
         throw new Error('Not authenticated');
       })
       .then(userData => {
+        console.log('User authenticated:', userData);
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         setIsLoading(false);
@@ -51,6 +52,7 @@ const AuthProvider = ({ children }) => {
     }
 
     const userData = await response.json();
+    console.log('Login successful:', userData);
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
     return userData;
@@ -221,11 +223,14 @@ const Router = () => {
   
   useEffect(() => {
     const handlePopState = () => {
+      console.log('Route changed to:', window.location.pathname);
       setCurrentPath(window.location.pathname);  
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  console.log('Current path:', currentPath);
 
   if (currentPath === '/admin') {
     return React.createElement(AdminDashboard);
@@ -453,12 +458,13 @@ const SimpleHome = () => {
         React.createElement('div', { className: 'navbar-nav ms-auto' },
           user ? React.createElement('div', { className: 'd-flex align-items-center' },
             React.createElement('span', { className: 'text-light me-3' }, `Welcome, ${user.name}`),
-            user.isAdmin && React.createElement('a', {
-              href: '#',
+            user.isAdmin && React.createElement('button', {
               className: 'btn btn-outline-light btn-sm me-2',
               onClick: (e) => {
                 e.preventDefault();
-                window.location.href = '/admin';
+                console.log('Dashboard clicked, user:', user);
+                window.history.pushState({}, '', '/admin');
+                window.dispatchEvent(new PopStateEvent('popstate'));
               }
             }, 'Dashboard'),
             React.createElement('button', {
