@@ -78,6 +78,9 @@ const BlogPostEditor = ({ user, onBack }) => {
   // Initialize Quill editor
   React.useEffect(() => {
     if (editorRef.current && !quillEditor && window.Quill) {
+      // Clear any existing content first
+      editorRef.current.innerHTML = '';
+      
       const quill = new window.Quill(editorRef.current, {
         theme: 'snow',
         modules: {
@@ -101,7 +104,14 @@ const BlogPostEditor = ({ user, onBack }) => {
 
       setQuillEditor(quill);
     }
-  }, [quillEditor]);
+    
+    // Cleanup function to destroy editor on unmount
+    return () => {
+      if (quillEditor) {
+        // Don't destroy here as it would cause issues during re-renders
+      }
+    };
+  }, []);
 
   // Update Quill content when content state changes externally
   React.useEffect(() => {
@@ -272,7 +282,8 @@ const BlogPostEditor = ({ user, onBack }) => {
             React.createElement('label', { className: 'form-label' }, 'Content *'),
             React.createElement('div', {
               ref: editorRef,
-              style: { minHeight: '300px', backgroundColor: 'white' }
+              style: { minHeight: '300px', backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '0.375rem' },
+              id: 'quill-editor-container'
             })
           ),
           React.createElement('div', { className: 'mb-3' },
