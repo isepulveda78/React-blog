@@ -35,10 +35,12 @@ const getCallbackURL = () => {
 
 console.log('[google-oauth] Callback URL:', getCallbackURL());
 console.log('[google-oauth] Client ID:', process.env.GOOGLE_CLIENT_ID ? 'Set' : 'Missing');
+console.log('[google-oauth] Client ID starts with:', process.env.GOOGLE_CLIENT_ID?.substring(0, 20));
+console.log('[google-oauth] Client ID ends with:', process.env.GOOGLE_CLIENT_ID?.substring(-20));
 
 passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  clientID: process.env.GOOGLE_CLIENT_ID?.trim(),
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET?.trim(),
   callbackURL: getCallbackURL()
 }, async (accessToken, refreshToken, profile, done) => {
   try {
