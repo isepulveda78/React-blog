@@ -2828,6 +2828,7 @@ const AdminPostEditor = ({ postId }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(!!postId);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -2909,6 +2910,96 @@ const AdminPostEditor = ({ postId }) => {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, featuredImage: data.url }));
+      } else {
+        const error = await response.text();
+        alert(`Upload failed: ${error}`);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Upload failed. Please try again.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const insertImageIntoContent = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', file);
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: uploadFormData,
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const imageTag = `<img src="${data.url}" alt="Uploaded image" style="max-width: 100%; height: auto;" />`;
+        setFormData(prev => ({ 
+          ...prev, 
+          content: prev.content + '\n\n' + imageTag + '\n\n'
+        }));
+      } else {
+        const error = await response.text();
+        alert(`Upload failed: ${error}`);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Upload failed. Please try again.');
+    } finally {
+      setUploadingImage(false);
+      // Reset the file input
+      event.target.value = '';
+    }
+  };
+
   if (loading) {
     return React.createElement('div', { 
       className: 'd-flex justify-content-center align-items-center',
@@ -2971,14 +3062,34 @@ const AdminPostEditor = ({ postId }) => {
                 })
               ),
               React.createElement('div', { className: 'mb-3' },
-                React.createElement('label', { className: 'form-label fw-bold' }, 'Content'),
+                React.createElement('div', { className: 'd-flex justify-content-between align-items-center mb-2' },
+                  React.createElement('label', { className: 'form-label fw-bold mb-0' }, 'Content'),
+                  React.createElement('div', null,
+                    React.createElement('input', {
+                      type: 'file',
+                      id: 'content-image-upload',
+                      accept: 'image/*',
+                      style: { display: 'none' },
+                      onChange: insertImageIntoContent
+                    }),
+                    React.createElement('button', {
+                      type: 'button',
+                      className: 'btn btn-outline-primary btn-sm',
+                      onClick: () => document.getElementById('content-image-upload').click(),
+                      disabled: uploadingImage
+                    }, uploadingImage ? 'Uploading...' : '📷 Add Image')
+                  )
+                ),
                 React.createElement('textarea', {
                   className: 'form-control',
                   rows: 15,
                   value: formData.content,
                   onChange: (e) => setFormData({ ...formData, content: e.target.value }),
                   placeholder: 'Write your post content here...'
-                })
+                }),
+                React.createElement('small', { className: 'form-text text-muted' },
+                  'Use the "Add Image" button to upload and insert images directly into your content.'
+                )
               )
             )
           )
@@ -3024,14 +3135,47 @@ const AdminPostEditor = ({ postId }) => {
                 })
               ),
               React.createElement('div', { className: 'mb-3' },
-                React.createElement('label', { className: 'form-label' }, 'Featured Image URL'),
-                React.createElement('input', {
-                  type: 'url',
-                  className: 'form-control',
-                  value: formData.featuredImage,
-                  onChange: (e) => setFormData({ ...formData, featuredImage: e.target.value }),
-                  placeholder: 'https://example.com/image.jpg'
-                })
+                React.createElement('label', { className: 'form-label' }, 'Featured Image'),
+                formData.featuredImage && React.createElement('div', { className: 'mb-2' },
+                  React.createElement('img', {
+                    src: formData.featuredImage,
+                    alt: 'Featured image preview',
+                    className: 'img-thumbnail',
+                    style: { maxWidth: '200px', maxHeight: '120px', objectFit: 'cover' }
+                  })
+                ),
+                React.createElement('div', { className: 'input-group' },
+                  React.createElement('input', {
+                    type: 'url',
+                    className: 'form-control',
+                    value: formData.featuredImage,
+                    onChange: (e) => setFormData({ ...formData, featuredImage: e.target.value }),
+                    placeholder: 'https://example.com/image.jpg or upload below'
+                  }),
+                  React.createElement('button', {
+                    className: 'btn btn-outline-secondary',
+                    type: 'button',
+                    onClick: () => setFormData({ ...formData, featuredImage: '' })
+                  }, 'Clear')
+                ),
+                React.createElement('div', { className: 'mt-2' },
+                  React.createElement('input', {
+                    type: 'file',
+                    id: 'featured-image-upload',
+                    accept: 'image/*',
+                    style: { display: 'none' },
+                    onChange: handleImageUpload
+                  }),
+                  React.createElement('button', {
+                    type: 'button',
+                    className: 'btn btn-outline-primary btn-sm w-100',
+                    onClick: () => document.getElementById('featured-image-upload').click(),
+                    disabled: uploadingImage
+                  }, uploadingImage ? 'Uploading...' : '📷 Upload Featured Image')
+                ),
+                React.createElement('small', { className: 'form-text text-muted mt-1' },
+                  'Upload an image or paste a URL. Max file size: 5MB.'
+                )
               )
             )
           )
