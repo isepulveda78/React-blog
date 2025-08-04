@@ -3,6 +3,8 @@ const { React, useState, useEffect } = window;
 const Navigation = ({ user, onLogout }) => {
   console.log('Navigation component - current user:', user);
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(true);
 
   useEffect(() => {
     const handlePathChange = () => {
@@ -21,7 +23,35 @@ const Navigation = ({ user, onLogout }) => {
     setCurrentPath(path);
   };
 
+  const handleAuthModalToggle = () => {
+    setIsLoginMode(!isLoginMode);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (e) {
+      console.error("Logout error:", e);
+    }
+    window.currentUser = null;
+    localStorage.removeItem("user");
+    window.location.href = "/";
+  };
+
   return (
+    <>
+      {/* AuthModal */}
+      {window.AuthModal && React.createElement(window.AuthModal, {
+        show: showAuthModal,
+        onHide: () => setShowAuthModal(false),
+        isLogin: isLoginMode,
+        onToggleMode: handleAuthModalToggle
+      })}
+      
+      {/* Navigation */}
     <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
       <div className="container">
         <a 
@@ -188,7 +218,7 @@ const Navigation = ({ user, onLogout }) => {
                   <li>
                     <button
                       className="dropdown-item"
-                      onClick={onLogout}
+                      onClick={handleLogout}
                     >
                       Logout
                     </button>
@@ -198,38 +228,29 @@ const Navigation = ({ user, onLogout }) => {
             ) : (
               <div className="d-flex gap-2">
                 <button
-                  className="btn btn-warning"
-                  onClick={async () => {
-                    try {
-                      const response = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                          email: 'admin@example.com',
-                          password: 'password'
-                        })
-                      });
-                      
-                      if (response.ok) {
-                        const userData = await response.json();
-                        console.log('Admin login successful:', userData);
-                        window.location.reload();
-                      } else {
-                        alert('Login failed');
-                      }
-                    } catch (error) {
-                      alert('Login error: ' + error.message);
-                    }
+                  className="btn btn-outline-primary"
+                  onClick={() => {
+                    setIsLoginMode(true);
+                    setShowAuthModal(true);
                   }}
                 >
-                  Admin Login
+                  Sign In
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => {
+                    setIsLoginMode(false);
+                    setShowAuthModal(true);
+                  }}
+                >
+                  Sign Up
                 </button>
                 <a
                   href="/api/auth/google"
-                  className="btn btn-outline-primary"
+                  className="btn btn-outline-danger"
                 >
-                  Google Sign In
+                  <i className="fab fa-google me-1"></i>
+                  Google
                 </a>
               </div>
             )}
@@ -237,6 +258,7 @@ const Navigation = ({ user, onLogout }) => {
         </div>
       </div>
     </nav>
+    </>
   );
 };
 
