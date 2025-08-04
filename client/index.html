@@ -89,6 +89,12 @@
   <body>
     <div id="root"></div>
 
+    <!-- Load components first -->
+    <script type="text/babel" src="/src/components/Hero.jsx"></script>
+    <script type="text/babel" src="/src/components/Navigation.jsx"></script>
+    <script type="text/babel" src="/src/components/BlogCard.jsx"></script>
+    
+    <!-- Load main app -->
     <script type="text/babel" data-type="module" src="/src/main.jsx"></script>
     <script src="/hot-reload.js"></script>
 
