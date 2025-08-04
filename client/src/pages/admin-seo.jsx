@@ -319,12 +319,13 @@ export default function AdminSEO() {
   }
 
   // Redirect non-admin users
-  if (!isAdmin) {
+  if (!user || !isAdmin) {
+    console.log('SEO page - redirecting due to auth:', { user, isAdmin, authLoading });
     return (
       <div className="container mt-5">
         <div className="alert alert-danger">
           <h4>Access Denied</h4>
-          <p>You don't have permission to access this page.</p>
+          <p>You don't have permission to access this page. Please log in as an administrator.</p>
           <Link href="/">
             <button className="btn btn-primary">Go Back Home</button>
           </Link>
