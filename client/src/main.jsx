@@ -236,6 +236,11 @@ const Router = () => {
     return React.createElement(AdminDashboard);
   } else if (currentPath === '/admin/posts') {
     return React.createElement(AdminPosts);
+  } else if (currentPath.startsWith('/admin/posts/edit/')) {
+    const postId = currentPath.split('/').pop();
+    return React.createElement(PostEditor, { postId });
+  } else if (currentPath === '/admin/posts/new') {
+    return React.createElement(PostEditor, { postId: null });
   } else if (currentPath === '/admin/users') {
     return React.createElement(AdminUsers);
   } else if (currentPath === '/admin/comments') {
@@ -243,6 +248,229 @@ const Router = () => {
   }
   
   return React.createElement(SimpleHome);
+};
+
+// Post Editor Component
+const PostEditor = ({ postId }) => {
+  const [post, setPost] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(!!postId);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    content: '',
+    excerpt: '',
+    categoryId: '',
+    status: 'draft',
+    featuredImage: ''
+  });
+
+  // Load post data if editing
+  useEffect(() => {
+    if (postId) {
+      fetch(`/api/posts/${postId}`)
+        .then(res => res.json())
+        .then(data => {
+          setPost(data);
+          setFormData({
+            title: data.title || '',
+            content: data.content || '',
+            excerpt: data.excerpt || '',
+            categoryId: data.categoryId || '',
+            status: data.status || 'draft',
+            featuredImage: data.featuredImage || ''
+          });
+          setLoading(false);
+        })
+        .catch(err => {
+          setError('Failed to load post');
+          setLoading(false);
+        });
+    }
+  }, [postId]);
+
+  // Load categories
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(setCategories)
+      .catch(console.error);
+  }, []);
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!formData.title.trim()) {
+      setError('Title is required');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+
+    try {
+      const url = postId ? `/api/posts/${postId}` : '/api/posts';
+      const method = postId ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          authorId: post?.authorId || 'current-user', // You might want to get this from auth context
+          authorName: post?.authorName || 'Admin User'
+        })
+      });
+
+      if (response.ok) {
+        // Navigate back to posts list
+        window.history.pushState({}, '', '/admin/posts');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      } else {
+        const error = await response.json();
+        setError(error.message || 'Failed to save post');
+      }
+    } catch (err) {
+      setError('Error saving post');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return React.createElement('div', { className: 'container mt-5' },
+      React.createElement('div', { className: 'text-center' },
+        React.createElement('div', { className: 'spinner-border' },
+          React.createElement('span', { className: 'visually-hidden' }, 'Loading...')
+        )
+      )
+    );
+  }
+
+  return React.createElement('div', { className: 'container mt-4' },
+    React.createElement('div', { className: 'row' },
+      React.createElement('div', { className: 'col-12' },
+        React.createElement('div', { className: 'd-flex justify-content-between align-items-center mb-4' },
+          React.createElement('h2', null, postId ? 'Edit Post' : 'Create New Post'),
+          React.createElement('div', null,
+            React.createElement('button', {
+              className: 'btn btn-secondary me-2',
+              onClick: () => {
+                window.history.pushState({}, '', '/admin/posts');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }
+            }, 'Back to Posts'),
+            React.createElement('button', {
+              className: 'btn btn-primary',
+              onClick: handleSave,
+              disabled: saving
+            }, saving ? 'Saving...' : 'Save Post')
+          )
+        ),
+
+        error && React.createElement('div', { className: 'alert alert-danger' }, error),
+
+        React.createElement('div', { className: 'card' },
+          React.createElement('div', { className: 'card-body' },
+            React.createElement('div', { className: 'row' },
+              React.createElement('div', { className: 'col-md-8' },
+                // Title
+                React.createElement('div', { className: 'mb-3' },
+                  React.createElement('label', { className: 'form-label' }, 'Title'),
+                  React.createElement('input', {
+                    type: 'text',
+                    className: 'form-control',
+                    value: formData.title,
+                    onChange: (e) => handleInputChange('title', e.target.value),
+                    placeholder: 'Enter post title...'
+                  })
+                ),
+
+                // Content
+                React.createElement('div', { className: 'mb-3' },
+                  React.createElement('label', { className: 'form-label' }, 'Content'),
+                  React.createElement('textarea', {
+                    className: 'form-control',
+                    rows: 12,
+                    value: formData.content,
+                    onChange: (e) => handleInputChange('content', e.target.value),
+                    placeholder: 'Write your post content here...'
+                  })
+                ),
+
+                // Excerpt
+                React.createElement('div', { className: 'mb-3' },
+                  React.createElement('label', { className: 'form-label' }, 'Excerpt'),
+                  React.createElement('textarea', {
+                    className: 'form-control',
+                    rows: 3,
+                    value: formData.excerpt,
+                    onChange: (e) => handleInputChange('excerpt', e.target.value),
+                    placeholder: 'Brief description or excerpt...'
+                  })
+                )
+              ),
+
+              React.createElement('div', { className: 'col-md-4' },
+                // Status
+                React.createElement('div', { className: 'mb-3' },
+                  React.createElement('label', { className: 'form-label' }, 'Status'),
+                  React.createElement('select', {
+                    className: 'form-select',
+                    value: formData.status,
+                    onChange: (e) => handleInputChange('status', e.target.value)
+                  },
+                    React.createElement('option', { value: 'draft' }, 'Draft'),
+                    React.createElement('option', { value: 'published' }, 'Published')
+                  )
+                ),
+
+                // Category
+                React.createElement('div', { className: 'mb-3' },
+                  React.createElement('label', { className: 'form-label' }, 'Category'),
+                  React.createElement('select', {
+                    className: 'form-select',
+                    value: formData.categoryId,
+                    onChange: (e) => handleInputChange('categoryId', e.target.value)
+                  },
+                    React.createElement('option', { value: '' }, 'Select category...'),
+                    categories.map(cat =>
+                      React.createElement('option', { key: cat.id, value: cat.id }, cat.name)
+                    )
+                  )
+                ),
+
+                // Featured Image
+                React.createElement('div', { className: 'mb-3' },
+                  React.createElement('label', { className: 'form-label' }, 'Featured Image URL'),
+                  React.createElement('input', {
+                    type: 'url',
+                    className: 'form-control',
+                    value: formData.featuredImage,
+                    onChange: (e) => handleInputChange('featuredImage', e.target.value),
+                    placeholder: 'https://example.com/image.jpg'
+                  })
+                ),
+
+                formData.featuredImage && React.createElement('div', { className: 'mb-3' },
+                  React.createElement('img', {
+                    src: formData.featuredImage,
+                    alt: 'Featured image preview',
+                    className: 'img-fluid rounded',
+                    style: { maxHeight: '200px' }
+                  })
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  );
 };
 
 // Admin Posts Management Component
@@ -319,8 +547,8 @@ const AdminPosts = () => {
             React.createElement('button', {
               className: 'btn btn-primary',
               onClick: () => {
-                // TODO: Implement new post creation
-                alert('New post creation coming soon!');
+                window.history.pushState({}, '', '/admin/posts/new');
+                window.dispatchEvent(new PopStateEvent('popstate'));
               }
             }, 'New Post')
           )
@@ -370,8 +598,8 @@ const AdminPosts = () => {
                             React.createElement('button', {
                               className: 'btn btn-outline-primary',
                               onClick: () => {
-                                // TODO: Implement edit functionality
-                                alert('Edit functionality coming soon!');
+                                window.history.pushState({}, '', `/admin/posts/edit/${post.id}`);
+                                window.dispatchEvent(new PopStateEvent('popstate'));
                               }
                             }, 'Edit'),
                             React.createElement('button', {
