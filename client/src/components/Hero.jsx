@@ -1,6 +1,7 @@
 const { React } = window;
 
 const Hero = ({ user }) => {
+  console.log('Hero component - current user:', user);
   return (
     <section className="bg-gradient-to-br from-blue-50 to-purple-50 py-5 mb-5">
       <div className="container">
