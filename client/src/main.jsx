@@ -65,6 +65,8 @@ const BlogPostEditor = ({ user, onBack }) => {
   const [error, setError] = React.useState('');
   const [success, setSuccess] = React.useState('');
   const [uploadingImage, setUploadingImage] = React.useState(false);
+  const [quillEditor, setQuillEditor] = React.useState(null);
+  const editorRef = React.useRef(null);
 
   React.useEffect(() => {
     fetch('/api/categories', { credentials: 'include' })
@@ -72,6 +74,45 @@ const BlogPostEditor = ({ user, onBack }) => {
       .then(setCategories)
       .catch(console.error);
   }, []);
+
+  // Initialize Quill editor
+  React.useEffect(() => {
+    if (editorRef.current && !quillEditor && window.Quill) {
+      const quill = new window.Quill(editorRef.current, {
+        theme: 'snow',
+        modules: {
+          toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['link', 'blockquote', 'code-block'],
+            [{ 'align': [] }],
+            ['clean']
+          ]
+        },
+        placeholder: 'Write your blog post content here...'
+      });
+
+      // Set up content change handler
+      quill.on('text-change', () => {
+        setContent(quill.root.innerHTML);
+      });
+
+      setQuillEditor(quill);
+    }
+  }, [quillEditor]);
+
+  // Update Quill content when content state changes externally
+  React.useEffect(() => {
+    if (quillEditor && content !== quillEditor.root.innerHTML) {
+      const selection = quillEditor.getSelection();
+      quillEditor.root.innerHTML = content;
+      if (selection) {
+        quillEditor.setSelection(selection);
+      }
+    }
+  }, [content, quillEditor]);
 
   const generateSlug = (title) => {
     return title
@@ -162,9 +203,16 @@ const BlogPostEditor = ({ user, onBack }) => {
 
       const imageData = await response.json();
       
-      // Insert image HTML at cursor position in content
-      const imageHtml = `<img src="${imageData.url}" alt="Blog image" style="max-width: 100%; height: auto; margin: 10px 0;" />`;
-      setContent(prevContent => prevContent + '\n\n' + imageHtml + '\n\n');
+      // Insert image into Quill editor
+      if (quillEditor) {
+        const range = quillEditor.getSelection(true);
+        quillEditor.insertEmbed(range.index, 'image', imageData.url);
+        quillEditor.setSelection(range.index + 1);
+      } else {
+        // Fallback for when editor isn't ready
+        const imageHtml = `<img src="${imageData.url}" alt="Blog image" style="max-width: 100%; height: auto; margin: 10px 0;" />`;
+        setContent(prevContent => prevContent + '\n\n' + imageHtml + '\n\n');
+      }
       
       setSuccess('Image uploaded successfully!');
       setTimeout(() => setSuccess(''), 3000);
@@ -222,13 +270,9 @@ const BlogPostEditor = ({ user, onBack }) => {
           ),
           React.createElement('div', { className: 'mb-3' },
             React.createElement('label', { className: 'form-label' }, 'Content *'),
-            React.createElement('textarea', {
-              className: 'form-control',
-              rows: 15,
-              value: content,
-              onChange: (e) => setContent(e.target.value),
-              placeholder: 'Write your blog post content here. You can use HTML tags for formatting...',
-              required: true
+            React.createElement('div', {
+              ref: editorRef,
+              style: { minHeight: '300px', backgroundColor: 'white' }
             })
           ),
           React.createElement('div', { className: 'mb-3' },
