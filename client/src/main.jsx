@@ -65,6 +65,14 @@ const BlogPostDetail = ({ slug, onBack }) => {
   const [post, setPost] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState('');
+  const [comments, setComments] = React.useState([]);
+  const [commentLoading, setCommentLoading] = React.useState(false);
+  const [newComment, setNewComment] = React.useState({
+    authorName: '',
+    authorEmail: '',
+    content: ''
+  });
+  const [submittingComment, setSubmittingComment] = React.useState(false);
 
   React.useEffect(() => {
     fetch(`/api/posts/slug/${slug}`, { credentials: 'include' })
@@ -77,12 +85,69 @@ const BlogPostDetail = ({ slug, onBack }) => {
       .then(data => {
         setPost(data);
         setLoading(false);
+        // Load comments for this post
+        loadComments(data.id);
       })
       .catch(err => {
         setError(err.message);
         setLoading(false);
       });
   }, [slug]);
+
+  const loadComments = async (postId) => {
+    setCommentLoading(true);
+    try {
+      const response = await fetch(`/api/posts/${postId}/comments`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const commentsData = await response.json();
+        setComments(commentsData);
+      }
+    } catch (err) {
+      console.error('Error loading comments:', err);
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!post || !newComment.authorName || !newComment.authorEmail || !newComment.content) {
+      return;
+    }
+
+    setSubmittingComment(true);
+    try {
+      const response = await fetch(`/api/posts/${post.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...newComment,
+          postId: post.id
+        })
+      });
+
+      if (response.ok) {
+        setNewComment({ authorName: '', authorEmail: '', content: '' });
+        // Show success message
+        alert('Comment submitted successfully! It will appear after approval.');
+        // Reload comments to show any immediately approved ones
+        loadComments(post.id);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Failed to submit comment');
+      }
+    } catch (err) {
+      console.error('Error submitting comment:', err);
+      alert('Failed to submit comment');
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
 
   if (loading) {
     return React.createElement('div', { className: 'text-center' },
@@ -140,7 +205,7 @@ const BlogPostDetail = ({ slug, onBack }) => {
             className: 'post-content',
             dangerouslySetInnerHTML: { __html: post.content }
           }),
-          post.tags && post.tags.length > 0 && React.createElement('div', { className: 'mt-4' },
+          post.tags && post.tags.length > 0 && React.createElement('div', { className: 'mt-4 mb-5' },
             React.createElement('h6', null, 'Tags:'),
             React.createElement('div', null,
               post.tags.map(tag => 
@@ -148,6 +213,88 @@ const BlogPostDetail = ({ slug, onBack }) => {
                   key: tag, 
                   className: 'badge bg-secondary me-2' 
                 }, tag)
+              )
+            )
+          ),
+
+          // Comments Section
+          React.createElement('hr', { className: 'my-5' }),
+          React.createElement('section', { className: 'comments-section' },
+            React.createElement('h4', { className: 'mb-4' }, 'Comments'),
+            
+            // Existing Comments
+            commentLoading ? 
+              React.createElement('div', { className: 'text-center mb-4' },
+                React.createElement('div', { className: 'spinner-border spinner-border-sm' })
+              ) :
+              comments.length > 0 ? 
+                React.createElement('div', { className: 'mb-5' },
+                  comments.map(comment => 
+                    React.createElement('div', { 
+                      key: comment.id, 
+                      className: 'card mb-3' 
+                    },
+                      React.createElement('div', { className: 'card-body' },
+                        React.createElement('div', { className: 'd-flex justify-content-between align-items-start mb-2' },
+                          React.createElement('h6', { className: 'card-title mb-0' }, comment.authorName),
+                          React.createElement('small', { className: 'text-muted' }, 
+                            new Date(comment.createdAt).toLocaleDateString()
+                          )
+                        ),
+                        React.createElement('p', { className: 'card-text' }, comment.content)
+                      )
+                    )
+                  )
+                ) :
+                React.createElement('p', { className: 'text-muted mb-4' }, 'No comments yet. Be the first to comment!'),
+
+            // Comment Form
+            React.createElement('div', { className: 'card' },
+              React.createElement('div', { className: 'card-header' },
+                React.createElement('h5', { className: 'mb-0' }, 'Leave a Comment')
+              ),
+              React.createElement('div', { className: 'card-body' },
+                React.createElement('form', { onSubmit: handleCommentSubmit },
+                  React.createElement('div', { className: 'row mb-3' },
+                    React.createElement('div', { className: 'col-md-6' },
+                      React.createElement('label', { className: 'form-label' }, 'Name *'),
+                      React.createElement('input', {
+                        type: 'text',
+                        className: 'form-control',
+                        value: newComment.authorName,
+                        onChange: (e) => setNewComment({...newComment, authorName: e.target.value}),
+                        required: true
+                      })
+                    ),
+                    React.createElement('div', { className: 'col-md-6' },
+                      React.createElement('label', { className: 'form-label' }, 'Email *'),
+                      React.createElement('input', {
+                        type: 'email',
+                        className: 'form-control',
+                        value: newComment.authorEmail,
+                        onChange: (e) => setNewComment({...newComment, authorEmail: e.target.value}),
+                        required: true
+                      }),
+                      React.createElement('small', { className: 'form-text text-muted' }, 'Your email will not be published')
+                    )
+                  ),
+                  React.createElement('div', { className: 'mb-3' },
+                    React.createElement('label', { className: 'form-label' }, 'Comment *'),
+                    React.createElement('textarea', {
+                      className: 'form-control',
+                      rows: 4,
+                      value: newComment.content,
+                      onChange: (e) => setNewComment({...newComment, content: e.target.value}),
+                      placeholder: 'Share your thoughts...',
+                      required: true
+                    })
+                  ),
+                  React.createElement('button', {
+                    type: 'submit',
+                    className: 'btn btn-primary',
+                    disabled: submittingComment
+                  }, submittingComment ? 'Submitting...' : 'Post Comment')
+                )
               )
             )
           )
