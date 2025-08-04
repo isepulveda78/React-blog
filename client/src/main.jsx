@@ -2264,9 +2264,6 @@ const SimpleHome = () => {
     }),
 
     // Footer
-    React.createElement(Footer),
-
-    // Footer
     React.createElement(Footer)
   );
 };
