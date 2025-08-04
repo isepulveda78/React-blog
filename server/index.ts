@@ -34,6 +34,16 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Add cache-busting headers for development
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'development') {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+  next();
+});
+
 // Register API routes first
 registerRoutes(app);
 
