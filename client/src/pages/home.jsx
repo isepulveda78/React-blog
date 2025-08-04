@@ -339,6 +339,42 @@ export default function Home() {
           </Col>
         </Row>
 
+        {/* Quick Access to Sample Posts */}
+        {user?.approved && (
+          <Row className="mb-5">
+            <Col>
+              <h2 className="h3 fw-bold mb-4">📝 Sample Blog Posts with Comments</h2>
+              <Alert variant="info" className="mb-4">
+                <Alert.Heading>🎉 Ready to See Comments in Action!</Alert.Heading>
+                <p>Click on any of these sample posts to see the full blog post with threaded comments system:</p>
+                <hr />
+                <div className="d-grid gap-2 d-md-flex">
+                  <Button 
+                    variant="outline-primary" 
+                    href="/posts/getting-started-modern-web-development"
+                    className="me-md-2"
+                  >
+                    📱 Modern Web Development Post
+                  </Button>
+                  <Button 
+                    variant="outline-primary" 
+                    href="/posts/designing-for-accessibility-guide"
+                    className="me-md-2"
+                  >
+                    ♿ Accessibility Guide Post
+                  </Button>
+                  <Button 
+                    variant="outline-primary" 
+                    href="/posts/future-javascript-frameworks"
+                  >
+                    🚀 JavaScript Frameworks Post
+                  </Button>
+                </div>
+              </Alert>
+            </Col>
+          </Row>
+        )}
+
         {/* Featured Posts */}
         {user?.approved &&
           Array.isArray(featuredPosts) &&
@@ -355,12 +391,12 @@ export default function Home() {
                             Featured
                           </Badge>
                           <Card.Title>
-                            <Link
+                            <a
                               href={`/posts/${post.slug}`}
                               className="text-decoration-none"
                             >
                               {post.title}
-                            </Link>
+                            </a>
                           </Card.Title>
                           <Card.Text className="text-muted">
                             {post.excerpt ||

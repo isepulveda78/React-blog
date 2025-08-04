@@ -5,6 +5,7 @@ import multer from 'multer';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { createServer } from "http";
+import path from "path";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -349,6 +350,11 @@ export function registerRoutes(app) {
       console.error("Error fetching post:", error);
       res.status(500).json({ message: "Internal server error" });
     }
+  });
+
+  // Simple route to serve blog posts directly
+  app.get("/posts/:slug", (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/index.html'));
   });
 
   app.get("/api/posts/slug/:slug", async (req, res) => {
@@ -934,6 +940,68 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     } catch (error) {
       console.error('Error deleting comment:', error);
       res.status(500).json({ message: 'Failed to delete comment' });
+    }
+  });
+
+  // Comments for specific posts
+  app.get("/api/posts/:postId/comments", async (req, res) => {
+    try {
+      // Check if user is authenticated and approved
+      if (!req.session.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      if (!req.session.user.approved) {
+        return res.status(403).json({ message: "Account approval required" });
+      }
+
+      const { postId } = req.params;
+      const comments = await storage.getCommentsByPostId(postId);
+      res.json(comments);
+    } catch (error) {
+      console.error("Error fetching post comments:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/posts/:postId/comments", async (req, res) => {
+    try {
+      // Check if user is authenticated and approved
+      if (!req.session.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      if (!req.session.user.approved) {
+        return res.status(403).json({ message: "Account approval required" });
+      }
+
+      const { postId } = req.params;
+      const { content, parentId } = req.body;
+
+      if (!content || !content.trim()) {
+        return res.status(400).json({ message: "Comment content is required" });
+      }
+
+      // Get post details
+      const post = await storage.getPostById(postId);
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      const commentData = {
+        postId,
+        postTitle: post.title,
+        postSlug: post.slug,
+        authorName: req.session.user.name,
+        authorEmail: req.session.user.email,
+        content: content.trim(),
+        parentId: parentId || null,
+        status: "approved", // Auto-approve comments for now
+      };
+
+      const comment = await storage.createComment(commentData);
+      res.json(comment);
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
