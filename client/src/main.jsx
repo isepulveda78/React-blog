@@ -1573,6 +1573,30 @@ const App = () => {
       localStorage.removeItem('user');
     };
 
+    const register = async (userData) => {
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(userData),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Registration failed');
+        }
+
+        const registeredUser = await response.json();
+        setUser(registeredUser);
+        localStorage.setItem('user', JSON.stringify(registeredUser));
+        setShowRegister(false);
+        return registeredUser;
+      } catch (error) {
+        throw error;
+      }
+    };
+
     // Login Modal
     const LoginModal = () => {
       const [email, setEmail] = React.useState('');
@@ -1643,6 +1667,128 @@ const App = () => {
       );
     };
 
+    // Registration Modal
+    const RegisterModal = () => {
+      const [firstName, setFirstName] = React.useState('');
+      const [lastName, setLastName] = React.useState('');
+      const [email, setEmail] = React.useState('');
+      const [username, setUsername] = React.useState('');
+      const [password, setPassword] = React.useState('');
+      const [confirmPassword, setConfirmPassword] = React.useState('');
+      const [error, setError] = React.useState('');
+      const [loading, setLoading] = React.useState(false);
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+
+        try {
+          await register({ name: `${firstName} ${lastName}`, email, username, password });
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return React.createElement('div', { 
+        className: `modal fade ${showRegister ? 'show' : ''}`, 
+        style: { display: showRegister ? 'block' : 'none' }
+      },
+        React.createElement('div', { className: 'modal-dialog' },
+          React.createElement('div', { className: 'modal-content' },
+            React.createElement('div', { className: 'modal-header' },
+              React.createElement('h5', { className: 'modal-title' }, 'Create Account'),
+              React.createElement('button', { 
+                type: 'button', 
+                className: 'btn-close', 
+                onClick: () => setShowRegister(false) 
+              })
+            ),
+            React.createElement('div', { className: 'modal-body' },
+              React.createElement('form', { onSubmit: handleSubmit },
+                error && React.createElement('div', { className: 'alert alert-danger' }, error),
+                React.createElement('div', { className: 'row' },
+                  React.createElement('div', { className: 'col-md-6 mb-3' },
+                    React.createElement('label', { className: 'form-label' }, 'First Name'),
+                    React.createElement('input', {
+                      type: 'text',
+                      className: 'form-control',
+                      value: firstName,
+                      onChange: (e) => setFirstName(e.target.value),
+                      required: true
+                    })
+                  ),
+                  React.createElement('div', { className: 'col-md-6 mb-3' },
+                    React.createElement('label', { className: 'form-label' }, 'Last Name'),
+                    React.createElement('input', {
+                      type: 'text',
+                      className: 'form-control',
+                      value: lastName,
+                      onChange: (e) => setLastName(e.target.value),
+                      required: true
+                    })
+                  )
+                ),
+                React.createElement('div', { className: 'mb-3' },
+                  React.createElement('label', { className: 'form-label' }, 'Email'),
+                  React.createElement('input', {
+                    type: 'email',
+                    className: 'form-control',
+                    value: email,
+                    onChange: (e) => setEmail(e.target.value),
+                    required: true
+                  })
+                ),
+                React.createElement('div', { className: 'mb-3' },
+                  React.createElement('label', { className: 'form-label' }, 'Username'),
+                  React.createElement('input', {
+                    type: 'text',
+                    className: 'form-control',
+                    value: username,
+                    onChange: (e) => setUsername(e.target.value),
+                    required: true
+                  })
+                ),
+                React.createElement('div', { className: 'mb-3' },
+                  React.createElement('label', { className: 'form-label' }, 'Password'),
+                  React.createElement('input', {
+                    type: 'password',
+                    className: 'form-control',
+                    value: password,
+                    onChange: (e) => setPassword(e.target.value),
+                    required: true
+                  })
+                ),
+                React.createElement('div', { className: 'mb-3' },
+                  React.createElement('label', { className: 'form-label' }, 'Confirm Password'),
+                  React.createElement('input', {
+                    type: 'password',
+                    className: 'form-control',
+                    value: confirmPassword,
+                    onChange: (e) => setConfirmPassword(e.target.value),
+                    required: true
+                  })
+                ),
+                React.createElement('button', {
+                  type: 'submit',
+                  className: 'btn btn-primary',
+                  disabled: loading
+                }, loading ? 'Creating Account...' : 'Create Account')
+              )
+            )
+          )
+        )
+      );
+    };
+
     if (isLoading) {
       return React.createElement('div', { className: 'container-fluid d-flex justify-content-center align-items-center', style: { height: '100vh' } },
         React.createElement('div', { className: 'spinner-border' })
@@ -1695,7 +1841,12 @@ const App = () => {
                 key: 'login',
                 className: 'btn btn-outline-light btn-sm me-2', 
                 onClick: () => setShowLogin(true) 
-              }, 'Login')
+              }, 'Login'),
+              React.createElement('button', { 
+                key: 'register',
+                className: 'btn btn-light btn-sm', 
+                onClick: () => setShowRegister(true) 
+              }, 'Register')
             ]
           )
         )
@@ -1720,8 +1871,9 @@ const App = () => {
         )
       ),
       
-      // Login Modal
-      React.createElement(LoginModal)
+      // Modals
+      React.createElement(LoginModal),
+      React.createElement(RegisterModal)
     );
   };
 
