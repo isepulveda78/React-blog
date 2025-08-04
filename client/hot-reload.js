@@ -1,23 +1,84 @@
-// Simple hot reload for development
+// Enhanced hot reload for development
 if (window.location.hostname.includes('replit') || window.location.hostname === 'localhost') {
-  let lastModified = '';
+  let lastCheck = Date.now();
+  let checkCount = 0;
   
   function checkForChanges() {
-    fetch('/src/main.jsx', { method: 'HEAD' })
+    checkCount++;
+    const timestamp = Date.now();
+    
+    // Check main.jsx file with cache-busting
+    fetch(`/src/main.jsx?t=${timestamp}`, { 
+      method: 'HEAD',
+      cache: 'no-cache',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    })
       .then(response => {
         const modified = response.headers.get('last-modified');
-        if (lastModified && lastModified !== modified) {
-          console.log('File changed, reloading...');
-          window.location.reload();
+        const etag = response.headers.get('etag');
+        
+        // Store initial values
+        if (!window.hotReloadState) {
+          window.hotReloadState = { 
+            lastModified: modified, 
+            lastEtag: etag,
+            initialized: true
+          };
+          return;
         }
-        lastModified = modified;
+        
+        // Check if file changed
+        const hasChanged = (
+          (modified && modified !== window.hotReloadState.lastModified) ||
+          (etag && etag !== window.hotReloadState.lastEtag)
+        );
+        
+        if (hasChanged && window.hotReloadState.initialized) {
+          console.log('File changed, reloading...', { 
+            check: checkCount, 
+            modified, 
+            etag 
+          });
+          
+          // Clear cache and reload
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+              registrations.forEach(registration => registration.unregister());
+            });
+          }
+          
+          // Force reload with cache bypass
+          window.location.reload(true);
+        }
+        
+        // Update state
+        window.hotReloadState.lastModified = modified;
+        window.hotReloadState.lastEtag = etag;
       })
-      .catch(() => {
-        // Ignore errors, continue checking
+      .catch(error => {
+        console.log('Hot reload check failed:', error.message);
       });
   }
   
-  // Check every 500ms for changes
-  setInterval(checkForChanges, 500);
-  console.log('Hot reload enabled - changes will auto-refresh the page');
+  // Check every 300ms for faster response
+  const reloadInterval = setInterval(checkForChanges, 300);
+  
+  // Also check when window gains focus
+  window.addEventListener('focus', checkForChanges);
+  
+  // Add keyboard shortcut for manual reload
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+      e.preventDefault();
+      console.log('Manual reload triggered');
+      clearInterval(reloadInterval);
+      window.location.reload(true);
+    }
+  });
+  
+  console.log('Enhanced hot reload enabled - changes will auto-refresh every 300ms');
+  console.log('Manual reload: Ctrl+Shift+R (or Cmd+Shift+R on Mac)');
 }

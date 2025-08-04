@@ -59,30 +59,8 @@
     <script type="text/babel" data-type="module" src="/src/main.jsx"></script>
     <script src="/hot-reload.js"></script>
     
-    <!-- Development hot reload script -->
-    <script>
-      // Simple hot reload mechanism for development
-      if (location.hostname === 'localhost' || location.hostname.includes('replit')) {
-        const reloadOnChange = () => {
-          fetch('/src/main.jsx?' + Date.now())
-            .then(() => {
-              // File exists, check if it's been modified
-              setTimeout(reloadOnChange, 1000);
-            })
-            .catch(() => {
-              setTimeout(reloadOnChange, 2000);
-            });
-        };
-        
-        // Add keyboard shortcut for manual refresh
-        document.addEventListener('keydown', (e) => {
-          if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
-            e.preventDefault();
-            location.reload(true);
-          }
-        });
-      }
-    </script>
+    <!-- Enhanced hot reload script loads from external file -->
+    <!-- Keyboard shortcut: Ctrl+Shift+R for manual reload -->
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>

@@ -3817,7 +3817,7 @@ const SimpleHome = () => {
           React.createElement(
             "h1",
             { className: "display-4 fw-bold mb-4" },
-            "Welcome to BlogCraft",
+            "Welcome to Mr. S Teaches ⚡ Hot Reload Test",
           ),
 
           React.createElement(
