@@ -53,9 +53,11 @@ app.get('*.js', (req, res, next) => {
 
 // Handle client-side routing - send index.html for non-API routes
 app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, '../client/index.html'));
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ message: 'API endpoint not found' });
   }
+  console.log('Serving index.html for path:', req.path);
+  res.sendFile(path.join(__dirname, '../client/index.html'));
 });
 
 app.listen(PORT, "0.0.0.0", () => {

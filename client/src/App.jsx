@@ -15,12 +15,14 @@ import AdminSEO from "./pages/admin-seo";
 import AdminUsers from "./pages/admin-users";
 import DebugDashboard from "./pages/debug-dashboard";
 import TestSEO from "./pages/test-seo";
+import SimpleSEO from "./pages/simple-seo";
 import NotFound from "./pages/not-found";
 
 function Router() {
   return (
     <Switch>
       <Route path="/test-seo" component={TestSEO} />
+      <Route path="/simple-seo" component={SimpleSEO} />
       <Route path="/debug" component={DebugDashboard} />
       <Route path="/" component={Home} />
       <Route path="/posts/:slug" component={BlogPost} />
