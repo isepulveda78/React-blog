@@ -5,6 +5,53 @@ import { Link } from "wouter";
 import { useAuth } from "../hooks/use-auth";
 import { apiRequest } from "../lib/queryClient";
 
+function AdminSidebar() {
+  return (
+    <div className="bg-dark text-light p-3" style={{ minHeight: '100vh', width: '250px' }}>
+      <h4 className="mb-4">Admin Panel</h4>
+      <nav>
+        <ul className="list-unstyled">
+          <li className="mb-2">
+            <Link href="/admin" className="text-light text-decoration-none d-block p-2 rounded">
+              📊 Dashboard
+            </Link>
+          </li>
+          <li className="mb-2">
+            <Link href="/admin/posts" className="text-light text-decoration-none d-block p-2 rounded">
+              📝 Posts
+            </Link>
+          </li>
+          <li className="mb-2">
+            <Link href="/admin/categories" className="text-light text-decoration-none d-block p-2 rounded">
+              🏷️ Categories
+            </Link>
+          </li>
+          <li className="mb-2">
+            <Link href="/admin/comments" className="text-light text-decoration-none d-block p-2 rounded">
+              💬 Comments
+            </Link>
+          </li>
+          <li className="mb-2">
+            <Link href="/admin/seo" className="text-light text-decoration-none d-block p-2 rounded">
+              🔍 SEO Management
+            </Link>
+          </li>
+          <li className="mb-2">
+            <Link href="/admin/users" className="text-light text-decoration-none d-block p-2 rounded bg-primary">
+              👥 Users
+            </Link>
+          </li>
+          <li className="mt-4">
+            <Link href="/" className="text-light text-decoration-none d-block p-2 rounded">
+              ← Back to Blog
+            </Link>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  );
+}
+
 export default function AdminUsers() {
   const { user, isAdmin } = useAuth();
   const queryClient = useQueryClient();
@@ -93,8 +140,10 @@ export default function AdminUsers() {
   const approvedUsers = users.filter(u => u.approved);
 
   return (
-    <div className="min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>
-      <Container className="py-4">
+    <div className="d-flex">
+      <AdminSidebar />
+      
+      <div className="flex-grow-1 p-4">
         <Row className="mb-4">
           <Col>
             <div className="d-flex justify-content-between align-items-center">
@@ -310,7 +359,7 @@ export default function AdminUsers() {
             </Button>
           </Modal.Footer>
         </Modal>
-      </Container>
+      </div>
     </div>
   );
 }
