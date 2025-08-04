@@ -209,29 +209,42 @@ function CommentsSection({ postId, user }) {
     fetchComments(); // Refresh comments
   };
 
-  // Group comments by parent/child relationship
-  const parentComments = Array.isArray(comments)
-    ? comments.filter((comment) => !comment.parentId)
-    : [];
-  const childComments = Array.isArray(comments)
-    ? comments.filter((comment) => comment.parentId)
-    : [];
+  // Handle both flat and nested comment structures
+  let parentComments = [];
+  let allCommentsFlat = [];
+
+  if (Array.isArray(comments) && comments.length > 0) {
+    // Check if comments have embedded replies (nested structure from MongoDB)
+    if (comments[0] && comments[0].replies && Array.isArray(comments[0].replies)) {
+      console.log('Processing nested comment structure');
+      parentComments = comments;
+      // Flatten all comments for reply lookup
+      comments.forEach(comment => {
+        allCommentsFlat.push(comment);
+        if (comment.replies) {
+          comment.replies.forEach(reply => allCommentsFlat.push(reply));
+        }
+      });
+    } else {
+      console.log('Processing flat comment structure');
+      // Flat structure - separate parent and child comments
+      parentComments = comments.filter((comment) => !comment.parentId);
+      allCommentsFlat = comments;
+    }
+  }
+
+  console.log('parentComments:', parentComments.length);
+  console.log('allCommentsFlat:', allCommentsFlat.length);
+  console.log('comments state:', comments);
 
   // Function to get replies for a specific comment
   const getReplies = (commentId) => {
-    return childComments.filter((reply) => reply.parentId === commentId);
+    const comment = parentComments.find(c => c.id === commentId);
+    if (comment && comment.replies) {
+      return comment.replies; // Use embedded replies
+    }
+    return allCommentsFlat.filter((reply) => reply.parentId === commentId);
   };
-
-  if (!user?.approved) {
-    return (
-      <div className="comments-section mt-5">
-        <h3>Comments</h3>
-        <div className="alert alert-info">
-          Please sign in and get your account approved to view and post comments.
-        </div>
-      </div>
-    );
-  }
 
   if (isLoading) {
     return (
@@ -260,11 +273,11 @@ function CommentsSection({ postId, user }) {
   return (
     <div className="comments-section mt-5">
       <h3>
-        Comments ({Array.isArray(comments) ? comments.length : 0})
+        Comments ({allCommentsFlat.length})
       </h3>
 
-      {/* Comment Form */}
-      <CommentForm postId={postId} onSuccess={handleCommentAdded} />
+      {/* Comment Form - only show if user is approved */}
+      {user?.approved && <CommentForm postId={postId} onSuccess={handleCommentAdded} />}
 
       {/* Comments List */}
       <div className="comments-list mt-4">

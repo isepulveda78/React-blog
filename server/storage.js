@@ -107,20 +107,10 @@ class MemStorage {
 
   async getComments() { return this.comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
   async getCommentsByPostId(postId) {
-    // Get all approved comments for the post and organize them in a threaded structure
+    // Return flat array of all approved comments for the post
+    // The frontend will handle the parent/child relationship logic
     const allComments = this.comments.filter(c => c.postId === postId && c.status === 'approved');
-    
-    // Separate top-level comments and replies
-    const topLevelComments = allComments.filter(c => !c.parentId);
-    const replies = allComments.filter(c => c.parentId);
-    
-    // Add replies to their parent comments
-    const commentsWithReplies = topLevelComments.map(comment => ({
-      ...comment,
-      replies: replies.filter(r => r.parentId === comment.id).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-    }));
-    
-    return commentsWithReplies.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    return allComments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   }
   async getCommentById(id) { return this.comments.find(c => c.id === id); }
   async createComment(commentData) {
@@ -1011,33 +1001,14 @@ export class MongoStorage {
 
   async getCommentsByPostId(postId) {
     await this.connect();
+    // Return flat array of all approved comments for the post
+    // The frontend will handle the parent/child relationship logic
     const allComments = await this.db.collection('comments')
       .find({ postId, status: 'approved' })
       .sort({ createdAt: 1 })
       .toArray();
     
-    // Organize comments into threaded structure
-    const commentMap = new Map();
-    const rootComments = [];
-    
-    // First pass: create map of all comments
-    allComments.forEach(comment => {
-      comment.replies = [];
-      commentMap.set(comment.id, comment);
-    });
-    
-    // Second pass: organize into threads
-    allComments.forEach(comment => {
-      if (comment.parentId && commentMap.has(comment.parentId)) {
-        // This is a reply, add it to parent's replies array
-        commentMap.get(comment.parentId).replies.push(comment);
-      } else {
-        // This is a root comment
-        rootComments.push(comment);
-      }
-    });
-    
-    return rootComments;
+    return allComments;
   }
 
   async getCommentById(id) {
