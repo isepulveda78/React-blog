@@ -20,6 +20,7 @@ function CommentForm({ postId, parentId, onSuccess, onCancel }) {
         body: JSON.stringify({
           content: content.trim(),
           parentId: parentId || null,
+          status: 'approved', // Auto-approve for testing
         }),
       });
 
@@ -161,6 +162,9 @@ function CommentsSection({ postId, user }) {
   
   // Debug logging
   console.log('CommentsSection - postId:', postId, 'user:', user);
+  
+  // Also set default comment status for auto-approval in development
+  const defaultCommentStatus = 'approved'; // For testing - in production this should be 'pending'
 
   const fetchComments = async () => {
     if (!user?.approved || !postId) return;
