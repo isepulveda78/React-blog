@@ -1156,6 +1156,7 @@ const AuthModal = ({ show, onHide, isLogin, onToggleMode }) => {
 // Simple router for handling different pages
 const Router = () => {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
     const handlePopState = () => {
@@ -1168,40 +1169,136 @@ const Router = () => {
 
   console.log("Current path:", currentPath);
 
+  // Protected Route Component - checks authentication and admin status
+  const ProtectedAdminRoute = (component) => {
+    if (isLoading) {
+      return React.createElement(
+        "div",
+        {
+          className: "d-flex justify-content-center align-items-center",
+          style: { minHeight: "100vh" },
+        },
+        React.createElement("div", {
+          className: "spinner-border text-primary",
+        }),
+      );
+    }
+
+    if (!user) {
+      return React.createElement(
+        "div",
+        {
+          className: "container mt-5 text-center",
+        },
+        React.createElement("h2", null, "Access Denied"),
+        React.createElement(
+          "p",
+          { className: "text-muted mb-4" },
+          "You must be logged in to access this page.",
+        ),
+        React.createElement(
+          "button",
+          {
+            className: "btn btn-primary",
+            onClick: () => {
+              window.history.pushState({}, "", "/");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            },
+          },
+          "Go to Login",
+        ),
+      );
+    }
+
+    if (!user.approved) {
+      return React.createElement(
+        "div",
+        {
+          className: "container mt-5 text-center",
+        },
+        React.createElement("h2", null, "Account Pending Approval"),
+        React.createElement(
+          "p",
+          { className: "text-muted mb-4" },
+          "Your account is pending approval. Please wait for an administrator to approve your account.",
+        ),
+        React.createElement(
+          "button",
+          {
+            className: "btn btn-primary",
+            onClick: () => {
+              window.history.pushState({}, "", "/");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            },
+          },
+          "Go Home",
+        ),
+      );
+    }
+
+    if (!user.isAdmin) {
+      return React.createElement(
+        "div",
+        {
+          className: "container mt-5 text-center",
+        },
+        React.createElement("h2", null, "Admin Access Required"),
+        React.createElement(
+          "p",
+          { className: "text-muted mb-4" },
+          "You must be an administrator to access this page.",
+        ),
+        React.createElement(
+          "button",
+          {
+            className: "btn btn-primary",
+            onClick: () => {
+              window.history.pushState({}, "", "/");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            },
+          },
+          "Go Home",
+        ),
+      );
+    }
+
+    return component;
+  };
+
   // Handle blog posts route
   if (currentPath === "/blog") {
     console.log("Loading blog posts listing");
     return React.createElement(BlogPostsList);
   }
 
-  // Handle specific admin routes
+  // Handle specific admin routes - ALL PROTECTED
   if (currentPath === "/admin" || currentPath === "/admin-access") {
     console.log("Loading admin dashboard for:", currentPath);
-    return React.createElement(ModernReactApp);
+    return ProtectedAdminRoute(React.createElement(ModernReactApp));
   } else if (currentPath === "/admin/posts") {
     console.log("Loading posts management");
-    return React.createElement(AdminPostsManager);
+    return ProtectedAdminRoute(React.createElement(AdminPostsManager));
   } else if (currentPath === "/admin/users") {
     console.log("Loading user management");
-    return React.createElement(AdminUsersManager);
+    return ProtectedAdminRoute(React.createElement(AdminUsersManager));
   } else if (currentPath === "/admin/comments") {
     console.log("Loading comments management");
-    return React.createElement(AdminCommentsManager);
+    return ProtectedAdminRoute(React.createElement(AdminCommentsManager));
   } else if (currentPath === "/admin/categories") {
     console.log("Loading categories management");
-    return React.createElement(AdminCategoriesManager);
+    return ProtectedAdminRoute(React.createElement(AdminCategoriesManager));
   } else if (currentPath === "/admin/posts/new") {
     console.log("Loading post editor");
-    return React.createElement(AdminPostEditor);
+    return ProtectedAdminRoute(React.createElement(AdminPostEditor));
   } else if (currentPath.startsWith("/admin/posts/edit/")) {
     const postId = currentPath.split("/").pop();
     console.log("Loading post editor for post:", postId);
-    return React.createElement(AdminPostEditor, { postId });
+    return ProtectedAdminRoute(React.createElement(AdminPostEditor, { postId }));
   } else if (currentPath === "/admin/seo") {
     console.log("Loading SEO management");
-    return React.createElement(AdminSEOManager);
+    return ProtectedAdminRoute(React.createElement(AdminSEOManager));
   } else if (currentPath === "/test-route") {
-    return React.createElement(ModernReactApp);
+    return ProtectedAdminRoute(React.createElement(ModernReactApp));
   } else if (currentPath.startsWith("/posts/")) {
     return React.createElement(BlogPostReader);
   }
