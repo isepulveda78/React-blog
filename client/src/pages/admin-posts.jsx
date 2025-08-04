@@ -31,6 +31,16 @@ function AdminSidebar() {
               💬 Comments
             </Link>
           </li>
+          <li className="mb-2">
+            <Link href="/admin/seo" className="text-light text-decoration-none d-block p-2 rounded">
+              🔍 SEO Management
+            </Link>
+          </li>
+          <li className="mb-2">
+            <Link href="/admin/users" className="text-light text-decoration-none d-block p-2 rounded">
+              👥 Users
+            </Link>
+          </li>
           <li className="mt-4">
             <Link href="/" className="text-light text-decoration-none d-block p-2 rounded">
               ← Back to Blog

@@ -46,6 +46,15 @@ class MemStorage {
     const post = {
       id: nanoid(),
       ...postData,
+      // SEO defaults if not provided
+      metaDescription: postData.metaDescription || postData.excerpt || '',
+      metaKeywords: postData.metaKeywords || [],
+      ogTitle: postData.ogTitle || postData.title,
+      ogDescription: postData.ogDescription || postData.excerpt || '',
+      ogImage: postData.ogImage || postData.featuredImage || '',
+      canonicalUrl: postData.canonicalUrl || '',
+      focusKeyword: postData.focusKeyword || '',
+      seoTitle: postData.seoTitle || postData.title,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       publishedAt: postData.status === 'published' ? new Date().toISOString() : null
@@ -231,7 +240,16 @@ class MemStorage {
       tags: ["javascript", "frameworks", "react", "vue", "future trends"],
       publishedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      // SEO fields
+      metaDescription: "Discover the future of JavaScript frameworks. Learn about React, Vue, Angular, and emerging trends in modern web development.",
+      metaKeywords: ["javascript", "frameworks", "react", "vue", "angular", "web development", "programming"],
+      ogTitle: "The Future of JavaScript Frameworks | BlogCraft",
+      ogDescription: "Explore the evolving landscape of JavaScript frameworks and what the future holds for web development.",
+      ogImage: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&h=630",
+      canonicalUrl: "",
+      focusKeyword: "javascript frameworks",
+      seoTitle: "The Future of JavaScript Frameworks - Complete Guide 2025"
     };
 
     this.posts.push(post1);
@@ -549,7 +567,16 @@ export class MongoStorage {
       tags: ["accessibility", "design", "ux", "inclusive design"],
       publishedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
       createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+      updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      // SEO fields
+      metaDescription: "Complete guide to designing accessible web experiences. Learn WCAG principles, implementation tips, and best practices for inclusive design.",
+      metaKeywords: ["accessibility", "web design", "WCAG", "inclusive design", "UX", "usability"],
+      ogTitle: "Designing for Accessibility: Complete Guide | BlogCraft",
+      ogDescription: "Master web accessibility with our comprehensive guide covering WCAG principles and practical implementation strategies.",
+      ogImage: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=630",
+      canonicalUrl: "",
+      focusKeyword: "web accessibility",
+      seoTitle: "Web Accessibility Guide - WCAG Best Practices 2025"
     };
     
     const post3 = {
@@ -822,6 +849,15 @@ export class MongoStorage {
     const post = {
       id: nanoid(),
       ...postData,
+      // SEO defaults if not provided
+      metaDescription: postData.metaDescription || postData.excerpt || '',
+      metaKeywords: postData.metaKeywords || [],
+      ogTitle: postData.ogTitle || postData.title,
+      ogDescription: postData.ogDescription || postData.excerpt || '',
+      ogImage: postData.ogImage || postData.featuredImage || '',
+      canonicalUrl: postData.canonicalUrl || '',
+      focusKeyword: postData.focusKeyword || '',
+      seoTitle: postData.seoTitle || postData.title,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       publishedAt: postData.status === 'published' ? new Date().toISOString() : null

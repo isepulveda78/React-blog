@@ -1,9 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Container, Row, Col, Alert, Button } from "react-bootstrap";
 import { useAuth } from "../hooks/use-auth";
+import { updateMetaTags } from "../utils/seo.js";
 
 export default function SimpleHome() {
   const { user } = useAuth();
+
+  // Update homepage SEO meta tags
+  useEffect(() => {
+    updateMetaTags({
+      title: 'BlogCraft - Modern Blog Platform',
+      description: 'Join our community of writers and readers. Access exclusive blog content, engage with authors, and share your thoughts.',
+      keywords: ['blog', 'platform', 'community', 'writing', 'reading', 'content'],
+      ogTitle: 'BlogCraft - Modern Blog Platform',
+      ogDescription: 'Join our community of writers and readers. Access exclusive blog content and engage with authors.',
+      ogImage: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=630',
+      canonicalUrl: window.location.href,
+      seoTitle: 'BlogCraft - Modern Blog Platform for Writers and Readers'
+    });
+  }, []);
 
   return (
     <div className="min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>

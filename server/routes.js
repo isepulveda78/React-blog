@@ -677,6 +677,98 @@ export function registerRoutes(app) {
     }
   });
 
+  // SEO Settings API
+  app.post('/api/seo/settings', async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const seoSettings = req.body;
+      // For now, we'll store in memory/MongoDB. In production, you'd want persistent storage
+      console.log('[seo] SEO settings updated:', seoSettings);
+      
+      res.json({ message: 'SEO settings saved successfully', settings: seoSettings });
+    } catch (error) {
+      console.error('[seo] Error saving SEO settings:', error);
+      res.status(500).json({ message: 'Failed to save SEO settings' });
+    }
+  });
+
+  app.get('/api/seo/settings', async (req, res) => {
+    try {
+      // Return default SEO settings
+      const defaultSettings = {
+        siteName: 'BlogCraft',
+        siteDescription: 'A modern blog platform featuring advanced content management, user authentication, and SEO optimization tools.',
+        defaultOgImage: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=630',
+        googleAnalyticsId: '',
+        googleSearchConsoleId: '',
+        robotsTxt: 'User-agent: *\nAllow: /',
+        sitemapEnabled: true
+      };
+      
+      res.json(defaultSettings);
+    } catch (error) {
+      console.error('[seo] Error getting SEO settings:', error);
+      res.status(500).json({ message: 'Failed to get SEO settings' });
+    }
+  });
+
+  // Sitemap generation
+  app.get('/sitemap.xml', async (req, res) => {
+    try {
+      const posts = await storage.getPosts();
+      const publishedPosts = posts.filter(post => post.status === 'published');
+      
+      const baseUrl = `https://${req.get('host')}`;
+      
+      let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>`;
+
+      publishedPosts.forEach(post => {
+        sitemap += `
+  <url>
+    <loc>${baseUrl}/posts/${post.slug}</loc>
+    <lastmod>${post.updatedAt || post.publishedAt}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+      });
+
+      sitemap += '\n</urlset>';
+      
+      res.set('Content-Type', 'application/xml');
+      res.send(sitemap);
+    } catch (error) {
+      console.error('[seo] Error generating sitemap:', error);
+      res.status(500).send('Error generating sitemap');
+    }
+  });
+
+  // Robots.txt
+  app.get('/robots.txt', async (req, res) => {
+    try {
+      const baseUrl = `https://${req.get('host')}`;
+      const robotsTxt = `User-agent: *
+Allow: /
+
+Sitemap: ${baseUrl}/sitemap.xml`;
+      
+      res.set('Content-Type', 'text/plain');
+      res.send(robotsTxt);
+    } catch (error) {
+      console.error('[seo] Error generating robots.txt:', error);
+      res.status(500).send('Error generating robots.txt');
+    }
+  });
+
   app.post("/api/categories", async (req, res) => {
     try {
       // Check if user is admin

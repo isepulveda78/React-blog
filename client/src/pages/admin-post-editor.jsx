@@ -31,6 +31,16 @@ function AdminSidebar() {
               💬 Comments
             </Link>
           </li>
+          <li className="mb-2">
+            <Link href="/admin/seo" className="text-light text-decoration-none d-block p-2 rounded">
+              🔍 SEO Management
+            </Link>
+          </li>
+          <li className="mb-2">
+            <Link href="/admin/users" className="text-light text-decoration-none d-block p-2 rounded">
+              👥 Users
+            </Link>
+          </li>
           <li className="mt-4">
             <Link href="/" className="text-light text-decoration-none d-block p-2 rounded">
               ← Back to Blog
@@ -57,7 +67,16 @@ export default function AdminPostEditor() {
     categoryId: "",
     featured: false,
     status: "draft",
-    tags: ""
+    tags: "",
+    // SEO fields
+    metaDescription: "",
+    metaKeywords: "",
+    ogTitle: "",
+    ogDescription: "",
+    ogImage: "",
+    canonicalUrl: "",
+    focusKeyword: "",
+    seoTitle: ""
   });
   const [error, setError] = useState("");
 
@@ -86,7 +105,16 @@ export default function AdminPostEditor() {
         categoryId: post.categoryId || "",
         featured: post.featured || false,
         status: post.status || "draft",
-        tags: post.tags ? post.tags.join(", ") : ""
+        tags: post.tags ? post.tags.join(", ") : "",
+        // SEO fields
+        metaDescription: post.metaDescription || "",
+        metaKeywords: Array.isArray(post.metaKeywords) ? post.metaKeywords.join(", ") : post.metaKeywords || "",
+        ogTitle: post.ogTitle || "",
+        ogDescription: post.ogDescription || "",
+        ogImage: post.ogImage || "",
+        canonicalUrl: post.canonicalUrl || "",
+        focusKeyword: post.focusKeyword || "",
+        seoTitle: post.seoTitle || ""
       });
     }
   }, [post, isEditing]);
@@ -120,6 +148,7 @@ export default function AdminPostEditor() {
       const postData = {
         ...data,
         tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : [],
+        metaKeywords: data.metaKeywords ? data.metaKeywords.split(',').map(keyword => keyword.trim()) : [],
         authorId: user.id,
         authorName: user.name
       };
@@ -139,7 +168,8 @@ export default function AdminPostEditor() {
     mutationFn: async (data) => {
       const postData = {
         ...data,
-        tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : []
+        tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : [],
+        metaKeywords: data.metaKeywords ? data.metaKeywords.split(',').map(keyword => keyword.trim()) : []
       };
       const response = await apiRequest("PUT", `/api/posts/${postId}`, postData);
       return response.json();
@@ -289,6 +319,132 @@ export default function AdminPostEditor() {
                       />
                       <Form.Text className="text-muted">
                         Separate multiple tags with commas
+                      </Form.Text>
+                    </Form.Group>
+                  </Card.Body>
+                </Card>
+
+                {/* SEO Settings Card */}
+                <Card className="mb-4">
+                  <Card.Header>
+                    <h5 className="mb-0">🔍 SEO Settings</h5>
+                  </Card.Header>
+                  <Card.Body>
+                    <Form.Group className="mb-3">
+                      <Form.Label>SEO Title</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="seoTitle"
+                        value={formData.seoTitle}
+                        onChange={handleChange}
+                        placeholder="Custom SEO title (defaults to post title)"
+                        maxLength="60"
+                      />
+                      <Form.Text className="text-muted">
+                        {formData.seoTitle.length}/60 characters - Appears in search results
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>Meta Description</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={3}
+                        name="metaDescription"
+                        value={formData.metaDescription}
+                        onChange={handleChange}
+                        placeholder="Describe your post for search engines..."
+                        maxLength="160"
+                      />
+                      <Form.Text className="text-muted">
+                        {formData.metaDescription.length}/160 characters - Appears in search results
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>Focus Keyword</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="focusKeyword"
+                        value={formData.focusKeyword}
+                        onChange={handleChange}
+                        placeholder="main keyword to focus on"
+                      />
+                      <Form.Text className="text-muted">
+                        Primary keyword you want to rank for
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>Meta Keywords</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="metaKeywords"
+                        value={formData.metaKeywords}
+                        onChange={handleChange}
+                        placeholder="seo, optimization, keywords"
+                      />
+                      <Form.Text className="text-muted">
+                        Separate multiple keywords with commas
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>Open Graph Title</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="ogTitle"
+                        value={formData.ogTitle}
+                        onChange={handleChange}
+                        placeholder="Title for social media sharing"
+                        maxLength="95"
+                      />
+                      <Form.Text className="text-muted">
+                        {formData.ogTitle.length}/95 characters - Used when shared on social media
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>Open Graph Description</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={2}
+                        name="ogDescription"
+                        value={formData.ogDescription}
+                        onChange={handleChange}
+                        placeholder="Description for social media sharing"
+                        maxLength="300"
+                      />
+                      <Form.Text className="text-muted">
+                        {formData.ogDescription.length}/300 characters - Used when shared on social media
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>Open Graph Image</Form.Label>
+                      <Form.Control
+                        type="url"
+                        name="ogImage"
+                        value={formData.ogImage}
+                        onChange={handleChange}
+                        placeholder="https://example.com/image.jpg"
+                      />
+                      <Form.Text className="text-muted">
+                        Image URL for social media sharing (1200x630px recommended)
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-0">
+                      <Form.Label>Canonical URL</Form.Label>
+                      <Form.Control
+                        type="url"
+                        name="canonicalUrl"
+                        value={formData.canonicalUrl}
+                        onChange={handleChange}
+                        placeholder="https://example.com/original-url"
+                      />
+                      <Form.Text className="text-muted">
+                        Optional - Set if this content was originally published elsewhere
                       </Form.Text>
                     </Form.Group>
                   </Card.Body>

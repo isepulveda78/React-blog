@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { Container, Row, Col, Card, Button, Form, Alert, Badge, Spinner } from "react-bootstrap";
 import { useAuth } from "../hooks/use-auth";
 import { queryClient, apiRequest } from "../lib/queryClient";
+import { updateMetaTags } from "../utils/seo.js";
 
 function CommentSection({ postId }) {
   const { user } = useAuth();
@@ -186,6 +187,27 @@ export default function BlogPost() {
       </Container>
     );
   }
+
+  // Update SEO meta tags when post loads
+  useEffect(() => {
+    if (post) {
+      updateMetaTags({
+        title: post.seoTitle || post.title,
+        description: post.metaDescription || post.excerpt || 'Read this blog post on BlogCraft',
+        keywords: post.metaKeywords || post.tags || [],
+        ogTitle: post.ogTitle || post.title,
+        ogDescription: post.ogDescription || post.excerpt || post.metaDescription,
+        ogImage: post.ogImage || post.featuredImage || 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=630',
+        canonicalUrl: post.canonicalUrl || window.location.href,
+        seoTitle: post.seoTitle || post.title,
+        focusKeyword: post.focusKeyword,
+        type: 'article',
+        authorName: post.authorName,
+        publishedAt: post.publishedAt,
+        updatedAt: post.updatedAt
+      });
+    }
+  }, [post]);
 
   return (
     <div className="min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>
