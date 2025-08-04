@@ -42,6 +42,11 @@ app.get('/seo-management', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/seo-management.html'));
 });
 
+// Serve admin quick access page
+app.get('/admin-access', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/admin-quick-access.html'));
+});
+
 // Serve static files from client directory
 app.use(express.static(path.join(__dirname, '../client')));
 

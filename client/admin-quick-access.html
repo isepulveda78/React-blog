@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Quick Access - BlogCraft</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+        }
+        .admin-card {
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        .admin-card:hover {
+            transform: translateY(-5px);
+        }
+        .seo-highlight {
+            background: #ffc107;
+            color: #000;
+            font-weight: bold;
+            border: 3px solid #ff8c00;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold mb-3">Admin Quick Access</h1>
+            <p class="lead">Direct links to all admin functionality</p>
+        </div>
+    </div>
+
+    <div class="container py-5">
+        <div class="row">
+            <!-- SEO Management - Highlighted -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card admin-card seo-highlight">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i style="font-size: 3rem;">🔍</i>
+                        </div>
+                        <h5 class="card-title">SEO Management System</h5>
+                        <p class="card-text">Complete SEO analysis, meta tag optimization, and sitemap generation.</p>
+                        <a href="/seo-management" target="_blank" class="btn btn-dark btn-lg">
+                            Access SEO Tools
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card admin-card border-primary">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i style="font-size: 3rem;">📊</i>
+                        </div>
+                        <h5 class="card-title">Admin Dashboard</h5>
+                        <p class="card-text">View statistics, manage content, and access all admin features.</p>
+                        <a href="/admin" class="btn btn-primary btn-lg">
+                            Open Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posts Management -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card admin-card border-success">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i style="font-size: 3rem;">📝</i>
+                        </div>
+                        <h5 class="card-title">Manage Posts</h5>
+                        <p class="card-text">Create, edit, and publish blog posts with the rich content editor.</p>
+                        <a href="/admin/posts" class="btn btn-success btn-lg">
+                            Manage Posts
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Management -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card admin-card border-info">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i style="font-size: 3rem;">👥</i>
+                        </div>
+                        <h5 class="card-title">User Management</h5>
+                        <p class="card-text">Approve users, manage roles, and handle user accounts.</p>
+                        <a href="/admin/users" class="btn btn-info btn-lg">
+                            Manage Users
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card admin-card border-warning">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i style="font-size: 3rem;">💬</i>
+                        </div>
+                        <h5 class="card-title">Comments</h5>
+                        <p class="card-text">Moderate comments, approve posts, and manage discussions.</p>
+                        <a href="/admin/comments" class="btn btn-warning btn-lg">
+                            Manage Comments
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card admin-card border-secondary">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i style="font-size: 3rem;">🏷️</i>
+                        </div>
+                        <h5 class="card-title">Categories</h5>
+                        <p class="card-text">Organize content with categories and tags for better navigation.</p>
+                        <a href="/admin/categories" class="btn btn-secondary btn-lg">
+                            Manage Categories
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="/" class="btn btn-outline-primary btn-lg">← Back to Blog Homepage</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
