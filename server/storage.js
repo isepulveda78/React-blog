@@ -403,6 +403,7 @@ export class MongoStorage {
       authorName: adminUser.name,
       status: "published",
       featured: true,
+      featuredImage: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       tags: ["web development", "react", "javascript", "tutorial"],
       publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
       createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -462,6 +463,7 @@ export class MongoStorage {
       authorName: adminUser.name,
       status: "published",
       featured: false,
+      featuredImage: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       tags: ["accessibility", "design", "ux", "inclusive design"],
       publishedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
       createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
@@ -514,6 +516,7 @@ export class MongoStorage {
       authorName: adminUser.name,
       status: "published",
       featured: true,
+      featuredImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       tags: ["javascript", "frameworks", "react", "vue", "future trends"],
       publishedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
