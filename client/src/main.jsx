@@ -3341,9 +3341,175 @@ const RichTextEditor = ({ value, onChange, onImageUpload, uploadingImage }) => {
 
 // Admin SEO Manager
 const AdminSEOManager = () => {
+  const [seoData, setSeoData] = useState({
+    siteTitle: 'Mr. S Teaches',
+    siteDescription: 'A modern blog platform featuring advanced content management, user authentication, and SEO optimization tools.',
+    keywords: 'blog, education, teaching, learning, content management',
+    googleAnalyticsId: '',
+    facebookPixelId: '',
+    twitterHandle: '',
+    canonicalUrl: '',
+    ogImage: '',
+    robotsTxt: 'User-agent: *\nAllow: /',
+    enableSitemap: true
+  });
+  
+  const [posts, setPosts] = useState([]);
+  const [seoAnalysis, setSeoAnalysis] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('settings');
+
+  useEffect(() => {
+    loadSEOData();
+    loadPosts();
+  }, []);
+
+  const loadSEOData = async () => {
+    try {
+      const response = await fetch('/api/seo/settings', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setSeoData({ ...seoData, ...data });
+      }
+    } catch (error) {
+      console.error('Error loading SEO data:', error);
+    }
+  };
+
+  const loadPosts = async () => {
+    try {
+      const response = await fetch('/api/posts', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        const postsArray = Array.isArray(data) ? data : [];
+        setPosts(postsArray);
+        
+        // Analyze SEO for each post
+        const analysis = {};
+        postsArray.forEach(post => {
+          analysis[post.id] = analyzeSEO(post);
+        });
+        setSeoAnalysis(analysis);
+      }
+    } catch (error) {
+      console.error('Error loading posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const analyzeSEO = (post) => {
+    const analysis = {
+      score: 0,
+      issues: [],
+      recommendations: []
+    };
+
+    // Title analysis
+    if (!post.title) {
+      analysis.issues.push('Missing title');
+    } else if (post.title.length < 30) {
+      analysis.issues.push('Title too short (< 30 characters)');
+    } else if (post.title.length > 60) {
+      analysis.issues.push('Title too long (> 60 characters)');
+    } else {
+      analysis.score += 25;
+    }
+
+    // Description analysis
+    if (!post.excerpt) {
+      analysis.issues.push('Missing meta description');
+      analysis.recommendations.push('Add a compelling meta description (150-160 characters)');
+    } else if (post.excerpt.length < 120) {
+      analysis.issues.push('Meta description too short');
+    } else if (post.excerpt.length > 160) {
+      analysis.issues.push('Meta description too long');
+    } else {
+      analysis.score += 25;
+    }
+
+    // Content analysis
+    if (!post.content) {
+      analysis.issues.push('No content');
+    } else {
+      const wordCount = post.content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+      if (wordCount < 300) {
+        analysis.issues.push(`Content too short (${wordCount} words)`);
+        analysis.recommendations.push('Aim for at least 300 words for better SEO');
+      } else {
+        analysis.score += 25;
+      }
+
+      // Check for headings
+      if (!post.content.includes('<h1>') && !post.content.includes('<h2>')) {
+        analysis.issues.push('No headings found');
+        analysis.recommendations.push('Use headings (H1, H2) to structure your content');
+      } else {
+        analysis.score += 15;
+      }
+    }
+
+    // Featured image
+    if (!post.featuredImage) {
+      analysis.issues.push('No featured image');
+      analysis.recommendations.push('Add a featured image for better social sharing');
+    } else {
+      analysis.score += 10;
+    }
+
+    return analysis;
+  };
+
+  const saveSEOSettings = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch('/api/seo/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(seoData),
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        alert('SEO settings saved successfully!');
+      } else {
+        alert('Error saving SEO settings');
+      }
+    } catch (error) {
+      console.error('Error saving SEO settings:', error);
+      alert('Error saving SEO settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const generateSitemap = async () => {
+    try {
+      const response = await fetch('/api/seo/sitemap/generate', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        alert('Sitemap generated successfully!');
+      } else {
+        alert('Error generating sitemap');
+      }
+    } catch (error) {
+      console.error('Error generating sitemap:', error);
+    }
+  };
+
   const navigateTo = (path) => {
     window.history.pushState({}, '', path);
     window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 80) return 'success';
+    if (score >= 60) return 'warning';
+    return 'danger';
   };
 
   return React.createElement('div', { style: { backgroundColor: '#f8f9fa', minHeight: '100vh' } },
@@ -3363,19 +3529,296 @@ const AdminSEOManager = () => {
           ),
           React.createElement('div', { className: 'col-auto' },
             React.createElement('button', {
-              className: 'btn btn-outline-light',
+              className: 'btn btn-outline-light me-2',
               onClick: () => navigateTo('/admin')
-            }, 'Back to Dashboard')
+            }, 'Back to Dashboard'),
+            React.createElement('button', {
+              className: 'btn btn-light',
+              onClick: saveSEOSettings,
+              disabled: saving
+            }, saving ? 'Saving...' : 'Save Settings')
           )
         )
       )
     ),
 
     React.createElement('div', { className: 'container mt-4' },
-      React.createElement('div', { className: 'alert alert-info' },
-        React.createElement('h5', { className: 'alert-heading' }, 'SEO Tools Coming Soon'),
-        React.createElement('p', { className: 'mb-0' }, 
-          'Advanced SEO management tools including meta tag optimization, structured data, and analytics will be available here.'
+      // Navigation Tabs
+      React.createElement('ul', { className: 'nav nav-tabs mb-4' },
+        React.createElement('li', { className: 'nav-item' },
+          React.createElement('button', {
+            className: `nav-link ${activeTab === 'settings' ? 'active' : ''}`,
+            onClick: () => setActiveTab('settings')
+          }, 'SEO Settings')
+        ),
+        React.createElement('li', { className: 'nav-item' },
+          React.createElement('button', {
+            className: `nav-link ${activeTab === 'analysis' ? 'active' : ''}`,
+            onClick: () => setActiveTab('analysis')
+          }, 'Content Analysis')
+        ),
+        React.createElement('li', { className: 'nav-item' },
+          React.createElement('button', {
+            className: `nav-link ${activeTab === 'tools' ? 'active' : ''}`,
+            onClick: () => setActiveTab('tools')
+          }, 'SEO Tools')
+        )
+      ),
+
+      // SEO Settings Tab
+      activeTab === 'settings' && React.createElement('div', { className: 'row' },
+        React.createElement('div', { className: 'col-lg-8' },
+          React.createElement('div', { className: 'card border-0 shadow-sm mb-4' },
+            React.createElement('div', { className: 'card-header bg-light' },
+              React.createElement('h5', { className: 'mb-0' }, 'Basic SEO Settings')
+            ),
+            React.createElement('div', { className: 'card-body' },
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label fw-bold' }, 'Site Title'),
+                React.createElement('input', {
+                  type: 'text',
+                  className: 'form-control',
+                  value: seoData.siteTitle,
+                  onChange: (e) => setSeoData({ ...seoData, siteTitle: e.target.value }),
+                  placeholder: 'Your site title'
+                })
+              ),
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label fw-bold' }, 'Site Description'),
+                React.createElement('textarea', {
+                  className: 'form-control',
+                  rows: 3,
+                  value: seoData.siteDescription,
+                  onChange: (e) => setSeoData({ ...seoData, siteDescription: e.target.value }),
+                  placeholder: 'Brief description of your site'
+                })
+              ),
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label fw-bold' }, 'Keywords'),
+                React.createElement('input', {
+                  type: 'text',
+                  className: 'form-control',
+                  value: seoData.keywords,
+                  onChange: (e) => setSeoData({ ...seoData, keywords: e.target.value }),
+                  placeholder: 'keyword1, keyword2, keyword3'
+                }),
+                React.createElement('small', { className: 'form-text text-muted' },
+                  'Separate keywords with commas'
+                )
+              )
+            )
+          ),
+
+          React.createElement('div', { className: 'card border-0 shadow-sm mb-4' },
+            React.createElement('div', { className: 'card-header bg-light' },
+              React.createElement('h5', { className: 'mb-0' }, 'Social Media & Analytics')
+            ),
+            React.createElement('div', { className: 'card-body' },
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label fw-bold' }, 'Google Analytics ID'),
+                React.createElement('input', {
+                  type: 'text',
+                  className: 'form-control',
+                  value: seoData.googleAnalyticsId,
+                  onChange: (e) => setSeoData({ ...seoData, googleAnalyticsId: e.target.value }),
+                  placeholder: 'G-XXXXXXXXXX or UA-XXXXXXXXX'
+                })
+              ),
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label fw-bold' }, 'Twitter Handle'),
+                React.createElement('input', {
+                  type: 'text',
+                  className: 'form-control',
+                  value: seoData.twitterHandle,
+                  onChange: (e) => setSeoData({ ...seoData, twitterHandle: e.target.value }),
+                  placeholder: '@yourhandle'
+                })
+              ),
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label fw-bold' }, 'Default Open Graph Image'),
+                React.createElement('input', {
+                  type: 'url',
+                  className: 'form-control',
+                  value: seoData.ogImage,
+                  onChange: (e) => setSeoData({ ...seoData, ogImage: e.target.value }),
+                  placeholder: 'https://example.com/og-image.jpg'
+                })
+              )
+            )
+          )
+        ),
+        
+        React.createElement('div', { className: 'col-lg-4' },
+          React.createElement('div', { className: 'card border-0 shadow-sm mb-4' },
+            React.createElement('div', { className: 'card-header bg-light' },
+              React.createElement('h5', { className: 'mb-0' }, 'Quick Actions')
+            ),
+            React.createElement('div', { className: 'card-body' },
+              React.createElement('button', {
+                className: 'btn btn-primary w-100 mb-2',
+                onClick: generateSitemap
+              }, 'Generate Sitemap'),
+              React.createElement('button', {
+                className: 'btn btn-outline-primary w-100 mb-2',
+                onClick: () => window.open('/sitemap.xml', '_blank')
+              }, 'View Sitemap'),
+              React.createElement('button', {
+                className: 'btn btn-outline-secondary w-100',
+                onClick: () => window.open('/robots.txt', '_blank')
+              }, 'View Robots.txt')
+            )
+          ),
+          
+          React.createElement('div', { className: 'card border-0 shadow-sm' },
+            React.createElement('div', { className: 'card-header bg-light' },
+              React.createElement('h5', { className: 'mb-0' }, 'SEO Health')
+            ),
+            React.createElement('div', { className: 'card-body text-center' },
+              React.createElement('div', { 
+                className: 'display-6 fw-bold text-primary mb-2' 
+              }, posts.length),
+              React.createElement('p', { className: 'text-muted mb-0' }, 'Total Posts'),
+              React.createElement('hr'),
+              React.createElement('small', { className: 'text-muted' },
+                'Monitor your content SEO performance in the Analysis tab'
+              )
+            )
+          )
+        )
+      ),
+
+      // Content Analysis Tab
+      activeTab === 'analysis' && React.createElement('div', null,
+        loading ? React.createElement('div', { className: 'text-center py-5' },
+          React.createElement('div', { className: 'spinner-border text-primary' }),
+          React.createElement('p', { className: 'mt-3' }, 'Analyzing content...')
+        ) : posts.length === 0 ? React.createElement('div', { className: 'text-center py-5' },
+          React.createElement('h3', null, 'No Posts to Analyze'),
+          React.createElement('p', { className: 'text-muted' }, 'Create some blog posts to see SEO analysis.')
+        ) : React.createElement('div', { className: 'row' },
+          posts.map(post => {
+            const analysis = seoAnalysis[post.id] || { score: 0, issues: [], recommendations: [] };
+            return React.createElement('div', { key: post.id, className: 'col-lg-6 mb-4' },
+              React.createElement('div', { className: 'card border-0 shadow-sm h-100' },
+                React.createElement('div', { className: 'card-body' },
+                  React.createElement('div', { className: 'd-flex justify-content-between align-items-start mb-3' },
+                    React.createElement('h5', { className: 'card-title mb-0' }, 
+                      post.title || 'Untitled Post'
+                    ),
+                    React.createElement('span', {
+                      className: `badge bg-${getScoreColor(analysis.score)} fs-6`
+                    }, `${analysis.score}/100`)
+                  ),
+                  
+                  analysis.issues.length > 0 && React.createElement('div', { className: 'mb-3' },
+                    React.createElement('h6', { className: 'text-danger' }, 'Issues Found:'),
+                    React.createElement('ul', { className: 'list-unstyled mb-0' },
+                      analysis.issues.map((issue, index) => 
+                        React.createElement('li', { key: index, className: 'text-danger small' },
+                          React.createElement('span', null, '• ' + issue)
+                        )
+                      )
+                    )
+                  ),
+                  
+                  analysis.recommendations.length > 0 && React.createElement('div', { className: 'mb-3' },
+                    React.createElement('h6', { className: 'text-warning' }, 'Recommendations:'),
+                    React.createElement('ul', { className: 'list-unstyled mb-0' },
+                      analysis.recommendations.map((rec, index) => 
+                        React.createElement('li', { key: index, className: 'text-warning small' },
+                          React.createElement('span', null, '• ' + rec)
+                        )
+                      )
+                    )
+                  ),
+                  
+                  React.createElement('div', { className: 'mt-auto' },
+                    React.createElement('button', {
+                      className: 'btn btn-outline-primary btn-sm',
+                      onClick: () => navigateTo(`/admin/posts/edit/${post.id}`)
+                    }, 'Edit Post')
+                  )
+                )
+              )
+            );
+          })
+        )
+      ),
+
+      // SEO Tools Tab
+      activeTab === 'tools' && React.createElement('div', { className: 'row' },
+        React.createElement('div', { className: 'col-lg-8' },
+          React.createElement('div', { className: 'card border-0 shadow-sm mb-4' },
+            React.createElement('div', { className: 'card-header bg-light' },
+              React.createElement('h5', { className: 'mb-0' }, 'Robots.txt Editor')
+            ),
+            React.createElement('div', { className: 'card-body' },
+              React.createElement('textarea', {
+                className: 'form-control',
+                rows: 8,
+                value: seoData.robotsTxt,
+                onChange: (e) => setSeoData({ ...seoData, robotsTxt: e.target.value }),
+                style: { fontFamily: 'Monaco, Consolas, monospace' }
+              }),
+              React.createElement('small', { className: 'form-text text-muted' },
+                'Controls how search engines crawl your site'
+              )
+            )
+          )
+        ),
+        
+        React.createElement('div', { className: 'col-lg-4' },
+          React.createElement('div', { className: 'card border-0 shadow-sm mb-4' },
+            React.createElement('div', { className: 'card-header bg-light' },
+              React.createElement('h5', { className: 'mb-0' }, 'SEO Resources')
+            ),
+            React.createElement('div', { className: 'card-body' },
+              React.createElement('div', { className: 'list-group list-group-flush' },
+                React.createElement('a', {
+                  href: 'https://search.google.com/search-console',
+                  target: '_blank',
+                  className: 'list-group-item list-group-item-action'
+                }, 'Google Search Console'),
+                React.createElement('a', {
+                  href: 'https://analytics.google.com',
+                  target: '_blank',  
+                  className: 'list-group-item list-group-item-action'
+                }, 'Google Analytics'),
+                React.createElement('a', {
+                  href: 'https://developers.facebook.com/tools/debug/',
+                  target: '_blank',
+                  className: 'list-group-item list-group-item-action'
+                }, 'Facebook Debugger'),
+                React.createElement('a', {
+                  href: 'https://cards-dev.twitter.com/validator',
+                  target: '_blank',
+                  className: 'list-group-item list-group-item-action'
+                }, 'Twitter Card Validator')
+              )
+            )
+          ),
+          
+          React.createElement('div', { className: 'card border-0 shadow-sm' },
+            React.createElement('div', { className: 'card-header bg-light' },
+              React.createElement('h5', { className: 'mb-0' }, 'Sitemap Settings')
+            ),
+            React.createElement('div', { className: 'card-body' },
+              React.createElement('div', { className: 'form-check' },
+                React.createElement('input', {
+                  className: 'form-check-input',
+                  type: 'checkbox',
+                  checked: seoData.enableSitemap,
+                  onChange: (e) => setSeoData({ ...seoData, enableSitemap: e.target.checked })
+                }),
+                React.createElement('label', { className: 'form-check-label' },
+                  'Enable XML Sitemap'
+                )
+              ),
+              React.createElement('small', { className: 'form-text text-muted' },
+                'Automatically generate sitemap for search engines'
+              )
+            )
+          )
         )
       )
     )

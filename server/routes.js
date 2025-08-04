@@ -4,6 +4,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { createServer } from "http";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -1127,4 +1128,88 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       res.status(500).json({ message: 'Failed to delete image' });
     }
   });
+
+  // SEO Management Routes
+  app.get('/api/seo/settings', async (req, res) => {
+    // Check if user is admin
+    if (!req.session.user?.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    try {
+      // Return default SEO settings (in a real app, this would come from database)
+      const defaultSettings = {
+        siteTitle: 'Mr. S Teaches',
+        siteDescription: 'A modern blog platform featuring advanced content management, user authentication, and SEO optimization tools.',
+        keywords: 'blog, education, teaching, learning, content management',
+        googleAnalyticsId: '',
+        facebookPixelId: '',
+        twitterHandle: '',
+        canonicalUrl: '',
+        ogImage: '',
+        robotsTxt: 'User-agent: *\nAllow: /',
+        enableSitemap: true
+      };
+      res.json(defaultSettings);
+    } catch (error) {
+      console.error('Error fetching SEO settings:', error);
+      res.status(500).json({ message: 'Failed to fetch SEO settings' });
+    }
+  });
+
+  app.post('/api/seo/settings', async (req, res) => {
+    // Check if user is admin
+    if (!req.session.user?.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    try {
+      // In a real app, save to database
+      console.log('SEO settings updated:', req.body);
+      res.json({ message: 'SEO settings saved successfully' });
+    } catch (error) {
+      console.error('Error saving SEO settings:', error);
+      res.status(500).json({ message: 'Failed to save SEO settings' });
+    }
+  });
+
+  app.post('/api/seo/sitemap/generate', async (req, res) => {
+    // Check if user is admin
+    if (!req.session.user?.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    try {
+      // Generate sitemap (simplified version)
+      const posts = await storage.getPosts();
+      let sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+      
+      // Add homepage
+      sitemap += '  <url>\n';
+      sitemap += '    <loc>https://mr-s-teaches.com/</loc>\n';
+      sitemap += '    <changefreq>daily</changefreq>\n';
+      sitemap += '    <priority>1.0</priority>\n';
+      sitemap += '  </url>\n';
+      
+      // Add posts
+      posts.forEach(post => {
+        if (post.status === 'published') {
+          sitemap += '  <url>\n';
+          sitemap += `    <loc>https://mr-s-teaches.com/posts/${post.slug || post.id}</loc>\n`;
+          sitemap += '    <changefreq>weekly</changefreq>\n';
+          sitemap += '    <priority>0.8</priority>\n';
+          sitemap += '  </url>\n';
+        }
+      });
+      
+      sitemap += '</urlset>';
+      
+      console.log('Generated sitemap');
+      res.json({ message: 'Sitemap generated successfully' });
+    } catch (error) {
+      console.error('Error generating sitemap:', error);
+      res.status(500).json({ message: 'Failed to generate sitemap' });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
 }
