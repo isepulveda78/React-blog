@@ -43,13 +43,24 @@ const HomePage = () => {
               window.location.reload();
             }
           },
-            React.createElement('div', { className: 'card-body' },
+            // Featured Image Header
+            post.featuredImage && React.createElement('img', {
+              src: post.featuredImage,
+              className: 'card-img-top',
+              alt: post.title,
+              style: { 
+                height: '200px', 
+                objectFit: 'cover',
+                objectPosition: 'center'
+              }
+            }),
+            React.createElement('div', { className: 'card-body d-flex flex-column' },
               React.createElement('h5', { className: 'card-title' }, post.title),
-              React.createElement('p', { className: 'card-text' }, post.excerpt),
-              React.createElement('small', { className: 'text-muted' }, 
-                `By ${post.authorName} • ${new Date(post.publishedAt).toLocaleDateString()}`
-              ),
-              React.createElement('div', { className: 'mt-2' },
+              React.createElement('p', { className: 'card-text flex-grow-1' }, post.excerpt),
+              React.createElement('div', { className: 'mt-auto' },
+                React.createElement('small', { className: 'text-muted d-block mb-2' }, 
+                  `By ${post.authorName} • ${new Date(post.publishedAt).toLocaleDateString()}`
+                ),
                 React.createElement('span', { className: 'btn btn-primary btn-sm' }, 'Read More →')
               )
             )
@@ -462,6 +473,7 @@ const BlogPostEditor = ({ user, onBack, editingPost = null }) => {
   const [error, setError] = React.useState('');
   const [success, setSuccess] = React.useState('');
   const [uploadingImage, setUploadingImage] = React.useState(false);
+  const [featuredImageUrl, setFeaturedImageUrl] = React.useState('');
   const [quillEditor, setQuillEditor] = React.useState(null);
   const editorRef = React.useRef(null);
 
@@ -481,6 +493,7 @@ const BlogPostEditor = ({ user, onBack, editingPost = null }) => {
       setTags(editingPost.tags ? editingPost.tags.join(', ') : '');
       setFeatured(editingPost.featured || false);
       setStatus(editingPost.status || 'draft');
+      setFeaturedImageUrl(editingPost.featuredImage || '');
     }
   }, [editingPost]);
 
@@ -565,6 +578,7 @@ const BlogPostEditor = ({ user, onBack, editingPost = null }) => {
         tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
         featured,
         status,
+        featuredImage: featuredImageUrl || null,
         authorId: user.id,
         authorName: user.name || user.username
       };
@@ -595,11 +609,44 @@ const BlogPostEditor = ({ user, onBack, editingPost = null }) => {
         setTags('');
         setFeatured(false);
         setStatus('draft');
+        setFeaturedImageUrl('');
       }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFeaturedImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload image');
+      }
+
+      const imageData = await response.json();
+      setFeaturedImageUrl(imageData.url);
+    } catch (err) {
+      setError('Failed to upload featured image: ' + err.message);
+    } finally {
+      setUploadingImage(false);
+      event.target.value = ''; // Reset file input
     }
   };
 
@@ -701,7 +748,7 @@ const BlogPostEditor = ({ user, onBack, editingPost = null }) => {
             })
           ),
           React.createElement('div', { className: 'mb-3' },
-            React.createElement('label', { className: 'form-label' }, 'Add Image'),
+            React.createElement('label', { className: 'form-label' }, 'Add Image to Content'),
             React.createElement('input', {
               type: 'file',
               className: 'form-control',
@@ -752,6 +799,38 @@ const BlogPostEditor = ({ user, onBack, editingPost = null }) => {
                 },
                   React.createElement('option', { value: 'draft' }, 'Draft'),
                   React.createElement('option', { value: 'published' }, 'Published')
+                )
+              ),
+              React.createElement('div', { className: 'mb-3' },
+                React.createElement('label', { className: 'form-label' }, 'Featured Image'),
+                React.createElement('input', {
+                  type: 'file',
+                  className: 'form-control',
+                  accept: 'image/*',
+                  onChange: handleFeaturedImageUpload,
+                  disabled: uploadingImage
+                }),
+                uploadingImage && React.createElement('div', { className: 'mt-2' },
+                  React.createElement('div', { className: 'spinner-border spinner-border-sm me-2' }),
+                  React.createElement('span', {}, 'Uploading...')
+                ),
+                featuredImageUrl && React.createElement('div', { className: 'mt-2' },
+                  React.createElement('img', {
+                    src: featuredImageUrl,
+                    alt: 'Featured image preview',
+                    className: 'img-thumbnail',
+                    style: { maxHeight: '100px', maxWidth: '150px' }
+                  }),
+                  React.createElement('div', { className: 'mt-1' },
+                    React.createElement('button', {
+                      type: 'button',
+                      className: 'btn btn-sm btn-outline-danger',
+                      onClick: () => setFeaturedImageUrl('')
+                    }, 'Remove')
+                  )
+                ),
+                React.createElement('small', { className: 'form-text text-muted' }, 
+                  'This image will appear on blog post cards'
                 )
               ),
               React.createElement('div', { className: 'form-check mb-3' },
