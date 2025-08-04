@@ -642,6 +642,41 @@ export function registerRoutes(app) {
     }
   });
 
+  app.delete('/api/users/:userId', async (req, res) => {
+    try {
+      console.log('[delete-user] Request from:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
+      console.log('[delete-user] Target userId:', req.params.userId);
+      
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        console.log('[delete-user] Access denied - user is not admin');
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+
+      // Prevent admin from deleting themselves
+      if (userId === req.session.user.id) {
+        console.log('[delete-user] Admin trying to delete themselves');
+        return res.status(400).json({ message: 'Cannot delete your own account' });
+      }
+
+      console.log('[delete-user] Calling storage.deleteUser...');
+      const success = await storage.deleteUser(userId);
+      
+      if (!success) {
+        console.log('[delete-user] User not found:', userId);
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      console.log('[delete-user] User deleted successfully');
+      res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+      console.error('[delete-user] Error deleting user:', error);
+      res.status(500).json({ message: 'Failed to delete user' });
+    }
+  });
+
   app.post("/api/categories", async (req, res) => {
     try {
       // Check if user is admin

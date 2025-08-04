@@ -159,6 +159,13 @@ class MemStorage {
     return this.users[index];
   }
 
+  async deleteUser(userId) {
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return false;
+    this.users.splice(index, 1);
+    return true;
+  }
+
   initializeSampleData() {
     // Same sample data initialization as before but synchronous
     const hashedPassword = bcrypt.hashSync('password', 10);
@@ -763,6 +770,25 @@ export class MongoStorage {
     
     console.log('[mongodb] Update result:', result);
     return result || result.value;
+  }
+
+  async deleteUser(userId) {
+    await this.connect();
+    console.log('[mongodb] Deleting user with id:', userId);
+    
+    // First check if user exists
+    const existingUser = await this.db.collection('users').findOne({ id: userId });
+    if (!existingUser) {
+      console.log('[mongodb] User not found with id:', userId);
+      return false;
+    }
+    
+    console.log('[mongodb] Found user:', existingUser.email, 'proceeding with deletion');
+    
+    const result = await this.db.collection('users').deleteOne({ id: userId });
+    console.log('[mongodb] Delete result:', result.deletedCount, 'users deleted');
+    
+    return result.deletedCount > 0;
   }
 
   async linkGoogleAccount(userId, googleId) {

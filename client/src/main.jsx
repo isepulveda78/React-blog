@@ -934,6 +934,35 @@ const AdminUsers = () => {
     }
   };
 
+  const deleteUser = async (userId, userName) => {
+    if (!confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+      return;
+    }
+    
+    console.log(`Deleting user ${userId}: ${userName}`);
+    
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      
+      console.log('Delete response status:', response.status);
+      
+      if (response.ok) {
+        console.log('User deleted successfully');
+        setUsers(users.filter(u => u.id !== userId));
+      } else {
+        const errorData = await response.text();
+        console.error('Delete failed:', response.status, errorData);
+        alert(`Error deleting user: ${response.status} ${errorData}`);
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Error deleting user: ' + err.message);
+    }
+  };
+
   if (loading) return React.createElement('div', { className: 'container mt-5' },
     React.createElement('div', { className: 'text-center' },
       React.createElement('div', { className: 'spinner-border' }, 
@@ -1009,7 +1038,12 @@ const AdminUsers = () => {
                               className: `btn btn-outline-${user.isAdmin ? 'secondary' : 'danger'}`,
                               onClick: () => toggleUserRole(user.id, user.isAdmin),
                               disabled: user.id === 'current-admin' // Prevent admin from removing their own admin status
-                            }, user.isAdmin ? 'Remove Admin' : 'Make Admin')
+                            }, user.isAdmin ? 'Remove Admin' : 'Make Admin'),
+                            React.createElement('button', {
+                              className: 'btn btn-outline-danger',
+                              onClick: () => deleteUser(user.id, user.name || user.username),
+                              disabled: user.email === 'admin@example.com' // Prevent deleting the main admin
+                            }, 'Delete')
                           )
                         )
                       )
