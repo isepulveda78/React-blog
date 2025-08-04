@@ -167,22 +167,34 @@ function CommentsSection({ postId, user }) {
   const defaultCommentStatus = 'approved'; // For testing - in production this should be 'pending'
 
   const fetchComments = async () => {
-    if (!user?.approved || !postId) return;
+    console.log('fetchComments called - postId:', postId);
+    if (!postId) {
+      console.log('Skipping comment fetch - no postId');
+      setIsLoading(false);
+      return;
+    }
     
     try {
       setIsLoading(true);
+      console.log('Fetching comments from:', `/api/posts/${postId}/comments`);
       const response = await fetch(`/api/posts/${postId}/comments`, {
         credentials: "include",
       });
       
+      console.log('Comments response status:', response.status);
       if (response.ok) {
         const data = await response.json();
+        console.log('Comments received:', data.length, 'comments');
+        console.log('First comment:', data[0]);
         setComments(data);
         setError(null);
       } else {
+        const errorText = await response.text();
+        console.error('Failed to fetch comments:', response.status, errorText);
         throw new Error("Failed to fetch comments");
       }
     } catch (err) {
+      console.error('Error in fetchComments:', err);
       setError(err.message);
     } finally {
       setIsLoading(false);

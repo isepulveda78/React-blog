@@ -943,20 +943,20 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
-  // Comments for specific posts
+  // Comments for specific posts (PUBLIC - only approved comments)
   app.get("/api/posts/:postId/comments", async (req, res) => {
     try {
-      // Check if user is authenticated and approved
-      if (!req.session.user) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
-      if (!req.session.user.approved) {
-        return res.status(403).json({ message: "Account approval required" });
-      }
-
       const { postId } = req.params;
-      const comments = await storage.getCommentsByPostId(postId);
-      res.json(comments);
+      console.log(`[comments] Fetching comments for post: ${postId}`);
+      
+      const allComments = await storage.getCommentsByPostId(postId);
+      console.log(`[comments] Found ${allComments.length} total comments`);
+      
+      // Only return approved comments for public viewing
+      const approvedComments = allComments.filter(comment => comment.status === 'approved');
+      console.log(`[comments] Returning ${approvedComments.length} approved comments`);
+      
+      res.json(approvedComments);
     } catch (error) {
       console.error("Error fetching post comments:", error);
       res.status(500).json({ message: "Internal server error" });
