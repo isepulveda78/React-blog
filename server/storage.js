@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { MongoClient } from "mongodb";
+import bcrypt from "bcryptjs";
 
 // In-memory storage fallback
 class MemStorage {
@@ -115,11 +116,13 @@ class MemStorage {
 
   initializeSampleData() {
     // Same sample data initialization as before but synchronous
+    const hashedPassword = bcrypt.hashSync('password', 10);
+    
     const adminUser = {
       id: nanoid(),
       email: "admin@example.com",
       username: "admin",
-      password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptpgxnhPKBpxzFgpa", // password
+      password: hashedPassword,
       firstName: "Admin",
       lastName: "User",
       isAdmin: true,
@@ -130,7 +133,7 @@ class MemStorage {
       id: nanoid(),
       email: "user@example.com",
       username: "user",
-      password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptpgxnhPKBpxzFgpa", // password
+      password: hashedPassword,
       firstName: "Regular",
       lastName: "User", 
       isAdmin: false,
