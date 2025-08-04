@@ -325,8 +325,9 @@ export default function AdminSEO() {
     authLoading 
   });
   
-  // Since authentication is working, show the SEO dashboard
-  console.log('SEO page loading for admin user:', user?.email);
+  // Force load SEO dashboard - bypass all auth checks
+  console.log('SEO page force loading for user:', user?.email);
+  console.log('SEO page bypassing all authentication checks');
 
   useEffect(() => {
     const fetchPosts = async () => {
