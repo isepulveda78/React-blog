@@ -24,6 +24,9 @@ Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framew
 - **Session Authentication**: Fixed session management with proper credential handling
 - **Cloudinary Integration**: Added image upload capabilities for blog posts with cloud storage
 - **Blog Post Editor**: Enhanced with image upload functionality and rich content management
+- **Streamlined Comment System**: Removed manual name/email entry - comments now automatically use logged-in user's session data
+- **Threaded Comment Replies**: Implemented nested reply structure where replies appear visually indented within parent comments
+- **Comment Authentication**: Only logged-in users can comment or reply, with proper session validation
 
 ## System Architecture
 
