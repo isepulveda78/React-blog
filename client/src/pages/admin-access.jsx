@@ -71,9 +71,8 @@ export default function AdminAccess() {
                 <p className="mb-4" style={{ color: '#444' }}>
                   Complete SEO analysis, meta tag optimization, and sitemap generation.
                 </p>
-                <a 
-                  href="/seo-management" 
-                  target="_blank" 
+                <Link 
+                  href="/admin/seo"
                   style={{
                     background: '#000',
                     border: 'none',
@@ -89,7 +88,7 @@ export default function AdminAccess() {
                   }}
                 >
                   Access SEO Tools
-                </a>
+                </Link>
               </Card.Body>
             </Card>
           </Col>
