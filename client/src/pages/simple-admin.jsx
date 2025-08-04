@@ -6,9 +6,13 @@ import { useAuth } from '../hooks/use-auth';
 export default function SimpleAdmin() {
   const { user, isLoading } = useAuth();
 
-  console.log('Simple Admin page loaded, user:', user?.email);
+  console.log('Simple Admin component rendered, user:', user?.email, 'isLoading:', isLoading);
+  console.log('SimpleAdmin - Component fully loaded');
+
+  console.log('SimpleAdmin - About to check isLoading:', isLoading);
 
   if (isLoading) {
+    console.log('SimpleAdmin - Showing loading state');
     return (
       <Container className="mt-5 text-center">
         <div className="spinner-border" role="status">
@@ -18,6 +22,8 @@ export default function SimpleAdmin() {
       </Container>
     );
   }
+
+  console.log('SimpleAdmin - Rendering main admin panel');
 
   return (
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
