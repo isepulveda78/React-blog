@@ -10,16 +10,31 @@ const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check localStorage for user
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        localStorage.removeItem('user');
-      }
-    }
-    setIsLoading(false);
+    // Check if user is authenticated with backend session
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+        throw new Error('Not authenticated');
+      })
+      .then(userData => {
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setIsLoading(false);
+      })
+      .catch(() => {
+        // Not authenticated, check localStorage as fallback
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch (e) {
+            localStorage.removeItem('user');
+          }
+        }
+        setIsLoading(false);
+      });
   }, []);
 
   const login = async (credentials) => {
@@ -60,9 +75,18 @@ const AuthProvider = ({ children }) => {
     return newUser;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', { 
+        method: 'POST',
+        credentials: 'include' 
+      });
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
     setUser(null);
     localStorage.removeItem('user');
+    window.location.href = '/';
   };
 
   return React.createElement(AuthContext.Provider, {
