@@ -13,6 +13,7 @@ import AdminComments from "./pages/admin-comments";
 import AdminCategories from "./pages/admin-categories";
 import AdminSEO from "./pages/admin-seo";
 import AdminUsers from "./pages/admin-users";
+import DebugDashboard from "./pages/debug-dashboard";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/admin/categories" component={AdminCategories} />
       <Route path="/admin/seo" component={AdminSEO} />
       <Route path="/admin/users" component={AdminUsers} />
+      <Route path="/debug" component={DebugDashboard} />
       <Route component={NotFound} />
     </Switch>
   );

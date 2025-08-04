@@ -57,8 +57,6 @@ export function AuthProvider({ children }) {
       console.log('Login successful, setting user data:', userData);
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
-      // Force a page reload to sync authentication state
-      window.location.reload();
       return userData;
     } catch (error) {
       throw error;
