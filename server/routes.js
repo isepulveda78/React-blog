@@ -31,7 +31,7 @@ const upload = multer({
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "/api/auth/google/callback"
+  callbackURL: "https://mr-s-teaches.com/api/auth/google/callback"
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     console.log('[google-auth] Processing Google login for:', profile.emails[0].value);
