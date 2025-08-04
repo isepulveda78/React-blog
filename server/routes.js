@@ -857,6 +857,102 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // User management CRUD endpoints
+  app.patch('/api/users/:userId/admin', async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const { isAdmin } = req.body;
+      
+      // Prevent admin from removing their own admin status
+      if (userId === req.session.user.id && !isAdmin) {
+        return res.status(400).json({ message: 'Cannot remove your own admin status' });
+      }
+
+      const updatedUser = await storage.updateUserRole(userId, isAdmin);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Return safe user data
+      const { password, ...safeUser } = updatedUser;
+      res.json(safeUser);
+    } catch (error) {
+      console.error('Error updating user admin status:', error);
+      res.status(500).json({ message: 'Failed to update user admin status' });
+    }
+  });
+
+  // Comments management endpoints  
+  app.patch("/api/comments/:commentId/status", async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { commentId } = req.params;
+      const { status } = req.body;
+
+      if (!status || !['approved', 'pending'].includes(status)) {
+        return res.status(400).json({ message: 'Status must be "approved" or "pending"' });
+      }
+
+      const updatedComment = await storage.updateCommentStatus(commentId, status);
+      
+      if (!updatedComment) {
+        return res.status(404).json({ message: 'Comment not found' });
+      }
+
+      res.json(updatedComment);
+    } catch (error) {
+      console.error('Error updating comment status:', error);
+      res.status(500).json({ message: 'Failed to update comment status' });
+    }
+  });
+
+  app.delete("/api/comments/:commentId", async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { commentId } = req.params;
+      const success = await storage.deleteComment(commentId);
+      
+      if (!success) {
+        return res.status(404).json({ message: 'Comment not found' });
+      }
+
+      res.json({ message: 'Comment deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      res.status(500).json({ message: 'Failed to delete comment' });
+    }
+  });
+
+  // SEO management endpoints
+  app.post('/api/seo/sitemap/generate', async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Generate sitemap (this is already handled by the /sitemap.xml endpoint)
+      res.json({ message: 'Sitemap generated successfully', url: '/sitemap.xml' });
+    } catch (error) {
+      console.error('[seo] Error generating sitemap:', error);
+      res.status(500).json({ message: 'Failed to generate sitemap' });
+    }
+  });
+
   app.patch("/api/comments/:commentId", async (req, res) => {
     try {
       // Check if user is admin

@@ -121,6 +121,18 @@ const Navigation = ({ user, onLogout }) => {
                   <li>
                     <a
                       className="dropdown-item"
+                      href="/admin/comments"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigateTo('/admin/comments');
+                      }}
+                    >
+                      Manage Comments
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      className="dropdown-item"
                       href="/seo-management"
                       onClick={(e) => {
                         e.preventDefault();

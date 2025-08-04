@@ -10,6 +10,7 @@ const BlogPost = window.BlogPost;
 const AdminDashboard = window.AdminDashboard;
 const AdminPosts = window.AdminPosts;
 const AdminUsers = window.AdminUsers;
+const AdminComments = window.AdminComments;
 const AdminPostEditor = window.AdminPostEditor;
 const SEOManagement = window.SEOManagement;
 const NotFound = window.NotFound;
@@ -184,6 +185,8 @@ const AppRoutes = () => {
     CurrentComponent = AdminPosts;
   } else if (location === '/admin/users' && user && user.isAdmin) {
     CurrentComponent = AdminUsers;
+  } else if (location === '/admin/comments' && user && user.isAdmin) {
+    CurrentComponent = AdminComments;
   } else if (location === '/seo-management' && user && user.isAdmin) {
     CurrentComponent = SEOManagement;
   } else if (location !== '/') {
