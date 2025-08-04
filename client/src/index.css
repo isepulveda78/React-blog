@@ -345,3 +345,72 @@ a:hover {
     font-size: 1.5rem;
   }
 }
+/* Mobile-friendly navigation styles */
+.navbar-toggler:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.navbar-collapse.show {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin-top: 1rem;
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 991.98px) {
+  .navbar-nav .btn {
+    margin-bottom: 0.5rem;
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
+  .navbar-text {
+    margin-bottom: 1rem !important;
+    text-align: center;
+    font-weight: 500;
+  }
+  
+  .navbar-collapse {
+    text-align: center;
+  }
+  
+  .navbar-brand {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* Smooth transitions for mobile menu */
+.navbar-collapse {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Mobile card improvements */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  .display-4 {
+    font-size: 2rem !important;
+  }
+  
+  .lead {
+    font-size: 1rem !important;
+  }
+}

@@ -1081,6 +1081,7 @@ const BlogPostReader = () => {
   const [error, setError] = useState('');
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, logout } = useAuth();
 
   // Get slug from URL
@@ -1176,33 +1177,94 @@ const BlogPostReader = () => {
     }, 'Back to Home')
   );
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
   return React.createElement('div', { className: 'min-vh-100', style: { backgroundColor: '#f8f9fa' } },
-    // Navigation
-    React.createElement('nav', { className: 'navbar navbar-expand-lg navbar-dark bg-primary' },
+    // Navigation with mobile toggle
+    React.createElement('nav', { 
+      className: 'navbar navbar-expand-lg',
+      style: { 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+      }
+    },
       React.createElement('div', { className: 'container' },
         React.createElement('a', { 
-          className: 'navbar-brand fw-bold',
-          href: '/',
+          className: 'navbar-brand text-white fw-bold fs-3',
+          href: '#',
           onClick: (e) => {
             e.preventDefault();
             window.history.pushState({}, '', '/');
             window.dispatchEvent(new PopStateEvent('popstate'));
+            closeMobileMenu();
+          },
+          style: { cursor: 'pointer' }
+        }, 'Mr. S Teaches'),
+        
+        // Mobile toggle button
+        React.createElement('button', {
+          className: 'navbar-toggler border-0',
+          type: 'button',
+          onClick: toggleMobileMenu,
+          style: { 
+            padding: '0.25rem 0.5rem',
+            fontSize: '1.25rem',
+            color: 'white',
+            background: 'none'
           }
-        }, 'BlogCraft'),
-        React.createElement('div', { className: 'navbar-nav ms-auto' },
-          React.createElement('div', { className: 'd-flex align-items-center' },
-            React.createElement('span', { className: 'text-light me-3' }, `Welcome, ${user.name}`),
-            user.isAdmin && React.createElement('button', {
-              className: 'btn btn-outline-light btn-sm me-2',
-              onClick: () => {
-                window.history.pushState({}, '', '/admin-access');
-                window.dispatchEvent(new PopStateEvent('popstate'));
-              }
-            }, 'Dashboard'),
-            React.createElement('button', {
-              className: 'btn btn-outline-light btn-sm',
-              onClick: logout
-            }, 'Logout')
+        },
+          React.createElement('span', { 
+            style: { 
+              display: 'inline-block',
+              width: '1.5em',
+              height: '1.5em',
+              verticalAlign: 'middle',
+              backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              backgroundSize: '100%'
+            }
+          })
+        ),
+        
+        // Navigation menu
+        React.createElement('div', { 
+          className: `collapse navbar-collapse ${mobileMenuOpen ? 'show' : ''}`,
+          style: mobileMenuOpen ? { display: 'block' } : {}
+        },
+          React.createElement('div', { className: 'navbar-nav ms-auto' },
+            React.createElement('div', { 
+              className: 'd-lg-flex d-block align-items-center gap-3'
+            },
+              React.createElement('span', { 
+                className: 'text-white navbar-text d-block d-lg-inline mb-2 mb-lg-0' 
+              }, `Welcome, ${user.name}`),
+              
+              user.isAdmin && React.createElement('button', {
+                className: 'btn btn-outline-light btn-sm mb-2 mb-lg-0 me-lg-2',
+                onClick: () => {
+                  window.history.pushState({}, '', '/admin-access');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                  closeMobileMenu();
+                },
+                style: { width: '100%', maxWidth: '200px' }
+              }, 'Dashboard'),
+              
+              React.createElement('button', {
+                className: 'btn btn-outline-light btn-sm',
+                onClick: () => {
+                  logout();
+                  closeMobileMenu();
+                },
+                style: { width: '100%', maxWidth: '200px' }
+              }, 'Logout')
+            )
           )
         )
       )
@@ -1686,6 +1748,7 @@ const SimpleHome = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [urlMessage, setUrlMessage] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Check for URL parameters and load posts
   useEffect(() => {
@@ -1741,36 +1804,113 @@ const SimpleHome = () => {
     }
   };
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
   return React.createElement('div', { className: 'min-vh-100', style: { backgroundColor: '#f8f9fa' } },
-    // Navigation
-    React.createElement('nav', { className: 'navbar navbar-expand-lg navbar-dark bg-primary' },
+    // Navigation with mobile toggle
+    React.createElement('nav', { 
+      className: 'navbar navbar-expand-lg',
+      style: { 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+      }
+    },
       React.createElement('div', { className: 'container' },
-        React.createElement('a', { className: 'navbar-brand fw-bold' }, 'Mr. S Teaches'),
-        React.createElement('div', { className: 'navbar-nav ms-auto' },
-          user ? React.createElement('div', { className: 'd-flex align-items-center' },
-            React.createElement('span', { className: 'text-light me-3' }, `Welcome, ${user.name}`),
-            user.isAdmin && React.createElement('button', {
-              className: 'btn btn-outline-light btn-sm me-2',
-              onClick: (e) => {
-                e.preventDefault();
-                console.log('Dashboard clicked, user:', user);
-                window.history.pushState({}, '', '/admin-access');
-                window.dispatchEvent(new PopStateEvent('popstate'));
-              }
-            }, 'Dashboard'),
-            React.createElement('button', {
-              className: 'btn btn-outline-light btn-sm',
-              onClick: logout
-            }, 'Logout')
-          ) : React.createElement('div', null,
-            React.createElement('button', {
-              className: 'btn btn-outline-light btn-sm me-2',
-              onClick: () => handleShowAuth(true)
-            }, 'Sign In'),
-            React.createElement('button', {
-              className: 'btn btn-light btn-sm',
-              onClick: () => handleShowAuth(false)
-            }, 'Sign Up')
+        React.createElement('a', { 
+          className: 'navbar-brand text-white fw-bold fs-3',
+          href: '#',
+          onClick: (e) => {
+            e.preventDefault();
+            window.history.pushState({}, '', '/');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+            closeMobileMenu();
+          },
+          style: { cursor: 'pointer' }
+        }, 'Mr. S Teaches'),
+        
+        // Mobile toggle button
+        React.createElement('button', {
+          className: 'navbar-toggler border-0',
+          type: 'button',
+          onClick: toggleMobileMenu,
+          style: { 
+            padding: '0.25rem 0.5rem',
+            fontSize: '1.25rem',
+            color: 'white',
+            background: 'none'
+          }
+        },
+          React.createElement('span', { 
+            style: { 
+              display: 'inline-block',
+              width: '1.5em',
+              height: '1.5em',
+              verticalAlign: 'middle',
+              backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              backgroundSize: '100%'
+            }
+          })
+        ),
+        
+        // Navigation menu
+        React.createElement('div', { 
+          className: `collapse navbar-collapse ${mobileMenuOpen ? 'show' : ''}`,
+          style: mobileMenuOpen ? { display: 'block' } : {}
+        },
+          React.createElement('div', { className: 'navbar-nav ms-auto' },
+            user ? React.createElement('div', { 
+              className: 'd-lg-flex d-block align-items-center gap-3'
+            },
+              React.createElement('span', { 
+                className: 'text-white navbar-text d-block d-lg-inline mb-2 mb-lg-0' 
+              }, `Welcome, ${user.name}`),
+              
+              user.isAdmin && React.createElement('button', {
+                className: 'btn btn-outline-light btn-sm mb-2 mb-lg-0 me-lg-2',
+                onClick: (e) => {
+                  e.preventDefault();
+                  console.log('Dashboard clicked, user:', user);
+                  window.history.pushState({}, '', '/admin-access');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                  closeMobileMenu();
+                },
+                style: { width: '100%', maxWidth: '200px' }
+              }, 'Dashboard'),
+              
+              React.createElement('button', {
+                className: 'btn btn-outline-light btn-sm',
+                onClick: () => {
+                  logout();
+                  closeMobileMenu();
+                },
+                style: { width: '100%', maxWidth: '200px' }
+              }, 'Logout')
+            ) : React.createElement('div', { className: 'd-flex d-lg-inline-flex flex-column flex-lg-row gap-2' },
+              React.createElement('button', {
+                className: 'btn btn-outline-light btn-sm',
+                onClick: () => {
+                  handleShowAuth(true);
+                  closeMobileMenu();
+                },
+                style: { width: '100%', maxWidth: '200px' }
+              }, 'Sign In'),
+              React.createElement('button', {
+                className: 'btn btn-light btn-sm',
+                onClick: () => {
+                  handleShowAuth(false);
+                  closeMobileMenu();
+                },
+                style: { width: '100%', maxWidth: '200px' }
+              }, 'Sign Up')
+            )
           )
         )
       )
