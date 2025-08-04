@@ -245,6 +245,9 @@ export function registerRoutes(app) {
       // Set session
       req.session.userId = user.id;
       req.session.user = userResponse;
+      
+      console.log('[auth] Session set for user:', userResponse.email);
+      console.log('[auth] Session ID:', req.sessionID);
 
       res.json(userResponse);
     } catch (error) {

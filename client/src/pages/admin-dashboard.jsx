@@ -54,6 +54,7 @@ export default function AdminDashboard() {
   const { user, isAdmin, isLoading } = useAuth();
   
   console.log('Dashboard auth state:', { user: user ? {email: user.email, isAdmin: user.isAdmin} : null, isAdmin, isLoading });
+  console.log('Dashboard rendered for user:', user?.email, 'isAdmin:', isAdmin);
 
   const { data: posts = [] } = useQuery({
     queryKey: ["/api/posts"],
