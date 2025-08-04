@@ -20,6 +20,8 @@ import NotFound from "./pages/not-found";
 function Router() {
   return (
     <Switch>
+      <Route path="/test-seo" component={TestSEO} />
+      <Route path="/debug" component={DebugDashboard} />
       <Route path="/" component={Home} />
       <Route path="/posts/:slug" component={BlogPost} />
       <Route path="/admin" component={AdminDashboard} />
@@ -29,9 +31,7 @@ function Router() {
       <Route path="/admin/comments" component={AdminComments} />
       <Route path="/admin/categories" component={AdminCategories} />
       <Route path="/admin/seo" component={AdminSEO} />
-      <Route path="/test-seo" component={TestSEO} />
       <Route path="/admin/users" component={AdminUsers} />
-      <Route path="/debug" component={DebugDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
