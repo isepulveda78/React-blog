@@ -98,6 +98,239 @@ const AuthProvider = ({ children }) => {
 
 const useAuth = () => useContext(AuthContext);
 
+// Footer Component
+const Footer = () => {
+  return React.createElement('footer', { 
+    className: 'mt-5',
+    style: { 
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      color: 'white',
+      paddingTop: '3rem',
+      paddingBottom: '2rem'
+    }
+  },
+    React.createElement('div', { className: 'container' },
+      React.createElement('div', { className: 'row' },
+        // About section
+        React.createElement('div', { className: 'col-lg-4 mb-4 footer-section' },
+          React.createElement('h5', { className: 'fw-bold mb-3' }, 'Mr. S Teaches'),
+          React.createElement('p', { className: 'mb-3', style: { opacity: 0.9 } },
+            'Discover amazing stories, insights, and ideas from our community of writers. Join us in exploring knowledge and sharing experiences.'
+          ),
+          React.createElement('div', { className: 'd-flex gap-3' },
+            React.createElement('a', {
+              href: '#',
+              className: 'text-white',
+              style: { fontSize: '1.5rem', opacity: 0.8 },
+              onMouseOver: (e) => e.target.style.opacity = 1,
+              onMouseOut: (e) => e.target.style.opacity = 0.8
+            },
+              React.createElement('i', { className: 'bi bi-facebook' })
+            ),
+            React.createElement('a', {
+              href: '#',
+              className: 'text-white',
+              style: { fontSize: '1.5rem', opacity: 0.8 },
+              onMouseOver: (e) => e.target.style.opacity = 1,
+              onMouseOut: (e) => e.target.style.opacity = 0.8
+            },
+              React.createElement('i', { className: 'bi bi-twitter' })
+            ),
+            React.createElement('a', {
+              href: '#',
+              className: 'text-white',
+              style: { fontSize: '1.5rem', opacity: 0.8 },
+              onMouseOver: (e) => e.target.style.opacity = 1,
+              onMouseOut: (e) => e.target.style.opacity = 0.8
+            },
+              React.createElement('i', { className: 'bi bi-instagram' })
+            ),
+            React.createElement('a', {
+              href: '#',
+              className: 'text-white',
+              style: { fontSize: '1.5rem', opacity: 0.8 },
+              onMouseOver: (e) => e.target.style.opacity = 1,
+              onMouseOut: (e) => e.target.style.opacity = 0.8
+            },
+              React.createElement('i', { className: 'bi bi-linkedin' })
+            )
+          )
+        ),
+        
+        // Quick Links section
+        React.createElement('div', { className: 'col-lg-2 col-md-6 mb-4' },
+          React.createElement('h6', { className: 'fw-bold mb-3' }, 'Quick Links'),
+          React.createElement('ul', { className: 'list-unstyled' },
+            React.createElement('li', { className: 'mb-2' },
+              React.createElement('a', {
+                href: '#',
+                className: 'text-white text-decoration-none',
+                style: { opacity: 0.9 },
+                onMouseOver: (e) => e.target.style.opacity = 1,
+                onMouseOut: (e) => e.target.style.opacity = 0.9,
+                onClick: (e) => {
+                  e.preventDefault();
+                  window.history.pushState({}, '', '/');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }
+              }, 'Home')
+            ),
+            React.createElement('li', { className: 'mb-2' },
+              React.createElement('a', {
+                href: '#',
+                className: 'text-white text-decoration-none',
+                style: { opacity: 0.9 },
+                onMouseOver: (e) => e.target.style.opacity = 1,
+                onMouseOut: (e) => e.target.style.opacity = 0.9
+              }, 'About Us')
+            ),
+            React.createElement('li', { className: 'mb-2' },
+              React.createElement('a', {
+                href: '#',
+                className: 'text-white text-decoration-none',
+                style: { opacity: 0.9 },
+                onMouseOver: (e) => e.target.style.opacity = 1,
+                onMouseOut: (e) => e.target.style.opacity = 0.9
+              }, 'Contact')
+            ),
+            React.createElement('li', { className: 'mb-2' },
+              React.createElement('a', {
+                href: '#',
+                className: 'text-white text-decoration-none',
+                style: { opacity: 0.9 },
+                onMouseOver: (e) => e.target.style.opacity = 1,
+                onMouseOut: (e) => e.target.style.opacity = 0.9
+              }, 'Privacy Policy')
+            )
+          )
+        ),
+        
+        // Categories section
+        React.createElement('div', { className: 'col-lg-2 col-md-6 mb-4' },
+          React.createElement('h6', { className: 'fw-bold mb-3' }, 'Categories'),
+          React.createElement('ul', { className: 'list-unstyled' },
+            React.createElement('li', { className: 'mb-2' },
+              React.createElement('a', {
+                href: '#',
+                className: 'text-white text-decoration-none',
+                style: { opacity: 0.9 },
+                onMouseOver: (e) => e.target.style.opacity = 1,
+                onMouseOut: (e) => e.target.style.opacity = 0.9
+              }, 'Technology')
+            ),
+            React.createElement('li', { className: 'mb-2' },
+              React.createElement('a', {
+                href: '#',
+                className: 'text-white text-decoration-none',
+                style: { opacity: 0.9 },
+                onMouseOver: (e) => e.target.style.opacity = 1,
+                onMouseOut: (e) => e.target.style.opacity = 0.9
+              }, 'Education')
+            ),
+            React.createElement('li', { className: 'mb-2' },
+              React.createElement('a', {
+                href: '#',
+                className: 'text-white text-decoration-none',
+                style: { opacity: 0.9 },
+                onMouseOver: (e) => e.target.style.opacity = 1,
+                onMouseOut: (e) => e.target.style.opacity = 0.9
+              }, 'Lifestyle')
+            ),
+            React.createElement('li', { className: 'mb-2' },
+              React.createElement('a', {
+                href: '#',
+                className: 'text-white text-decoration-none',
+                style: { opacity: 0.9 },
+                onMouseOver: (e) => e.target.style.opacity = 1,
+                onMouseOut: (e) => e.target.style.opacity = 0.9
+              }, 'Business')
+            )
+          )
+        ),
+        
+        // Contact Info section
+        React.createElement('div', { className: 'col-lg-4 mb-4' },
+          React.createElement('h6', { className: 'fw-bold mb-3' }, 'Get in Touch'),
+          React.createElement('div', { className: 'mb-3' },
+            React.createElement('div', { className: 'd-flex align-items-center mb-2' },
+              React.createElement('i', { className: 'bi bi-envelope me-3' }),
+              React.createElement('span', { style: { opacity: 0.9 } }, 'hello@mrsteaches.com')
+            ),
+            React.createElement('div', { className: 'd-flex align-items-center mb-2' },
+              React.createElement('i', { className: 'bi bi-telephone me-3' }),
+              React.createElement('span', { style: { opacity: 0.9 } }, '+1 (555) 123-4567')
+            ),
+            React.createElement('div', { className: 'd-flex align-items-center' },
+              React.createElement('i', { className: 'bi bi-geo-alt me-3' }),
+              React.createElement('span', { style: { opacity: 0.9 } }, 'New York, NY 10001')
+            )
+          ),
+          React.createElement('div', { className: 'mt-3' },
+            React.createElement('h6', { className: 'fw-bold mb-2', style: { fontSize: '0.9rem' } }, 'Subscribe to our newsletter'),
+            React.createElement('div', { className: 'd-flex newsletter-form' },
+              React.createElement('input', {
+                type: 'email',
+                className: 'form-control me-2 footer-newsletter-input',
+                placeholder: 'Enter your email',
+                style: { 
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  color: 'white'
+                }
+              }),
+              React.createElement('button', {
+                className: 'btn btn-light btn-sm',
+                style: { whiteSpace: 'nowrap' }
+              }, 'Subscribe')
+            )
+          )
+        )
+      ),
+      
+      // Copyright section
+      React.createElement('hr', { 
+        style: { 
+          borderColor: 'rgba(255,255,255,0.2)',
+          margin: '2rem 0 1rem 0'
+        }
+      }),
+      React.createElement('div', { className: 'row align-items-center' },
+        React.createElement('div', { className: 'col-md-6' },
+          React.createElement('p', { 
+            className: 'mb-0',
+            style: { opacity: 0.8, fontSize: '0.9rem' }
+          }, `© ${new Date().getFullYear()} Mr. S Teaches. All rights reserved.`)
+        ),
+        React.createElement('div', { className: 'col-md-6 text-md-end' },
+          React.createElement('div', { className: 'd-flex justify-content-md-end gap-3' },
+            React.createElement('a', {
+              href: '#',
+              className: 'text-white text-decoration-none',
+              style: { opacity: 0.8, fontSize: '0.9rem' },
+              onMouseOver: (e) => e.target.style.opacity = 1,
+              onMouseOut: (e) => e.target.style.opacity = 0.8
+            }, 'Terms of Service'),
+            React.createElement('a', {
+              href: '#',
+              className: 'text-white text-decoration-none',
+              style: { opacity: 0.8, fontSize: '0.9rem' },
+              onMouseOver: (e) => e.target.style.opacity = 1,
+              onMouseOut: (e) => e.target.style.opacity = 0.8
+            }, 'Privacy Policy'),
+            React.createElement('a', {
+              href: '#',
+              className: 'text-white text-decoration-none',
+              style: { opacity: 0.8, fontSize: '0.9rem' },
+              onMouseOver: (e) => e.target.style.opacity = 1,
+              onMouseOut: (e) => e.target.style.opacity = 0.8
+            }, 'Cookie Policy')
+          )
+        )
+      )
+    )
+  );
+};
+
 // Auth Modal Component
 const AuthModal = ({ show, onHide, isLogin, onToggleMode }) => {
   const [formData, setFormData] = useState({
@@ -2028,7 +2261,13 @@ const SimpleHome = () => {
       onHide: () => setShowAuthModal(false),
       isLogin: isLoginMode,
       onToggleMode: handleToggleAuthMode
-    })
+    }),
+
+    // Footer
+    React.createElement(Footer),
+
+    // Footer
+    React.createElement(Footer)
   );
 };
 
