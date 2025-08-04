@@ -51,17 +51,18 @@ export function registerRoutes(app) {
         username,
         name,
         password: hashedPassword,
-        isAdmin: false
+        isAdmin: false,
+        approved: false  // New users start as unapproved
       });
 
       // Remove password from response
       const { password: _, ...userResponse } = user;
       
-      // Set session
-      req.session.userId = user.id;
-      req.session.user = userResponse;
-
-      res.json(userResponse);
+      // Don't set session for unapproved users
+      res.json({ 
+        ...userResponse, 
+        message: "Registration successful! Your account is pending approval. Please wait for an administrator to approve your account before you can access the blog." 
+      });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -82,6 +83,11 @@ export function registerRoutes(app) {
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) {
         return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Check if user is approved
+      if (!user.approved) {
+        return res.status(403).json({ message: "Your account is pending approval. Please wait for an administrator to approve your account." });
       }
 
       // Remove password from response
@@ -127,6 +133,14 @@ export function registerRoutes(app) {
   // Posts routes
   app.get("/api/posts", async (req, res) => {
     try {
+      // Check if user is authenticated and approved
+      if (!req.session.user) {
+        return res.status(401).json({ message: "Authentication required to view blog posts" });
+      }
+      if (!req.session.user.approved) {
+        return res.status(403).json({ message: "Your account must be approved to view blog posts" });
+      }
+
       const posts = await storage.getPosts();
       res.json(posts);
     } catch (error) {
@@ -137,6 +151,14 @@ export function registerRoutes(app) {
 
   app.get("/api/posts/:slugOrId", async (req, res) => {
     try {
+      // Check if user is authenticated and approved
+      if (!req.session.user) {
+        return res.status(401).json({ message: "Authentication required to view blog posts" });
+      }
+      if (!req.session.user.approved) {
+        return res.status(403).json({ message: "Your account must be approved to view blog posts" });
+      }
+
       const { slugOrId } = req.params;
       
       // Try to find by slug first, then by ID
@@ -158,6 +180,14 @@ export function registerRoutes(app) {
 
   app.get("/api/posts/slug/:slug", async (req, res) => {
     try {
+      // Check if user is authenticated and approved
+      if (!req.session.user) {
+        return res.status(401).json({ message: "Authentication required to view blog posts" });
+      }
+      if (!req.session.user.approved) {
+        return res.status(403).json({ message: "Your account must be approved to view blog posts" });
+      }
+
       const { slug } = req.params;
       const post = await storage.getPostBySlug(slug);
       
@@ -275,6 +305,7 @@ export function registerRoutes(app) {
         username: user.username,
         name: user.name,
         isAdmin: user.isAdmin,
+        approved: user.approved,
         createdAt: user.createdAt
       }));
       res.json(safeUsers);
@@ -310,6 +341,7 @@ export function registerRoutes(app) {
         username: updatedUser.username,
         name: updatedUser.name,
         isAdmin: updatedUser.isAdmin,
+        approved: updatedUser.approved,
         createdAt: updatedUser.createdAt
       };
 
@@ -317,6 +349,43 @@ export function registerRoutes(app) {
     } catch (error) {
       console.error('Error updating user role:', error);
       res.status(500).json({ message: 'Failed to update user role' });
+    }
+  });
+
+  app.patch('/api/users/:userId/approval', async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const { approved } = req.body;
+
+      if (typeof approved !== 'boolean') {
+        return res.status(400).json({ message: 'approved must be a boolean' });
+      }
+
+      const updatedUser = await storage.updateUserApproval(userId, approved);
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Return safe user data
+      const safeUser = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        username: updatedUser.username,
+        name: updatedUser.name,
+        isAdmin: updatedUser.isAdmin,
+        approved: updatedUser.approved,
+        createdAt: updatedUser.createdAt
+      };
+
+      res.json(safeUser);
+    } catch (error) {
+      console.error('Error updating user approval:', error);
+      res.status(500).json({ message: 'Failed to update user approval' });
     }
   });
 

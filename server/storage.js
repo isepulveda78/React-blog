@@ -135,6 +135,32 @@ class MemStorage {
     return true;
   }
 
+  // User methods
+  async getUsers() { return this.users.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
+  async getUserById(id) { return this.users.find(u => u.id === id); }
+  async getUserByEmail(email) { return this.users.find(u => u.email === email); }
+  async getUserByUsername(username) { return this.users.find(u => u.username === username); }
+  
+  async createUser(userData) {
+    const user = { id: nanoid(), ...userData, createdAt: new Date().toISOString() };
+    this.users.push(user);
+    return user;
+  }
+
+  async updateUserRole(userId, isAdmin) {
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return null;
+    this.users[index] = { ...this.users[index], isAdmin };
+    return this.users[index];
+  }
+
+  async updateUserApproval(userId, approved) {
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return null;
+    this.users[index] = { ...this.users[index], approved };
+    return this.users[index];
+  }
+
   initializeSampleData() {
     // Same sample data initialization as before but synchronous
     const hashedPassword = bcrypt.hashSync('password', 10);
@@ -143,10 +169,10 @@ class MemStorage {
       id: nanoid(),
       email: "admin@example.com",
       username: "admin",
+      name: "Admin User",
       password: hashedPassword,
-      firstName: "Admin",
-      lastName: "User",
       isAdmin: true,
+      approved: true,
       createdAt: new Date().toISOString()
     };
 
@@ -154,10 +180,10 @@ class MemStorage {
       id: nanoid(),
       email: "user@example.com",
       username: "user",
+      name: "Regular User",
       password: hashedPassword,
-      firstName: "Regular",
-      lastName: "User", 
       isAdmin: false,
+      approved: true,
       createdAt: new Date().toISOString()
     };
 
@@ -193,7 +219,7 @@ class MemStorage {
       categoryId: techCategory.id,
       categoryName: techCategory.name,
       authorId: adminUser.id,
-      authorName: adminUser.firstName + " " + adminUser.lastName,
+      authorName: adminUser.name,
       status: "published",
       featured: true,
       featuredImage: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
@@ -350,6 +376,7 @@ export class MongoStorage {
       name: "Admin User",
       password: await bcrypt.hash("password", 10),
       isAdmin: true,
+      approved: true,
       createdAt: new Date().toISOString()
     };
     
@@ -360,6 +387,7 @@ export class MongoStorage {
       name: "Regular User",
       password: await bcrypt.hash("password", 10),
       isAdmin: false,
+      approved: true,
       createdAt: new Date().toISOString()
     };
     
@@ -666,6 +694,16 @@ export class MongoStorage {
     const result = await this.db.collection('users').findOneAndUpdate(
       { id: userId },
       { $set: { isAdmin } },
+      { returnDocument: 'after' }
+    );
+    return result.value;
+  }
+
+  async updateUserApproval(userId, approved) {
+    await this.connect();
+    const result = await this.db.collection('users').findOneAndUpdate(
+      { id: userId },
+      { $set: { approved } },
       { returnDocument: 'after' }
     );
     return result.value;

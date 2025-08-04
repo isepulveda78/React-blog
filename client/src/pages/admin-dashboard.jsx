@@ -29,6 +29,11 @@ function AdminSidebar() {
               💬 Comments
             </Link>
           </li>
+          <li className="mb-2">
+            <Link href="/admin/users" className="text-light text-decoration-none d-block p-2 rounded">
+              👥 Users
+            </Link>
+          </li>
           <li className="mt-4">
             <Link href="/" className="text-light text-decoration-none d-block p-2 rounded">
               ← Back to Blog
@@ -58,6 +63,11 @@ export default function AdminDashboard() {
     enabled: isAdmin,
   });
 
+  const { data: users = [] } = useQuery({
+    queryKey: ["/api/users"],
+    enabled: isAdmin,
+  });
+
   if (!isAdmin) {
     return (
       <Container className="py-5">
@@ -80,6 +90,7 @@ export default function AdminDashboard() {
   const publishedPosts = posts.filter(post => post.status === 'published').length;
   const draftPosts = posts.filter(post => post.status === 'draft').length;
   const pendingComments = comments.filter(comment => comment.status === 'pending').length;
+  const pendingUsers = users.filter(user => !user.approved).length;
 
   return (
     <div className="d-flex">
@@ -124,6 +135,48 @@ export default function AdminDashboard() {
                 <Card.Body>
                   <h3 className="mb-0">{categories.length}</h3>
                   <p className="mb-0">Categories</p>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+
+          {/* Second Row of Stats */}
+          <Row className="mb-4">
+            <Col lg={3} md={6} className="mb-3">
+              <Card className="bg-secondary text-white">
+                <Card.Body>
+                  <h3 className="mb-0">{users.length}</h3>
+                  <p className="mb-0">Total Users</p>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col lg={3} md={6} className="mb-3">
+              <Card className={`text-white ${pendingUsers > 0 ? 'bg-danger' : 'bg-success'}`}>
+                <Card.Body>
+                  <h3 className="mb-0">{pendingUsers}</h3>
+                  <p className="mb-0">Pending Approvals</p>
+                  {pendingUsers > 0 && (
+                    <small>⚠️ Action needed</small>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col lg={3} md={6} className="mb-3">
+              <Card className={`text-white ${pendingComments > 0 ? 'bg-warning' : 'bg-success'}`}>
+                <Card.Body>
+                  <h3 className="mb-0">{pendingComments}</h3>
+                  <p className="mb-0">Pending Comments</p>
+                  {pendingComments > 0 && (
+                    <small>⚠️ Action needed</small>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col lg={3} md={6} className="mb-3">
+              <Card className="bg-dark text-white">
+                <Card.Body>
+                  <h3 className="mb-0">{users.filter(u => u.approved).length}</h3>
+                  <p className="mb-0">Approved Users</p>
                 </Card.Body>
               </Card>
             </Col>

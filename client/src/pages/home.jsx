@@ -173,26 +173,32 @@ function BlogNavbar() {
 }
 
 export default function Home() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  const { data: posts = [], isLoading: postsLoading } = useQuery({
+  const { data: posts = [], isLoading: postsLoading, error: postsError } = useQuery({
     queryKey: ["/api/posts"],
+    enabled: !!user?.approved, // Only fetch if user is approved
+    retry: false
   });
 
   const { data: categories = [] } = useQuery({
     queryKey: ["/api/categories"],
+    enabled: !!user?.approved, // Only fetch if user is approved
+    retry: false
   });
 
-  const filteredPosts = posts.filter(post => {
+  // Handle case when posts is not an array (error response) - always ensure we have an array
+  const safeFilteredPosts = Array.isArray(posts) ? posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          post.content.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || post.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
+  }) : [];
 
-  const featuredPosts = filteredPosts.filter(post => post.featured).slice(0, 3);
-  const recentPosts = filteredPosts.filter(post => !post.featured).slice(0, 6);
+  const featuredPosts = safeFilteredPosts.filter(post => post.featured).slice(0, 3);
+  const recentPosts = safeFilteredPosts.filter(post => !post.featured).slice(0, 6);
 
   return (
     <div className="min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>
@@ -203,39 +209,66 @@ export default function Home() {
         <Row className="mb-5">
           <Col lg={8} className="mx-auto text-center">
             <h1 className="display-4 fw-bold mb-4">Welcome to BlogCraft</h1>
-            <p className="lead text-muted mb-4">
-              Discover amazing stories, insights, and ideas from our community of writers.
-            </p>
             
-            {/* Search and Filter */}
-            <Row className="justify-content-center">
-              <Col md={8}>
-                <InputGroup className="mb-3">
-                  <Form.Control
-                    placeholder="Search articles..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <Form.Select 
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    style={{ maxWidth: '200px' }}
-                  >
-                    <option value="all">All Categories</option>
-                    {categories.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </InputGroup>
-              </Col>
-            </Row>
+            {!user ? (
+              <div>
+                <p className="lead text-muted mb-4">
+                  Join our community of writers and readers. Sign up to access exclusive blog content.
+                </p>
+                <Alert variant="info" className="mx-auto" style={{ maxWidth: '500px' }}>
+                  <Alert.Heading>Authentication Required</Alert.Heading>
+                  <p>Please sign in or create an account to view blog posts.</p>
+                </Alert>
+              </div>
+            ) : !user.approved ? (
+              <div>
+                <p className="lead text-muted mb-4">
+                  Your account is being reviewed by our administrators.
+                </p>
+                <Alert variant="warning" className="mx-auto" style={{ maxWidth: '500px' }}>
+                  <Alert.Heading>Account Pending Approval</Alert.Heading>
+                  <p>Your account has been created successfully! Please wait for an administrator to approve your account before you can access blog posts.</p>
+                </Alert>
+              </div>
+            ) : (
+              <div>
+                <p className="lead text-muted mb-4">
+                  Discover amazing stories, insights, and ideas from our community of writers.
+                </p>
+                
+                {/* Search and Filter - Only show if user is approved and has data */}
+                {user?.approved && (
+                  <Row className="justify-content-center">
+                    <Col md={8}>
+                      <InputGroup className="mb-3">
+                        <Form.Control
+                          placeholder="Search articles..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <Form.Select 
+                          value={selectedCategory}
+                          onChange={(e) => setSelectedCategory(e.target.value)}
+                          style={{ maxWidth: '200px' }}
+                        >
+                          <option value="all">All Categories</option>
+                          {Array.isArray(categories) && categories.map(category => (
+                            <option key={category.id} value={category.id}>
+                              {category.name}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </InputGroup>
+                    </Col>
+                  </Row>
+                )}
+              </div>
+            )}
           </Col>
         </Row>
 
         {/* Featured Posts */}
-        {featuredPosts.length > 0 && (
+        {user?.approved && Array.isArray(featuredPosts) && featuredPosts.length > 0 && (
           <Row className="mb-5">
             <Col>
               <h2 className="h3 fw-bold mb-4">Featured Posts</h2>
@@ -271,9 +304,10 @@ export default function Home() {
         )}
 
         {/* Recent Posts */}
-        <Row className="mb-5">
-          <Col>
-            <h2 className="h3 fw-bold mb-4">Recent Posts</h2>
+        {user?.approved && (
+          <Row className="mb-5">
+            <Col>
+              <h2 className="h3 fw-bold mb-4">Recent Posts</h2>
             {postsLoading ? (
               <Row>
                 {[...Array(6)].map((_, i) => (
@@ -291,7 +325,7 @@ export default function Home() {
                   </Col>
                 ))}
               </Row>
-            ) : recentPosts.length === 0 ? (
+            ) : !Array.isArray(recentPosts) || recentPosts.length === 0 ? (
               <Alert variant="info">
                 <h5>No posts found</h5>
                 <p>No posts match your search criteria. Try adjusting your search or category filter.</p>
@@ -326,9 +360,10 @@ export default function Home() {
             )}
           </Col>
         </Row>
+        )}
 
         {/* Categories Section */}
-        {categories.length > 0 && (
+        {user?.approved && Array.isArray(categories) && categories.length > 0 && (
           <Row className="mb-5">
             <Col>
               <h2 className="h3 fw-bold mb-4">Browse by Category</h2>

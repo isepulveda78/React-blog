@@ -4,13 +4,14 @@ import { queryClient } from "./lib/queryClient";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { AuthProvider } from "./hooks/use-auth";
 
-import Home from "./pages/home";
+import Home from "./pages/home-simple";
 import BlogPost from "./pages/blog-post";
 import AdminDashboard from "./pages/admin-dashboard";
 import AdminPosts from "./pages/admin-posts";
 import AdminPostEditor from "./pages/admin-post-editor";
 import AdminComments from "./pages/admin-comments";
 import AdminCategories from "./pages/admin-categories";
+import AdminUsers from "./pages/admin-users";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/admin/posts/edit/:id" component={AdminPostEditor} />
       <Route path="/admin/comments" component={AdminComments} />
       <Route path="/admin/categories" component={AdminCategories} />
+      <Route path="/admin/users" component={AdminUsers} />
       <Route component={NotFound} />
     </Switch>
   );
