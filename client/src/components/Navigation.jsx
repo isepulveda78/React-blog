@@ -1,6 +1,7 @@
 const { React, useState, useEffect } = window;
 
 const Navigation = ({ user, onLogout }) => {
+  console.log('Navigation component - current user:', user);
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   useEffect(() => {
@@ -72,12 +73,13 @@ const Navigation = ({ user, onLogout }) => {
             {user && user.isAdmin && (
               <li className="nav-item dropdown">
                 <a
-                  className="nav-link dropdown-toggle"
+                  className="nav-link dropdown-toggle text-danger fw-bold"
                   href="#"
                   role="button"
                   data-bs-toggle="dropdown"
+                  style={{ backgroundColor: '#fff3cd', padding: '8px 12px', borderRadius: '4px' }}
                 >
-                  Admin
+                  🔧 ADMIN PANEL
                 </a>
                 <ul className="dropdown-menu">
                   <li>
@@ -136,6 +138,22 @@ const Navigation = ({ user, onLogout }) => {
           </ul>
           
           <div className="navbar-nav">
+            {/* Debug info */}
+            <span className="navbar-text me-2 small text-muted">
+              User: {user ? `${user.username} (Admin: ${user.isAdmin ? 'Yes' : 'No'})` : 'Not logged in'}
+            </span>
+            
+            {/* Always visible admin access button */}
+            <button
+              className="btn btn-danger btn-sm me-2"
+              onClick={() => {
+                window.history.pushState({}, '', '/admin');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
+            >
+              🔧 Admin Dashboard
+            </button>
+            
             {user ? (
               <div className="nav-item dropdown">
                 <a
