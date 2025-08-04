@@ -27,6 +27,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/posts/:slug" component={BlogPost} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin-access" component={() => window.location.href = '/admin-quick-access.html'} />
       <Route path="/admin/posts" component={AdminPosts} />
       <Route path="/admin/posts/new" component={AdminPostEditor} />
       <Route path="/admin/posts/edit/:id" component={AdminPostEditor} />

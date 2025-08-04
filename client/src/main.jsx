@@ -759,7 +759,7 @@ const AdminPosts = () => {
             React.createElement('button', {
               className: 'btn btn-secondary me-2',
               onClick: () => {
-                window.history.pushState({}, '', '/admin');
+                window.history.pushState({}, '', '/admin-access');
                 window.dispatchEvent(new PopStateEvent('popstate'));
               }
             }, 'Back to Dashboard'),
@@ -979,7 +979,7 @@ const AdminUsers = () => {
           React.createElement('button', {
             className: 'btn btn-secondary',
             onClick: () => {
-              window.history.pushState({}, '', '/admin');
+              window.history.pushState({}, '', '/admin-access');
               window.dispatchEvent(new PopStateEvent('popstate'));
             }
           }, 'Back to Dashboard')
@@ -1180,7 +1180,7 @@ const BlogPostReader = () => {
             user.isAdmin && React.createElement('button', {
               className: 'btn btn-outline-light btn-sm me-2',
               onClick: () => {
-                window.history.pushState({}, '', '/admin');
+                window.history.pushState({}, '', '/admin-access');
                 window.dispatchEvent(new PopStateEvent('popstate'));
               }
             }, 'Dashboard'),
@@ -1417,7 +1417,7 @@ const AdminComments = () => {
           React.createElement('button', {
             className: 'btn btn-secondary',
             onClick: () => {
-              window.history.pushState({}, '', '/admin');
+              window.history.pushState({}, '', '/admin-access');
               window.dispatchEvent(new PopStateEvent('popstate'));
             }
           }, 'Back to Dashboard')
@@ -1739,7 +1739,7 @@ const SimpleHome = () => {
               onClick: (e) => {
                 e.preventDefault();
                 console.log('Dashboard clicked, user:', user);
-                window.history.pushState({}, '', '/admin');
+                window.history.pushState({}, '', '/admin-access');
                 window.dispatchEvent(new PopStateEvent('popstate'));
               }
             }, 'Dashboard'),

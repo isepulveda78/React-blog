@@ -79,7 +79,7 @@ export default function SimpleHome() {
                       <div className="d-flex gap-3 justify-content-center flex-wrap">
                         <button 
                           className="assan-btn"
-                          onClick={() => window.location.href = '/admin'}
+                          onClick={() => window.location.href = '/admin-access'}
                         >
                           Dashboard
                         </button>

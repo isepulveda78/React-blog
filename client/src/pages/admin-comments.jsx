@@ -12,7 +12,7 @@ function AdminSidebar() {
       <nav>
         <ul className="list-unstyled">
           <li className="mb-2">
-            <Link href="/admin" className="text-light text-decoration-none d-block p-2 rounded">
+            <Link href="/admin-access" className="text-light text-decoration-none d-block p-2 rounded">
               📊 Dashboard
             </Link>
           </li>
