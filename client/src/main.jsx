@@ -1289,6 +1289,8 @@ const AdminComments = () => {
 
   const toggleCommentApproval = async (commentId, currentStatus) => {
     const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
+    console.log('Toggling comment approval:', { commentId, currentStatus, newStatus });
+    
     try {
       const response = await fetch(`/api/comments/${commentId}`, {
         method: 'PATCH',
@@ -1296,11 +1298,22 @@ const AdminComments = () => {
         credentials: 'include',
         body: JSON.stringify({ status: newStatus })
       });
+      
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('Approval response:', responseData);
         setComments(comments.map(c => c.id === commentId ? {...c, status: newStatus} : c));
+        alert(`Comment ${newStatus} successfully!`);
+      } else {
+        const errorData = await response.json();
+        console.error('Approval failed:', errorData);
+        alert(`Failed to ${newStatus} comment: ${errorData.message}`);
       }
     } catch (err) {
-      alert('Error updating comment status');
+      console.error('Error updating comment status:', err);
+      alert('Error updating comment status: ' + err.message);
     }
   };
 
