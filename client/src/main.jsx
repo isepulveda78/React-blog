@@ -191,6 +191,184 @@ const AuthModal = ({ show, onHide, isLogin, onToggleMode }) => {
   );
 };
 
+// Simple router for handling different pages
+const Router = () => {
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);  
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  if (currentPath === '/admin') {
+    return React.createElement(AdminDashboard);
+  }
+  
+  return React.createElement(SimpleHome);
+};
+
+// Admin Dashboard Component
+const AdminDashboard = () => {
+  const { user, logout } = useAuth();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.isAdmin) {
+      window.location.href = '/';
+      return;
+    }
+    
+    // Load admin stats
+    Promise.all([
+      fetch('/api/users', { credentials: 'include' }),
+      fetch('/api/posts', { credentials: 'include' }),
+      fetch('/api/categories', { credentials: 'include' })
+    ]).then(async ([usersRes, postsRes, categoriesRes]) => {
+      const users = usersRes.ok ? await usersRes.json() : [];
+      const posts = postsRes.ok ? await postsRes.json() : [];
+      const categories = categoriesRes.ok ? await categoriesRes.json() : [];
+      
+      setStats({
+        totalUsers: users.length,
+        pendingUsers: users.filter(u => !u.approved).length,
+        totalPosts: posts.length,
+        totalCategories: categories.length
+      });
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
+  }, [user]);
+
+  if (!user?.isAdmin) {
+    return React.createElement('div', { className: 'container mt-5' },
+      React.createElement('div', { className: 'alert alert-danger' },
+        'Access denied. Admin privileges required.'
+      )
+    );
+  }
+
+  return React.createElement('div', { className: 'min-vh-100', style: { backgroundColor: '#f8f9fa' } },
+    // Navigation
+    React.createElement('nav', { className: 'navbar navbar-expand-lg navbar-dark bg-primary' },
+      React.createElement('div', { className: 'container' },
+        React.createElement('a', { 
+          className: 'navbar-brand fw-bold',
+          href: '/',
+          onClick: (e) => {
+            e.preventDefault();
+            window.location.href = '/';
+          }
+        }, 'BlogCraft Admin'),
+        React.createElement('div', { className: 'navbar-nav ms-auto' },
+          React.createElement('div', { className: 'd-flex align-items-center' },
+            React.createElement('span', { className: 'text-light me-3' }, `Welcome, ${user.name}`),
+            React.createElement('button', {
+              className: 'btn btn-outline-light btn-sm',
+              onClick: logout
+            }, 'Logout')
+          )
+        )
+      )
+    ),
+
+    // Admin Content
+    React.createElement('div', { className: 'container mt-4' },
+      React.createElement('div', { className: 'row' },
+        React.createElement('div', { className: 'col-12' },
+          React.createElement('h1', { className: 'mb-4' }, 'Admin Dashboard'),
+          
+          loading ? React.createElement('div', { className: 'text-center' },
+            React.createElement('div', { className: 'spinner-border text-primary' })
+          ) : React.createElement('div', { className: 'row' },
+            React.createElement('div', { className: 'col-md-3 mb-4' },
+              React.createElement('div', { className: 'card bg-primary text-white' },
+                React.createElement('div', { className: 'card-body' },
+                  React.createElement('h5', { className: 'card-title' }, 'Total Users'),
+                  React.createElement('h2', { className: 'mb-0' }, stats?.totalUsers || 0)
+                )
+              )
+            ),
+            React.createElement('div', { className: 'col-md-3 mb-4' },
+              React.createElement('div', { className: 'card bg-warning text-white' },
+                React.createElement('div', { className: 'card-body' },
+                  React.createElement('h5', { className: 'card-title' }, 'Pending Approval'),
+                  React.createElement('h2', { className: 'mb-0' }, stats?.pendingUsers || 0)
+                )
+              )
+            ),
+            React.createElement('div', { className: 'col-md-3 mb-4' },
+              React.createElement('div', { className: 'card bg-success text-white' },
+                React.createElement('div', { className: 'card-body' },
+                  React.createElement('h5', { className: 'card-title' }, 'Blog Posts'),
+                  React.createElement('h2', { className: 'mb-0' }, stats?.totalPosts || 0)
+                )
+              )
+            ),
+            React.createElement('div', { className: 'col-md-3 mb-4' },
+              React.createElement('div', { className: 'card bg-info text-white' },
+                React.createElement('div', { className: 'card-body' },
+                  React.createElement('h5', { className: 'card-title' }, 'Categories'),
+                  React.createElement('h2', { className: 'mb-0' }, stats?.totalCategories || 0)
+                )
+              )
+            )
+          ),
+
+          // Quick Actions
+          React.createElement('div', { className: 'row mt-4' },
+            React.createElement('div', { className: 'col-12' },
+              React.createElement('h3', { className: 'mb-3' }, 'Quick Actions'),
+              React.createElement('div', { className: 'row' },
+                React.createElement('div', { className: 'col-md-4 mb-3' },
+                  React.createElement('div', { className: 'card' },
+                    React.createElement('div', { className: 'card-body text-center' },
+                      React.createElement('h5', { className: 'card-title' }, 'Manage Users'),
+                      React.createElement('p', { className: 'card-text' }, 'Approve new users and manage permissions'),
+                      React.createElement('a', { 
+                        href: '/admin/users',
+                        className: 'btn btn-primary'
+                      }, 'View Users')
+                    )
+                  )
+                ),
+                React.createElement('div', { className: 'col-md-4 mb-3' },
+                  React.createElement('div', { className: 'card' },
+                    React.createElement('div', { className: 'card-body text-center' },
+                      React.createElement('h5', { className: 'card-title' }, 'Manage Posts'),
+                      React.createElement('p', { className: 'card-text' }, 'Create, edit, and manage blog posts'),
+                      React.createElement('a', { 
+                        href: '/admin/posts',
+                        className: 'btn btn-success'
+                      }, 'View Posts')
+                    )
+                  )
+                ),
+                React.createElement('div', { className: 'col-md-4 mb-3' },
+                  React.createElement('div', { className: 'card' },
+                    React.createElement('div', { className: 'card-body text-center' },
+                      React.createElement('h5', { className: 'card-title' }, 'Manage Comments'),
+                      React.createElement('p', { className: 'card-text' }, 'Moderate and manage user comments'),
+                      React.createElement('a', { 
+                        href: '/admin/comments',
+                        className: 'btn btn-warning'
+                      }, 'View Comments')
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+};
+
 // Simple Home Component
 const SimpleHome = () => {
   const { user, logout } = useAuth();
@@ -387,7 +565,7 @@ const SimpleHome = () => {
 // Main App
 const App = () => {
   return React.createElement(AuthProvider, null,
-    React.createElement(SimpleHome)
+    React.createElement(Router)
   );
 };
 
