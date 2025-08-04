@@ -169,7 +169,7 @@ function BlogNavbar() {
                   {isAdmin && (
                     <Nav.Link
                       as={Link}
-                      href="/admin-access"
+                      href="/admin-seo"
                       className="text-primary"
                     >
                       Dashboard
