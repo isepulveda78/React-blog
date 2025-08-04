@@ -585,8 +585,13 @@ export function registerRoutes(app) {
 
   app.patch('/api/users/:userId/approval', async (req, res) => {
     try {
+      console.log('[approval] Request from:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
+      console.log('[approval] Target userId:', req.params.userId);
+      console.log('[approval] Request body:', req.body);
+      
       // Check if user is admin
       if (!req.session.user?.isAdmin) {
+        console.log('[approval] Access denied - user is not admin');
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -594,13 +599,19 @@ export function registerRoutes(app) {
       const { approved } = req.body;
 
       if (typeof approved !== 'boolean') {
+        console.log('[approval] Invalid approved value:', typeof approved, approved);
         return res.status(400).json({ message: 'approved must be a boolean' });
       }
 
+      console.log('[approval] Calling storage.updateUserApproval...');
       const updatedUser = await storage.updateUserApproval(userId, approved);
+      
       if (!updatedUser) {
+        console.log('[approval] User not found:', userId);
         return res.status(404).json({ message: 'User not found' });
       }
+
+      console.log('[approval] User updated successfully:', updatedUser.email, 'approved:', updatedUser.approved);
 
       // Return safe user data
       const safeUser = {
@@ -615,7 +626,7 @@ export function registerRoutes(app) {
 
       res.json(safeUser);
     } catch (error) {
-      console.error('Error updating user approval:', error);
+      console.error('[approval] Error updating user approval:', error);
       res.status(500).json({ message: 'Failed to update user approval' });
     }
   });

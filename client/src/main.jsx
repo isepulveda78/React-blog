@@ -878,6 +878,8 @@ const AdminUsers = () => {
 
   const toggleUserApproval = async (userId, currentStatus) => {
     const newStatus = !currentStatus;
+    console.log(`Toggling approval for user ${userId}: ${currentStatus} -> ${newStatus}`);
+    
     try {
       const response = await fetch(`/api/users/${userId}/approval`, {
         method: 'PATCH',
@@ -885,11 +887,21 @@ const AdminUsers = () => {
         credentials: 'include',
         body: JSON.stringify({ approved: newStatus })
       });
+      
+      console.log('Approval response status:', response.status);
+      
       if (response.ok) {
+        const updatedUser = await response.json();
+        console.log('User approval updated:', updatedUser);
         setUsers(users.map(u => u.id === userId ? {...u, approved: newStatus} : u));
+      } else {
+        const errorData = await response.text();
+        console.error('Approval failed:', response.status, errorData);
+        alert(`Error updating user approval: ${response.status} ${errorData}`);
       }
     } catch (err) {
-      alert('Error updating user approval');
+      console.error('Approval error:', err);
+      alert('Error updating user approval: ' + err.message);
     }
   };
 
