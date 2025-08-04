@@ -955,12 +955,14 @@ export class MongoStorage {
 
   async updateCommentStatus(commentId, status) {
     await this.connect();
+    console.log(`[mongodb] Updating comment ${commentId} status to ${status}`);
     const result = await this.db.collection('comments').findOneAndUpdate(
       { id: commentId },
-      { $set: { status } },
+      { $set: { status, updatedAt: new Date().toISOString() } },
       { returnDocument: 'after' }
     );
-    return result.value;
+    console.log(`[mongodb] Update result:`, result);
+    return result || null;
   }
 
   async updateComment(id, commentData) {
