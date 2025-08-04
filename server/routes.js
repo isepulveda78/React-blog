@@ -544,6 +544,69 @@ export function registerRoutes(app) {
     }
   });
 
+  // Comments management routes
+  app.get("/api/comments", async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const comments = await storage.getAllComments();
+      res.json(comments);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/comments/:commentId", async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { commentId } = req.params;
+      const { status } = req.body;
+
+      if (!status || !['approved', 'pending'].includes(status)) {
+        return res.status(400).json({ message: 'Status must be "approved" or "pending"' });
+      }
+
+      const updatedComment = await storage.updateCommentStatus(commentId, status);
+      if (!updatedComment) {
+        return res.status(404).json({ message: 'Comment not found' });
+      }
+
+      res.json(updatedComment);
+    } catch (error) {
+      console.error('Error updating comment status:', error);
+      res.status(500).json({ message: 'Failed to update comment status' });
+    }
+  });
+
+  app.delete("/api/comments/:commentId", async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { commentId } = req.params;
+      const success = await storage.deleteComment(commentId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+
+      res.json({ message: "Comment deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Comments routes
   app.get("/api/comments", async (req, res) => {
     try {

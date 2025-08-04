@@ -966,6 +966,80 @@ const AdminUsers = () => {
 
 // Admin Comments Management Component
 const AdminComments = () => {
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/comments', { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Comments API response:', data);
+        if (Array.isArray(data)) {
+          setComments(data);
+        } else {
+          console.error('Expected array, got:', typeof data, data);
+          setComments([]);
+          setError('Invalid comments data format');
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Comments loading error:', err);
+        setError('Failed to load comments: ' + err.message);
+        setLoading(false);
+        setComments([]);
+      });
+  }, []);
+
+  const deleteComment = async (commentId) => {
+    if (!confirm('Are you sure you want to delete this comment?')) return;
+    
+    try {
+      const response = await fetch(`/api/comments/${commentId}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (response.ok) {
+        setComments(comments.filter(c => c.id !== commentId));
+      } else {
+        alert('Failed to delete comment');
+      }
+    } catch (err) {
+      alert('Error deleting comment');
+    }
+  };
+
+  const toggleCommentApproval = async (commentId, currentStatus) => {
+    const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
+    try {
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (response.ok) {
+        setComments(comments.map(c => c.id === commentId ? {...c, status: newStatus} : c));
+      }
+    } catch (err) {
+      alert('Error updating comment status');
+    }
+  };
+
+  if (loading) return React.createElement('div', { className: 'container mt-5' },
+    React.createElement('div', { className: 'text-center' },
+      React.createElement('div', { className: 'spinner-border' }, 
+        React.createElement('span', { className: 'visually-hidden' }, 'Loading...')
+      )
+    )
+  );
+
   return React.createElement('div', { className: 'container mt-4' },
     React.createElement('div', { className: 'row' },
       React.createElement('div', { className: 'col-12' },
@@ -979,9 +1053,83 @@ const AdminComments = () => {
             }
           }, 'Back to Dashboard')
         ),
-        React.createElement('div', { className: 'alert alert-info' },
-          'Comment management interface coming soon!'
-        )
+
+        error && React.createElement('div', { className: 'alert alert-danger' }, error),
+
+        comments.length === 0 ? 
+          React.createElement('div', { className: 'text-center py-5' },
+            React.createElement('p', { className: 'text-muted' }, 'No comments found')
+          ) :
+          React.createElement('div', { className: 'card' },
+            React.createElement('div', { className: 'card-body p-0' },
+              React.createElement('div', { className: 'table-responsive' },
+                React.createElement('table', { className: 'table table-hover mb-0' },
+                  React.createElement('thead', { className: 'table-light' },
+                    React.createElement('tr', null,
+                      React.createElement('th', null, 'Comment'),
+                      React.createElement('th', null, 'Author'),
+                      React.createElement('th', null, 'Post'),
+                      React.createElement('th', null, 'Status'),
+                      React.createElement('th', null, 'Date'),
+                      React.createElement('th', null, 'Actions')
+                    )
+                  ),
+                  React.createElement('tbody', null,
+                    comments.map(comment => 
+                      React.createElement('tr', { key: comment.id },
+                        React.createElement('td', null,
+                          React.createElement('div', { style: { maxWidth: '300px' } },
+                            React.createElement('p', { className: 'mb-1' }, 
+                              comment.content.length > 100 
+                                ? comment.content.substring(0, 100) + '...' 
+                                : comment.content
+                            ),
+                            comment.parentId && React.createElement('small', { className: 'text-muted' }, 
+                              '↳ Reply to another comment'
+                            )
+                          )
+                        ),
+                        React.createElement('td', null,
+                          React.createElement('div', null,
+                            React.createElement('strong', null, comment.authorName || 'Anonymous'),
+                            comment.authorEmail && React.createElement('br'),
+                            comment.authorEmail && React.createElement('small', { className: 'text-muted' }, comment.authorEmail)
+                          )
+                        ),
+                        React.createElement('td', null,
+                          React.createElement('div', null,
+                            React.createElement('strong', null, comment.postTitle || 'Unknown Post'),
+                            React.createElement('br'),
+                            React.createElement('small', { className: 'text-muted' }, `Post ID: ${comment.postId}`)
+                          )
+                        ),
+                        React.createElement('td', null,
+                          React.createElement('span', {
+                            className: `badge ${comment.status === 'approved' ? 'bg-success' : 'bg-warning'}`
+                          }, comment.status || 'pending')
+                        ),
+                        React.createElement('td', null, 
+                          new Date(comment.createdAt).toLocaleDateString()
+                        ),
+                        React.createElement('td', null,
+                          React.createElement('div', { className: 'btn-group btn-group-sm' },
+                            React.createElement('button', {
+                              className: `btn btn-outline-${comment.status === 'approved' ? 'warning' : 'success'}`,
+                              onClick: () => toggleCommentApproval(comment.id, comment.status)
+                            }, comment.status === 'approved' ? 'Unapprove' : 'Approve'),
+                            React.createElement('button', {
+                              className: 'btn btn-outline-danger',
+                              onClick: () => deleteComment(comment.id)
+                            }, 'Delete')
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
       )
     )
   );

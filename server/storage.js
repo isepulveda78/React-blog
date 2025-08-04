@@ -932,6 +932,37 @@ export class MongoStorage {
     return comment;
   }
 
+  async getAllComments() {
+    await this.connect();
+    const comments = await this.db.collection('comments')
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    // Get post titles for each comment
+    const commentsWithPosts = await Promise.all(
+      comments.map(async (comment) => {
+        const post = await this.db.collection('posts').findOne({ id: comment.postId });
+        return {
+          ...comment,
+          postTitle: post?.title || 'Unknown Post'
+        };
+      })
+    );
+    
+    return commentsWithPosts;
+  }
+
+  async updateCommentStatus(commentId, status) {
+    await this.connect();
+    const result = await this.db.collection('comments').findOneAndUpdate(
+      { id: commentId },
+      { $set: { status } },
+      { returnDocument: 'after' }
+    );
+    return result.value;
+  }
+
   async updateComment(id, commentData) {
     await this.connect();
     const existingComment = await this.db.collection('comments').findOne({ id });
