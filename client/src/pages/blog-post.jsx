@@ -2,7 +2,7 @@
 const { useState, useEffect } = React;
 
 function CommentForm({ postId, parentId, onSuccess, onCancel }) {
-  const { user } = useAuth();
+  const user = window.currentUser;
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Use simple fetch for API calls
@@ -38,20 +38,20 @@ function CommentForm({ postId, parentId, onSuccess, onCancel }) {
 
   if (!user?.approved) {
     return (
-      <Alert variant="info" className="mt-3">
+      <div className="alert alert-info mt-3">
         Please sign in and get your account approved to leave comments.
-      </Alert>
+      </div>
     );
   }
 
   return (
-    <Form onSubmit={handleSubmit} className="mt-3">
-      <Form.Group>
-        <Form.Label>
+    <form onSubmit={handleSubmit} className="mt-3">
+      <div className="mb-3">
+        <label className="form-label">
           {parentId ? "Reply to comment" : "Leave a comment"}
-        </Form.Label>
-        <Form.Control
-          as="textarea"
+        </label>
+        <textarea
+          className="form-control"
           rows={3}
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -62,12 +62,12 @@ function CommentForm({ postId, parentId, onSuccess, onCancel }) {
           }
           required
         />
-      </Form.Group>
+      </div>
       <div className="mt-2">
-        <Button type="submit" variant="primary" size="sm" disabled={isSubmitting}>
+        <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting}>
           {isSubmitting ? (
             <>
-              <Spinner size="sm" className="me-2" />
+              <span className="spinner-border spinner-border-sm me-2"></span>
               Submitting...
             </>
           ) : parentId ? (
@@ -75,24 +75,23 @@ function CommentForm({ postId, parentId, onSuccess, onCancel }) {
           ) : (
             "Post Comment"
           )}
-        </Button>
+        </button>
         {parentId && (
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            className="ms-2"
+          <button
+            type="button"
+            className="btn btn-outline-secondary btn-sm ms-2"
             onClick={onCancel}
           >
             Cancel
-          </Button>
+          </button>
         )}
       </div>
-    </Form>
+    </form>
   );
 }
 
 function CommentItem({ comment, postId, onReply }) {
-  const { user } = useAuth();
+  const user = window.currentUser;
   const [showReplyForm, setShowReplyForm] = useState(false);
 
   const handleReplySuccess = () => {
@@ -104,12 +103,12 @@ function CommentItem({ comment, postId, onReply }) {
 
   return (
     <div className={`comment-item ${comment.parentId ? "ms-4" : ""}`}>
-      <Card
-        className={`mb-3 ${isApproved ? "" : "border-warning"} ${
+      <div
+        className={`card mb-3 ${isApproved ? "" : "border-warning"} ${
           comment.parentId ? "border-start border-3" : ""
         }`}
       >
-        <Card.Body>
+        <div className="card-body">
           <div className="d-flex justify-content-between align-items-start mb-2">
             <div>
               <strong>{comment.authorName}</strong>
@@ -119,9 +118,9 @@ function CommentItem({ comment, postId, onReply }) {
               </small>
             </div>
             {!isApproved && (
-              <Badge bg="warning" text="dark">
+              <span className="badge bg-warning text-dark">
                 Pending Approval
-              </Badge>
+              </span>
             )}
           </div>
 
@@ -132,13 +131,12 @@ function CommentItem({ comment, postId, onReply }) {
 
           {isApproved && user?.approved && !comment.parentId && (
             <div className="mt-2">
-              <Button
-                variant="outline-primary"
-                size="sm"
+              <button
+                className="btn btn-outline-primary btn-sm"
                 onClick={() => setShowReplyForm(!showReplyForm)}
               >
                 {showReplyForm ? "Cancel Reply" : "Reply"}
-              </Button>
+              </button>
             </div>
           )}
 
@@ -150,8 +148,8 @@ function CommentItem({ comment, postId, onReply }) {
               onCancel={() => setShowReplyForm(false)}
             />
           )}
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -209,9 +207,9 @@ function CommentsSection({ postId, user }) {
     return (
       <div className="comments-section mt-5">
         <h3>Comments</h3>
-        <Alert variant="info">
+        <div className="alert alert-info">
           Please sign in and get your account approved to view and post comments.
-        </Alert>
+        </div>
       </div>
     );
   }
@@ -221,7 +219,9 @@ function CommentsSection({ postId, user }) {
       <div className="comments-section mt-5">
         <h3>Comments</h3>
         <div className="text-center">
-          <Spinner animation="border" />
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
         </div>
       </div>
     );
@@ -231,9 +231,9 @@ function CommentsSection({ postId, user }) {
     return (
       <div className="comments-section mt-5">
         <h3>Comments</h3>
-        <Alert variant="danger">
+        <div className="alert alert-danger">
           Failed to load comments. Please try refreshing the page.
-        </Alert>
+        </div>
       </div>
     );
   }
@@ -250,10 +250,10 @@ function CommentsSection({ postId, user }) {
       {/* Comments List */}
       <div className="comments-list mt-4">
         {parentComments.length === 0 ? (
-          <Alert variant="light" className="text-center">
+          <div className="alert alert-light text-center">
             <h5>No comments yet</h5>
             <p className="mb-0">Be the first to share your thoughts!</p>
-          </Alert>
+          </div>
         ) : (
           parentComments.map((comment) => (
             <div key={comment.id}>
@@ -319,44 +319,44 @@ function BlogPost() {
 
   if (!user) {
     return (
-      <Container className="py-5">
-        <Alert variant="info" className="text-center">
+      <div className="container py-5">
+        <div className="alert alert-info text-center">
           <h4>Authentication Required</h4>
           <p>Please sign in to view this blog post.</p>
-        </Alert>
-      </Container>
+        </div>
+      </div>
     );
   }
 
   if (!user.approved) {
     return (
-      <Container className="py-5">
-        <Alert variant="warning" className="text-center">
+      <div className="container py-5">
+        <div className="alert alert-warning text-center">
           <h4>Account Pending Approval</h4>
           <p>Your account needs to be approved before you can view blog posts.</p>
-        </Alert>
-      </Container>
+        </div>
+      </div>
     );
   }
 
   if (isLoading) {
     return (
-      <Container className="py-5 text-center">
-        <Spinner animation="border" role="status">
+      <div className="container py-5 text-center">
+        <div className="spinner-border" role="status">
           <span className="visually-hidden">Loading...</span>
-        </Spinner>
-      </Container>
+        </div>
+      </div>
     );
   }
 
   if (error || !post) {
     return (
-      <Container className="py-5">
-        <Alert variant="danger" className="text-center">
+      <div className="container py-5">
+        <div className="alert alert-danger text-center">
           <h4>Post Not Found</h4>
           <p>The blog post you're looking for doesn't exist or has been removed.</p>
-        </Alert>
-      </Container>
+        </div>
+      </div>
     );
   }
 
