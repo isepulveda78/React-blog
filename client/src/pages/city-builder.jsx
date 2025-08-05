@@ -3,11 +3,26 @@ const { useState, useEffect, useRef } = React;
 
 // Building types configuration
 const BUILDING_TYPES = {
+  // Residential
   house: { category: "residential", name: "House", icon: "🏠", width: 40, height: 40 },
   apartment: { category: "residential", name: "Apartment", icon: "🏢", width: 60, height: 80 },
+  
+  // Commercial
   shop: { category: "commercial", name: "Shop", icon: "🏪", width: 50, height: 50 },
   office: { category: "commercial", name: "Office", icon: "🏢", width: 80, height: 100 },
+  "hair-salon": { category: "commercial", name: "Hair Salon", icon: "💇", width: 50, height: 50 },
+  
+  // Industrial
   factory: { category: "industrial", name: "Factory", icon: "🏭", width: 100, height: 80 },
+  
+  // Public Services
+  hospital: { category: "public", name: "Hospital", icon: "🏥", width: 120, height: 100 },
+  "fire-station": { category: "public", name: "Fire Station", icon: "🚒", width: 80, height: 60 },
+  "police-station": { category: "public", name: "Police Station", icon: "🚔", width: 80, height: 60 },
+  school: { category: "public", name: "School", icon: "🏫", width: 100, height: 80 },
+  university: { category: "public", name: "University", icon: "🎓", width: 140, height: 120 },
+  
+  // Nature
   tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 },
   "oak-tree": { category: "nature", name: "Oak Tree", icon: "🌳", width: 30, height: 30 },
   "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
@@ -841,7 +856,8 @@ const CityBuilder = ({ user }) => {
                 <div className="row g-2">
                   {[
                     { type: "shop", name: "Shop", icon: "🏪", width: 50, height: 50 },
-                    { type: "office", name: "Office", icon: "🏢", width: 80, height: 100 }
+                    { type: "office", name: "Office", icon: "🏢", width: 80, height: 100 },
+                    { type: "hair-salon", name: "Hair Salon", icon: "💇", width: 50, height: 50 }
                   ].map((building) => (
                     <div key={building.type} className="col-6">
                       <div
@@ -869,6 +885,60 @@ const CityBuilder = ({ user }) => {
                         }}
                       >
                         <div className="mb-1 d-block" style={{ fontSize: "1.5rem", color: "#3b82f6" }}>
+                          {building.icon}
+                        </div>
+                        <p className="small fw-medium text-dark mb-0" style={{ fontSize: "0.65rem" }}>
+                          {building.name}
+                        </p>
+                        <p className="text-muted mb-0" style={{ fontSize: "0.55rem" }}>
+                          {building.width}×{building.height}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Public Services */}
+              <div className="mb-4">
+                <div className="d-flex align-items-center mb-2">
+                  <div className="rounded-circle me-2" style={{ width: "16px", height: "16px", backgroundColor: "#dc2626" }}></div>
+                  <h3 className="h6 fw-medium text-dark mb-0">Public Services</h3>
+                </div>
+                <div className="row g-2">
+                  {[
+                    { type: "hospital", name: "Hospital", icon: "🏥", width: 120, height: 100 },
+                    { type: "fire-station", name: "Fire Station", icon: "🚒", width: 80, height: 60 },
+                    { type: "police-station", name: "Police Station", icon: "🚔", width: 80, height: 60 },
+                    { type: "school", name: "School", icon: "🏫", width: 100, height: 80 },
+                    { type: "university", name: "University", icon: "🎓", width: 140, height: 120 }
+                  ].map((building) => (
+                    <div key={building.type} className="col-6">
+                      <div
+                        className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
+                        style={{
+                          borderColor: "#dc2626",
+                          borderOpacity: "0.3",
+                          cursor: "grab",
+                          backgroundColor: "#f8f9fa"
+                        }}
+                        draggable
+                        onDragStart={(e) => {
+                          const dragData = { 
+                            type: building.type, 
+                            category: "public",
+                            isBuilding: true,
+                            itemData: building
+                          };
+                          e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+                          e.dataTransfer.effectAllowed = "copy";
+                          e.currentTarget.style.opacity = "0.5";
+                        }}
+                        onDragEnd={(e) => {
+                          e.currentTarget.style.opacity = "1";
+                        }}
+                      >
+                        <div className="mb-1 d-block" style={{ fontSize: "1.5rem", color: "#dc2626" }}>
                           {building.icon}
                         </div>
                         <p className="small fw-medium text-dark mb-0" style={{ fontSize: "0.65rem" }}>
