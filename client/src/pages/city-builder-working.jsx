@@ -743,7 +743,7 @@ const WorkingCityBuilder = () => {
       ),
       
       // Buildings
-      ...buildings.map((building) =>
+      ...buildings.map((building, index) =>
         React.createElement('div', { key: building.id },
           React.createElement('div', {
             className: `position-absolute d-flex align-items-center justify-content-center ${selectedBuilding?.id === building.id ? 'border border-info border-3' : ''}`,
@@ -754,7 +754,8 @@ const WorkingCityBuilder = () => {
               height: `${building.height}px`,
               backgroundColor: 'transparent',
               cursor: 'pointer',
-              fontSize: '2rem'
+              fontSize: '2rem',
+              zIndex: index + 1  // Ensure proper layering - later buildings appear on top
             },
             onClick: (e) => {
               e.stopPropagation();
