@@ -317,12 +317,19 @@ const CityBuilder = ({ user }) => {
     e.stopPropagation();
     e.preventDefault();
 
+    // First select the street
+    console.log("Selecting street on mousedown:", street.id);
+    setSelectedStreet(street);
+    setSelectedBuilding(null);
+
     const startX = e.clientX;
     const startY = e.clientY;
     const startStreetX = street.x;
     const startStreetY = street.y;
+    let hasMoved = false;
 
     const handleMouseMove = (moveEvent) => {
+      hasMoved = true;
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
 
@@ -346,6 +353,11 @@ const CityBuilder = ({ user }) => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "default";
+      
+      // If we didn't move much, this was just a selection click
+      if (!hasMoved) {
+        console.log("Street selected (no drag):", street.id);
+      }
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -899,8 +911,10 @@ const CityBuilder = ({ user }) => {
               onClick={(e) => {
                 e.stopPropagation();
                 console.log("Street clicked:", street);
+                console.log("Current selectedStreet:", selectedStreet?.id);
                 setSelectedStreet(street);
                 setSelectedBuilding(null);
+                console.log("Should show handles for street:", street.id);
               }}
               onMouseDown={(e) => {
                 console.log("Street mousedown:", street);
@@ -919,6 +933,9 @@ const CityBuilder = ({ user }) => {
               )}
               {street.type === 'water' && '💧'}
               {street.type === 'grass-patch' && '🌿'}
+              
+              {/* Debug selected street */}
+              {selectedStreet?.id === street.id && console.log("Selected street rendering handles for:", street.id)}
               
               {/* Resize handles for selected street */}
               {selectedStreet?.id === street.id && (
