@@ -23,6 +23,7 @@ const SEOManagement = window.SEOManagement;
 const UserProfile = window.UserProfile;
 const CityBuilder = window.CityBuilder;
 const EducationalTools = window.EducationalTools;
+const BingoGenerator = window.BingoGenerator;
 const NotFound = window.NotFound;
 
 // Auth Context
@@ -252,6 +253,8 @@ const AppRoutes = () => {
   } else if (location === "/city-builder") {
     console.log("ROUTE: Loading CityBuilder, WorkingCityBuilder available:", !!window.WorkingCityBuilder);
     CurrentComponent = window.WorkingCityBuilder || window.StableCityBuilder || CityBuilder;
+  } else if (location === "/bingo-generator") {
+    CurrentComponent = BingoGenerator;
   } else if (location !== "/") {
     CurrentComponent = NotFound;
     componentProps = {};
