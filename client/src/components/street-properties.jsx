@@ -1,4 +1,5 @@
-const { React, useState, useEffect } = window;
+const { React } = window;
+const { useState, useEffect } = React;
 // Mock street data
 const STREET_TYPES = {
   road: { category: "roads", name: "Road", icon: "🛣️", width: 20, height: 20 },

@@ -1,5 +1,12 @@
 // Use global React and components from window
-const { useState, useEffect, createContext, useContext } = React;
+const { useState, useEffect, useRef, useCallback, createContext, useContext } = React;
+
+// Make React hooks available globally for all components
+window.React = React;
+window.useState = useState;
+window.useEffect = useEffect;
+window.useRef = useRef;
+window.useCallback = useCallback;
 
 // Components will be loaded as window objects
 const Navigation = window.Navigation;

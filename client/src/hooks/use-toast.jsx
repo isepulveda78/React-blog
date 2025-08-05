@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+const { React } = window;
+const { useState, useCallback, useEffect } = React;
 
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
@@ -28,7 +29,7 @@ const addToRemoveQueue = (toastId) => {
   toastTimeouts.set(toastId, timeout);
 };
 
-export const reducer = (state, action) => {
+const reducer = (state, action) => {
   switch (action.type) {
     case "ADD_TOAST":
       return {
@@ -141,4 +142,5 @@ function useToast() {
   };
 }
 
-export { useToast, toast };
+window.useToast = useToast;
+window.toast = toast;

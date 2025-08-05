@@ -1,4 +1,5 @@
-const { React, useState } = window;
+const { React } = window;
+const { useState } = React;
 
 // Simple toast placeholder
 const useToast = () => ({

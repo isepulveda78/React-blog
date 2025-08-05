@@ -1,4 +1,5 @@
-const { React, useState, useEffect } = window;
+const { React } = window;
+const { useState, useEffect } = React;
 
 // Mock building data for now
 const BUILDING_TYPES = {

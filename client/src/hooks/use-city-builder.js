@@ -1,7 +1,24 @@
-import { useState, useCallback, useRef } from "react";
-import { BUILDING_TYPES, STREET_TYPES, GRID_SIZE } from "../lib/building-data";
+const { React } = window;
+const { useState, useCallback, useRef } = React;
 
-export function useCityBuilder() {
+// Mock data constants
+const GRID_SIZE = 20;
+const BUILDING_TYPES = {
+  house: { category: "residential", name: "House", icon: "🏠", width: 40, height: 40 },
+  apartment: { category: "residential", name: "Apartment", icon: "🏢", width: 60, height: 80 },
+  shop: { category: "commercial", name: "Shop", icon: "🏪", width: 50, height: 50 },
+  office: { category: "commercial", name: "Office", icon: "🏢", width: 80, height: 100 },
+  factory: { category: "industrial", name: "Factory", icon: "🏭", width: 100, height: 80 },
+  tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 },
+  "oak-tree": { category: "nature", name: "Oak Tree", icon: "🌳", width: 30, height: 30 },
+  "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
+};
+const STREET_TYPES = {
+  road: { category: "roads", name: "Road", icon: "🛣️", width: 20, height: 20 },
+  "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
+};
+
+const useCityBuilder = () => {
   const [cityName, setCityName] = useState("My Amazing City");
   const [buildings, setBuildings] = useState([]);
   const [streets, setStreets] = useState([]);
@@ -620,4 +637,6 @@ export function useCityBuilder() {
     pasteItem,
     copiedItem,
   };
-}
+};
+
+window.useCityBuilder = useCityBuilder;
