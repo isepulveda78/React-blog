@@ -117,7 +117,18 @@ const CityBuilder = ({ user }) => {
         <div className="p-3">
           <h2 className="h4 mb-3">City Builder</h2>
           
-          {/* Controls */}
+          {/* Background Color - Top Priority */}
+          <div className="mb-3">
+            <label className="form-label fw-bold">Background Color:</label>
+            <input
+              type="color"
+              className="form-control form-control-color w-100"
+              value={backgroundColor}
+              onChange={(e) => setBackgroundColor(e.target.value)}
+            />
+          </div>
+          
+          {/* Other Controls */}
           <div className="mb-3">
             <div className="form-check mb-2">
               <input
@@ -130,16 +141,6 @@ const CityBuilder = ({ user }) => {
               <label className="form-check-label" htmlFor="gridToggle">
                 Show Grid
               </label>
-            </div>
-            
-            <div className="mb-2">
-              <label className="form-label">Background Color:</label>
-              <input
-                type="color"
-                className="form-control form-control-color"
-                value={backgroundColor}
-                onChange={(e) => setBackgroundColor(e.target.value)}
-              />
             </div>
             
             <div className="d-flex gap-2">
