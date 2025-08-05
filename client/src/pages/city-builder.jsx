@@ -357,7 +357,7 @@ const CityBuilder = () => {
               {/* Background Color Picker */}
               <div className="mb-3">
                 <label className="form-label small">Background Color:</label>
-                <div className="d-flex gap-1 flex-wrap">
+                <div className="d-flex gap-1 flex-wrap mb-2">
                   {['#90EE90', '#87CEEB', '#F0E68C', '#DDA0DD', '#98FB98'].map(color => (
                     <button
                       key={color}
@@ -371,6 +371,16 @@ const CityBuilder = () => {
                       onClick={() => setBackgroundColor(color)}
                     />
                   ))}
+                </div>
+                <div className="d-flex gap-2 align-items-center">
+                  <input
+                    type="color"
+                    className="form-control form-control-sm"
+                    style={{ width: '50px', height: '30px', padding: '0' }}
+                    value={backgroundColor}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                  />
+                  <small className="text-muted">Custom color</small>
                 </div>
               </div>
             </div>
