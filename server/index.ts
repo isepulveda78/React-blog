@@ -57,7 +57,14 @@ if (process.env.NODE_ENV === 'production') {
   // In production, serve from built assets
   app.use(express.static(path.join(__dirname, './public')));
 } else {
-  // In development, serve from client directory
+  // In development, serve source files specifically for ES6 modules
+  app.use('/src', express.static(path.join(__dirname, '../client/src'), {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.jsx') || path.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      }
+    }
+  }));
   app.use(express.static(path.join(__dirname, '../client')));
 }
 
@@ -90,8 +97,8 @@ app.get('*', (req, res) => {
     // In production, serve the built index.html
     res.sendFile(path.join(__dirname, './public/index.html'));
   } else {
-    // In development, serve the production-ready HTML with ES6 modules
-    res.sendFile(path.join(__dirname, '../client/index-production.html'));
+    // In development, serve the ES6 module HTML
+    res.sendFile(path.join(__dirname, '../client/index.html'));
   }
 });
 
