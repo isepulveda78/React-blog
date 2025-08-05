@@ -100,17 +100,24 @@ const SpanishAlphabet = () => {
 
     setIsPlayingAll(true);
     let index = 0;
+    let shouldContinue = true;
     
     const playNext = () => {
-      if (index < spanishLetters.length && isPlayingAll) {
+      // Check if we should continue and haven't reached the end
+      if (index < spanishLetters.length && shouldContinue) {
         const currentLetter = spanishLetters[index];
         playLetter(currentLetter.letter, currentLetter.name);
         index++;
         playAllTimeoutRef.current = setTimeout(playNext, 1200); // Wait 1.2 seconds between letters
       } else {
         setIsPlayingAll(false);
+        shouldContinue = false;
       }
     };
+
+    // Store the shouldContinue flag in the ref so stopAllLetters can access it
+    playAllTimeoutRef.current = { shouldContinue: () => shouldContinue, setShouldContinue: (val) => { shouldContinue = val; } };
+    
     playNext();
   };
 
@@ -120,7 +127,11 @@ const SpanishAlphabet = () => {
     
     // Clear any pending timeout
     if (playAllTimeoutRef.current) {
-      clearTimeout(playAllTimeoutRef.current);
+      if (typeof playAllTimeoutRef.current === 'number') {
+        clearTimeout(playAllTimeoutRef.current);
+      } else if (playAllTimeoutRef.current.setShouldContinue) {
+        playAllTimeoutRef.current.setShouldContinue(false);
+      }
       playAllTimeoutRef.current = null;
     }
     
