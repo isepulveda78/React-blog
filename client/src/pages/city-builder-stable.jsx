@@ -81,7 +81,10 @@ const StableCityBuilder = () => {
       const newX = Math.max(0, item.x + (me.clientX - startX));
       const newY = Math.max(0, item.y + (me.clientY - startY));
       
-      if (item.category) {
+      // Check if it's a building (has category like residential, commercial, etc.) or street (roads, water)
+      const isBuilding = item.category && ['residential', 'commercial', 'industrial', 'public', 'nature'].includes(item.category);
+      
+      if (isBuilding) {
         setBuildings(prev => prev.map(b => b.id === item.id ? { ...b, x: newX, y: newY } : b));
       } else {
         setStreets(prev => prev.map(s => s.id === item.id ? { ...s, x: newX, y: newY } : s));
@@ -143,7 +146,10 @@ const StableCityBuilder = () => {
       
       const update = { width: newWidth, height: newHeight, x: Math.max(0, newX), y: Math.max(0, newY) };
       
-      if (item.category) {
+      // Check if it's a building (has category like residential, commercial, etc.) or street (roads, water)
+      const isBuilding = item.category && ['residential', 'commercial', 'industrial', 'public', 'nature'].includes(item.category);
+      
+      if (isBuilding) {
         setBuildings(prev => prev.map(b => b.id === item.id ? { ...b, ...update } : b));
       } else {
         setStreets(prev => prev.map(s => s.id === item.id ? { ...s, ...update } : s));
