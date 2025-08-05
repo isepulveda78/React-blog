@@ -103,60 +103,55 @@ const BuildingPalette = ({
               <h3 className="h6 fw-medium text-dark mb-0">{category.name}</h3>
             </div>
             <div className="row g-2">
-              {category.buildings.map((buildingId) => {
-                const building = BUILDING_TYPES[buildingId];
-                if (!building) {
-                  console.error(`Building type not found: ${buildingId}`);
-                  return null;
-                }
-                return (
-                  <div key={buildingId} className="col-6">
+              {Object.entries(BUILDING_TYPES)
+                .filter(([_, building]) => building.category === categoryId)
+                .map(([buildingType, building]) => (
+                  <div key={buildingType} className="col-6">
                     <div
-                      className="building-item border border-2 border-dashed rounded-3 p-2 cursor-grab text-center"
+                      className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
                       style={{
-                        borderColor:
-                          category.color === "residential"
-                            ? "#34d399"
-                            : category.color === "commercial"
-                              ? "#fbbf24"
-                              : category.color === "public"
-                                ? "#a78bfa"
-                                : category.color === "tools"
-                                  ? "#6b7280"
-                                  : "#22c55e",
+                        borderColor: category.color,
                         borderOpacity: "0.3",
                         transition: "all 0.2s ease",
+                        cursor: "grab",
+                        backgroundColor: "#f8f9fa"
                       }}
                       draggable
-                      onDragStart={(e) => handleDragStart(e, buildingId)}
+                      onDragStart={(e) => handleDragStart(e, buildingType)}
                       onDragEnd={handleDragEnd}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#e9ecef";
+                        e.currentTarget.style.borderOpacity = "0.7";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f8f9fa";
+                        e.currentTarget.style.borderOpacity = "0.3";
+                      }}
                     >
-                      <i
-                        className={`${building.icon} mb-1 d-block`}
+                      <div
+                        className="mb-1 d-block"
                         style={{
                           fontSize: "1.5rem",
-                          color:
-                            category.color === "residential"
-                              ? "#34d399"
-                              : category.color === "commercial"
-                                ? "#fbbf24"
-                                : category.color === "public"
-                                  ? "#a78bfa"
-                                  : category.color === "tools"
-                                    ? "#6b7280"
-                                    : "#22c55e",
+                          color: category.color,
                         }}
-                      ></i>
+                      >
+                        {building.icon}
+                      </div>
                       <p
                         className="small fw-medium text-dark mb-0"
                         style={{ fontSize: "0.65rem", lineHeight: "1.1" }}
                       >
                         {building.name}
                       </p>
+                      <p
+                        className="text-muted mb-0"
+                        style={{ fontSize: "0.55rem" }}
+                      >
+                        {building.width}×{building.height}
+                      </p>
                     </div>
                   </div>
-                );
-              })}
+                ))}
             </div>
           </div>
         ))}
@@ -172,50 +167,55 @@ const BuildingPalette = ({
               <h3 className="h6 fw-medium text-dark mb-0">{category.name}</h3>
             </div>
             <div className="row g-2">
-              {category.items.map((streetId) => {
-                const street = STREET_TYPES[streetId];
-                if (!street) {
-                  console.error(`Street type not found: ${streetId}`);
-                  return null;
-                }
-                return (
-                  <div key={streetId} className="col-6">
+              {Object.entries(STREET_TYPES)
+                .filter(([_, street]) => street.category === categoryId)
+                .map(([streetType, street]) => (
+                  <div key={streetType} className="col-6">
                     <div
-                      className={`building-item border border-2 border-dashed rounded-3 p-2 cursor-grab text-center ${
-                        category.color === "success"
-                          ? "border-success"
-                          : "border-secondary"
-                      }`}
+                      className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
                       style={{
-                        borderColor:
-                          category.color === "success" ? "#22c55e" : "#6c757d",
+                        borderColor: "#6b7280",
                         borderOpacity: "0.3",
                         transition: "all 0.2s ease",
+                        cursor: "grab",
+                        backgroundColor: "#f8f9fa"
                       }}
                       draggable
-                      onDragStart={(e) => handleStreetDragStart(e, streetId)}
+                      onDragStart={(e) => handleStreetDragStart(e, streetType)}
                       onDragEnd={handleStreetDragEnd}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#e9ecef";
+                        e.currentTarget.style.borderOpacity = "0.7";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f8f9fa";
+                        e.currentTarget.style.borderOpacity = "0.3";
+                      }}
                     >
-                      <i
-                        className={`${street.icon} mb-1 d-block`}
+                      <div
+                        className="mb-1 d-block"
                         style={{
                           fontSize: "1.5rem",
-                          color:
-                            category.color === "success"
-                              ? "#22c55e"
-                              : "#6c757d",
+                          color: "#6b7280",
                         }}
-                      ></i>
+                      >
+                        {street.icon}
+                      </div>
                       <p
                         className="small fw-medium text-dark mb-0"
                         style={{ fontSize: "0.65rem", lineHeight: "1.1" }}
                       >
                         {street.name}
                       </p>
+                      <p
+                        className="text-muted mb-0"
+                        style={{ fontSize: "0.55rem" }}
+                      >
+                        {street.width}×{street.height}
+                      </p>
                     </div>
                   </div>
-                );
-              })}
+                ))}
             </div>
           </div>
         ))}
