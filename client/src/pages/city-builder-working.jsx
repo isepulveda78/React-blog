@@ -48,6 +48,7 @@ const WorkingCityBuilder = () => {
   const [backgroundColor, setBackgroundColor] = useState('#90EE90');
   const [editingLabel, setEditingLabel] = useState(null);
   const [labelInput, setLabelInput] = useState('');
+  const [cityName, setCityName] = useState('My City');
   const canvasRef = useRef(null);
   
   // Handle Delete key
@@ -256,9 +257,10 @@ const WorkingCityBuilder = () => {
       }
     });
     
-    // Download the image
+    // Download the image with city name
     const link = document.createElement('a');
-    link.download = `city-design-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+    const fileName = cityName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'my_city';
+    link.download = `${fileName}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
     link.href = canvas.toDataURL();
     link.click();
     
@@ -316,6 +318,37 @@ const WorkingCityBuilder = () => {
     },
       React.createElement('div', { style: { padding: '20px' } },
         React.createElement('h2', { style: { color: '#222f3e', marginBottom: '20px', fontWeight: 'bold' } }, '🏗️ CityBuilder'),
+        
+        // City Name Input
+        React.createElement('div', { style: { marginBottom: '20px' } },
+          React.createElement('h4', { 
+            style: { 
+              fontSize: '12px', 
+              fontWeight: 'bold', 
+              color: '#222f3e', 
+              marginBottom: '8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }
+          }, 'CITY NAME'),
+          
+          React.createElement('input', {
+            type: 'text',
+            className: 'form-control',
+            value: cityName,
+            onChange: (e) => setCityName(e.target.value),
+            placeholder: 'Enter your city name',
+            style: {
+              fontSize: '14px',
+              fontWeight: '600',
+              borderRadius: '8px',
+              border: '2px solid #0abde3',
+              padding: '10px 12px',
+              backgroundColor: '#ffffff',
+              color: '#222f3e'
+            }
+          })
+        ),
         
         // Background Color Selector
         React.createElement('div', { style: { padding: '15px', borderBottom: '2px solid #e9ecef', marginBottom: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' } },
