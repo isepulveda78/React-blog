@@ -180,7 +180,7 @@ const useCityBuilderState = () => {
 
 // Main CityBuilder Component - Updated with fixes
 const CityBuilder = () => {
-  console.log("CITYBUILDER: Ready - Hot reload disabled for proper drag/resize");
+  console.log("CITYBUILDER: Loaded");
   const {
     cityName, setCityName,
     buildings, streets,
@@ -346,11 +346,15 @@ const CityBuilder = () => {
       
       console.log("DRAG:", newX, newY);
       
+      // Update position without reload
       if (item.category) {
         updateBuilding(item.id, { x: newX, y: newY });
       } else {
         updateStreet(item.id, { x: newX, y: newY });
       }
+      
+      // Prevent reload
+      return false;
     }
     
     function dragEnd(ue) {
@@ -456,11 +460,15 @@ const CityBuilder = () => {
       
       console.log("✂️ UPDATE:", update);
       
+      // Update without triggering reload
       if (item.category) {
         updateBuilding(item.id, update);
       } else {
         updateStreet(item.id, update);
       }
+      
+      // Prevent any potential reloads
+      return false;
     }
     
     function onUp(ue) {
