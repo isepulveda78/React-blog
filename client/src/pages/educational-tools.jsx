@@ -23,6 +23,15 @@ const EducationalTools = ({ user }) => {
                 </h3>
               </div>
             </div>
+            <div className="col-md-4">
+              <div className="card p-2 text-center">
+                <h3>
+                  <a as={Link} href="/bingo-generator">
+                    Bingo Card Generator
+                  </a>
+                </h3>
+              </div>
+            </div>
           </div>
         </div>
       </div>
