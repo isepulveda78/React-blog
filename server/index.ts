@@ -79,7 +79,7 @@ app.get('*', (req, res) => {
   console.log('Serving index.html for path:', req.path);
   const indexPath = process.env.NODE_ENV === 'production'
     ? path.join(__dirname, 'public/index.html')
-    : path.join(__dirname, '../client/index.html');
+    : path.join(__dirname, '../client/index-dev.html');
   res.sendFile(indexPath);
 });
 

@@ -1,84 +1,33 @@
-import React, { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react';
+// Use global React and components from window
+const { useState, useEffect, useRef, useCallback, createContext, useContext } = React;
 
-// Make React hooks available globally for all components (for compatibility with existing components)
+// Make React hooks available globally for all components
 window.React = React;
 window.useState = useState;
 window.useEffect = useEffect;
 window.useRef = useRef;
 window.useCallback = useCallback;
 
-// Simple fallback components for immediate functionality
-const Navigation = ({ user, onLogout }) => (
-  <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div className="container">
-      <a className="navbar-brand" href="/">BlogCraft</a>
-      <div className="navbar-nav ms-auto">
-        {user ? (
-          <>
-            <span className="navbar-text me-3">Hello, {user.name}</span>
-            <button className="btn btn-outline-light btn-sm" onClick={onLogout}>Logout</button>
-          </>
-        ) : (
-          <a className="btn btn-outline-light btn-sm" href="/api/auth/google">Login</a>
-        )}
-      </div>
-    </div>
-  </nav>
-);
-
-const Home = ({ user }) => (
-  <div className="container my-5">
-    <div className="text-center mb-5">
-      <h1 className="display-4 mb-4">Welcome to BlogCraft</h1>
-      <p className="lead">A modern blog platform with advanced content management and SEO tools.</p>
-      {!user && (
-        <a href="/api/auth/google" className="btn btn-primary btn-lg">Get Started</a>
-      )}
-    </div>
-    <div className="row">
-      <div className="col-md-8 mx-auto">
-        <div className="card">
-          <div className="card-body">
-            <h5 className="card-title">Platform Features</h5>
-            <ul className="list-unstyled">
-              <li>✓ User authentication with Google OAuth</li>
-              <li>✓ Rich text blog post editing</li>
-              <li>✓ SEO optimization tools</li>
-              <li>✓ Admin dashboard for content management</li>
-              <li>✓ Educational tools and interactive components</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const NotFound = ({ message }) => (
-  <div className="container my-5 text-center">
-    <h2>Page Not Found</h2>
-    <p>{message || "The page you're looking for doesn't exist."}</p>
-    <a href="/" className="btn btn-primary">Go Home</a>
-  </div>
-);
-
-// Use fallback components or window objects if available
-const BlogListing = window.BlogListing || NotFound;
-const BlogPost = window.BlogPost || NotFound;
-const AdminDashboard = window.AdminDashboard || NotFound;
-const AdminPosts = window.AdminPosts || NotFound;
-const AdminUsers = window.AdminUsers || NotFound;
-const AdminComments = window.AdminComments || NotFound;
-const AdminPostEditor = window.AdminPostEditor || NotFound;
-const SEOManagement = window.SEOManagement || NotFound;
-const UserProfile = window.UserProfile || NotFound;
-const CityBuilder = window.CityBuilder || NotFound;
-const EducationalTools = window.EducationalTools || NotFound;
-const BingoGenerator = window.BingoGenerator || NotFound;
-const SoundDemo = window.SoundDemo || NotFound;
-const MP3Guide = window.MP3Guide || NotFound;
-const SpanishAlphabet = window.SpanishAlphabet || NotFound;
-const WordSorter = window.WordSorter || NotFound;
+// Components will be loaded as window objects
+const Navigation = window.Navigation;
+const Hero = window.Hero;
+const Home = window.Home;
+const BlogListing = window.BlogListing;
+const BlogPost = window.BlogPost;
+const AdminDashboard = window.AdminDashboard;
+const AdminPosts = window.AdminPosts;
+const AdminUsers = window.AdminUsers;
+const AdminComments = window.AdminComments;
+const AdminPostEditor = window.AdminPostEditor;
+const SEOManagement = window.SEOManagement;
+const UserProfile = window.UserProfile;
+const CityBuilder = window.CityBuilder;
+const EducationalTools = window.EducationalTools;
+const BingoGenerator = window.BingoGenerator;
+const SoundDemo = window.SoundDemo;
+const MP3Guide = window.MP3Guide;
+const SpanishAlphabet = window.SpanishAlphabet;
+const NotFound = window.NotFound;
 
 // Auth Context
 const AuthContext = createContext(null);
@@ -124,43 +73,14 @@ const AuthProvider = ({ children }) => {
       });
   }, []);
 
-  const login = async (credentials) => {
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(credentials),
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Login failed");
-    }
-
-    const userData = await response.json();
-    console.log("Login successful:", userData);
+  const login = async (userData) => {
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
-    return userData;
   };
 
   const register = async (userData) => {
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData),
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Registration failed");
-    }
-
-    const newUser = await response.json();
-    setUser(newUser);
-    localStorage.setItem("user", JSON.stringify(newUser));
-    return newUser;
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = async () => {
@@ -254,26 +174,16 @@ const AppRoutes = () => {
   } else if (location.startsWith("/blog/")) {
     CurrentComponent = BlogPost;
     componentProps = { user, slug: location.replace("/blog/", "") };
-  } else if (location === "/educational-tools") {
-    CurrentComponent = EducationalTools;
-  } else if (location === "/sound-demo") {
-    CurrentComponent = SoundDemo;
-  } else if (location === "/mp3-guide") {
-    CurrentComponent = MP3Guide;
-  } else if (location === "/spanish-alphabet") {
-    CurrentComponent = SpanishAlphabet;
   } else if (location === "/admin") {
     if (!user) {
-      // Redirect to home with login prompt for unauthenticated users
       window.location.href = "/?message=login-required";
       return null;
-    } else if (!user.isAdmin) {
-      // Show access denied for non-admin users
-      CurrentComponent = NotFound;
-      componentProps = { message: "Access denied. Admin privileges required." };
-    } else {
-      CurrentComponent = AdminDashboard;
     }
+    if (!user.isAdmin) {
+      window.location.href = "/?message=admin-required";
+      return null;
+    }
+    CurrentComponent = AdminDashboard;
   } else if (location === "/admin/posts") {
     if (!user || !user.isAdmin) {
       window.location.href = "/?message=admin-required";
@@ -292,17 +202,33 @@ const AppRoutes = () => {
       return null;
     }
     CurrentComponent = AdminComments;
-  } else if (location === "/seo-management") {
+  } else if (location.startsWith("/admin/posts/")) {
+    if (!user || !user.isAdmin) {
+      window.location.href = "/?message=admin-required";
+      return null;
+    }
+    CurrentComponent = AdminPostEditor;
+    componentProps = { user, postId: location.replace("/admin/posts/", "") };
+  } else if (location === "/admin/seo") {
     if (!user || !user.isAdmin) {
       window.location.href = "/?message=admin-required";
       return null;
     }
     CurrentComponent = SEOManagement;
+  } else if (location === "/educational-tools") {
+    CurrentComponent = EducationalTools;
+  } else if (location === "/sound-demo") {
+    CurrentComponent = SoundDemo;
+  } else if (location === "/mp3-guide") {
+    CurrentComponent = MP3Guide;
+  } else if (location === "/spanish-alphabet") {
+    CurrentComponent = SpanishAlphabet;
   } else if (location === "/profile") {
     if (!user) {
       window.location.href = "/?message=login-required";
       return null;
-    } else if (!user.approved) {
+    }
+    if (!user.approved) {
       CurrentComponent = NotFound;
       componentProps = {
         message: "Account pending approval. Please wait for admin approval.",
@@ -349,6 +275,3 @@ const AppRoutes = () => {
 
 // Export to window for global access
 window.App = App;
-
-// Default export for ES6 module import
-export default App;

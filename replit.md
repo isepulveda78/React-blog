@@ -1,7 +1,7 @@
-# BlogCraft - Modern Blog Platform
+# Interactive City Builder Platform
 
 ## Overview
-BlogCraft is a full-stack blog platform providing a complete content management system with public blog viewing and administrative capabilities. It features user authentication, blog post management, a commenting system, category organization, and comprehensive SEO implementation. The project vision is to offer a robust and user-friendly platform for content creators with a focus on modern web technologies and a streamlined development experience.
+An advanced interactive city-building platform that enables users to design sophisticated urban landscapes through comprehensive customization tools, engaging visual design mechanics, and a rich, immersive audio experience. The platform combines React frontend architecture with dynamic component systems, custom hooks for state management, Web Audio API integration, and modular city construction systems. Built with drag-and-drop infrastructure management and customizable sound and visual design systems.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
