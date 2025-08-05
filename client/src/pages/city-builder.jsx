@@ -375,13 +375,19 @@ const CityBuilder = () => {
     }
   };
 
-  // Resize handling for buildings and streets
-  const handleResizeStart = (e, item, direction) => {
+  // State for resize operation
+  const [isResizing, setIsResizing] = React.useState(false);
+  const [resizeData, setResizeData] = React.useState(null);
+
+  // Resize handling for buildings and streets - FIXED VERSION
+  const handleResizeStart = React.useCallback((e, item, direction) => {
     e.stopPropagation();
     e.preventDefault();
     
-    console.log("Starting resize for:", item.type, "direction:", direction);
-    setResizing({ item, direction });
+    console.log("RESIZE START:", item.type, direction, "size:", item.width, "x", item.height);
+    
+    setIsResizing(true);
+    setResizeData({ item, direction });
     
     const startX = e.clientX;
     const startY = e.clientY;
@@ -390,38 +396,56 @@ const CityBuilder = () => {
     const startPosX = item.x;
     const startPosY = item.y;
     
-    const handleMouseMove = (e) => {
-      e.preventDefault();
-      const deltaX = e.clientX - startX;
-      const deltaY = e.clientY - startY;
+    let lastUpdateTime = 0;
+    
+    const handleMouseMove = (moveEvent) => {
+      moveEvent.preventDefault();
+      moveEvent.stopPropagation();
+      
+      // Throttle updates to prevent excessive re-renders
+      const now = Date.now();
+      if (now - lastUpdateTime < 16) return; // ~60fps
+      lastUpdateTime = now;
+      
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      
+      console.log("RESIZE MOVE:", deltaX, deltaY);
       
       let newWidth = startWidth;
       let newHeight = startHeight;
       let newX = startPosX;
       let newY = startPosY;
       
-      // Handle resize based on direction
-      if (direction === 'se') {
-        newWidth = startWidth + deltaX;
-        newHeight = startHeight + deltaY;
-      } else if (direction === 'sw') {
-        newWidth = startWidth - deltaX;
-        newHeight = startHeight + deltaY;
-        newX = startPosX + deltaX;
-      } else if (direction === 'ne') {
-        newWidth = startWidth + deltaX;
-        newHeight = startHeight - deltaY;
-        newY = startPosY + deltaY;
-      } else if (direction === 'nw') {
-        newWidth = startWidth - deltaX;
-        newHeight = startHeight - deltaY;
-        newX = startPosX + deltaX;
-        newY = startPosY + deltaY;
+      // Calculate new dimensions based on direction
+      switch (direction) {
+        case 'se':
+          newWidth = startWidth + deltaX;
+          newHeight = startHeight + deltaY;
+          break;
+        case 'sw':
+          newWidth = startWidth - deltaX;
+          newHeight = startHeight + deltaY;
+          newX = startPosX + deltaX;
+          break;
+        case 'ne':
+          newWidth = startWidth + deltaX;
+          newHeight = startHeight - deltaY;
+          newY = startPosY + deltaY;
+          break;
+        case 'nw':
+          newWidth = startWidth - deltaX;
+          newHeight = startHeight - deltaY;
+          newX = startPosX + deltaX;
+          newY = startPosY + deltaY;
+          break;
       }
       
-      // Minimum size constraints
+      // Apply constraints
       newWidth = Math.max(20, newWidth);
       newHeight = Math.max(20, newHeight);
+      newX = Math.max(0, newX);
+      newY = Math.max(0, newY);
       
       // Grid snapping
       if (gridEnabled) {
@@ -431,11 +455,7 @@ const CityBuilder = () => {
         newY = Math.round(newY / 20) * 20;
       }
       
-      // Prevent negative positions
-      newX = Math.max(0, newX);
-      newY = Math.max(0, newY);
-      
-      // Update the item
+      // Prepare update object
       const updates = { width: newWidth, height: newHeight };
       if (direction === 'sw' || direction === 'nw') {
         updates.x = newX;
@@ -444,6 +464,7 @@ const CityBuilder = () => {
         updates.y = newY;
       }
       
+      // Update the item
       if (item.category) {
         updateBuilding(item.id, updates);
       } else {
@@ -451,19 +472,25 @@ const CityBuilder = () => {
       }
     };
     
-    const handleMouseUp = (e) => {
-      e.preventDefault();
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+    const handleMouseUp = (upEvent) => {
+      upEvent.preventDefault();
+      upEvent.stopPropagation();
+      
+      console.log("RESIZE END");
+      
+      document.removeEventListener('mousemove', handleMouseMove, true);
+      document.removeEventListener('mouseup', handleMouseUp, true);
       document.body.style.cursor = 'default';
-      setResizing(null);
-      console.log("Resize complete - final size:", item.width, "x", item.height);
+      
+      setIsResizing(false);
+      setResizeData(null);
     };
     
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    // Use capture phase to ensure we get events
+    document.addEventListener('mousemove', handleMouseMove, true);
+    document.addEventListener('mouseup', handleMouseUp, true);
     document.body.style.cursor = `${direction}-resize`;
-  };
+  }, [gridEnabled, updateBuilding, updateStreet]);
 
   return (
     <div className="vh-100" style={{ backgroundColor: "#f8f9fa" }}>
@@ -725,7 +752,7 @@ const CityBuilder = () => {
               }}
               onClick={(e) => handleStreetClick(e, street)}
               onMouseDown={(e) => {
-                if (selectedStreet?.id === street.id && !e.target.closest('.resize-handle') && !e.target.closest('button') && !resizing) {
+                if (selectedStreet?.id === street.id && !e.target.closest('.resize-handle') && !e.target.closest('button') && !isResizing) {
                   handleDragStart(e, street);
                 }
               }}
@@ -828,7 +855,7 @@ const CityBuilder = () => {
               }}
               onClick={(e) => handleBuildingClick(e, building)}
               onMouseDown={(e) => {
-                if (selectedBuilding?.id === building.id && !e.target.closest('.resize-handle') && !e.target.closest('button') && !resizing) {
+                if (selectedBuilding?.id === building.id && !e.target.closest('.resize-handle') && !e.target.closest('button') && !isResizing) {
                   handleDragStart(e, building);
                 }
               }}
