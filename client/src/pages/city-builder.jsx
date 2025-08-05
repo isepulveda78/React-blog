@@ -1,8 +1,8 @@
-// Working City Builder with Enhanced Features
-// Features: Building placement, drag-and-drop, building naming with clear label button
+const { React } = window;
+const { useState, useEffect, useRef } = React;
 
-// Building Types Data - Fixed format for browser compatibility
-window.BUILDING_TYPES = {
+// Enhanced Building Types Configuration with all features
+const BUILDING_TYPES = {
   // Residential
   house: { category: "residential", name: "House", icon: "🏠", width: 40, height: 40 },
   apartment: { category: "residential", name: "Apartment", icon: "🏢", width: 60, height: 80 },
@@ -13,6 +13,7 @@ window.BUILDING_TYPES = {
   office: { category: "commercial", name: "Office", icon: "🏢", width: 80, height: 100 },
   mall: { category: "commercial", name: "Mall", icon: "🏬", width: 120, height: 80 },
   restaurant: { category: "commercial", name: "Restaurant", icon: "🍽️", width: 60, height: 50 },
+  "hair-salon": { category: "commercial", name: "Hair Salon", icon: "💇", width: 50, height: 50 },
   
   // Industrial
   factory: { category: "industrial", name: "Factory", icon: "🏭", width: 100, height: 80 },
@@ -27,20 +28,33 @@ window.BUILDING_TYPES = {
   
   // Nature
   tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 },
-  park: { category: "nature", name: "Park", icon: "🌳", width: 80, height: 60 }
+  "oak-tree": { category: "nature", name: "Oak Tree", icon: "🌳", width: 30, height: 30 },
+  park: { category: "nature", name: "Park", icon: "🌳", width: 80, height: 60 },
+  "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
 };
 
-// Working state management for CityBuilder
-const useCityBuilderHook = () => {
+// Street/Infrastructure Types
+const STREET_TYPES = {
+  road: { category: "roads", name: "Road", icon: "🛣️", width: 20, height: 20 },
+  water: { category: "nature", name: "Water", icon: "💧", width: 40, height: 40 }
+};
+
+// Enhanced state management hook
+const useCityBuilderState = () => {
   const [cityName, setCityName] = useState("My Amazing City");
   const [buildings, setBuildings] = useState([]);
+  const [streets, setStreets] = useState([]);
   const [selectedBuilding, setSelectedBuilding] = useState(null);
+  const [selectedStreet, setSelectedStreet] = useState(null);
   const [editingBuilding, setEditingBuilding] = useState(null);
   const [buildingNameInput, setBuildingNameInput] = useState('');
   const [gridEnabled, setGridEnabled] = useState(true);
   const [backgroundColor, setBackgroundColor] = useState("#90EE90");
   const [isEditingCityName, setIsEditingCityName] = useState(false);
   const [cityNameInput, setCityNameInput] = useState(cityName);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [resizing, setResizing] = useState(null);
+  const canvasRef = useRef(null);
 
   // Building operations
   const addBuilding = (building) => {
@@ -52,10 +66,27 @@ const useCityBuilderHook = () => {
     console.log("Building added:", newBuilding);
   };
 
+  const addStreet = (street) => {
+    const newStreet = {
+      ...street,
+      id: Date.now() + Math.random()
+    };
+    setStreets(prev => [...prev, newStreet]);
+    console.log("Street added:", newStreet);
+  };
+
   const updateBuilding = (id, updates) => {
     setBuildings(prev => 
       prev.map(building => 
         building.id === id ? { ...building, ...updates } : building
+      )
+    );
+  };
+
+  const updateStreet = (id, updates) => {
+    setStreets(prev => 
+      prev.map(street => 
+        street.id === id ? { ...street, ...updates } : street
       )
     );
   };
@@ -67,38 +98,83 @@ const useCityBuilderHook = () => {
     }
   };
 
+  const deleteStreet = (id) => {
+    setStreets(prev => prev.filter(street => street.id !== id));
+    if (selectedStreet?.id === id) {
+      setSelectedStreet(null);
+    }
+  };
+
   const selectBuilding = (building) => {
     setSelectedBuilding(building);
+    setSelectedStreet(null);
     setEditingBuilding(null);
+  };
+
+  const selectStreet = (street) => {
+    setSelectedStreet(street);
+    setSelectedBuilding(null);
   };
 
   const clearSelection = () => {
     setSelectedBuilding(null);
+    setSelectedStreet(null);
     setEditingBuilding(null);
   };
 
   const handleClearCanvas = () => {
     setBuildings([]);
-    setSelectedBuilding(null);
-    setEditingBuilding(null);
+    setStreets([]);
+    clearSelection();
+  };
+
+  const getCityStats = () => ({
+    totalBuildings: buildings.length,
+    totalStreets: streets.length,
+    residential: buildings.filter(b => b.category === 'residential').length,
+    commercial: buildings.filter(b => b.category === 'commercial').length,
+    industrial: buildings.filter(b => b.category === 'industrial').length,
+    public: buildings.filter(b => b.category === 'public').length,
+    nature: buildings.filter(b => b.category === 'nature').length
+  });
+
+  const handleDuplicateBuilding = (building) => {
+    const duplicated = {
+      ...building,
+      id: Date.now() + Math.random(),
+      x: building.x + 20,
+      y: building.y + 20
+    };
+    setBuildings(prev => [...prev, duplicated]);
   };
 
   return {
     cityName, setCityName,
     buildings, setBuildings,
+    streets, setStreets,
     selectedBuilding, setSelectedBuilding,
+    selectedStreet, setSelectedStreet,
     editingBuilding, setEditingBuilding,
     buildingNameInput, setBuildingNameInput,
     gridEnabled, setGridEnabled,
     backgroundColor, setBackgroundColor,
     isEditingCityName, setIsEditingCityName,
     cityNameInput, setCityNameInput,
+    showExportModal, setShowExportModal,
+    resizing, setResizing,
+    canvasRef,
     addBuilding,
+    addStreet,
     updateBuilding,
+    updateStreet,
     deleteBuilding,
+    deleteStreet,
     selectBuilding,
+    selectStreet,
     clearSelection,
-    handleClearCanvas
+    handleClearCanvas,
+    getCityStats,
+    handleDuplicateBuilding
   };
 };
 
@@ -106,36 +182,44 @@ const useCityBuilderHook = () => {
 const CityBuilder = () => {
   const {
     cityName, setCityName,
-    buildings,
-    selectedBuilding,
+    buildings, streets,
+    selectedBuilding, selectedStreet,
     editingBuilding, setEditingBuilding,
     buildingNameInput, setBuildingNameInput,
     gridEnabled, setGridEnabled,
     backgroundColor, setBackgroundColor,
     isEditingCityName, setIsEditingCityName,
     cityNameInput, setCityNameInput,
+    showExportModal, setShowExportModal,
+    resizing, setResizing,
+    canvasRef,
     addBuilding,
+    addStreet,
     updateBuilding,
+    updateStreet,
     deleteBuilding,
+    deleteStreet,
     selectBuilding,
+    selectStreet,
     clearSelection,
-    handleClearCanvas
-  } = useCityBuilderHook();
+    handleClearCanvas,
+    getCityStats,
+    handleDuplicateBuilding
+  } = useCityBuilderState();
 
-  // Canvas event handlers
+  // Canvas drag and drop handlers
   const handleCanvasDrop = (e) => {
     e.preventDefault();
     const dragData = JSON.parse(e.dataTransfer.getData("text/plain"));
     
+    const canvasRect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - canvasRect.left;
+    const y = e.clientY - canvasRect.top;
+    
+    const snappedX = gridEnabled ? Math.round(x / 20) * 20 : x;
+    const snappedY = gridEnabled ? Math.round(y / 20) * 20 : y;
+    
     if (dragData.isBuilding) {
-      const canvasRect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - canvasRect.left;
-      const y = e.clientY - canvasRect.top;
-      
-      // Grid snapping
-      const snappedX = gridEnabled ? Math.round(x / 20) * 20 : x;
-      const snappedY = gridEnabled ? Math.round(y / 20) * 20 : y;
-      
       const newBuilding = {
         type: dragData.type,
         x: snappedX,
@@ -145,8 +229,18 @@ const CityBuilder = () => {
         category: dragData.category,
         name: dragData.itemData.name
       };
-      
       addBuilding(newBuilding);
+    } else if (dragData.isStreet) {
+      const newStreet = {
+        type: dragData.type,
+        x: snappedX,
+        y: snappedY,
+        width: dragData.itemData.width,
+        height: dragData.itemData.height,
+        category: dragData.category,
+        name: dragData.itemData.name
+      };
+      addStreet(newStreet);
     }
   };
 
@@ -156,7 +250,6 @@ const CityBuilder = () => {
   };
 
   const handleCanvasClick = (e) => {
-    // Click on empty canvas to clear selection
     if (e.target === e.currentTarget) {
       clearSelection();
     }
@@ -166,13 +259,18 @@ const CityBuilder = () => {
   const handleBuildingClick = (e, building) => {
     e.stopPropagation();
     if (selectedBuilding?.id === building.id && !editingBuilding) {
-      // Double click to edit name
       handleBuildingNameEdit(building);
     } else {
       selectBuilding(building);
     }
   };
 
+  const handleStreetClick = (e, street) => {
+    e.stopPropagation();
+    selectStreet(street);
+  };
+
+  // Building name editing functions
   const handleBuildingNameEdit = (building) => {
     setEditingBuilding(building);
     setBuildingNameInput(building.customName || building.name || '');
@@ -211,7 +309,7 @@ const CityBuilder = () => {
     }
   };
 
-  // City name handlers
+  // City name editing functions
   const handleCityNameEdit = () => {
     setIsEditingCityName(true);
     setCityNameInput(cityName);
@@ -231,6 +329,50 @@ const CityBuilder = () => {
       setIsEditingCityName(false);
       setCityNameInput(cityName);
     }
+  };
+
+  // Resize handling for buildings and streets
+  const handleResizeStart = (e, item, direction) => {
+    e.stopPropagation();
+    setResizing({ item, direction, startX: e.clientX, startY: e.clientY });
+    
+    const handleMouseMove = (e) => {
+      if (!resizing) return;
+      
+      const deltaX = e.clientX - resizing.startX;
+      const deltaY = e.clientY - resizing.startY;
+      
+      let newWidth = resizing.item.width;
+      let newHeight = resizing.item.height;
+      
+      if (resizing.direction.includes('e')) newWidth += deltaX;
+      if (resizing.direction.includes('w')) newWidth -= deltaX;
+      if (resizing.direction.includes('s')) newHeight += deltaY;
+      if (resizing.direction.includes('n')) newHeight -= deltaY;
+      
+      newWidth = Math.max(20, newWidth);
+      newHeight = Math.max(20, newHeight);
+      
+      if (gridEnabled) {
+        newWidth = Math.round(newWidth / 20) * 20;
+        newHeight = Math.round(newHeight / 20) * 20;
+      }
+      
+      if (resizing.item.category) {
+        updateBuilding(resizing.item.id, { width: newWidth, height: newHeight });
+      } else {
+        updateStreet(resizing.item.id, { width: newWidth, height: newHeight });
+      }
+    };
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      setResizing(null);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   return (
@@ -266,12 +408,21 @@ const CityBuilder = () => {
               </button>
             </div>
           </div>
+          <div className="d-flex align-items-center gap-2">
+            <button
+              className="btn btn-primary d-flex align-items-center gap-2"
+              onClick={() => setShowExportModal(true)}
+            >
+              <i className="fas fa-image"></i>
+              <span className="d-none d-sm-inline">Export Image</span>
+            </button>
+          </div>
         </div>
       </header>
 
       <div className="d-flex" style={{ height: "calc(100vh - 76px)" }}>
         {/* Building Palette */}
-        <div className="bg-white shadow border-end d-flex flex-column" style={{ width: "300px", maxHeight: "100vh" }}>
+        <div className="bg-white shadow border-end d-flex flex-column" style={{ width: "320px", maxHeight: "100vh" }}>
           <div className="p-3 border-bottom flex-fill overflow-auto">
             <h2 className="h5 fw-semibold text-dark mb-3">Building Palette</h2>
             
@@ -292,7 +443,7 @@ const CityBuilder = () => {
                   <h3 className="h6 fw-medium text-dark mb-0">{category.name}</h3>
                 </div>
                 <div className="row g-2">
-                  {Object.entries(window.BUILDING_TYPES)
+                  {Object.entries(BUILDING_TYPES)
                     .filter(([type, building]) => building.category === categoryKey)
                     .map(([type, building]) => (
                     <div key={type} className="col-6">
@@ -337,6 +488,58 @@ const CityBuilder = () => {
               </div>
             ))}
 
+            {/* Streets/Infrastructure Section */}
+            <div className="mb-4">
+              <div className="d-flex align-items-center mb-2">
+                <div 
+                  className="rounded-circle me-2" 
+                  style={{ width: "16px", height: "16px", backgroundColor: "#6b7280" }}
+                ></div>
+                <h3 className="h6 fw-medium text-dark mb-0">Infrastructure</h3>
+              </div>
+              <div className="row g-2">
+                {Object.entries(STREET_TYPES).map(([type, street]) => (
+                  <div key={type} className="col-6">
+                    <div
+                      className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
+                      style={{
+                        borderColor: "#6b7280",
+                        borderOpacity: "0.3",
+                        transition: "all 0.2s ease",
+                        cursor: "grab",
+                        backgroundColor: "#f8f9fa"
+                      }}
+                      draggable
+                      onDragStart={(e) => {
+                        const dragData = { 
+                          type: type, 
+                          category: street.category,
+                          isStreet: true,
+                          itemData: street
+                        };
+                        e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+                        e.dataTransfer.effectAllowed = "copy";
+                        e.currentTarget.style.opacity = "0.5";
+                      }}
+                      onDragEnd={(e) => {
+                        e.currentTarget.style.opacity = "1";
+                      }}
+                    >
+                      <div className="mb-1 d-block" style={{ fontSize: "1.5rem" }}>
+                        {street.icon}
+                      </div>
+                      <p className="small fw-medium text-dark mb-0" style={{ fontSize: "0.65rem" }}>
+                        {street.name}
+                      </p>
+                      <p className="text-muted mb-0" style={{ fontSize: "0.55rem" }}>
+                        {street.width}×{street.height}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Tools section */}
             <div className="p-3 border-top">
               <div className="d-flex gap-2 mb-3">
@@ -354,7 +557,7 @@ const CityBuilder = () => {
                 </button>
               </div>
               
-              {/* Background Color Picker */}
+              {/* Background Color Picker with Custom Color */}
               <div className="mb-3">
                 <label className="form-label small">Background Color:</label>
                 <div className="d-flex gap-1 flex-wrap mb-2">
@@ -389,6 +592,7 @@ const CityBuilder = () => {
 
         {/* Interactive Canvas Area */}
         <div 
+          ref={canvasRef}
           className="flex-grow-1 position-relative overflow-hidden border"
           style={{ 
             minHeight: '400px', 
@@ -413,6 +617,50 @@ const CityBuilder = () => {
               }}
             />
           )}
+
+          {/* Render Streets */}
+          {streets.map((street) => (
+            <div
+              key={street.id}
+              className={`position-absolute border rounded ${selectedStreet?.id === street.id ? 'border-info border-3' : 'border-secondary'}`}
+              style={{
+                left: `${street.x}px`,
+                top: `${street.y}px`,
+                width: `${street.width}px`,
+                height: `${street.height}px`,
+                backgroundColor: street.type === 'water' ? 'rgba(135, 206, 235, 0.8)' : 'rgba(128, 128, 128, 0.6)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: street.width > 40 ? '1.5rem' : '1rem',
+                transition: 'all 0.2s ease',
+                zIndex: selectedStreet?.id === street.id ? 10 : 1
+              }}
+              onClick={(e) => handleStreetClick(e, street)}
+            >
+              <span>{STREET_TYPES[street.type]?.icon || '🛣️'}</span>
+              
+              {/* Resize handles for selected street */}
+              {selectedStreet?.id === street.id && (
+                <>
+                  {/* Corner resize handles */}
+                  <div
+                    className="position-absolute bg-info rounded-circle"
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      bottom: '-5px',
+                      right: '-5px',
+                      cursor: 'nw-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 'se')}
+                  />
+                </>
+              )}
+            </div>
+          ))}
 
           {/* Render Buildings */}
           {buildings.map((building) => (
@@ -439,8 +687,20 @@ const CityBuilder = () => {
               <div className="text-center">
                 {building.type === 'university' ? (
                   <span>🏛️</span>
+                ) : building.type === 'grass-patch' ? (
+                  <div 
+                    className="w-100 h-100 d-flex align-items-center justify-content-center"
+                    style={{
+                      background: 'linear-gradient(45deg, #90EE90 25%, transparent 25%)',
+                      borderRadius: '4px'
+                    }}
+                  >
+                    <span>🌿</span>
+                    {building.width > 30 && <span>🌱</span>}
+                    {building.width > 50 && <span>🍀</span>}
+                  </div>
                 ) : (
-                  <span>{window.BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
+                  <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
                 )}
               </div>
               
@@ -519,25 +779,113 @@ const CityBuilder = () => {
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  Click to rename • Drag to move
+                  Click to rename • Drag corners to resize
                 </div>
+              )}
+
+              {/* Resize handles for selected building */}
+              {selectedBuilding?.id === building.id && (
+                <>
+                  {/* Corner resize handles */}
+                  <div
+                    className="position-absolute bg-primary rounded-circle"
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      bottom: '-5px',
+                      right: '-5px',
+                      cursor: 'nw-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, building, 'se')}
+                  />
+                  <div
+                    className="position-absolute bg-primary rounded-circle"
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      top: '-5px',
+                      left: '-5px',
+                      cursor: 'nw-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, building, 'nw')}
+                  />
+                  <div
+                    className="position-absolute bg-primary rounded-circle"
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      top: '-5px',
+                      right: '-5px',
+                      cursor: 'ne-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, building, 'ne')}
+                  />
+                  <div
+                    className="position-absolute bg-primary rounded-circle"
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      bottom: '-5px',
+                      left: '-5px',
+                      cursor: 'sw-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, building, 'sw')}
+                  />
+                </>
               )}
             </div>
           ))}
 
           {/* Canvas Instructions */}
-          {buildings.length === 0 && (
+          {buildings.length === 0 && streets.length === 0 && (
             <div className="position-absolute top-50 start-50 translate-middle text-center text-muted">
               <div className="display-1 mb-3">🏗️</div>
               <h5>Start Building Your City</h5>
-              <p>Drag buildings from the left panel to place them here</p>
+              <p>Drag buildings and infrastructure from the left panel to place them here</p>
             </div>
           )}
         </div>
       </div>
+
+      {/* Building Properties Panel */}
+      {selectedBuilding && window.BuildingPropertiesPanel && React.createElement(window.BuildingPropertiesPanel, {
+        selectedBuilding: selectedBuilding,
+        onClose: () => clearSelection(),
+        onUpdateBuilding: updateBuilding,
+        onDeleteBuilding: deleteBuilding,
+        onDuplicateBuilding: handleDuplicateBuilding,
+        getCityStats: getCityStats,
+        buildings: buildings,
+        onSelectBuilding: selectBuilding
+      })}
+
+      {/* Street Properties Panel */}
+      {selectedStreet && window.StreetPropertiesPanel && React.createElement(window.StreetPropertiesPanel, {
+        selectedStreet: selectedStreet,
+        onClose: () => clearSelection(),
+        onUpdateStreet: updateStreet,
+        onDeleteStreet: deleteStreet,
+        streets: streets
+      })}
+
+      {/* Export Modal */}
+      {showExportModal && window.ExportModal && React.createElement(window.ExportModal, {
+        isOpen: showExportModal,
+        onClose: () => setShowExportModal(false),
+        cityName: cityName,
+        buildings: buildings,
+        streets: streets,
+        backgroundColor: backgroundColor,
+        getCityStats: getCityStats,
+        canvasRef: canvasRef
+      })}
     </div>
   );
 };
 
-// Export component to window for browser compatibility
+// Export to global scope
 window.CityBuilder = CityBuilder;
