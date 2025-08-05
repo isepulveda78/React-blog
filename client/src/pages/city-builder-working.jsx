@@ -272,11 +272,11 @@ const WorkingCityBuilder = () => {
       }
     });
     
-    // Download the image with city name
+    // Download the image with city name as JPEG
     const link = document.createElement('a');
     const fileName = cityName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'my_city';
-    link.download = `${fileName}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
-    link.href = canvas.toDataURL();
+    link.download = `${fileName}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.jpg`;
+    link.href = canvas.toDataURL('image/jpeg', 0.9);
     link.click();
     
     console.log("Canvas exported successfully");
