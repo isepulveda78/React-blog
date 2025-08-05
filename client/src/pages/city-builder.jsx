@@ -738,7 +738,8 @@ const CityBuilder = () => {
               }}
               onClick={(e) => handleStreetClick(e, street)}
               onMouseDown={(e) => {
-                if (selectedStreet?.id === street.id && !e.target.closest('.resize-handle') && !e.target.closest('button')) {
+                if (selectedStreet?.id === street.id && !e.target.classList.contains('resize-handle') && !e.target.closest('button')) {
+                  console.log("🏃 STREET DRAG START:", street.type);
                   handleDragStart(e, street);
                 }
               }}
@@ -766,7 +767,7 @@ const CityBuilder = () => {
                     ✕
                   </button>
                   
-                  {/* Corner resize handles */}
+                  {/* Corner resize handles for streets */}
                   <div
                     className="position-absolute bg-info rounded-circle resize-handle"
                     style={{
@@ -777,7 +778,11 @@ const CityBuilder = () => {
                       cursor: 'se-resize',
                       zIndex: 20
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 'se')}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      console.log("✂️ STREET RESIZE START:", street.type, "se");
+                      handleResizeStart(e, street, 'se');
+                    }}
                   />
                   <div
                     className="position-absolute bg-info rounded-circle resize-handle"
@@ -789,7 +794,11 @@ const CityBuilder = () => {
                       cursor: 'nw-resize',
                       zIndex: 20
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 'nw')}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      console.log("✂️ STREET RESIZE START:", street.type, "nw");
+                      handleResizeStart(e, street, 'nw');
+                    }}
                   />
                   <div
                     className="position-absolute bg-info rounded-circle resize-handle"
@@ -801,7 +810,11 @@ const CityBuilder = () => {
                       cursor: 'ne-resize',
                       zIndex: 20
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 'ne')}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      console.log("✂️ STREET RESIZE START:", street.type, "ne");
+                      handleResizeStart(e, street, 'ne');
+                    }}
                   />
                   <div
                     className="position-absolute bg-info rounded-circle resize-handle"
@@ -813,7 +826,11 @@ const CityBuilder = () => {
                       cursor: 'sw-resize',
                       zIndex: 20
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 'sw')}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      console.log("✂️ STREET RESIZE START:", street.type, "sw");
+                      handleResizeStart(e, street, 'sw');
+                    }}
                   />
                 </>
               )}
