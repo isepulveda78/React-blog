@@ -375,14 +375,13 @@ const CityBuilder = () => {
     }
   };
 
-  // SIMPLE WORKING RESIZE FUNCTION
+  // COMPLETE RESIZE FUNCTION - ALL DIRECTIONS
   const handleResizeStart = (e, item, direction) => {
     e.stopPropagation();
     e.preventDefault();
     
-    console.log("🎯 NEW RESIZE START:", item.type, direction, "current size:", item.width + "x" + item.height);
+    console.log("🎯 RESIZE START:", item.type, direction, "size:", item.width + "x" + item.height);
     
-    const rect = e.currentTarget.getBoundingClientRect();
     const startX = e.clientX;
     const startY = e.clientY;
     const startWidth = item.width;
@@ -394,22 +393,53 @@ const CityBuilder = () => {
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
       
-      console.log("🔄 RESIZING:", deltaX, deltaY);
-      
       let newWidth = startWidth;
       let newHeight = startHeight;
       let newX = startPosX;
       let newY = startPosY;
       
-      // Apply resize based on direction
-      if (direction === 'se') {
-        newWidth = Math.max(20, startWidth + deltaX);
-        newHeight = Math.max(20, startHeight + deltaY);
+      // Calculate new dimensions and position based on direction
+      switch (direction) {
+        case 'se': // Bottom-right corner
+          newWidth = Math.max(20, startWidth + deltaX);
+          newHeight = Math.max(20, startHeight + deltaY);
+          break;
+        case 'sw': // Bottom-left corner
+          newWidth = Math.max(20, startWidth - deltaX);
+          newHeight = Math.max(20, startHeight + deltaY);
+          newX = startPosX + Math.min(deltaX, startWidth - 20);
+          break;
+        case 'ne': // Top-right corner
+          newWidth = Math.max(20, startWidth + deltaX);
+          newHeight = Math.max(20, startHeight - deltaY);
+          newY = startPosY + Math.min(deltaY, startHeight - 20);
+          break;
+        case 'nw': // Top-left corner
+          newWidth = Math.max(20, startWidth - deltaX);
+          newHeight = Math.max(20, startHeight - deltaY);
+          newX = startPosX + Math.min(deltaX, startWidth - 20);
+          newY = startPosY + Math.min(deltaY, startHeight - 20);
+          break;
       }
       
-      const updates = { width: newWidth, height: newHeight };
+      // Grid snapping if enabled
+      if (gridEnabled) {
+        newWidth = Math.round(newWidth / 20) * 20;
+        newHeight = Math.round(newHeight / 20) * 20;
+        newX = Math.round(newX / 20) * 20;
+        newY = Math.round(newY / 20) * 20;
+      }
       
-      // Update the item immediately
+      // Prepare updates
+      const updates = { width: newWidth, height: newHeight };
+      if (direction === 'sw' || direction === 'nw') {
+        updates.x = Math.max(0, newX);
+      }
+      if (direction === 'ne' || direction === 'nw') {
+        updates.y = Math.max(0, newY);
+      }
+      
+      // Update the item
       if (item.category) {
         updateBuilding(item.id, updates);
       } else {
@@ -418,7 +448,7 @@ const CityBuilder = () => {
     };
     
     const onMouseUp = () => {
-      console.log("✅ RESIZE FINISHED");
+      console.log("✅ RESIZE COMPLETE");
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
       document.body.style.cursor = 'default';
@@ -426,7 +456,7 @@ const CityBuilder = () => {
     
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
-    document.body.style.cursor = 'se-resize';
+    document.body.style.cursor = `${direction}-resize`;
   };
 
   return (
@@ -689,7 +719,7 @@ const CityBuilder = () => {
               }}
               onClick={(e) => handleStreetClick(e, street)}
               onMouseDown={(e) => {
-                if (selectedStreet?.id === street.id && !e.target.closest('.resize-handle') && !e.target.closest('button') && !isResizing) {
+                if (selectedStreet?.id === street.id && !e.target.closest('.resize-handle') && !e.target.closest('button')) {
                   handleDragStart(e, street);
                 }
               }}
@@ -792,7 +822,7 @@ const CityBuilder = () => {
               }}
               onClick={(e) => handleBuildingClick(e, building)}
               onMouseDown={(e) => {
-                if (selectedBuilding?.id === building.id && !e.target.closest('.resize-handle') && !e.target.closest('button') && !isResizing) {
+                if (selectedBuilding?.id === building.id && !e.target.closest('.resize-handle') && !e.target.closest('button')) {
                   handleDragStart(e, building);
                 }
               }}
