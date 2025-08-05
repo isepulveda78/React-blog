@@ -51,7 +51,10 @@ const BuildingPalette = ({
       type: buildingType, 
       category: buildingData.category,
       isBuilding: true,
-      itemData: buildingData
+      itemData: {
+        ...buildingData,
+        icon: buildingData.icon // Ensure the correct icon is passed
+      }
     };
     e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = "copy";
