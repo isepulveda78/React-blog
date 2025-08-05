@@ -76,18 +76,16 @@ const WordSorter = ({ user }) => {
   const exportToPDF = async () => {
     setIsLoading(true);
     try {
-      // Check if jsPDF is available via CDN first
-      let jsPDF;
-      if (window.jsPDF) {
-        jsPDF = window.jsPDF;
-      } else {
-        // Try dynamic import as fallback
-        const module = await import('jspdf');
-        jsPDF = module.default || module.jsPDF;
+      // Check for jsPDF in global scope
+      if (typeof window.jspdf === 'undefined' && typeof window.jsPDF === 'undefined') {
+        throw new Error('jsPDF library not loaded');
       }
 
+      // Get jsPDF constructor
+      const { jsPDF } = window.jspdf || window;
+      
       if (!jsPDF) {
-        throw new Error('jsPDF library not available');
+        throw new Error('jsPDF constructor not found');
       }
       
       const doc = new jsPDF();
@@ -151,12 +149,11 @@ const WordSorter = ({ user }) => {
         'word_sorter.pdf';
       doc.save(fileName);
 
-      // Success feedback
       alert('PDF exported successfully!');
 
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert(`Error generating PDF: ${error.message}. The jsPDF library may not be loaded properly.`);
+      alert(`Error generating PDF: ${error.message || 'Unknown error'}. Please refresh the page and try again.`);
     } finally {
       setIsLoading(false);
     }
