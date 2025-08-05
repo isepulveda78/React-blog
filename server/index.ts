@@ -52,12 +52,8 @@ registerRoutes(app);
 // Configure Express to serve JSX files with JavaScript MIME type
 express.static.mime.define({'application/javascript': ['jsx']});
 
-// Serve static files from appropriate directory based on environment
-const staticDir = process.env.NODE_ENV === 'production' 
-  ? path.join(process.cwd(), 'dist/public')  // Built frontend files in production
-  : path.join(__dirname, '../client'); // Source files in development
-
-app.use(express.static(staticDir));
+// Serve static files from client directory
+app.use(express.static(path.join(__dirname, '../client')));
 
 // Handle client-side routing - but not for static files
 app.get('*', (req, res) => {
@@ -77,29 +73,9 @@ app.get('*', (req, res) => {
   }
   
   console.log('Serving index.html for path:', req.path);
-  const indexPath = process.env.NODE_ENV === 'production'
-    ? path.join(process.cwd(), 'dist/public/index-build.html')
-    : path.join(__dirname, '../client/index-dev.html');
-  res.sendFile(indexPath);
+  res.sendFile(path.join(__dirname, '../client/index.html'));
 });
 
-// Add error handling for server startup
-const server = app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`[express] serving on port ${PORT}`);
-});
-
-server.on('error', (error) => {
-  console.error('[express] Server startup error:', error);
-  process.exit(1);
-});
-
-// Handle uncaught exceptions and unhandled rejections
-process.on('uncaughtException', (error) => {
-  console.error('[process] Uncaught Exception:', error);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('[process] Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
 });

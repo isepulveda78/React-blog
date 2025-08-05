@@ -306,5 +306,3 @@ window.UserProfile = function() {
     </div>
   );
 };
-
-// Component available via window.UserProfile

@@ -1,186 +1,33 @@
-import React, { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react';
+// Use global React and components from window
+const { useState, useEffect, useRef, useCallback, createContext, useContext } = React;
 
-// Make React and hooks available globally for all components (for compatibility with existing components)
-// This must happen BEFORE importing any components that depend on global React
+// Make React hooks available globally for all components
 window.React = React;
 window.useState = useState;
 window.useEffect = useEffect;
 window.useRef = useRef;
 window.useCallback = useCallback;
 
-// Also make React available as a global for the bundled components
-if (typeof global !== 'undefined') {
-  global.React = React;
-} else if (typeof globalThis !== 'undefined') {
-  globalThis.React = React;
-}
-
-// Simple fallback components for immediate functionality
-const Navigation = ({ user, onLogout }) => {
-  const navigate = (path) => {
-    window.history.pushState({}, '', path);
-    window.location.reload();
-  };
-
-  return React.createElement('nav', { className: 'navbar navbar-expand-lg navbar-dark bg-primary' },
-    React.createElement('div', { className: 'container' },
-      React.createElement('a', { 
-        className: 'navbar-brand', 
-        href: '/',
-        onClick: (e) => { e.preventDefault(); navigate('/'); }
-      }, 'Mr. S Teaches'),
-      
-      React.createElement('button', {
-        className: 'navbar-toggler',
-        type: 'button',
-        'data-bs-toggle': 'collapse',
-        'data-bs-target': '#navbarNav'
-      }, React.createElement('span', { className: 'navbar-toggler-icon' })),
-      
-      React.createElement('div', { className: 'collapse navbar-collapse', id: 'navbarNav' },
-        React.createElement('div', { className: 'navbar-nav me-auto' },
-          React.createElement('a', { 
-            className: 'nav-link', 
-            href: '/',
-            onClick: (e) => { e.preventDefault(); navigate('/'); }
-          }, 'Home'),
-          React.createElement('a', { 
-            className: 'nav-link', 
-            href: '/city-builder',
-            onClick: (e) => { e.preventDefault(); navigate('/city-builder'); }
-          }, 'City Builder'),
-          React.createElement('a', { 
-            className: 'nav-link', 
-            href: '/educational-tools',
-            onClick: (e) => { e.preventDefault(); navigate('/educational-tools'); }
-          }, 'Educational Tools'),
-          React.createElement('a', { 
-            className: 'nav-link', 
-            href: '/blog',
-            onClick: (e) => { e.preventDefault(); navigate('/blog'); }
-          }, 'Blog'),
-          user && user.isAdmin && React.createElement('a', { 
-            className: 'nav-link', 
-            href: '/admin',
-            onClick: (e) => { e.preventDefault(); navigate('/admin'); }
-          }, 'Admin')
-        ),
-        React.createElement('div', { className: 'navbar-nav ms-auto' },
-          user ? [
-            React.createElement('span', { 
-              key: 'greeting',
-              className: 'navbar-text me-3' 
-            }, `Hello, ${user.name}`),
-            React.createElement('a', { 
-              key: 'profile',
-              className: 'nav-link me-2', 
-              href: '/profile',
-              onClick: (e) => { e.preventDefault(); navigate('/profile'); }
-            }, 'Profile'),
-            React.createElement('button', { 
-              key: 'logout',
-              className: 'btn btn-outline-light btn-sm', 
-              onClick: onLogout 
-            }, 'Logout')
-          ] : React.createElement('a', { 
-            className: 'btn btn-outline-light btn-sm', 
-            href: '/api/auth/google' 
-          }, 'Login')
-        )
-      )
-    )
-  );
-};
-
-const Home = ({ user }) => (
-  <div className="container my-5">
-    <div className="text-center mb-5">
-      <h1 className="display-4 mb-4">Welcome to Mr. S Teaches</h1>
-      <p className="lead">An interactive educational platform featuring engaging tools and activities for learning.</p>
-      {!user && (
-        <a href="/api/auth/google" className="btn btn-primary btn-lg">Get Started</a>
-      )}
-    </div>
-    <div className="row">
-      <div className="col-md-4 mb-4">
-        <div className="card h-100">
-          <div className="card-body">
-            <h5 className="card-title">🏗️ City Builder</h5>
-            <p className="card-text">Create and design your own virtual city with interactive building tools.</p>
-            <a href="/city-builder" className="btn btn-primary">Start Building</a>
-          </div>
-        </div>
-      </div>
-      <div className="col-md-4 mb-4">
-        <div className="card h-100">
-          <div className="card-body">
-            <h5 className="card-title">🎓 Educational Tools</h5>
-            <p className="card-text">Interactive learning activities including word sorting, bingo, and Spanish alphabet.</p>
-            <a href="/educational-tools" className="btn btn-primary">Explore Tools</a>
-          </div>
-        </div>
-      </div>
-      <div className="col-md-4 mb-4">
-        <div className="card h-100">
-          <div className="card-body">
-            <h5 className="card-title">📚 Blog & Resources</h5>
-            <p className="card-text">Educational content, tutorials, and teaching resources.</p>
-            <a href="/blog" className="btn btn-primary">Read Blog</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    {user && (
-      <div className="row mt-4">
-        <div className="col-12 text-center">
-          <h4>Welcome back, {user.name}!</h4>
-          <p>Ready to continue your learning journey?</p>
-        </div>
-      </div>
-    )}
-  </div>
-);
-
-const NotFound = ({ message }) => (
-  <div className="container my-5 text-center">
-    <h2>Page Not Found</h2>
-    <p>{message || "The page you're looking for doesn't exist."}</p>
-    <a href="/" className="btn btn-primary">Go Home</a>
-  </div>
-);
-
-// Use window object components with loading fallbacks  
-const BlogListing = window.BlogListing || NotFound;
-const BlogPost = window.BlogPost || NotFound;
-const AdminDashboard = window.AdminDashboard || NotFound;
-const AdminPosts = window.AdminPosts || NotFound;
-const AdminUsers = window.AdminUsers || NotFound;
-const AdminComments = window.AdminComments || NotFound;
-const AdminPostEditor = window.AdminPostEditor || NotFound;
-const SEOManagement = window.SEOManagement || NotFound;
-const EducationalTools = window.EducationalTools || Home;
-const BingoGenerator = window.BingoGenerator || Home;
-const SoundDemo = window.SoundDemo || Home;
-const MP3Guide = window.MP3Guide || Home;
-const SpanishAlphabet = window.SpanishAlphabet || Home;
-const WordSorter = window.WordSorter || Home;
-const UserProfile = window.UserProfile || Home;
-
-// Components that work via window objects - fallback to default home for production
-const CityBuilder = (props) => {
-  const WorkingCityBuilder = window.WorkingCityBuilder;
-  const StableCityBuilder = window.StableCityBuilder;
-  const BasicCityBuilder = window.CityBuilder;
-  
-  const SelectedComponent = WorkingCityBuilder || StableCityBuilder || BasicCityBuilder;
-  
-  if (SelectedComponent) {
-    return React.createElement(SelectedComponent, props);
-  }
-  
-  // For production, default to the Home page since components are not loaded yet
-  return React.createElement(Home, props);
-};
+// Components will be loaded as window objects
+const Navigation = window.Navigation;
+const Hero = window.Hero;
+const Home = window.Home;
+const BlogListing = window.BlogListing;
+const BlogPost = window.BlogPost;
+const AdminDashboard = window.AdminDashboard;
+const AdminPosts = window.AdminPosts;
+const AdminUsers = window.AdminUsers;
+const AdminComments = window.AdminComments;
+const AdminPostEditor = window.AdminPostEditor;
+const SEOManagement = window.SEOManagement;
+const UserProfile = window.UserProfile;
+const CityBuilder = window.CityBuilder;
+const EducationalTools = window.EducationalTools;
+const BingoGenerator = window.BingoGenerator;
+const SoundDemo = window.SoundDemo;
+const MP3Guide = window.MP3Guide;
+const SpanishAlphabet = window.SpanishAlphabet;
+const NotFound = window.NotFound;
 
 // Auth Context
 const AuthContext = createContext(null);
@@ -347,16 +194,9 @@ const AppRoutes = () => {
   // Make user available globally for all components
   window.currentUser = user;
 
-  // Simple routing based on location - default to Home for educational platform
-  console.log("DEBUG: Current location:", location);
-  console.log("DEBUG: Available components:", {
-    WorkingCityBuilder: !!WorkingCityBuilder,
-    CityBuilder: !!CityBuilder,
-    Home: !!Home
-  });
-  let CurrentComponent = Home; // Always start with Home - educational platform
+  // Simple routing based on location
+  let CurrentComponent = Home;
   let componentProps = { user };
-  console.log("DEBUG: Initial component chosen:", CurrentComponent === Home ? "Home" : CurrentComponent?.name || "Unknown component");
 
   if (location === "/blog") {
     CurrentComponent = BlogListing;
@@ -420,22 +260,16 @@ const AppRoutes = () => {
       CurrentComponent = UserProfile;
     }
   } else if (location === "/city-builder") {
-    console.log("ROUTE: Loading CityBuilder, WorkingCityBuilder available:", !!WorkingCityBuilder);
-    CurrentComponent = WorkingCityBuilder || CityBuilder;
+    console.log("ROUTE: Loading CityBuilder, WorkingCityBuilder available:", !!window.WorkingCityBuilder);
+    CurrentComponent = window.WorkingCityBuilder || window.StableCityBuilder || CityBuilder;
   } else if (location === "/bingo-generator") {
     CurrentComponent = BingoGenerator;
   } else if (location === "/word-sorter") {
     CurrentComponent = WordSorter;
-  } else if (location === "/") {
-    // Explicitly set Home for root path
-    CurrentComponent = Home;
-  } else {
+  } else if (location !== "/") {
     CurrentComponent = NotFound;
     componentProps = {};
   }
-
-  console.log("DEBUG: Final component chosen:", CurrentComponent === Home ? "Home" : CurrentComponent?.name || "Unknown component");
-  console.log("DEBUG: Component props:", componentProps);
 
   return React.createElement(
     "div",
@@ -464,6 +298,3 @@ const AppRoutes = () => {
 
 // Export to window for global access
 window.App = App;
-
-// Default export for ES6 module import
-export default App;

@@ -2,7 +2,6 @@ const { React, useState, useEffect } = window;
 
 const Navigation = ({ user, onLogout }) => {
   console.log("Navigation component - current user:", user);
-  console.log("Navigation component loaded and rendering");
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -468,4 +467,3 @@ const Navigation = ({ user, onLogout }) => {
 };
 
 window.Navigation = Navigation;
-console.log("Navigation component exported to window:", !!window.Navigation);
