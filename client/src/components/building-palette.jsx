@@ -46,16 +46,15 @@ const BuildingPalette = ({
 }) {
   const handleDragStart = (e, buildingType) => {
     console.log("Drag started for building:", buildingType);
+    console.log("Building data from palette:", BUILDING_TYPES[buildingType]);
     const buildingData = BUILDING_TYPES[buildingType];
     const dragData = { 
       type: buildingType, 
       category: buildingData.category,
       isBuilding: true,
-      itemData: {
-        ...buildingData,
-        icon: buildingData.icon // Ensure the correct icon is passed
-      }
+      itemData: buildingData
     };
+    console.log("Drag data being sent:", dragData);
     e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = "copy";
     e.currentTarget.style.opacity = "0.5";
