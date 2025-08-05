@@ -1126,7 +1126,7 @@ const CityBuilder = ({ user }) => {
                 top: building.y,
                 width: building.width,
                 height: building.height,
-                backgroundColor: building.customColor || '#e2e8f0',
+                backgroundColor: building.type === 'park' ? '#16a34a' : building.customColor || '#e2e8f0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1134,7 +1134,20 @@ const CityBuilder = ({ user }) => {
                 cursor: 'pointer',
                 boxShadow: selectedBuilding?.id === building.id ? '0 0 10px rgba(59, 130, 246, 0.5)' : '0 2px 4px rgba(0,0,0,0.1)',
                 zIndex: selectedBuilding?.id === building.id ? 10 : 1,
-                userSelect: 'none'
+                userSelect: 'none',
+                // Park-specific styling
+                ...(building.type === 'park' && {
+                  backgroundImage: `
+                    radial-gradient(circle at 25% 25%, #22c55e 2px, transparent 2px),
+                    radial-gradient(circle at 75% 75%, #15803d 2px, transparent 2px),
+                    radial-gradient(circle at 50% 50%, #166534 1px, transparent 1px),
+                    linear-gradient(45deg, transparent 40%, rgba(34, 197, 94, 0.3) 40%, rgba(34, 197, 94, 0.3) 60%, transparent 60%)
+                  `,
+                  backgroundSize: '20px 20px, 15px 15px, 10px 10px, 8px 8px',
+                  backgroundPosition: '0 0, 10px 10px, 5px 5px, 0 0',
+                  border: selectedBuilding?.id === building.id ? '3px solid #3b82f6' : '2px solid #15803d',
+                  borderRadius: '8px'
+                })
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -1146,7 +1159,18 @@ const CityBuilder = ({ user }) => {
               }}
               onMouseDown={(e) => handleBuildingMouseDown(e, building)}
             >
-              <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
+              {building.type === 'park' ? (
+                <div className="d-flex flex-wrap justify-content-center align-items-center h-100 w-100" style={{ fontSize: building.width > 60 ? '1rem' : '0.8rem', gap: '2px', padding: '2px' }}>
+                  <span>🌳</span>
+                  <span>🌿</span>
+                  {building.width > 40 && <span>🌸</span>}
+                  {building.width > 60 && <span>🦋</span>}
+                  {building.width > 80 && <span>🌺</span>}
+                  {building.width > 100 && <span>🐦</span>}
+                </div>
+              ) : (
+                <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
+              )}
               
               {/* Building Name Display */}
               {(building.customName || building.name) && !editingBuilding && (
