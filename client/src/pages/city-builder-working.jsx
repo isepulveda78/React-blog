@@ -359,10 +359,11 @@ const WorkingCityBuilder = () => {
                 style: {
                   width: '40px',
                   height: '30px',
-                  border: '2px solid #0abde3',
+                  border: 'none',
                   borderRadius: '6px',
                   cursor: 'pointer',
-                  backgroundColor: 'transparent'
+                  backgroundColor: 'transparent',
+                  outline: 'none'
                 },
                 title: 'Choose custom background color'
               }),
