@@ -329,6 +329,45 @@ const StableCityBuilder = () => {
           
           {/* Tools */}
           <div style={{ padding: "20px", borderTop: "1px solid #ccc" }}>
+            {/* Background Color Selector */}
+            <div style={{ marginBottom: "15px" }}>
+              <h4 style={{ fontSize: "12px", fontWeight: "bold", color: "black", marginBottom: "8px" }}>
+                BACKGROUND COLOR
+              </h4>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                {[
+                  { name: "Grass", color: "#90EE90" },
+                  { name: "Desert", color: "#F4A460" },
+                  { name: "Ocean", color: "#87CEEB" },
+                  { name: "Snow", color: "#FFFAFA" },
+                  { name: "Dark", color: "#2F4F4F" }
+                ].map((bg) => (
+                  <div
+                    key={bg.name}
+                    style={{
+                      width: "45px",
+                      height: "35px",
+                      backgroundColor: bg.color,
+                      border: backgroundColor === bg.color ? "3px solid #007bff" : "1px solid #ccc",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "8px",
+                      fontWeight: "bold",
+                      color: bg.color === "#FFFAFA" ? "black" : "white",
+                      textShadow: bg.color === "#FFFAFA" ? "none" : "0 1px 1px rgba(0,0,0,0.5)"
+                    }}
+                    onClick={() => setBackgroundColor(bg.color)}
+                    title={bg.name}
+                  >
+                    {bg.name.slice(0,4)}
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <button 
               style={{
                 width: "100%",
