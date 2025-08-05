@@ -408,7 +408,7 @@ const CityBuilder = ({ user }) => {
 
       <div className="d-flex" style={{ height: "calc(100vh - 76px)" }}>
         {/* Building Palette */}
-        {window.BuildingPalette && React.createElement(window.BuildingPalette, {
+        {window.BuildingPalette ? React.createElement(window.BuildingPalette, {
           onBuildingDragStart: handleBuildingDragStart,
           onStreetDragStart: handleStreetDragStart,
           onClearCanvas: handleClearCanvas,
@@ -416,7 +416,23 @@ const CityBuilder = ({ user }) => {
           onToggleGrid: () => setGridEnabled(!gridEnabled),
           backgroundColor: backgroundColor,
           onBackgroundColorChange: handleBackgroundColorChange
-        })}
+        }) : (
+          <div className="bg-white shadow border-end d-flex flex-column" style={{ width: "320px", maxHeight: "100vh" }}>
+            <div className="p-3 border-bottom flex-fill overflow-auto">
+              <h2 className="h5 fw-semibold text-dark mb-3">Building Palette</h2>
+              <div className="alert alert-warning">
+                <div className="d-flex align-items-center">
+                  <i className="fas fa-exclamation-triangle me-2"></i>
+                  <div>
+                    <strong>Loading...</strong>
+                    <div className="small">Building palette is loading. Check console for errors.</div>
+                    <div className="small text-muted">BuildingPalette available: {window.BuildingPalette ? 'Yes' : 'No'}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Interactive Canvas Area */}
         <div 
