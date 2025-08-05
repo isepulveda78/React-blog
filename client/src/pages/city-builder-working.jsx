@@ -165,6 +165,97 @@ const WorkingCityBuilder = () => {
     document.addEventListener('mouseup', onUp);
   };
 
+  // Export canvas as image
+  const handleExportCanvas = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const canvasElement = canvasRef.current;
+    
+    if (!canvasElement) return;
+    
+    const rect = canvasElement.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    
+    // Fill background
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw grid if enabled
+    if (gridEnabled) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= canvas.width; x += 20) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= canvas.height; y += 20) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
+    
+    // Draw streets/roads
+    streets.forEach(street => {
+      ctx.fillStyle = street.type === 'water' ? '#007bff' : '#000000';
+      ctx.fillRect(street.x, street.y, street.width, street.height);
+    });
+    
+    // Draw buildings with emojis
+    buildings.forEach(building => {
+      const buildingData = BUILDING_TYPES[building.category]?.[building.type];
+      if (buildingData) {
+        // Draw emoji
+        ctx.font = '2rem serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(
+          buildingData.icon,
+          building.x + building.width / 2,
+          building.y + building.height / 2
+        );
+        
+        // Draw label if exists
+        if (building.customLabel) {
+          ctx.font = '11px Arial';
+          ctx.fillStyle = '#000';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          
+          // Background for label
+          const textWidth = ctx.measureText(building.customLabel).width;
+          ctx.fillStyle = 'rgba(255,255,255,0.9)';
+          ctx.fillRect(
+            building.x + building.width / 2 - textWidth / 2 - 4,
+            building.y + building.height + 2,
+            textWidth + 8,
+            16
+          );
+          
+          // Label text
+          ctx.fillStyle = '#000';
+          ctx.fillText(
+            building.customLabel,
+            building.x + building.width / 2,
+            building.y + building.height + 5
+          );
+        }
+      }
+    });
+    
+    // Download the image
+    const link = document.createElement('a');
+    link.download = `city-design-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+    
+    console.log("Canvas exported successfully");
+  };
+
   // Handle canvas drop
   const handleCanvasDrop = (e) => {
     e.preventDefault();
@@ -343,7 +434,25 @@ const WorkingCityBuilder = () => {
             '• Click label to edit name',
             React.createElement('br'),
             '• Press Delete to remove selected'
-          )
+          ),
+          
+          // Export Button
+          React.createElement('button', {
+            style: {
+              width: '100%',
+              padding: '10px',
+              marginTop: '10px',
+              backgroundColor: '#17a2b8',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 'bold'
+            },
+            onClick: handleExportCanvas,
+            title: 'Download your city design as PNG image'
+          }, '📸 Export Canvas')
         ),
         
         // Building Categories
