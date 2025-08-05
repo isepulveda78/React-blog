@@ -133,14 +133,57 @@ const CityBuilder = ({ user }) => {
     }
   };
 
-  const handleItemClick = (item, isBuilding) => {
-    if (isResizing) return;
-    setSelectedItem({ ...item, isBuilding });
-  };
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const handleDoubleClick = (item, isBuilding) => {
+  const handleItemClick = (item, isBuilding) => {
+    if (isResizing || isDragging) return;
+    setSelectedItem({ ...item, isBuilding });
     setEditingLabel(item.id);
     setLabelInput(item.label || item.name);
+  };
+
+  const handleItemMouseDown = (e, item, isBuilding) => {
+    if (isResizing) return;
+    e.stopPropagation();
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+    
+    setIsDragging(true);
+    setSelectedItem({ ...item, isBuilding });
+    
+    const handleMouseMove = (moveEvent) => {
+      const canvasX = moveEvent.clientX - canvasRect.left - dragOffset.x;
+      const canvasY = moveEvent.clientY - canvasRect.top - dragOffset.y;
+      
+      const snappedX = gridEnabled ? Math.round(canvasX / 20) * 20 : canvasX;
+      const snappedY = gridEnabled ? Math.round(canvasY / 20) * 20 : canvasY;
+      
+      if (isBuilding) {
+        setBuildings(prev => prev.map(b => 
+          b.id === item.id ? { ...b, x: Math.max(0, snappedX), y: Math.max(0, snappedY) } : b
+        ));
+      } else {
+        setStreets(prev => prev.map(s => 
+          s.id === item.id ? { ...s, x: Math.max(0, snappedX), y: Math.max(0, snappedY) } : s
+        ));
+      }
+    };
+    
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleLabelSave = () => {
@@ -361,14 +404,7 @@ const CityBuilder = ({ user }) => {
               backgroundColor: street.color,
               cursor: 'pointer'
             }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleItemClick(street, false);
-            }}
-            onDoubleClick={(e) => {
-              e.stopPropagation();
-              handleDoubleClick(street, false);
-            }}
+            onMouseDown={(e) => handleItemMouseDown(e, street, false)}
           >
             {street.label && (
               <div style={{ 
@@ -457,19 +493,11 @@ const CityBuilder = ({ user }) => {
               top: `${building.y}px`,
               width: `${building.width}px`,
               height: `${building.height}px`,
-              backgroundColor: building.color || '#f8f9fa',
-              border: '2px solid #dee2e6',
+              backgroundColor: 'transparent',
               cursor: 'pointer',
               fontSize: building.width > 60 ? '24px' : '18px'
             }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleItemClick(building, true);
-            }}
-            onDoubleClick={(e) => {
-              e.stopPropagation();
-              handleDoubleClick(building, true);
-            }}
+            onMouseDown={(e) => handleItemMouseDown(e, building, true)}
           >
             <div>{building.icon}</div>
             {building.label && (
@@ -553,7 +581,7 @@ const CityBuilder = ({ user }) => {
           <small>
             <strong>Instructions:</strong><br/>
             • Drag items from sidebar to canvas<br/>
-            • Click to select, double-click to name<br/>
+            • Click to select and name, drag to move<br/>
             • Drag blue corners to resize<br/>
             • Use Copy/Delete buttons to duplicate/remove items
           </small>
