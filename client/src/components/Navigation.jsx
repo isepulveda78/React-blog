@@ -338,6 +338,19 @@ const Navigation = ({ user, onLogout }) => {
                 </a>
               </li>
 
+              <li className="nav-item">
+                <a
+                  className={`nav-link ${isActive("/educational-tools") ? "active" : ""}`}
+                  href="/educational-tools"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo("/educational-tools");
+                  }}
+                >
+                  Educational Tools
+                </a>
+              </li>
+
               {user && user.approved && (
                 <li className="nav-item">
                   <a

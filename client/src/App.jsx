@@ -14,6 +14,8 @@ const AdminComments = window.AdminComments;
 const AdminPostEditor = window.AdminPostEditor;
 const SEOManagement = window.SEOManagement;
 const UserProfile = window.UserProfile;
+const CityBuilder = window.CityBuilder;
+const EducationalTools = window.EducationalTools;
 const NotFound = window.NotFound;
 
 // Auth Context
@@ -22,7 +24,7 @@ const AuthContext = createContext(null);
 const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };
@@ -123,25 +125,25 @@ const AuthProvider = ({ children }) => {
 // Simple routing function
 const SimpleRouter = ({ children }) => {
   const [location, setLocation] = useState(window.location.pathname);
-  
+
   React.useEffect(() => {
     const handlePopState = () => {
       setLocation(window.location.pathname);
     };
-    
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
-  
+
   return children;
 };
 
 // Main App Component
 const App = () => {
-  return React.createElement(AuthProvider, null,
-    React.createElement(SimpleRouter, null,
-      React.createElement(AppRoutes)
-    )
+  return React.createElement(
+    AuthProvider,
+    null,
+    React.createElement(SimpleRouter, null, React.createElement(AppRoutes)),
   );
 };
 
@@ -154,104 +156,123 @@ const AppRoutes = () => {
     const handlePopState = () => {
       setLocation(window.location.pathname);
     };
-    
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   if (isLoading) {
     return React.createElement(
-      'div',
-      { className: 'd-flex justify-content-center align-items-center min-vh-100' },
+      "div",
+      {
+        className:
+          "d-flex justify-content-center align-items-center min-vh-100",
+      },
       React.createElement(
-        'div',
-        { className: 'spinner-border text-primary', role: 'status' },
-        React.createElement('span', { className: 'visually-hidden' }, 'Loading...')
-      )
+        "div",
+        { className: "spinner-border text-primary", role: "status" },
+        React.createElement(
+          "span",
+          { className: "visually-hidden" },
+          "Loading...",
+        ),
+      ),
     );
   }
 
   // Make user available globally for all components
   window.currentUser = user;
-  
+
   // Simple routing based on location
   let CurrentComponent = Home;
   let componentProps = { user };
 
-  if (location === '/blog') {
+  if (location === "/blog") {
     CurrentComponent = BlogListing;
-  } else if (location.startsWith('/blog/')) {
+  } else if (location.startsWith("/blog/")) {
     CurrentComponent = BlogPost;
-    componentProps = { user, slug: location.replace('/blog/', '') };
-  } else if (location === '/admin') {
+    componentProps = { user, slug: location.replace("/blog/", "") };
+  } else if (location === "/educational-tools") {
+    CurrentComponent = EducationalTools;
+  } else if (location === "/admin") {
     if (!user) {
       // Redirect to home with login prompt for unauthenticated users
-      window.location.href = '/?message=login-required';
+      window.location.href = "/?message=login-required";
       return null;
     } else if (!user.isAdmin) {
       // Show access denied for non-admin users
       CurrentComponent = NotFound;
-      componentProps = { message: 'Access denied. Admin privileges required.' };
+      componentProps = { message: "Access denied. Admin privileges required." };
     } else {
       CurrentComponent = AdminDashboard;
     }
-  } else if (location === '/admin/posts') {
+  } else if (location === "/admin/posts") {
     if (!user || !user.isAdmin) {
-      window.location.href = '/?message=admin-required';
+      window.location.href = "/?message=admin-required";
       return null;
     }
     CurrentComponent = AdminPosts;
-  } else if (location === '/admin/users') {
+  } else if (location === "/admin/users") {
     if (!user || !user.isAdmin) {
-      window.location.href = '/?message=admin-required';
+      window.location.href = "/?message=admin-required";
       return null;
     }
     CurrentComponent = AdminUsers;
-  } else if (location === '/admin/comments') {
+  } else if (location === "/admin/comments") {
     if (!user || !user.isAdmin) {
-      window.location.href = '/?message=admin-required';
+      window.location.href = "/?message=admin-required";
       return null;
     }
     CurrentComponent = AdminComments;
-  } else if (location === '/seo-management') {
+  } else if (location === "/seo-management") {
     if (!user || !user.isAdmin) {
-      window.location.href = '/?message=admin-required';
+      window.location.href = "/?message=admin-required";
       return null;
     }
     CurrentComponent = SEOManagement;
-  } else if (location === '/profile') {
+  } else if (location === "/profile") {
     if (!user) {
-      window.location.href = '/?message=login-required';
+      window.location.href = "/?message=login-required";
       return null;
     } else if (!user.approved) {
       CurrentComponent = NotFound;
-      componentProps = { message: 'Account pending approval. Please wait for admin approval.' };
+      componentProps = {
+        message: "Account pending approval. Please wait for admin approval.",
+      };
     } else {
       CurrentComponent = UserProfile;
     }
-  } else if (location !== '/') {
+  } else if (location !== "/") {
     CurrentComponent = NotFound;
     componentProps = {};
+  } else if (location === "/city-builder") {
+    CurrentComponent = CityBuilder;
+  } else if (location === "/educational-tools") {
+    CurrentComponent = EducationalTools;
   }
 
   return React.createElement(
-    'div',
-    { className: 'min-vh-100 d-flex flex-column' },
+    "div",
+    { className: "min-vh-100 d-flex flex-column" },
     Navigation && React.createElement(Navigation, { user, onLogout: logout }),
     React.createElement(
-      'main',
-      { className: 'flex-grow-1' },
-      CurrentComponent && React.createElement(CurrentComponent, componentProps)
+      "main",
+      { className: "flex-grow-1" },
+      CurrentComponent && React.createElement(CurrentComponent, componentProps),
     ),
     React.createElement(
-      'footer',
-      { className: 'bg-dark text-light py-4 mt-auto' },
+      "footer",
+      { className: "bg-dark text-light py-4 mt-auto" },
       React.createElement(
-        'div',
-        { className: 'container text-center' },
-        React.createElement('p', { className: 'mb-0' }, '© 2025 Mr. S Teaches. All rights reserved.')
-      )
-    )
+        "div",
+        { className: "container text-center" },
+        React.createElement(
+          "p",
+          { className: "mb-0" },
+          "© 2025 Mr. S Teaches. All rights reserved.",
+        ),
+      ),
+    ),
   );
 };
 

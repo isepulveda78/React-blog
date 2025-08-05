@@ -1,0 +1,274 @@
+import {
+  BUILDING_CATEGORIES,
+  BUILDING_TYPES,
+  STREET_CATEGORIES,
+  STREET_TYPES,
+} from "../lib/building-data";
+
+export default function BuildingPalette({
+  onBuildingDragStart,
+  onStreetDragStart,
+  onClearCanvas,
+  gridEnabled,
+  onToggleGrid,
+  backgroundColor,
+  onBackgroundColorChange,
+}) {
+  const handleDragStart = (e, buildingType) => {
+    console.log("Drag started for building:", buildingType);
+    e.dataTransfer.setData("text/plain", buildingType); // Use standard MIME type
+    e.dataTransfer.setData("buildingType", buildingType);
+    e.dataTransfer.effectAllowed = "copy";
+    onBuildingDragStart(buildingType);
+  };
+
+  const handleDragEnd = () => {
+    onBuildingDragStart(null);
+  };
+
+  const handleStreetDragStart = (e, streetType) => {
+    console.log("Drag started for street:", streetType);
+    e.dataTransfer.setData("text/plain", streetType); // Use standard MIME type
+    e.dataTransfer.setData("streetType", streetType);
+    e.dataTransfer.effectAllowed = "copy";
+    onStreetDragStart(streetType);
+  };
+
+  const handleStreetDragEnd = () => {
+    // Don't clear street type on drag end - let the street drawing finish first
+    // onStreetDragStart(null);
+  };
+
+  return (
+    <aside
+      className="bg-white shadow border-end d-flex flex-column"
+      style={{ width: "320px", maxHeight: "100vh" }}
+    >
+      <div className="p-3 border-bottom flex-fill overflow-auto">
+        <h2 className="h5 fw-semibold text-dark mb-3">Building Palette</h2>
+
+        {Object.entries(BUILDING_CATEGORIES).map(([categoryId, category]) => (
+          <div key={categoryId} className="mb-4">
+            <div className="d-flex align-items-center mb-2">
+              <div
+                className="rounded-circle me-2"
+                style={{
+                  width: "16px",
+                  height: "16px",
+                  backgroundColor:
+                    category.color === "residential"
+                      ? "#34d399"
+                      : category.color === "commercial"
+                        ? "#fbbf24"
+                        : category.color === "public"
+                          ? "#a78bfa"
+                          : category.color === "tools"
+                            ? "#6b7280"
+                            : "#22c55e",
+                }}
+              ></div>
+              <h3 className="h6 fw-medium text-dark mb-0">{category.name}</h3>
+            </div>
+            <div className="row g-2">
+              {category.buildings.map((buildingId) => {
+                const building = BUILDING_TYPES[buildingId];
+                if (!building) {
+                  console.error(`Building type not found: ${buildingId}`);
+                  return null;
+                }
+                return (
+                  <div key={buildingId} className="col-6">
+                    <div
+                      className="building-item border border-2 border-dashed rounded-3 p-2 cursor-grab text-center"
+                      style={{
+                        borderColor:
+                          category.color === "residential"
+                            ? "#34d399"
+                            : category.color === "commercial"
+                              ? "#fbbf24"
+                              : category.color === "public"
+                                ? "#a78bfa"
+                                : category.color === "tools"
+                                  ? "#6b7280"
+                                  : "#22c55e",
+                        borderOpacity: "0.3",
+                        transition: "all 0.2s ease",
+                      }}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, buildingId)}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <i
+                        className={`${building.icon} mb-1 d-block`}
+                        style={{
+                          fontSize: "1.5rem",
+                          color:
+                            category.color === "residential"
+                              ? "#34d399"
+                              : category.color === "commercial"
+                                ? "#fbbf24"
+                                : category.color === "public"
+                                  ? "#a78bfa"
+                                  : category.color === "tools"
+                                    ? "#6b7280"
+                                    : "#22c55e",
+                        }}
+                      ></i>
+                      <p
+                        className="small fw-medium text-dark mb-0"
+                        style={{ fontSize: "0.65rem", lineHeight: "1.1" }}
+                      >
+                        {building.name}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        {/* Street Categories */}
+        {Object.entries(STREET_CATEGORIES).map(([categoryId, category]) => (
+          <div key={categoryId} className="mb-4">
+            <div className="d-flex align-items-center mb-2">
+              <div
+                className={`rounded-circle me-2 ${category.color === "success" ? "bg-success" : "bg-secondary"}`}
+                style={{ width: "16px", height: "16px" }}
+              ></div>
+              <h3 className="h6 fw-medium text-dark mb-0">{category.name}</h3>
+            </div>
+            <div className="row g-2">
+              {category.items.map((streetId) => {
+                const street = STREET_TYPES[streetId];
+                if (!street) {
+                  console.error(`Street type not found: ${streetId}`);
+                  return null;
+                }
+                return (
+                  <div key={streetId} className="col-6">
+                    <div
+                      className={`building-item border border-2 border-dashed rounded-3 p-2 cursor-grab text-center ${
+                        category.color === "success"
+                          ? "border-success"
+                          : "border-secondary"
+                      }`}
+                      style={{
+                        borderColor:
+                          category.color === "success" ? "#22c55e" : "#6c757d",
+                        borderOpacity: "0.3",
+                        transition: "all 0.2s ease",
+                      }}
+                      draggable
+                      onDragStart={(e) => handleStreetDragStart(e, streetId)}
+                      onDragEnd={handleStreetDragEnd}
+                    >
+                      <i
+                        className={`${street.icon} mb-1 d-block`}
+                        style={{
+                          fontSize: "1.5rem",
+                          color:
+                            category.color === "success"
+                              ? "#22c55e"
+                              : "#6c757d",
+                        }}
+                      ></i>
+                      <p
+                        className="small fw-medium text-dark mb-0"
+                        style={{ fontSize: "0.65rem", lineHeight: "1.1" }}
+                      >
+                        {street.name}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Canvas Tools */}
+      <div className="p-3 border-top flex-shrink-0">
+        <h3 className="h6 fw-medium text-dark mb-3">Canvas Tools</h3>
+        <div className="d-flex gap-2 mb-3">
+          <button className="btn btn-primary btn-sm flex-fill d-flex align-items-center justify-content-center gap-1">
+            <i className="fas fa-mouse-pointer"></i>
+            <span>Select</span>
+          </button>
+          <button
+            className="btn btn-secondary btn-sm flex-fill d-flex align-items-center justify-content-center gap-1"
+            onClick={onClearCanvas}
+          >
+            <i className="fas fa-trash"></i>
+            <span>Clear</span>
+          </button>
+        </div>
+        <div className="d-flex align-items-center gap-2">
+          <label className="small text-muted mb-0">Grid:</label>
+          <button
+            className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+            onClick={onToggleGrid}
+          >
+            <i className="fas fa-th"></i>
+            <span>{gridEnabled ? "On" : "Off"}</span>
+          </button>
+        </div>
+
+        {/* Background Color Selector */}
+        <div className="mt-3 pt-3 border-top">
+          <h4 className="small fw-medium text-dark mb-2">Canvas Background</h4>
+          <div className="d-flex flex-column gap-2">
+            <div className="d-flex align-items-center gap-2">
+              <label className="small text-muted" style={{ minWidth: "48px" }}>
+                Color:
+              </label>
+              <input
+                type="color"
+                value={backgroundColor || "#f3f4f6"}
+                onChange={(e) => {
+                  console.log("Color changed to:", e.target.value);
+                  onBackgroundColorChange(e.target.value);
+                }}
+                className="form-control form-control-sm border rounded"
+                style={{ width: "32px", height: "32px", cursor: "pointer" }}
+                title="Choose background color"
+              />
+              <small className="text-muted font-monospace">
+                {backgroundColor}
+              </small>
+            </div>
+            <div className="row g-1">
+              {[
+                "#f3f4f6", // Light gray
+                "#ffffff", // White
+                "#dbeafe", // Light blue
+                "#dcfce7", // Light green
+                "#fef3c7", // Light yellow
+                "#fce7f3", // Light pink
+                "#f3e8ff", // Light purple
+                "#fed7d7", // Light red
+              ].map((color) => (
+                <div key={color} className="col-3">
+                  <button
+                    className={`btn btn-sm w-100 border border-2 ${backgroundColor === color ? "border-dark" : "border-light"}`}
+                    style={{
+                      backgroundColor: color,
+                      height: "24px",
+                      transition: "border-color 0.2s ease",
+                    }}
+                    onClick={() => {
+                      console.log("Preset color clicked:", color);
+                      onBackgroundColorChange(color);
+                    }}
+                    title={`Set background to ${color}`}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
