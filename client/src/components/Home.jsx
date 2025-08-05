@@ -88,20 +88,12 @@ const Home = ({ user }) => {
           ) : posts.length > 0 ? (
             <div className="row">
               {posts.map(post => (
-                <div className="col-md-6 col-lg-4 mb-4" key={post._id}>
-                  <div className="card h-100 shadow-sm">
-                    <div className="card-body">
-                      <h5 className="card-title">{post.title}</h5>
-                      <p className="card-text">{post.excerpt || post.content?.substring(0, 100) + '...'}</p>
-                      <button 
-                        className="btn btn-primary"
-                        onClick={() => handleReadMore(post)}
-                      >
-                        Read More
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <BlogCard
+                  key={post._id}
+                  post={post}
+                  onReadMore={() => handleReadMore(post)}
+                  showReadMore={true}
+                />
               ))}
             </div>
           ) : (
