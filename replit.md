@@ -71,3 +71,29 @@ Cache management: Implemented hot reload system for instant change detection and
 - **Express.js**: Backend framework.
 - **Cloudinary**: Cloud storage for images.
 - **Passport.js** and **passport-google-oauth20**: For authentication.
+
+## Deployment Configuration
+
+### Build System
+- **Development Mode**: Uses CDN-based React and in-browser Babel transpilation for fast development
+- **Production Build**: Vite builds optimized bundles with proper asset hashing and minification
+- **Hybrid Architecture**: Maintains compatibility between development and production modes
+
+### Build Process
+- `npm run build` creates production-ready assets in `dist/` directory
+- Frontend assets are bundled and optimized by Vite into `dist/public/`
+- Server code is bundled by esbuild into `dist/index.js`
+- Static assets (sounds, images) are automatically copied to build output
+
+### Server Configuration
+- **Development**: Serves files from `client/` directory with hot reload
+- **Production**: Serves built assets from `dist/public/` with optimized caching
+- **Routing**: Supports client-side routing with proper fallback handling
+- **Assets**: Handles all static file types including audio, images, and fonts
+
+### Recent Build Fixes Applied
+- Created proper Vite configuration with correct root and output directories
+- Implemented production-ready index.html template with module scripts
+- Added post-build script to ensure correct file naming
+- Updated server to conditionally serve development vs production assets
+- Fixed asset bundling and static file serving for deployment
