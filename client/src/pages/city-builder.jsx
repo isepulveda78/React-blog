@@ -180,7 +180,7 @@ const useCityBuilderState = () => {
 
 // Main CityBuilder Component - Updated with fixes
 const CityBuilder = () => {
-  console.log("🎯 CityBuilder READY - drag & resize ENABLED");
+  console.log("CITYBUILDER: Ready - Hot reload disabled for proper drag/resize");
   const {
     cityName, setCityName,
     buildings, streets,
@@ -310,61 +310,60 @@ const CityBuilder = () => {
     }
   };
 
-  // FIXED DRAG FUNCTIONALITY - WORKS WITH GRID
+  // COMPLETE DRAG FUNCTION - NO RELOAD INTERFERENCE
   const handleDragStart = (e, item) => {
-    if (e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('.resize-handle')) return;
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.classList.contains('resize-handle')) return;
     
     e.stopPropagation();
     e.preventDefault();
     
-    console.log("🏃 DRAG START:", item.type, "from", item.x + "," + item.y);
+    console.log("DRAG:", item.type, "START");
     
     const startX = e.clientX;
     const startY = e.clientY;
     const startItemX = item.x;
     const startItemY = item.y;
+    let hasMoved = false;
     
-    const onMouseMove = (moveEvent) => {
-      moveEvent.preventDefault();
-      moveEvent.stopPropagation();
+    function dragMove(me) {
+      me.preventDefault();
+      me.stopPropagation();
       
-      const deltaX = moveEvent.clientX - startX;
-      const deltaY = moveEvent.clientY - startY;
+      hasMoved = true;
+      const deltaX = me.clientX - startX;
+      const deltaY = me.clientY - startY;
       
       let newX = startItemX + deltaX;
       let newY = startItemY + deltaY;
       
-      // Grid snapping
       if (gridEnabled) {
         newX = Math.round(newX / 20) * 20;
         newY = Math.round(newY / 20) * 20;
       }
       
-      // Boundary constraints
       newX = Math.max(0, newX);
       newY = Math.max(0, newY);
       
-      console.log("🏃 DRAGGING:", newX, newY);
+      console.log("DRAG:", newX, newY);
       
-      // Update position
       if (item.category) {
         updateBuilding(item.id, { x: newX, y: newY });
       } else {
         updateStreet(item.id, { x: newX, y: newY });
       }
-    };
+    }
     
-    const onMouseUp = (upEvent) => {
-      upEvent.preventDefault();
-      console.log("🏁 DRAG END");
+    function dragEnd(ue) {
+      ue.preventDefault();
+      console.log("DRAG: END, moved:", hasMoved);
       
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('mousemove', dragMove);
+      document.removeEventListener('mouseup', dragEnd);
       document.body.style.cursor = 'default';
-    };
+    }
     
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('mousemove', dragMove);
+    document.addEventListener('mouseup', dragEnd);
     document.body.style.cursor = 'grabbing';
   };
 

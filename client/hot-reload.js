@@ -1,4 +1,5 @@
-// Hot reload COMPLETELY DISABLED for drag/resize debugging
+// Hot reload COMPLETELY DISABLED - DO NOT ENABLE
+console.log("Hot reload permanently disabled for CityBuilder");
 if (false) {
   let lastCheck = Date.now();
   let checkCount = 0;
