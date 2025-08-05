@@ -231,7 +231,7 @@ const WorkingCityBuilder = () => {
           ctx.fillStyle = 'rgba(255,255,255,0.9)';
           ctx.fillRect(
             building.x + building.width / 2 - textWidth / 2 - 3,
-            building.y + building.height - 2,
+            building.y - 18,
             textWidth + 6,
             14
           );
@@ -241,7 +241,7 @@ const WorkingCityBuilder = () => {
           ctx.fillText(
             building.customLabel,
             building.x + building.width / 2,
-            building.y + building.height
+            building.y - 8
           );
         }
       }
@@ -723,7 +723,7 @@ const WorkingCityBuilder = () => {
             React.createElement('div', {
               style: {
                 position: 'absolute',
-                bottom: '-18px',
+                top: '-20px',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 backgroundColor: 'rgba(255,255,255,0.95)',
