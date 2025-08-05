@@ -30,7 +30,6 @@ const BUILDING_TYPES = {
   nature: {
     park: { name: "Park", icon: "🌳", width: 80, height: 80, color: "#84cc16" },
     tree: { name: "Tree", icon: "🌳", width: 30, height: 30, color: "#84cc16" },
-    lake: { name: "Lake", icon: "🏞️", width: 100, height: 80, color: "#84cc16" },
     grass: { name: "Grass", icon: "🌱", width: 60, height: 40, color: "#84cc16", resizable: true }
   }
 };
