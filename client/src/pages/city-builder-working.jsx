@@ -300,18 +300,19 @@ const WorkingCityBuilder = () => {
         minWidth: '280px',
         height: '100vh',
         overflowY: 'auto', 
-        backgroundColor: '#f8f9fa',
-        border: '2px solid #007bff'
+        backgroundColor: '#ffffff',
+        border: '2px solid #0abde3',
+        boxShadow: '2px 0 10px rgba(10, 189, 227, 0.1)'
       }
     },
       React.createElement('div', { style: { padding: '20px' } },
-        React.createElement('h2', { style: { color: 'black', marginBottom: '20px' } }, '🏗️ CityBuilder'),
+        React.createElement('h2', { style: { color: '#222f3e', marginBottom: '20px', fontWeight: 'bold' } }, '🏗️ CityBuilder'),
         
         // Background Color Selector
-        React.createElement('div', { style: { padding: '15px', borderBottom: '1px solid #ccc', marginBottom: '15px' } },
+        React.createElement('div', { style: { padding: '15px', borderBottom: '2px solid #e9ecef', marginBottom: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' } },
           React.createElement('div', { style: { marginBottom: '15px' } },
             React.createElement('h4', { 
-              style: { fontSize: '12px', fontWeight: 'bold', color: 'black', marginBottom: '8px' }
+              style: { fontSize: '12px', fontWeight: 'bold', color: '#222f3e', marginBottom: '8px' }
             }, 'BACKGROUND COLOR'),
             
             // Preset Colors
@@ -329,7 +330,7 @@ const WorkingCityBuilder = () => {
                     width: '45px',
                     height: '35px',
                     backgroundColor: bg.color,
-                    border: backgroundColor === bg.color ? '3px solid #007bff' : '1px solid #ccc',
+                    border: backgroundColor === bg.color ? '3px solid #0abde3' : '1px solid #dee2e6',
                     borderRadius: '4px',
                     cursor: 'pointer',
                     display: 'flex',
@@ -349,7 +350,7 @@ const WorkingCityBuilder = () => {
             // Custom Color Picker
             React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
               React.createElement('label', { 
-                style: { fontSize: '10px', color: 'black', fontWeight: 'bold' }
+                style: { fontSize: '10px', color: '#222f3e', fontWeight: 'bold' }
               }, 'Custom:'),
               React.createElement('input', {
                 type: 'color',
@@ -358,8 +359,8 @@ const WorkingCityBuilder = () => {
                 style: {
                   width: '40px',
                   height: '30px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
+                  border: '2px solid #0abde3',
+                  borderRadius: '6px',
                   cursor: 'pointer',
                   backgroundColor: 'transparent'
                 },
@@ -368,11 +369,11 @@ const WorkingCityBuilder = () => {
               React.createElement('div', {
                 style: {
                   fontSize: '9px',
-                  color: '#666',
-                  backgroundColor: '#f8f9fa',
+                  color: '#222f3e',
+                  backgroundColor: '#e9ecef',
                   padding: '2px 6px',
-                  borderRadius: '3px',
-                  border: '1px solid #ddd'
+                  borderRadius: '4px',
+                  border: '1px solid #0abde3'
                 }
               }, backgroundColor)
             )
@@ -384,12 +385,14 @@ const WorkingCityBuilder = () => {
               style: {
                 flex: '1',
                 padding: '8px',
-                backgroundColor: '#6c757d',
+                backgroundColor: '#f56565',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: '6px',
                 cursor: 'pointer',
-                fontSize: '12px'
+                fontSize: '12px',
+                fontWeight: '600',
+                transition: 'all 0.2s ease'
               },
               onClick: () => {
                 setBuildings([]);
@@ -403,12 +406,14 @@ const WorkingCityBuilder = () => {
               style: {
                 flex: '1',
                 padding: '8px',
-                backgroundColor: gridEnabled ? '#28a745' : '#f8f9fa',
-                color: gridEnabled ? 'white' : 'black',
-                border: gridEnabled ? 'none' : '1px solid #ccc',
-                borderRadius: '4px',
+                backgroundColor: gridEnabled ? '#68d391' : '#e9ecef',
+                color: gridEnabled ? 'white' : '#222f3e',
+                border: gridEnabled ? 'none' : '2px solid #0abde3',
+                borderRadius: '6px',
                 cursor: 'pointer',
-                fontSize: '12px'
+                fontSize: '12px',
+                fontWeight: '600',
+                transition: 'all 0.2s ease'
               },
               onClick: () => setGridEnabled(!gridEnabled)
             }, `Grid: ${gridEnabled ? 'On' : 'Off'}`)
@@ -417,12 +422,12 @@ const WorkingCityBuilder = () => {
           // Instructions
           React.createElement('div', {
             style: {
-              backgroundColor: '#d1ecf1',
-              border: '1px solid #bee5eb',
-              borderRadius: '4px',
-              padding: '8px',
+              backgroundColor: '#d3f6fb',
+              border: '2px solid #0abde3',
+              borderRadius: '8px',
+              padding: '10px',
               fontSize: '11px',
-              color: '#0c5460'
+              color: '#222f3e'
             }
           }, 
             React.createElement('strong', {}, 'Controls:'),
@@ -440,15 +445,17 @@ const WorkingCityBuilder = () => {
           React.createElement('button', {
             style: {
               width: '100%',
-              padding: '10px',
+              padding: '12px',
               marginTop: '10px',
-              backgroundColor: '#17a2b8',
+              backgroundColor: '#0abde3',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: '8px',
               cursor: 'pointer',
               fontSize: '13px',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              boxShadow: '0 2px 8px rgba(10, 189, 227, 0.3)',
+              transition: 'all 0.2s ease'
             },
             onClick: handleExportCanvas,
             title: 'Download your city design as PNG image'
@@ -460,11 +467,12 @@ const WorkingCityBuilder = () => {
           React.createElement('div', { key: categoryKey, style: { marginBottom: '20px' } },
             React.createElement('h3', { 
               style: { 
-                color: 'black', 
+                color: '#222f3e', 
                 marginBottom: '10px', 
                 textTransform: 'uppercase',
                 fontSize: '14px',
-                fontWeight: '600'
+                fontWeight: '700',
+                letterSpacing: '0.5px'
               }
             }, categoryKey),
             React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingRight: '8px' } },
@@ -475,7 +483,7 @@ const WorkingCityBuilder = () => {
                     width: '115px',
                     height: '65px',
                     backgroundColor: '#ffffff',
-                    border: '2px solid #28a745',
+                    border: '2px solid #0abde3',
                     borderRadius: '8px',
                     display: 'flex',
                     flexDirection: 'column',
@@ -483,7 +491,8 @@ const WorkingCityBuilder = () => {
                     justifyContent: 'center',
                     cursor: 'grab',
                     padding: '4px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    boxShadow: '0 3px 8px rgba(10, 189, 227, 0.15)',
+                    transition: 'all 0.2s ease'
                   },
                   draggable: true,
                   onDragStart: (e) => {
@@ -518,7 +527,7 @@ const WorkingCityBuilder = () => {
         
         // Infrastructure
         React.createElement('div', { style: { marginBottom: '20px' } },
-          React.createElement('h3', { style: { color: 'black', marginBottom: '10px' } }, 'INFRASTRUCTURE'),
+          React.createElement('h3', { style: { color: '#222f3e', marginBottom: '10px', textTransform: 'uppercase', fontSize: '14px', fontWeight: '700', letterSpacing: '0.5px' } }, 'INFRASTRUCTURE'),
           React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingRight: '8px' } },
             ...Object.entries(STREET_TYPES).map(([type, street]) =>
               React.createElement('div', {
@@ -526,15 +535,17 @@ const WorkingCityBuilder = () => {
                 style: {
                   width: '115px',
                   height: '65px',
-                  backgroundColor: 'white',
-                  border: '2px solid #007bff',
+                  backgroundColor: '#ffffff',
+                  border: '2px solid #22d2ed',
                   borderRadius: '8px',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'grab',
-                  padding: '4px'
+                  padding: '4px',
+                  boxShadow: '0 3px 8px rgba(34, 210, 237, 0.15)',
+                  transition: 'all 0.2s ease'
                 },
                 draggable: true,
                 onDragStart: (e) => {
