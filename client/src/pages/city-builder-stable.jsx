@@ -1,8 +1,7 @@
 // STABLE CityBuilder - No Auto Reload Issues
 console.log("STABLE CITYBUILDER: Starting");
 
-// Make sure React hooks are available
-const { useState, useEffect, useRef } = React;
+import React, { useState, useEffect, useRef } from 'react';
 
 console.log("BUILDING_TYPES:", BUILDING_TYPES);
 console.log("STREET_TYPES:", STREET_TYPES);
@@ -769,5 +768,4 @@ const StableCityBuilder = () => {
 };
 
 // Export for global use
-window.StableCityBuilder = StableCityBuilder;
-console.log("STABLE: StableCityBuilder exported to window:", window.StableCityBuilder);
+export default StableCityBuilder;
