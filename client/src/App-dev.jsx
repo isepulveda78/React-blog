@@ -230,7 +230,7 @@ const AppRoutes = () => {
   } else if (location === "/mp3-guide") {
     CurrentComponent = MP3Guide;
   } else if (location === "/spanish-alphabet") {
-    CurrentComponent = SpanishAlphabet;
+    CurrentComponent = window.SpanishAlphabet || SpanishAlphabet;
   } else if (location === "/profile") {
     if (!user) {
       window.location.href = "/?message=login-required";
@@ -245,12 +245,12 @@ const AppRoutes = () => {
       CurrentComponent = UserProfile;
     }
   } else if (location === "/city-builder") {
-    console.log("ROUTE: Loading CityBuilder, WorkingCityBuilder available:", !!window.WorkingCityBuilder);
-    CurrentComponent = window.WorkingCityBuilder || window.StableCityBuilder || CityBuilder;
+    console.log("ROUTE: Loading CityBuilder, CityBuilder available:", !!window.CityBuilder);
+    CurrentComponent = window.CityBuilder || CityBuilder;
   } else if (location === "/bingo-generator") {
-    CurrentComponent = BingoGenerator;
+    CurrentComponent = window.BingoGenerator || BingoGenerator;
   } else if (location === "/word-sorter") {
-    CurrentComponent = WordSorter;
+    CurrentComponent = window.WordSorter || WordSorter;
   } else if (location === "/") {
     // Explicitly set Home for root path
     CurrentComponent = Home;
