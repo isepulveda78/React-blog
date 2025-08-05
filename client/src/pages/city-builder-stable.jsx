@@ -1,5 +1,7 @@
 // STABLE CityBuilder - No Auto Reload Issues
 console.log("STABLE CITYBUILDER: Starting");
+console.log("BUILDING_TYPES:", BUILDING_TYPES);
+console.log("STREET_TYPES:", STREET_TYPES);
 
 // Building and Street Types
 const BUILDING_TYPES = {
@@ -218,11 +220,15 @@ const StableCityBuilder = () => {
           <h2 className="h5 fw-bold text-dark mb-3">🏗️ CityBuilder</h2>
           
           {/* Building Categories */}
-          {Object.entries(BUILDING_TYPES).map(([categoryKey, category]) => (
+          {Object.entries(BUILDING_TYPES).map(([categoryKey, category]) => {
+            console.log("Rendering category:", categoryKey, category);
+            return (
             <div key={categoryKey} className="mb-4">
               <h3 className="h6 fw-medium text-dark mb-2 text-capitalize">{categoryKey}</h3>
               <div className="row g-2">
-                {Object.entries(category).map(([type, building]) => (
+                {Object.entries(category).map(([type, building]) => {
+                  console.log("Rendering building:", type, building);
+                  return (
                   <div key={type} className="col-6">
                     <div
                       className="border border-2 border-dashed rounded-3 p-2 text-center"
@@ -244,10 +250,12 @@ const StableCityBuilder = () => {
                       </p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
-          ))}
+            );
+          })}
           
           {/* Infrastructure */}
           <div className="mb-4">
