@@ -1008,54 +1008,70 @@ const CityBuilder = ({ user }) => {
                   <div
                     className="position-absolute bg-primary"
                     style={{
-                      width: '4px',
-                      height: '8px',
+                      width: '6px',
+                      height: '12px',
                       top: '50%',
-                      left: '-2px',
+                      left: '-3px',
                       transform: 'translateY(-50%)',
                       cursor: 'w-resize',
-                      zIndex: 15
+                      zIndex: 15,
+                      backgroundColor: '#28a745'
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 'w')}
+                    onMouseDown={(e) => {
+                      console.log("West handle clicked for street:", street.id);
+                      handleResizeStart(e, street, 'w');
+                    }}
                   />
                   <div
                     className="position-absolute bg-primary"
                     style={{
-                      width: '4px',
-                      height: '8px',
+                      width: '6px',
+                      height: '12px',
                       top: '50%',
-                      right: '-2px',
+                      right: '-3px',
                       transform: 'translateY(-50%)',
                       cursor: 'e-resize',
-                      zIndex: 15
+                      zIndex: 15,
+                      backgroundColor: '#28a745'
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 'e')}
+                    onMouseDown={(e) => {
+                      console.log("East handle clicked for street:", street.id);
+                      handleResizeStart(e, street, 'e');
+                    }}
                   />
                   <div
                     className="position-absolute bg-primary"
                     style={{
-                      width: '8px',
-                      height: '4px',
-                      top: '-2px',
+                      width: '12px',
+                      height: '6px',
+                      top: '-3px',
                       left: '50%',
                       transform: 'translateX(-50%)',
                       cursor: 'n-resize',
-                      zIndex: 15
+                      zIndex: 15,
+                      backgroundColor: '#dc3545'
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 'n')}
+                    onMouseDown={(e) => {
+                      console.log("North handle clicked for street:", street.id);
+                      handleResizeStart(e, street, 'n');
+                    }}
                   />
                   <div
                     className="position-absolute bg-primary"
                     style={{
-                      width: '8px',
-                      height: '4px',
-                      bottom: '-2px',
+                      width: '12px',
+                      height: '6px',
+                      bottom: '-3px',
                       left: '50%',
                       transform: 'translateX(-50%)',
                       cursor: 's-resize',
-                      zIndex: 15
+                      zIndex: 15,
+                      backgroundColor: '#dc3545'
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 's')}
+                    onMouseDown={(e) => {
+                      console.log("South handle clicked for street:", street.id);
+                      handleResizeStart(e, street, 's');
+                    }}
                   />
                 </>
               )}
