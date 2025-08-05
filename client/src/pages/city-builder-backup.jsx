@@ -1,5 +1,4 @@
-const { React } = window;
-const { useState, useEffect, useRef } = React;
+import React, { useState, useEffect, useRef } from 'react';
 
 // Building types configuration
 const BUILDING_TYPES = {
@@ -110,9 +109,9 @@ const useCityBuilderHook = () => {
   };
 };
 
-const useToastHook = window.useToast || (() => ({
+const useToastHook = () => ({
   toast: (options) => console.log('Toast:', options.title, options.description)
-}));
+});
 
 const CityBuilder = ({ user }) => {
   // Use the proper hooks
@@ -1639,40 +1638,47 @@ const CityBuilder = ({ user }) => {
         </div>
       </div>
 
-      {/* Building Properties Panel */}
-      {selectedBuilding && window.BuildingPropertiesPanel && React.createElement(window.BuildingPropertiesPanel, {
-        selectedBuilding: selectedBuilding,
-        onClose: () => clearSelection(),
-        onUpdateBuilding: updateBuilding,
-        onDeleteBuilding: deleteBuilding,
-        onDuplicateBuilding: handleDuplicateBuilding,
-        getCityStats: getCityStats,
-        buildings: buildings,
-        onSelectBuilding: selectBuilding
-      })}
+      {/* Building Properties Panel - Simplified for now */}
+      {selectedBuilding && (
+        <div className="position-fixed" style={{ top: '20px', right: '20px', zIndex: 1000 }}>
+          <div className="card" style={{ width: '300px' }}>
+            <div className="card-header d-flex justify-content-between">
+              <h6>Building Properties</h6>
+              <button className="btn-close" onClick={() => clearSelection()}></button>
+            </div>
+            <div className="card-body">
+              <p><strong>Type:</strong> {selectedBuilding.name}</p>
+              <p><strong>Position:</strong> ({selectedBuilding.x}, {selectedBuilding.y})</p>
+              <p><strong>Size:</strong> {selectedBuilding.width}x{selectedBuilding.height}</p>
+              <button className="btn btn-danger btn-sm" onClick={() => deleteBuilding(selectedBuilding.id)}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Street Properties Panel */}
-      {selectedStreet && window.StreetPropertiesPanel && React.createElement(window.StreetPropertiesPanel, {
-        selectedStreet: selectedStreet,
-        onClose: () => clearSelection(),
-        onUpdateStreet: updateStreet,
-        onDeleteStreet: deleteStreet,
-        streets: streets
-      })}
-
-      {/* Export Modal */}
-      {showExportModal && window.ExportModal && React.createElement(window.ExportModal, {
-        isOpen: showExportModal,
-        onClose: () => setShowExportModal(false),
-        cityName: cityName,
-        buildings: buildings,
-        streets: streets,
-        backgroundColor: backgroundColor,
-        getCityStats: getCityStats,
-        canvasRef: canvasRef
-      })}
+      {/* Street Properties Panel - Simplified for now */}
+      {selectedStreet && (
+        <div className="position-fixed" style={{ top: '20px', right: '20px', zIndex: 1000 }}>
+          <div className="card" style={{ width: '300px' }}>
+            <div className="card-header d-flex justify-content-between">
+              <h6>Street Properties</h6>
+              <button className="btn-close" onClick={() => clearSelection()}></button>
+            </div>
+            <div className="card-body">
+              <p><strong>Type:</strong> {selectedStreet.type}</p>
+              <p><strong>Position:</strong> ({selectedStreet.x}, {selectedStreet.y})</p>
+              <p><strong>Size:</strong> {selectedStreet.width}x{selectedStreet.height}</p>
+              <button className="btn btn-danger btn-sm" onClick={() => deleteStreet(selectedStreet.id)}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-window.CityBuilder = CityBuilder;
+export default CityBuilder;
