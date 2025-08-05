@@ -1,4 +1,4 @@
-const { React, useState, useEffect } = window;
+import React, { useState, useEffect } from 'react';
 
 const Navigation = ({ user, onLogout }) => {
   console.log("Navigation component - current user:", user);
@@ -466,4 +466,4 @@ const Navigation = ({ user, onLogout }) => {
   );
 };
 
-window.Navigation = Navigation;
+export default Navigation;

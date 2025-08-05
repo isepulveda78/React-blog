@@ -1,4 +1,4 @@
-const { React, useState, useEffect } = window;
+import React, { useState, useEffect } from 'react';
 
 const AdminUsers = ({ user }) => {
   const [users, setUsers] = useState([]);
@@ -333,4 +333,4 @@ const AdminUsers = ({ user }) => {
   );
 };
 
-window.AdminUsers = AdminUsers;
+export default AdminUsers;

@@ -1,4 +1,4 @@
-const { React, useState, useEffect } = window;
+import React, { useState, useEffect } from 'react';
 
 const SEOManagement = ({ user }) => {
   const [seoSettings, setSeoSettings] = useState({
@@ -264,4 +264,4 @@ const SEOManagement = ({ user }) => {
   );
 };
 
-window.SEOManagement = SEOManagement;
+export default SEOManagement;

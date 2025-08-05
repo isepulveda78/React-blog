@@ -1,5 +1,5 @@
-const { React, useState, useEffect } = window;
-const BlogCard = window.BlogCard;
+import React, { useState, useEffect } from 'react';
+import BlogCard from './BlogCard.jsx';
 
 // Helper function to format dates nicely
 const formatDate = (dateString) => {
@@ -154,4 +154,4 @@ const BlogListing = ({ user }) => {
   );
 };
 
-window.BlogListing = BlogListing;
+export default BlogListing;

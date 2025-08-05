@@ -1,4 +1,4 @@
-const { React } = window;
+import React from 'react';
 
 const Hero = ({ user }) => {
   console.log('Hero component - current user:', user);
@@ -47,5 +47,4 @@ const Hero = ({ user }) => {
   );
 };
 
-// Export to window for global access
-window.Hero = Hero;
+export default Hero;

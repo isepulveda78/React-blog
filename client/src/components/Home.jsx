@@ -1,6 +1,6 @@
-const { React, useState, useEffect } = window;
-const Hero = window.Hero;
-const BlogCard = window.BlogCard;
+import React, { useState, useEffect } from 'react';
+import Hero from './Hero.jsx';
+import BlogCard from './BlogCard.jsx';
 
 const Home = ({ user }) => {
   const [showLogin, setShowLogin] = useState(false);
@@ -124,4 +124,4 @@ const Home = ({ user }) => {
   );
 };
 
-window.Home = Home;
+export default Home;

@@ -90,8 +90,8 @@ app.get('*', (req, res) => {
     // In production, serve the built index.html
     res.sendFile(path.join(__dirname, './public/index.html'));
   } else {
-    // In development, serve from client directory
-    res.sendFile(path.join(__dirname, '../client/index.html'));
+    // In development, serve the production-ready HTML with ES6 modules
+    res.sendFile(path.join(__dirname, '../client/index-production.html'));
   }
 });
 

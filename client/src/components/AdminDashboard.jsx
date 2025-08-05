@@ -1,4 +1,4 @@
-const { React } = window;
+import React from 'react';
 
 const AdminDashboard = ({ user }) => {
   if (!user || !user.isAdmin) {
@@ -112,4 +112,4 @@ const AdminDashboard = ({ user }) => {
   );
 };
 
-window.AdminDashboard = AdminDashboard;
+export default AdminDashboard;

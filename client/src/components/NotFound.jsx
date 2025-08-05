@@ -1,4 +1,4 @@
-const { React } = window;
+import React from 'react';
 
 const NotFound = () => {
   const navigateTo = (path) => {
@@ -35,4 +35,4 @@ const NotFound = () => {
   );
 };
 
-window.NotFound = NotFound;
+export default NotFound;

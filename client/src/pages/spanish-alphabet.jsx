@@ -1,4 +1,4 @@
-const { React } = window;
+import React, { useState, useRef } from 'react';
 
 const SpanishAlphabet = () => {
   const [isPlaying, setIsPlaying] = React.useState(null);
@@ -254,4 +254,4 @@ const SpanishAlphabet = () => {
 };
 
 // Export to window for global access
-window.SpanishAlphabet = SpanishAlphabet;
+export default SpanishAlphabet;

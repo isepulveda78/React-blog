@@ -1,5 +1,4 @@
-const { React, useState, useEffect } = window;
-const { Link } = "wouter";
+import React, { useState, useEffect } from 'react';
 const EducationalTools = ({ user }) => {
   return (
     <div className="container py-5">
@@ -102,4 +101,4 @@ const EducationalTools = ({ user }) => {
   );
 };
 
-window.EducationalTools = EducationalTools;
+export default EducationalTools;

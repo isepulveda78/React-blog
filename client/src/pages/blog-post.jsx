@@ -1,5 +1,4 @@
-// BlogPost component using window-based exports for browser compatibility
-const { useState, useEffect } = React;
+import React, { useState, useEffect } from 'react';
 
 // Helper function to format dates nicely
 const formatCommentDate = (dateString) => {
@@ -472,5 +471,4 @@ function BlogPost() {
   );
 }
 
-// Export to window for global access
-window.BlogPost = BlogPost;
+export default BlogPost;

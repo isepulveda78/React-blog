@@ -1,4 +1,4 @@
-const { React } = window;
+import React, { useState } from 'react';
 
 const WordSorter = ({ user }) => {
   const [userName, setUserName] = React.useState('');
@@ -391,4 +391,4 @@ const WordSorter = ({ user }) => {
   );
 };
 
-window.WordSorter = WordSorter;
+export default WordSorter;

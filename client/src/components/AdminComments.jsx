@@ -1,4 +1,4 @@
-const { React, useState, useEffect } = window;
+import React, { useState, useEffect } from 'react';
 
 const AdminComments = ({ user }) => {
   const [comments, setComments] = useState([]);
@@ -182,4 +182,4 @@ const AdminComments = ({ user }) => {
   );
 };
 
-window.AdminComments = AdminComments;
+export default AdminComments;

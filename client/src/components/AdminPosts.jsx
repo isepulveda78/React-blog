@@ -1,4 +1,4 @@
-const { React, useState, useEffect } = window;
+import React, { useState, useEffect } from 'react';
 
 const AdminPosts = ({ user }) => {
   const [posts, setPosts] = useState([]);
@@ -186,4 +186,4 @@ const AdminPosts = ({ user }) => {
   );
 };
 
-window.AdminPosts = AdminPosts;
+export default AdminPosts;

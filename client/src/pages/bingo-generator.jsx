@@ -1,4 +1,4 @@
-const { React, useState } = window;
+import React, { useState } from 'react';
 
 const BingoGenerator = () => {
   const [title, setTitle] = useState('');
@@ -291,4 +291,4 @@ const BingoGenerator = () => {
   );
 };
 
-window.BingoGenerator = BingoGenerator;
+export default BingoGenerator;

@@ -1,4 +1,4 @@
-const { React } = window;
+import React from 'react';
 
 const BlogCard = ({ post, onReadMore }) => {
   const formatDate = (dateString) => {
@@ -66,4 +66,4 @@ const BlogCard = ({ post, onReadMore }) => {
   );
 };
 
-window.BlogCard = BlogCard;
+export default BlogCard;

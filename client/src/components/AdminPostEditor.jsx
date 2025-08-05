@@ -1,4 +1,4 @@
-const { React } = window;
+import React, { useState, useRef } from 'react';
 
 const AdminPostEditor = ({ user, postId }) => {
   if (!user || !user.isAdmin) {
@@ -24,4 +24,4 @@ const AdminPostEditor = ({ user, postId }) => {
   );
 };
 
-window.AdminPostEditor = AdminPostEditor;
+export default AdminPostEditor;
