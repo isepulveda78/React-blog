@@ -354,7 +354,7 @@ const AppRoutes = () => {
     CityBuilder: !!CityBuilder,
     Home: !!Home
   });
-  let CurrentComponent = Home; // Always start with Home
+  let CurrentComponent = Home; // Always start with Home - educational platform
   let componentProps = { user };
   console.log("DEBUG: Initial component chosen:", CurrentComponent === Home ? "Home" : CurrentComponent?.name || "Unknown component");
 
