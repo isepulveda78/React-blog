@@ -178,6 +178,207 @@ const Hero = ({ user }) => {
   );
 };
 
+// Admin Dashboard Component
+const AdminDashboard = ({ user }) => {
+  const navigateTo = (path) => {
+    window.history.pushState({}, "", path);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
+
+  if (!user || !user.isAdmin) {
+    return (
+      <div className="container py-5">
+        <div className="alert alert-danger">
+          Access denied. Admin privileges required.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container py-5">
+      <div className="row">
+        <div className="col-12">
+          <h1 className="display-4 fw-bold text-primary mb-4">Admin Dashboard</h1>
+          <p className="lead text-muted mb-5">
+            Manage your educational platform content and users from here.
+          </p>
+        </div>
+      </div>
+
+      <div className="row g-4">
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">📝</div>
+              <h5 className="card-title">Manage Posts</h5>
+              <p className="card-text">Create, edit, and publish blog posts.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/admin/posts')}
+              >
+                Go to Posts
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">👥</div>
+              <h5 className="card-title">Manage Users</h5>
+              <p className="card-text">Approve users and manage permissions.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/admin/users')}
+              >
+                Go to Users
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">💬</div>
+              <h5 className="card-title">Manage Comments</h5>
+              <p className="card-text">Moderate and approve user comments.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/admin/comments')}
+              >
+                Go to Comments
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">🎨</div>
+              <h5 className="card-title">Educational Tools</h5>
+              <p className="card-text">Manage educational content and tools.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/educational-tools')}
+              >
+                Go to Tools
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">🏗️</div>
+              <h5 className="card-title">City Builder</h5>
+              <p className="card-text">Access the city building application.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/city-builder')}
+              >
+                Go to Builder
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Simple Admin Components
+const AdminPosts = ({ user }) => (
+  <div className="container py-5">
+    <h1>Manage Posts</h1>
+    <p>Blog post management interface coming soon.</p>
+    <a href="/admin" className="btn btn-secondary">Back to Dashboard</a>
+  </div>
+);
+
+const AdminUsers = ({ user }) => (
+  <div className="container py-5">
+    <h1>Manage Users</h1>
+    <p>User management interface coming soon.</p>
+    <a href="/admin" className="btn btn-secondary">Back to Dashboard</a>
+  </div>
+);
+
+const AdminComments = ({ user }) => (
+  <div className="container py-5">
+    <h1>Manage Comments</h1>
+    <p>Comment moderation interface coming soon.</p>
+    <a href="/admin" className="btn btn-secondary">Back to Dashboard</a>
+  </div>
+);
+
+const BlogListing = ({ user }) => (
+  <div className="container py-5">
+    <h1>Blog & Resources</h1>
+    <p>Blog posts and educational resources coming soon.</p>
+  </div>
+);
+
+const BlogPost = ({ user, slug }) => (
+  <div className="container py-5">
+    <h1>Blog Post: {slug}</h1>
+    <p>Individual blog post content coming soon.</p>
+  </div>
+);
+
+const EducationalTools = ({ user }) => (
+  <div className="container py-5">
+    <h1>Educational Tools</h1>
+    <div className="row g-4">
+      <div className="col-md-6">
+        <div className="card">
+          <div className="card-body">
+            <h5 className="card-title">Spanish Alphabet</h5>
+            <p className="card-text">Learn the Spanish alphabet with interactive tools.</p>
+            <button className="btn btn-primary" disabled>Coming Soon</button>
+          </div>
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="card">
+          <div className="card-body">
+            <h5 className="card-title">Word Sorter</h5>
+            <p className="card-text">Sort and organize words for learning activities.</p>
+            <button className="btn btn-primary" disabled>Coming Soon</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const CityBuilder = ({ user }) => (
+  <div className="container py-5">
+    <h1>City Builder</h1>
+    <p>Interactive city building tool coming soon.</p>
+    <div className="alert alert-info">
+      This feature will include drag-and-drop building placement, 
+      customizable city layouts, and export functionality.
+    </div>
+  </div>
+);
+
+const UserProfile = ({ user }) => (
+  <div className="container py-5">
+    <h1>User Profile</h1>
+    <div className="card">
+      <div className="card-body">
+        <h5 className="card-title">Welcome, {user?.name || user?.username}!</h5>
+        <p className="card-text">Manage your profile and preferences here.</p>
+      </div>
+    </div>
+  </div>
+);
+
 // Simple Home Component
 const Home = ({ user }) => {
   return (
@@ -328,28 +529,52 @@ const AppRoutes = () => {
   let CurrentComponent = Home;
   let componentProps = { user };
 
-  // You can extend this routing logic as needed
-  if (location === "/blog") {
-    CurrentComponent = () => (
-      <div className="container py-5">
-        <h1>Blog Coming Soon</h1>
-        <p>The blog section is being developed.</p>
-      </div>
-    );
+  // Admin routes - require authentication and admin privileges
+  if (location === "/admin") {
+    if (!user) {
+      window.location.href = "/?message=login-required";
+      return null;
+    }
+    if (!user.isAdmin) {
+      CurrentComponent = () => (
+        <div className="container py-5">
+          <div className="alert alert-danger">
+            Access denied. Admin privileges required.
+          </div>
+        </div>
+      );
+    } else {
+      CurrentComponent = AdminDashboard;
+    }
+  } else if (location === "/admin/posts") {
+    if (!user || !user.isAdmin) {
+      window.location.href = "/?message=admin-required";
+      return null;
+    }
+    CurrentComponent = AdminPosts;
+  } else if (location === "/admin/users") {
+    if (!user || !user.isAdmin) {
+      window.location.href = "/?message=admin-required";
+      return null;
+    }
+    CurrentComponent = AdminUsers;
+  } else if (location === "/admin/comments") {
+    if (!user || !user.isAdmin) {
+      window.location.href = "/?message=admin-required";
+      return null;
+    }
+    CurrentComponent = AdminComments;
+  } else if (location === "/blog") {
+    CurrentComponent = BlogListing;
+  } else if (location.startsWith("/blog/")) {
+    CurrentComponent = BlogPost;
+    componentProps = { user, slug: location.replace("/blog/", "") };
   } else if (location === "/educational-tools") {
-    CurrentComponent = () => (
-      <div className="container py-5">
-        <h1>Educational Tools</h1>
-        <p>Interactive educational tools coming soon.</p>
-      </div>
-    );
+    CurrentComponent = EducationalTools;
   } else if (location === "/city-builder") {
-    CurrentComponent = () => (
-      <div className="container py-5">
-        <h1>City Builder</h1>
-        <p>City building tool coming soon.</p>
-      </div>
-    );
+    CurrentComponent = CityBuilder;
+  } else if (location === "/profile" && user && user.approved) {
+    CurrentComponent = UserProfile;
   }
 
   return (
