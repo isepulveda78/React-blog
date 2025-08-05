@@ -183,28 +183,6 @@ const WorkingCityBuilder = () => {
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw city name at the top
-    if (cityName && cityName.trim()) {
-      ctx.font = 'bold 28px Arial';
-      ctx.fillStyle = '#222f3e';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      
-      // Background for city name
-      const nameWidth = ctx.measureText(cityName).width;
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillRect(
-        canvas.width / 2 - nameWidth / 2 - 20,
-        10,
-        nameWidth + 40,
-        40
-      );
-      
-      // City name text
-      ctx.fillStyle = '#222f3e';
-      ctx.fillText(cityName, canvas.width / 2, 25);
-    }
-    
     // Draw grid if enabled
     if (gridEnabled) {
       ctx.strokeStyle = 'rgba(0,0,0,0.1)';
