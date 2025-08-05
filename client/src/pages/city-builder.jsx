@@ -380,10 +380,14 @@ const CityBuilder = () => {
     e.stopPropagation();
     e.preventDefault();
     
+    console.log("Starting resize for:", item.type, "direction:", direction);
+    
     const startX = e.clientX;
     const startY = e.clientY;
     const startWidth = item.width;
     const startHeight = item.height;
+    const startPosX = item.x;
+    const startPosY = item.y;
     
     const handleMouseMove = (e) => {
       const deltaX = e.clientX - startX;
@@ -391,24 +395,55 @@ const CityBuilder = () => {
       
       let newWidth = startWidth;
       let newHeight = startHeight;
+      let newX = startPosX;
+      let newY = startPosY;
       
-      if (direction.includes('e')) newWidth = startWidth + deltaX;
-      if (direction.includes('w')) newWidth = startWidth - deltaX;
-      if (direction.includes('s')) newHeight = startHeight + deltaY;
-      if (direction.includes('n')) newHeight = startHeight - deltaY;
+      // Handle resize based on direction
+      if (direction === 'se') {
+        newWidth = startWidth + deltaX;
+        newHeight = startHeight + deltaY;
+      } else if (direction === 'sw') {
+        newWidth = startWidth - deltaX;
+        newHeight = startHeight + deltaY;
+        newX = startPosX + deltaX;
+      } else if (direction === 'ne') {
+        newWidth = startWidth + deltaX;
+        newHeight = startHeight - deltaY;
+        newY = startPosY + deltaY;
+      } else if (direction === 'nw') {
+        newWidth = startWidth - deltaX;
+        newHeight = startHeight - deltaY;
+        newX = startPosX + deltaX;
+        newY = startPosY + deltaY;
+      }
       
+      // Minimum size constraints
       newWidth = Math.max(20, newWidth);
       newHeight = Math.max(20, newHeight);
       
+      // Grid snapping
       if (gridEnabled) {
         newWidth = Math.round(newWidth / 20) * 20;
         newHeight = Math.round(newHeight / 20) * 20;
+        newX = Math.round(newX / 20) * 20;
+        newY = Math.round(newY / 20) * 20;
+      }
+      
+      // Prevent negative positions
+      newX = Math.max(0, newX);
+      newY = Math.max(0, newY);
+      
+      // Update the item
+      const updates = { width: newWidth, height: newHeight };
+      if (direction.includes('w') || direction.includes('n')) {
+        updates.x = newX;
+        updates.y = newY;
       }
       
       if (item.category) {
-        updateBuilding(item.id, { width: newWidth, height: newHeight });
+        updateBuilding(item.id, updates);
       } else {
-        updateStreet(item.id, { width: newWidth, height: newHeight });
+        updateStreet(item.id, updates);
       }
     };
     
@@ -416,6 +451,7 @@ const CityBuilder = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
       document.body.style.cursor = 'default';
+      console.log("Resize complete");
     };
     
     document.addEventListener('mousemove', handleMouseMove);
@@ -682,7 +718,11 @@ const CityBuilder = () => {
                 zIndex: selectedStreet?.id === street.id ? 10 : 1
               }}
               onClick={(e) => handleStreetClick(e, street)}
-              onMouseDown={(e) => selectedStreet?.id === street.id && handleDragStart(e, street)}
+              onMouseDown={(e) => {
+                if (selectedStreet?.id === street.id && !e.target.closest('.resize-handle') && !e.target.closest('button')) {
+                  handleDragStart(e, street);
+                }
+              }}
             >
               {/* Delete button for selected street */}
               {selectedStreet?.id === street.id && (
@@ -709,50 +749,50 @@ const CityBuilder = () => {
                   
                   {/* Corner resize handles */}
                   <div
-                    className="position-absolute bg-info rounded-circle"
+                    className="position-absolute bg-info rounded-circle resize-handle"
                     style={{
-                      width: '10px',
-                      height: '10px',
-                      bottom: '-5px',
-                      right: '-5px',
+                      width: '12px',
+                      height: '12px',
+                      bottom: '-6px',
+                      right: '-6px',
                       cursor: 'se-resize',
-                      zIndex: 15
+                      zIndex: 20
                     }}
                     onMouseDown={(e) => handleResizeStart(e, street, 'se')}
                   />
                   <div
-                    className="position-absolute bg-info rounded-circle"
+                    className="position-absolute bg-info rounded-circle resize-handle"
                     style={{
-                      width: '10px',
-                      height: '10px',
-                      top: '-5px',
-                      left: '-5px',
+                      width: '12px',
+                      height: '12px',
+                      top: '-6px',
+                      left: '-6px',
                       cursor: 'nw-resize',
-                      zIndex: 15
+                      zIndex: 20
                     }}
                     onMouseDown={(e) => handleResizeStart(e, street, 'nw')}
                   />
                   <div
-                    className="position-absolute bg-info rounded-circle"
+                    className="position-absolute bg-info rounded-circle resize-handle"
                     style={{
-                      width: '10px',
-                      height: '10px',
-                      top: '-5px',
-                      right: '-5px',
+                      width: '12px',
+                      height: '12px',
+                      top: '-6px',
+                      right: '-6px',
                       cursor: 'ne-resize',
-                      zIndex: 15
+                      zIndex: 20
                     }}
                     onMouseDown={(e) => handleResizeStart(e, street, 'ne')}
                   />
                   <div
-                    className="position-absolute bg-info rounded-circle"
+                    className="position-absolute bg-info rounded-circle resize-handle"
                     style={{
-                      width: '10px',
-                      height: '10px',
-                      bottom: '-5px',
-                      left: '-5px',
+                      width: '12px',
+                      height: '12px',
+                      bottom: '-6px',
+                      left: '-6px',
                       cursor: 'sw-resize',
-                      zIndex: 15
+                      zIndex: 20
                     }}
                     onMouseDown={(e) => handleResizeStart(e, street, 'sw')}
                   />
@@ -781,7 +821,11 @@ const CityBuilder = () => {
                 zIndex: selectedBuilding?.id === building.id ? 10 : 1
               }}
               onClick={(e) => handleBuildingClick(e, building)}
-              onMouseDown={(e) => selectedBuilding?.id === building.id && handleDragStart(e, building)}
+              onMouseDown={(e) => {
+                if (selectedBuilding?.id === building.id && !e.target.closest('.resize-handle') && !e.target.closest('button')) {
+                  handleDragStart(e, building);
+                }
+              }}
             >
               {/* Building Icon/Content */}
               <div className="text-center w-100 h-100 d-flex align-items-center justify-content-center">
@@ -910,50 +954,50 @@ const CityBuilder = () => {
                   
                   {/* Corner resize handles */}
                   <div
-                    className="position-absolute bg-primary rounded-circle"
+                    className="position-absolute bg-primary rounded-circle resize-handle"
                     style={{
-                      width: '10px',
-                      height: '10px',
-                      bottom: '-5px',
-                      right: '-5px',
+                      width: '12px',
+                      height: '12px',
+                      bottom: '-6px',
+                      right: '-6px',
                       cursor: 'se-resize',
-                      zIndex: 15
+                      zIndex: 20
                     }}
                     onMouseDown={(e) => handleResizeStart(e, building, 'se')}
                   />
                   <div
-                    className="position-absolute bg-primary rounded-circle"
+                    className="position-absolute bg-primary rounded-circle resize-handle"
                     style={{
-                      width: '10px',
-                      height: '10px',
-                      top: '-5px',
-                      left: '-5px',
+                      width: '12px',
+                      height: '12px',
+                      top: '-6px',
+                      left: '-6px',
                       cursor: 'nw-resize',
-                      zIndex: 15
+                      zIndex: 20
                     }}
                     onMouseDown={(e) => handleResizeStart(e, building, 'nw')}
                   />
                   <div
-                    className="position-absolute bg-primary rounded-circle"
+                    className="position-absolute bg-primary rounded-circle resize-handle"
                     style={{
-                      width: '10px',
-                      height: '10px',
-                      top: '-5px',
-                      right: '-5px',
+                      width: '12px',
+                      height: '12px',
+                      top: '-6px',
+                      right: '-6px',
                       cursor: 'ne-resize',
-                      zIndex: 15
+                      zIndex: 20
                     }}
                     onMouseDown={(e) => handleResizeStart(e, building, 'ne')}
                   />
                   <div
-                    className="position-absolute bg-primary rounded-circle"
+                    className="position-absolute bg-primary rounded-circle resize-handle"
                     style={{
-                      width: '10px',
-                      height: '10px',
-                      bottom: '-5px',
-                      left: '-5px',
+                      width: '12px',
+                      height: '12px',
+                      bottom: '-6px',
+                      left: '-6px',
                       cursor: 'sw-resize',
-                      zIndex: 15
+                      zIndex: 20
                     }}
                     onMouseDown={(e) => handleResizeStart(e, building, 'sw')}
                   />
