@@ -371,6 +371,80 @@ const CityBuilder = ({ user }) => {
     document.addEventListener("mouseup", handleMouseUp);
   };
 
+  const handleStreetDrag = (e, street) => {
+    // Only allow dragging if not clicking on resize handles
+    if (e.target.classList.contains('position-absolute')) {
+      return; // Don't drag if clicking on a resize handle
+    }
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const originalStreet = { ...street };
+
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'grabbing';
+
+    let animationFrame;
+
+    const handleMouseMove = (moveEvent) => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+
+      animationFrame = requestAnimationFrame(() => {
+        const deltaX = moveEvent.clientX - startX;
+        const deltaY = moveEvent.clientY - startY;
+
+        let newStreet = {
+          ...originalStreet,
+          x: originalStreet.x + deltaX,
+          y: originalStreet.y + deltaY
+        };
+
+        // Apply grid snapping during drag for smoother experience
+        if (gridEnabled) {
+          const snapSize = 10; // Lighter snapping during drag
+          newStreet.x = Math.round(newStreet.x / snapSize) * snapSize;
+          newStreet.y = Math.round(newStreet.y / snapSize) * snapSize;
+        }
+
+        updateStreet(street.id, newStreet);
+      });
+    };
+
+    const handleMouseUp = (event) => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "default";
+      document.body.style.userSelect = 'auto';
+
+      // Final snap to grid if enabled
+      if (gridEnabled) {
+        const deltaX = event.clientX - startX;
+        const deltaY = event.clientY - startY;
+
+        const finalStreet = {
+          ...originalStreet,
+          x: Math.round((originalStreet.x + deltaX) / 20) * 20,
+          y: Math.round((originalStreet.y + deltaY) / 20) * 20
+        };
+
+        updateStreet(street.id, finalStreet);
+        console.log("Street dragged to:", finalStreet.x, finalStreet.y);
+      }
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
   const handleStreetMouseDown = (e, street) => {
     if (e.target !== e.currentTarget) return; // Only handle direct clicks on the street, not resize handles
     
@@ -971,7 +1045,7 @@ const CityBuilder = ({ user }) => {
                 width: street.width,
                 height: street.height,
                 backgroundColor: street.type === 'road' ? 'transparent' : (street.color || '#6b7280'),
-                cursor: 'pointer',
+                cursor: selectedStreet?.id === street.id ? 'move' : 'grab',
                 zIndex: selectedStreet?.id === street.id ? 10 : 0,
                 userSelect: 'none',
                 display: 'flex',
@@ -989,9 +1063,9 @@ const CityBuilder = ({ user }) => {
               }}
               onMouseDown={(e) => {
                 console.log("Street mousedown:", street);
-                // Only call mouse down handler for dragging, not selection
-                if (e.shiftKey) { // Use shift+click for dragging
-                  handleStreetMouseDown(e, street);
+                // Only allow dragging if not clicking on resize handles
+                if (!e.target.classList.contains('position-absolute') && !e.target.closest('.position-absolute')) {
+                  handleStreetDrag(e, street);
                 }
               }}
             >
