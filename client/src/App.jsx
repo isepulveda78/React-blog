@@ -25,6 +25,7 @@ const CityBuilder = window.CityBuilder;
 const EducationalTools = window.EducationalTools;
 const BingoGenerator = window.BingoGenerator;
 const SoundDemo = window.SoundDemo;
+const MP3Guide = window.MP3Guide;
 const NotFound = window.NotFound;
 
 // Auth Context
@@ -205,6 +206,8 @@ const AppRoutes = () => {
     CurrentComponent = EducationalTools;
   } else if (location === "/sound-demo") {
     CurrentComponent = SoundDemo;
+  } else if (location === "/mp3-guide") {
+    CurrentComponent = MP3Guide;
   } else if (location === "/admin") {
     if (!user) {
       // Redirect to home with login prompt for unauthenticated users

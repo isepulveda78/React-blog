@@ -123,37 +123,67 @@ const SoundDemo = () => {
         React.createElement(
           'div',
           { className: 'card-body' },
+          React.createElement('h5', { className: 'card-title' }, 'MP3 Integration Guide'),
+          React.createElement(
+            'div',
+            { className: 'alert alert-warning' },
+            React.createElement('strong', null, 'Current Status: '),
+            'Using Web Audio API beeps as fallback. To add real MP3 sounds:'
+          ),
+          React.createElement(
+            'ol',
+            null,
+            React.createElement('li', null, React.createElement('strong', null, 'Download MP3 files'), ' from:'),
+            React.createElement('ul', null,
+              React.createElement('li', null, React.createElement('a', { href: 'https://freesound.org', target: '_blank' }, 'freesound.org'), ' (search "button click")'),
+              React.createElement('li', null, React.createElement('a', { href: 'https://mixkit.co', target: '_blank' }, 'mixkit.co'), ' (free UI sounds)'),
+              React.createElement('li', null, React.createElement('a', { href: 'https://zapsplat.com', target: '_blank' }, 'zapsplat.com'), ' (free tier available)')
+            ),
+            React.createElement('li', null, React.createElement('strong', null, 'Replace placeholder files'), ' in ', React.createElement('code', null, '/public/sounds/')),
+            React.createElement('li', null, React.createElement('strong', null, 'File names needed:'), ' button-click.mp3, success.mp3, error.mp3'),
+            React.createElement('li', null, React.createElement('strong', null, 'Keep files small'), ' (under 50KB each)')
+          )
+        )
+      )
+    ),
+
+    React.createElement(
+      'div',
+      { className: 'mt-4' },
+      React.createElement(
+        'div',
+        { className: 'card' },
+        React.createElement(
+          'div',
+          { className: 'card-body' },
           React.createElement('h5', { className: 'card-title' }, 'Code Examples'),
           React.createElement(
             'pre',
             { className: 'bg-light p-3 rounded' },
-            `// Using the hook directly
-const { sounds } = useSound();
+            `// Method 1: Direct MP3 playback
+const playMP3 = (file) => {
+  const audio = new Audio(file);
+  audio.volume = 0.5;
+  audio.play().catch(() => {
+    // Fallback to beep if MP3 fails
+    window.useSound().sounds.beep();
+  });
+};
 
-<button onClick={() => sounds.buttonClick()}>
-  Click me!
+<button onClick={() => playMP3('/sounds/click.mp3')}>
+  MP3 Button
 </button>
 
-// Using SoundButton component
-<SoundButton 
-  className="btn-primary" 
-  soundType="success"
-  onClick={() => console.log('clicked!')}
->
-  Success Button
-</SoundButton>
-
-// Custom sound with file
-<SoundButton
-  soundType="custom"
-  soundOptions={{ path: '/sounds/my-sound.mp3', volume: 0.8 }}
->
-  Custom Sound
-</SoundButton>`
+// Method 2: Using the hook with MP3 files
+const { sounds } = window.useSound();
+sounds.buttonClick(); // Tries MP3, falls back to beep`
           )
         )
       )
-    )
+    ),
+
+    // Add MP3 integration examples
+    React.createElement(window.MP3IntegrationExamples || 'div')
   );
 };
 

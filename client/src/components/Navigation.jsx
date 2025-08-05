@@ -69,8 +69,19 @@ const Navigation = ({ user, onLogout }) => {
       setError("");
       setIsLoading(true);
 
-      // Initialize sound hook
-      const { sounds } = window.useSound ? window.useSound() : { sounds: { buttonClick: () => {}, success: () => {}, error: () => {} } };
+      // Simple sound function without hooks
+      const playSound = (type) => {
+        try {
+          if (window.useSound) {
+            const { sounds } = window.useSound();
+            if (type === 'success') sounds.success();
+            else if (type === 'error') sounds.error();
+            else sounds.buttonClick();
+          }
+        } catch (e) {
+          // Ignore sound errors
+        }
+      };
 
       try {
         const endpoint = isLoginMode ? "/api/auth/login" : "/api/auth/register";
@@ -83,13 +94,13 @@ const Navigation = ({ user, onLogout }) => {
 
         if (!response.ok) {
           const error = await response.json();
-          sounds.error(); // Play error sound
+          playSound('error'); // Play error sound
           throw new Error(error.message || "Authentication failed");
         }
 
         const userData = await response.json();
         console.log("Authentication successful:", userData);
-        sounds.success(); // Play success sound
+        playSound('success'); // Play success sound
 
         // Update global user state and refresh
         window.currentUser = userData;
