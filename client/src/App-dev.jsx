@@ -9,7 +9,7 @@ window.useRef = useRef;
 window.useCallback = useCallback;
 
 // Components will be loaded as window objects
-const Navigation = window.SimpleNavigation || window.Navigation;
+const SimpleNavigation = window.SimpleNavigation;
 const Hero = window.Hero;
 const Home = window.Home;
 const BlogListing = window.BlogListing;
@@ -262,10 +262,52 @@ const AppRoutes = () => {
   console.log("DEBUG: Final component chosen:", CurrentComponent === Home ? "Home" : CurrentComponent?.name || "Unknown component");
   console.log("DEBUG: Component props:", componentProps);
 
+  // Always call hooks in the same order - remove conditional useEffect
+
+  console.log("DEBUG: SimpleNavigation available?", !!SimpleNavigation);
+  console.log("DEBUG: CurrentComponent available?", !!CurrentComponent);
+
   return React.createElement(
     "div",
     { className: "min-vh-100 d-flex flex-column" },
-    Navigation && React.createElement(Navigation, { user, onLogout: logout }),
+    // Simple fixed navigation
+    React.createElement(
+      "nav",
+      { className: "navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top" },
+      React.createElement(
+        "div",
+        { className: "container" },
+        React.createElement(
+          "a",
+          { className: "navbar-brand fw-bold text-primary fs-3", href: "/" },
+          "Mr. S Teaches"
+        ),
+        React.createElement(
+          "ul",
+          { className: "navbar-nav me-auto" },
+          React.createElement(
+            "li",
+            { className: "nav-item" },
+            React.createElement("a", { className: "nav-link", href: "/" }, "Home")
+          ),
+          React.createElement(
+            "li",
+            { className: "nav-item" },
+            React.createElement("a", { className: "nav-link", href: "/blog" }, "Blog")
+          ),
+          React.createElement(
+            "li",
+            { className: "nav-item" },
+            React.createElement("a", { className: "nav-link", href: "/educational-tools" }, "Tools")
+          ),
+          React.createElement(
+            "li",
+            { className: "nav-item" },
+            React.createElement("a", { className: "nav-link", href: "/city-builder" }, "City Builder")
+          )
+        )
+      )
+    ),
     React.createElement(
       "main",
       { className: "flex-grow-1" },
