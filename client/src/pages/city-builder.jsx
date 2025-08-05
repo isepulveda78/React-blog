@@ -1120,34 +1120,15 @@ const CityBuilder = ({ user }) => {
           {buildings.map((building) => (
             <div
               key={building.id}
-              className={`position-absolute border ${selectedBuilding?.id === building.id ? 'border-primary border-3' : 'border-secondary'}`}
+              className={`position-absolute ${selectedBuilding?.id === building.id ? 'border-primary border-3' : ''}`}
               style={{
                 left: building.x,
                 top: building.y,
                 width: building.width,
                 height: building.height,
-                backgroundColor: building.type === 'park' ? '#16a34a' : building.customColor || '#e2e8f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.2rem',
                 cursor: 'pointer',
-                boxShadow: selectedBuilding?.id === building.id ? '0 0 10px rgba(59, 130, 246, 0.5)' : '0 2px 4px rgba(0,0,0,0.1)',
                 zIndex: selectedBuilding?.id === building.id ? 10 : 1,
-                userSelect: 'none',
-                // Park-specific styling
-                ...(building.type === 'park' && {
-                  backgroundImage: `
-                    radial-gradient(circle at 25% 25%, #22c55e 2px, transparent 2px),
-                    radial-gradient(circle at 75% 75%, #15803d 2px, transparent 2px),
-                    radial-gradient(circle at 50% 50%, #166534 1px, transparent 1px),
-                    linear-gradient(45deg, transparent 40%, rgba(34, 197, 94, 0.3) 40%, rgba(34, 197, 94, 0.3) 60%, transparent 60%)
-                  `,
-                  backgroundSize: '20px 20px, 15px 15px, 10px 10px, 8px 8px',
-                  backgroundPosition: '0 0, 10px 10px, 5px 5px, 0 0',
-                  border: selectedBuilding?.id === building.id ? '3px solid #3b82f6' : '2px solid #15803d',
-                  borderRadius: '8px'
-                })
+                userSelect: 'none'
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -1159,18 +1140,48 @@ const CityBuilder = ({ user }) => {
               }}
               onMouseDown={(e) => handleBuildingMouseDown(e, building)}
             >
-              {building.type === 'park' ? (
-                <div className="d-flex flex-wrap justify-content-center align-items-center h-100 w-100" style={{ fontSize: building.width > 60 ? '1rem' : '0.8rem', gap: '2px', padding: '2px' }}>
-                  <span>🌳</span>
-                  <span>🌿</span>
-                  {building.width > 40 && <span>🌸</span>}
-                  {building.width > 60 && <span>🦋</span>}
-                  {building.width > 80 && <span>🌺</span>}
-                  {building.width > 100 && <span>🐦</span>}
-                </div>
-              ) : (
-                <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
-              )}
+              {/* Actual Building Visual */}
+              <div
+                className="w-100 h-100 d-flex align-items-center justify-content-center"
+                style={{
+                  backgroundColor: building.type === 'park' ? '#16a34a' : 
+                                 building.category === 'nature' ? '#22c55e' : 
+                                 building.category === 'residential' ? '#10b981' : 
+                                 building.category === 'commercial' ? '#3b82f6' :
+                                 building.category === 'public' ? '#dc2626' :
+                                 building.category === 'industrial' ? '#f59e0b' :
+                                 '#e2e8f0',
+                  border: selectedBuilding?.id === building.id ? '3px solid #3b82f6' : '1px solid #e5e7eb',
+                  borderRadius: building.type === 'park' ? '8px' : '4px',
+                  fontSize: building.width > 80 ? '2rem' : building.width > 60 ? '1.5rem' : building.width > 40 ? '1.2rem' : '1rem',
+                  boxShadow: selectedBuilding?.id === building.id ? '0 0 10px rgba(59, 130, 246, 0.5)' : '0 2px 4px rgba(0,0,0,0.1)',
+                  // Park-specific styling
+                  ...(building.type === 'park' && {
+                    backgroundImage: `
+                      radial-gradient(circle at 25% 25%, #22c55e 2px, transparent 2px),
+                      radial-gradient(circle at 75% 75%, #15803d 2px, transparent 2px),
+                      radial-gradient(circle at 50% 50%, #166534 1px, transparent 1px),
+                      linear-gradient(45deg, transparent 40%, rgba(34, 197, 94, 0.3) 40%, rgba(34, 197, 94, 0.3) 60%, transparent 60%)
+                    `,
+                    backgroundSize: '20px 20px, 15px 15px, 10px 10px, 8px 8px',
+                    backgroundPosition: '0 0, 10px 10px, 5px 5px, 0 0',
+                    border: selectedBuilding?.id === building.id ? '3px solid #3b82f6' : '2px solid #15803d'
+                  })
+                }}
+              >
+                {building.type === 'park' ? (
+                  <div className="d-flex flex-wrap justify-content-center align-items-center h-100 w-100" style={{ fontSize: building.width > 60 ? '1rem' : '0.8rem', gap: '2px', padding: '2px' }}>
+                    <span>🌳</span>
+                    <span>🌿</span>
+                    {building.width > 40 && <span>🌸</span>}
+                    {building.width > 60 && <span>🦋</span>}
+                    {building.width > 80 && <span>🌺</span>}
+                    {building.width > 100 && <span>🐦</span>}
+                  </div>
+                ) : (
+                  <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
+                )}
+              </div>
               
               {/* Building Name Display */}
               {(building.customName || building.name) && !editingBuilding && (
