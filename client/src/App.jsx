@@ -242,13 +242,11 @@ const AppRoutes = () => {
     } else {
       CurrentComponent = UserProfile;
     }
+  } else if (location === "/city-builder") {
+    CurrentComponent = CityBuilder;
   } else if (location !== "/") {
     CurrentComponent = NotFound;
     componentProps = {};
-  } else if (location === "/city-builder") {
-    CurrentComponent = CityBuilder;
-  } else if (location === "/educational-tools") {
-    CurrentComponent = EducationalTools;
   }
 
   return React.createElement(
