@@ -216,6 +216,136 @@ const WorkingCityBuilder = () => {
       React.createElement('div', { style: { padding: '20px' } },
         React.createElement('h2', { style: { color: 'black', marginBottom: '20px' } }, '🏗️ CityBuilder'),
         
+        // Background Color Selector
+        React.createElement('div', { style: { padding: '15px', borderBottom: '1px solid #ccc', marginBottom: '15px' } },
+          React.createElement('div', { style: { marginBottom: '15px' } },
+            React.createElement('h4', { 
+              style: { fontSize: '12px', fontWeight: 'bold', color: 'black', marginBottom: '8px' }
+            }, 'BACKGROUND COLOR'),
+            
+            // Preset Colors
+            React.createElement('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' } },
+              ...[
+                { name: 'Grass', color: '#90EE90' },
+                { name: 'Desert', color: '#F4A460' },
+                { name: 'Ocean', color: '#87CEEB' },
+                { name: 'Snow', color: '#FFFAFA' },
+                { name: 'Dark', color: '#2F4F4F' }
+              ].map((bg) =>
+                React.createElement('div', {
+                  key: bg.name,
+                  style: {
+                    width: '45px',
+                    height: '35px',
+                    backgroundColor: bg.color,
+                    border: backgroundColor === bg.color ? '3px solid #007bff' : '1px solid #ccc',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '8px',
+                    fontWeight: 'bold',
+                    color: bg.color === '#FFFAFA' ? 'black' : 'white',
+                    textShadow: bg.color === '#FFFAFA' ? 'none' : '0 1px 1px rgba(0,0,0,0.5)'
+                  },
+                  onClick: () => setBackgroundColor(bg.color),
+                  title: bg.name
+                }, bg.name.slice(0,4))
+              )
+            ),
+            
+            // Custom Color Picker
+            React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
+              React.createElement('label', { 
+                style: { fontSize: '10px', color: 'black', fontWeight: 'bold' }
+              }, 'Custom:'),
+              React.createElement('input', {
+                type: 'color',
+                value: backgroundColor,
+                onChange: (e) => setBackgroundColor(e.target.value),
+                style: {
+                  width: '40px',
+                  height: '30px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  backgroundColor: 'transparent'
+                },
+                title: 'Choose custom background color'
+              }),
+              React.createElement('div', {
+                style: {
+                  fontSize: '9px',
+                  color: '#666',
+                  backgroundColor: '#f8f9fa',
+                  padding: '2px 6px',
+                  borderRadius: '3px',
+                  border: '1px solid #ddd'
+                }
+              }, backgroundColor)
+            )
+          ),
+          
+          // Control Buttons
+          React.createElement('div', { style: { display: 'flex', gap: '8px', marginBottom: '15px' } },
+            React.createElement('button', {
+              style: {
+                flex: '1',
+                padding: '8px',
+                backgroundColor: '#6c757d',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '12px'
+              },
+              onClick: () => {
+                setBuildings([]);
+                setStreets([]);
+                setSelectedBuilding(null);
+                setSelectedStreet(null);
+              }
+            }, 'Clear All'),
+            
+            React.createElement('button', {
+              style: {
+                flex: '1',
+                padding: '8px',
+                backgroundColor: gridEnabled ? '#28a745' : '#f8f9fa',
+                color: gridEnabled ? 'white' : 'black',
+                border: gridEnabled ? 'none' : '1px solid #ccc',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '12px'
+              },
+              onClick: () => setGridEnabled(!gridEnabled)
+            }, `Grid: ${gridEnabled ? 'On' : 'Off'}`)
+          ),
+          
+          // Instructions
+          React.createElement('div', {
+            style: {
+              backgroundColor: '#d1ecf1',
+              border: '1px solid #bee5eb',
+              borderRadius: '4px',
+              padding: '8px',
+              fontSize: '11px',
+              color: '#0c5460'
+            }
+          }, 
+            React.createElement('strong', {}, 'Controls:'),
+            React.createElement('br'),
+            '• Click to select items',
+            React.createElement('br'),
+            '• Drag items to move',
+            React.createElement('br'),
+            '• Click label to edit name',
+            React.createElement('br'),
+            '• Press Delete to remove selected'
+          )
+        ),
+        
         // Building Categories
         ...Object.entries(BUILDING_TYPES).map(([categoryKey, category]) =>
           React.createElement('div', { key: categoryKey, style: { marginBottom: '20px' } },
@@ -325,135 +455,6 @@ const WorkingCityBuilder = () => {
                 }, street.name)
               )
             )
-          )
-        ),
-        
-        // Background Color Selector
-        React.createElement('div', { style: { padding: '20px', borderTop: '1px solid #ccc' } },
-          React.createElement('div', { style: { marginBottom: '15px' } },
-            React.createElement('h4', { 
-              style: { fontSize: '12px', fontWeight: 'bold', color: 'black', marginBottom: '8px' }
-            }, 'BACKGROUND COLOR'),
-            
-            // Preset Colors
-            React.createElement('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' } },
-              ...[
-                { name: 'Grass', color: '#90EE90' },
-                { name: 'Desert', color: '#F4A460' },
-                { name: 'Ocean', color: '#87CEEB' },
-                { name: 'Snow', color: '#FFFAFA' },
-                { name: 'Dark', color: '#2F4F4F' }
-              ].map((bg) =>
-                React.createElement('div', {
-                  key: bg.name,
-                  style: {
-                    width: '45px',
-                    height: '35px',
-                    backgroundColor: bg.color,
-                    border: backgroundColor === bg.color ? '3px solid #007bff' : '1px solid #ccc',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '8px',
-                    fontWeight: 'bold',
-                    color: bg.color === '#FFFAFA' ? 'black' : 'white',
-                    textShadow: bg.color === '#FFFAFA' ? 'none' : '0 1px 1px rgba(0,0,0,0.5)'
-                  },
-                  onClick: () => setBackgroundColor(bg.color),
-                  title: bg.name
-                }, bg.name.slice(0,4))
-              )
-            ),
-            
-            // Custom Color Picker
-            React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
-              React.createElement('label', { 
-                style: { fontSize: '10px', color: 'black', fontWeight: 'bold' }
-              }, 'Custom:'),
-              React.createElement('input', {
-                type: 'color',
-                value: backgroundColor,
-                onChange: (e) => setBackgroundColor(e.target.value),
-                style: {
-                  width: '40px',
-                  height: '30px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  backgroundColor: 'transparent'
-                },
-                title: 'Choose custom background color'
-              }),
-              React.createElement('div', {
-                style: {
-                  fontSize: '9px',
-                  color: '#666',
-                  backgroundColor: '#f8f9fa',
-                  padding: '2px 6px',
-                  borderRadius: '3px',
-                  border: '1px solid #ddd'
-                }
-              }, backgroundColor)
-            )
-          ),
-          
-          // Tools
-          React.createElement('button', {
-            style: {
-              width: '100%',
-              padding: '8px',
-              marginBottom: '10px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            },
-            onClick: () => {
-              setBuildings([]);
-              setStreets([]);
-              setSelectedBuilding(null);
-              setSelectedStreet(null);
-            }
-          }, 'Clear All'),
-          
-          React.createElement('button', {
-            style: {
-              width: '100%',
-              padding: '8px',
-              marginBottom: '10px',
-              backgroundColor: gridEnabled ? '#28a745' : '#f8f9fa',
-              color: gridEnabled ? 'white' : 'black',
-              border: gridEnabled ? 'none' : '1px solid #ccc',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            },
-            onClick: () => setGridEnabled(!gridEnabled)
-          }, `Grid: ${gridEnabled ? 'On' : 'Off'}`),
-          
-          React.createElement('div', {
-            style: {
-              backgroundColor: '#d1ecf1',
-              border: '1px solid #bee5eb',
-              borderRadius: '4px',
-              padding: '8px',
-              fontSize: '12px',
-              color: '#0c5460'
-            }
-          }, 
-            React.createElement('strong', {}, 'Controls:'),
-            React.createElement('br'),
-            '• Click to select items',
-            React.createElement('br'),
-            '• Drag items to move',
-            React.createElement('br'),
-            '• Click label to edit name',
-            React.createElement('br'),
-            '• Press Delete to remove selected'
           )
         )
       )
