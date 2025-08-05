@@ -451,7 +451,7 @@ const WorkingCityBuilder = () => {
             React.createElement('br'),
             '• Drag items to move',
             React.createElement('br'),
-            '• Double-click to add label',
+            '• Click label to edit name',
             React.createElement('br'),
             '• Press Delete to remove selected'
           )
@@ -626,20 +626,31 @@ const WorkingCityBuilder = () => {
                 fontSize: '11px',
                 fontWeight: 'bold',
                 color: '#000',
-                border: '1px solid #ccc',
+                border: '1px solid #007bff',
                 whiteSpace: 'nowrap',
                 minWidth: '70px',
                 textAlign: 'center',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                zIndex: 10
+                zIndex: 10,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
               },
-              onDoubleClick: (e) => {
+              onClick: (e) => {
                 e.stopPropagation();
                 e.preventDefault();
-                console.log("Label double-clicked, editing:", building.id);
+                console.log("Label clicked, editing:", building.id);
                 setEditingLabel(building.id);
                 setLabelInput(building.customLabel || building.name);
-              }
+              },
+              onMouseEnter: (e) => {
+                e.target.style.backgroundColor = 'rgba(0,123,255,0.1)';
+                e.target.style.borderColor = '#0056b3';
+              },
+              onMouseLeave: (e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.95)';
+                e.target.style.borderColor = '#007bff';
+              },
+              title: 'Click to edit label'
             }, building.customLabel || building.name),
             
             // Label Input for Editing
