@@ -29,7 +29,7 @@ const BUILDING_TYPES = {
   // Nature
   tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 },
   "oak-tree": { category: "nature", name: "Oak Tree", icon: "🌳", width: 30, height: 30 },
-  park: { category: "nature", name: "Park", icon: "🌳", width: 80, height: 60 },
+  park: { category: "nature", name: "Park", icon: "🏞️", width: 80, height: 60 },
   "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
 };
 
@@ -308,6 +308,49 @@ const CityBuilder = () => {
       setEditingBuilding(null);
       setBuildingNameInput('');
     }
+  };
+
+  // Drag functionality for moving buildings and streets
+  const handleDragStart = (e, item) => {
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+    
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startItemX = item.x;
+    const startItemY = item.y;
+    
+    const handleMouseMove = (e) => {
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
+      
+      let newX = startItemX + deltaX;
+      let newY = startItemY + deltaY;
+      
+      if (gridEnabled) {
+        newX = Math.round(newX / 20) * 20;
+        newY = Math.round(newY / 20) * 20;
+      }
+      
+      newX = Math.max(0, newX);
+      newY = Math.max(0, newY);
+      
+      if (item.category) {
+        updateBuilding(item.id, { x: newX, y: newY });
+      } else {
+        updateStreet(item.id, { x: newX, y: newY });
+      }
+    };
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'default';
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'grabbing';
   };
 
   // City name editing functions
@@ -627,18 +670,19 @@ const CityBuilder = () => {
           {streets.map((street) => (
             <div
               key={street.id}
-              className={`position-absolute border ${selectedStreet?.id === street.id ? 'border-info border-3' : 'border-secondary'}`}
+              className={`position-absolute border-0 ${selectedStreet?.id === street.id ? 'border border-info border-3' : ''}`}
               style={{
                 left: `${street.x}px`,
                 top: `${street.y}px`,
                 width: `${street.width}px`,
                 height: `${street.height}px`,
                 backgroundColor: street.type === 'water' ? '#007bff' : '#000000',
-                cursor: 'pointer',
+                cursor: selectedStreet?.id === street.id ? 'move' : 'pointer',
                 transition: 'all 0.2s ease',
                 zIndex: selectedStreet?.id === street.id ? 10 : 1
               }}
               onClick={(e) => handleStreetClick(e, street)}
+              onMouseDown={(e) => selectedStreet?.id === street.id && handleDragStart(e, street)}
             >
               {/* Delete button for selected street */}
               {selectedStreet?.id === street.id && (
@@ -721,14 +765,14 @@ const CityBuilder = () => {
           {buildings.map((building) => (
             <div
               key={building.id}
-              className={`position-absolute border rounded ${selectedBuilding?.id === building.id ? 'border-primary border-3' : 'border-secondary'}`}
+              className={`position-absolute border-0 ${selectedBuilding?.id === building.id ? 'border border-primary border-3' : ''}`}
               style={{
                 left: `${building.x}px`,
                 top: `${building.y}px`,
                 width: `${building.width}px`,
                 height: `${building.height}px`,
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                cursor: 'pointer',
+                backgroundColor: building.type === 'grass-patch' ? '#32CD32' : 'transparent',
+                cursor: selectedBuilding?.id === building.id ? 'move' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -737,6 +781,7 @@ const CityBuilder = () => {
                 zIndex: selectedBuilding?.id === building.id ? 10 : 1
               }}
               onClick={(e) => handleBuildingClick(e, building)}
+              onMouseDown={(e) => selectedBuilding?.id === building.id && handleDragStart(e, building)}
             >
               {/* Building Icon/Content */}
               <div className="text-center w-100 h-100 d-flex align-items-center justify-content-center">
@@ -751,7 +796,7 @@ const CityBuilder = () => {
                     }}
                   />
                 ) : building.type === 'park' ? (
-                  <span>🌳</span>
+                  <span>🏞️</span>
                 ) : (
                   <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
                 )}
@@ -805,13 +850,16 @@ const CityBuilder = () => {
                     />
                     <button
                       type="button"
-                      className="btn btn-sm btn-outline-danger"
+                      className="btn btn-sm btn-danger"
                       style={{
                         fontSize: '0.7rem',
                         padding: '1px 4px',
                         lineHeight: '1'
                       }}
-                      onClick={handleBuildingNameClear}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBuildingNameClear();
+                      }}
                       title="Clear label"
                     >
                       ✕
