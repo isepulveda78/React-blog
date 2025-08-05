@@ -226,89 +226,149 @@ const CityBuilder = ({ user }) => {
     const originalItem = { ...item };
     const isBuilding = item.hasOwnProperty("category") && item.category !== "roads";
 
+    // Add visual feedback
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = `${handle}-resize`;
+
+    let animationFrame;
+
     const handleMouseMove = (moveEvent) => {
-      const deltaX = moveEvent.clientX - startX;
-      const deltaY = moveEvent.clientY - startY;
-
-      let newItem = { ...originalItem };
-      const minSize = 20; // Minimum size for all items
-
-      // Handle all resize directions including edge resizing
-      switch (handle) {
-        case "se": // Southeast - resize from bottom-right
-          newItem.width = Math.max(minSize, originalItem.width + deltaX);
-          newItem.height = Math.max(minSize, originalItem.height + deltaY);
-          break;
-        case "sw": // Southwest - resize from bottom-left
-          newItem.width = Math.max(minSize, originalItem.width - deltaX);
-          newItem.height = Math.max(minSize, originalItem.height + deltaY);
-          newItem.x = originalItem.x + deltaX;
-          if (newItem.width === minSize)
-            newItem.x = originalItem.x + originalItem.width - minSize;
-          break;
-        case "ne": // Northeast - resize from top-right
-          newItem.width = Math.max(minSize, originalItem.width + deltaX);
-          newItem.height = Math.max(minSize, originalItem.height - deltaY);
-          newItem.y = originalItem.y + deltaY;
-          if (newItem.height === minSize)
-            newItem.y = originalItem.y + originalItem.height - minSize;
-          break;
-        case "nw": // Northwest - resize from top-left
-          newItem.width = Math.max(minSize, originalItem.width - deltaX);
-          newItem.height = Math.max(minSize, originalItem.height - deltaY);
-          newItem.x = originalItem.x + deltaX;
-          newItem.y = originalItem.y + deltaY;
-          if (newItem.width === minSize)
-            newItem.x = originalItem.x + originalItem.width - minSize;
-          if (newItem.height === minSize)
-            newItem.y = originalItem.y + originalItem.height - minSize;
-          break;
-        // Edge resize handles
-        case "n": // North - resize height from top
-          newItem.height = Math.max(minSize, originalItem.height - deltaY);
-          newItem.y = originalItem.y + deltaY;
-          if (newItem.height === minSize)
-            newItem.y = originalItem.y + originalItem.height - minSize;
-          break;
-        case "s": // South - resize height from bottom
-          newItem.height = Math.max(minSize, originalItem.height + deltaY);
-          break;
-        case "e": // East - resize width from right
-          newItem.width = Math.max(minSize, originalItem.width + deltaX);
-          break;
-        case "w": // West - resize width from left
-          newItem.width = Math.max(minSize, originalItem.width - deltaX);
-          newItem.x = originalItem.x + deltaX;
-          if (newItem.width === minSize)
-            newItem.x = originalItem.x + originalItem.width - minSize;
-          break;
+      // Use requestAnimationFrame for smoother updates
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
       }
 
-      // Apply grid snapping if enabled
-      if (gridEnabled) {
-        newItem.x = Math.round(newItem.x / 20) * 20;
-        newItem.y = Math.round(newItem.y / 20) * 20;
-        newItem.width = Math.max(20, Math.round(newItem.width / 20) * 20);
-        newItem.height = Math.max(20, Math.round(newItem.height / 20) * 20);
-      }
+      animationFrame = requestAnimationFrame(() => {
+        const deltaX = moveEvent.clientX - startX;
+        const deltaY = moveEvent.clientY - startY;
 
-      // Update the appropriate item type
-      if (isBuilding) {
-        updateBuilding(item.id, newItem);
-      } else {
-        updateStreet(item.id, newItem);
-      }
+        let newItem = { ...originalItem };
+        const minSize = 20; // Minimum size for all items
+
+        // Handle all resize directions including edge resizing
+        switch (handle) {
+          case "se": // Southeast - resize from bottom-right
+            newItem.width = Math.max(minSize, originalItem.width + deltaX);
+            newItem.height = Math.max(minSize, originalItem.height + deltaY);
+            break;
+          case "sw": // Southwest - resize from bottom-left
+            newItem.width = Math.max(minSize, originalItem.width - deltaX);
+            newItem.height = Math.max(minSize, originalItem.height + deltaY);
+            newItem.x = originalItem.x + (originalItem.width - newItem.width);
+            break;
+          case "ne": // Northeast - resize from top-right
+            newItem.width = Math.max(minSize, originalItem.width + deltaX);
+            newItem.height = Math.max(minSize, originalItem.height - deltaY);
+            newItem.y = originalItem.y + (originalItem.height - newItem.height);
+            break;
+          case "nw": // Northwest - resize from top-left
+            newItem.width = Math.max(minSize, originalItem.width - deltaX);
+            newItem.height = Math.max(minSize, originalItem.height - deltaY);
+            newItem.x = originalItem.x + (originalItem.width - newItem.width);
+            newItem.y = originalItem.y + (originalItem.height - newItem.height);
+            break;
+          // Edge resize handles - smoother calculations
+          case "n": // North - resize height from top
+            newItem.height = Math.max(minSize, originalItem.height - deltaY);
+            newItem.y = originalItem.y + (originalItem.height - newItem.height);
+            break;
+          case "s": // South - resize height from bottom
+            newItem.height = Math.max(minSize, originalItem.height + deltaY);
+            break;
+          case "e": // East - resize width from right
+            newItem.width = Math.max(minSize, originalItem.width + deltaX);
+            break;
+          case "w": // West - resize width from left
+            newItem.width = Math.max(minSize, originalItem.width - deltaX);
+            newItem.x = originalItem.x + (originalItem.width - newItem.width);
+            break;
+        }
+
+        // Apply grid snapping only when enabled, but less aggressively during drag
+        if (gridEnabled) {
+          // Only snap to grid every 10px during drag for smoother experience
+          const snapSize = 10;
+          newItem.width = Math.max(minSize, Math.round(newItem.width / snapSize) * snapSize);
+          newItem.height = Math.max(minSize, Math.round(newItem.height / snapSize) * snapSize);
+          newItem.x = Math.round(newItem.x / snapSize) * snapSize;
+          newItem.y = Math.round(newItem.y / snapSize) * snapSize;
+        }
+
+        // Update the appropriate item type
+        if (isBuilding) {
+          updateBuilding(item.id, newItem);
+        } else {
+          updateStreet(item.id, newItem);
+        }
+      });
     };
 
     const handleMouseUp = () => {
+      // Cancel any pending animation frame
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "default";
+      document.body.style.userSelect = 'auto';
+
+      // Final snap to grid if enabled
+      if (gridEnabled) {
+        const finalItem = { ...originalItem };
+        const deltaX = event.clientX - startX;
+        const deltaY = event.clientY - startY;
+
+        // Recalculate final position with proper grid snapping
+        switch (handle) {
+          case "se":
+            finalItem.width = Math.max(20, Math.round((originalItem.width + deltaX) / 20) * 20);
+            finalItem.height = Math.max(20, Math.round((originalItem.height + deltaY) / 20) * 20);
+            break;
+          case "sw":
+            finalItem.width = Math.max(20, Math.round((originalItem.width - deltaX) / 20) * 20);
+            finalItem.height = Math.max(20, Math.round((originalItem.height + deltaY) / 20) * 20);
+            finalItem.x = Math.round((originalItem.x + originalItem.width - finalItem.width) / 20) * 20;
+            break;
+          case "ne":
+            finalItem.width = Math.max(20, Math.round((originalItem.width + deltaX) / 20) * 20);
+            finalItem.height = Math.max(20, Math.round((originalItem.height - deltaY) / 20) * 20);
+            finalItem.y = Math.round((originalItem.y + originalItem.height - finalItem.height) / 20) * 20;
+            break;
+          case "nw":
+            finalItem.width = Math.max(20, Math.round((originalItem.width - deltaX) / 20) * 20);
+            finalItem.height = Math.max(20, Math.round((originalItem.height - deltaY) / 20) * 20);
+            finalItem.x = Math.round((originalItem.x + originalItem.width - finalItem.width) / 20) * 20;
+            finalItem.y = Math.round((originalItem.y + originalItem.height - finalItem.height) / 20) * 20;
+            break;
+          case "n":
+            finalItem.height = Math.max(20, Math.round((originalItem.height - deltaY) / 20) * 20);
+            finalItem.y = Math.round((originalItem.y + originalItem.height - finalItem.height) / 20) * 20;
+            break;
+          case "s":
+            finalItem.height = Math.max(20, Math.round((originalItem.height + deltaY) / 20) * 20);
+            break;
+          case "e":
+            finalItem.width = Math.max(20, Math.round((originalItem.width + deltaX) / 20) * 20);
+            break;
+          case "w":
+            finalItem.width = Math.max(20, Math.round((originalItem.width - deltaX) / 20) * 20);
+            finalItem.x = Math.round((originalItem.x + originalItem.width - finalItem.width) / 20) * 20;
+            break;
+        }
+
+        // Apply final update
+        if (isBuilding) {
+          updateBuilding(item.id, finalItem);
+        } else {
+          updateStreet(item.id, finalItem);
+        }
+      }
     };
 
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-    document.body.style.cursor = `${handle}-resize`;
   };
 
   const handleStreetMouseDown = (e, street) => {
@@ -941,7 +1001,8 @@ const CityBuilder = ({ user }) => {
                   className="w-100 h-100"
                   style={{
                     backgroundColor: '#2d3748',
-                    border: selectedStreet?.id === street.id ? '2px solid #3b82f6' : '1px solid #4a5568'
+                    border: selectedStreet?.id === street.id ? '2px solid #3b82f6' : '1px solid #4a5568',
+                    transition: selectedStreet?.id === street.id ? 'none' : 'all 0.2s ease'
                   }}
                 />
               )}
