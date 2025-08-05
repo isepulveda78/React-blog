@@ -1,6 +1,34 @@
 // BlogPost component using window-based exports for browser compatibility
 const { useState, useEffect } = React;
 
+// Helper function to format dates nicely
+const formatCommentDate = (dateString) => {
+  if (!dateString) return 'Unknown date';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffMinutes = Math.floor(diffTime / (1000 * 60));
+  const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  // Show relative times for recent comments
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays <= 7) return `${diffDays} days ago`;
+  
+  // Show full date for older comments
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
 function CommentForm({ postId, parentId, onSuccess, onCancel }) {
   const user = window.currentUser;
   const [content, setContent] = useState("");
@@ -114,8 +142,7 @@ function CommentItem({ comment, postId, onReply }) {
             <div>
               <strong>{comment.authorName}</strong>
               <small className="text-muted ms-2">
-                {new Date(comment.createdAt).toLocaleDateString()}{" "}
-                {new Date(comment.createdAt).toLocaleTimeString()}
+                {formatCommentDate(comment.createdAt)}
               </small>
             </div>
             {!isApproved && (
@@ -410,7 +437,7 @@ function BlogPost() {
             },
               React.createElement("span", null, "By ", post.authorName),
               React.createElement("span", { className: "mx-2" }, "•"),
-              React.createElement("span", null, new Date(post.publishedAt).toLocaleDateString()),
+              React.createElement("span", null, formatCommentDate(post.publishedAt || post.createdAt)),
               React.createElement("span", { className: "mx-2" }, "•"),
               React.createElement("span", null, Math.ceil(post.content.replace(/<[^>]*>/g, '').length / 200), " min read")
             ),

@@ -1,6 +1,28 @@
 const { React, useState, useEffect } = window;
 const BlogCard = window.BlogCard;
 
+// Helper function to format dates nicely
+const formatDate = (dateString) => {
+  if (!dateString) return 'Unknown date';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  // Show relative dates for recent posts
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays <= 7) return `${diffDays} days ago`;
+  if (diffDays <= 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+  
+  // Show full date for older posts
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
 const BlogListing = ({ user }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
