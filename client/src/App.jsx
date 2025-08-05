@@ -27,6 +27,7 @@ const BingoGenerator = window.BingoGenerator;
 const SoundDemo = window.SoundDemo;
 const MP3Guide = window.MP3Guide;
 const SpanishAlphabet = window.SpanishAlphabet;
+const WordSorter = window.WordSorter;
 const NotFound = window.NotFound;
 
 // Auth Context
