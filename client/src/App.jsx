@@ -13,6 +13,7 @@ import AdminUsers from './components/AdminUsers.jsx'
 import AdminComments from './components/AdminComments.jsx'
 import AdminPostEditor from './components/AdminPostEditor.jsx'
 import SEOManagement from './components/SEOManagement.jsx'
+import Footer from './components/Footer.jsx'
 import UserProfile from './pages/user-profile.jsx'
 import EducationalTools from './pages/educational-tools.jsx'
 import BingoGenerator from './pages/bingo-generator.jsx'
@@ -185,6 +186,7 @@ const AppRoutes = () => {
           <Route component={NotFound} />
         </Switch>
       </main>
+      <Footer />
     </div>
   )
 }
