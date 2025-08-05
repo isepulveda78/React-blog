@@ -782,6 +782,38 @@ export function registerRoutes(app) {
     }
   });
 
+  // Admin password reset
+  app.put("/api/admin/users/:id/password", async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const userId = req.params.id;
+      const { newPassword } = req.body;
+      
+      if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      }
+      
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update the user's password
+      const updated = await storage.updateUserPassword(userId, hashedPassword);
+      
+      if (updated) {
+        res.json({ message: "Password reset successfully" });
+      } else {
+        res.status(404).json({ message: "User not found" });
+      }
+    } catch (error) {
+      console.error("Admin password reset error:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
   app.delete('/api/users/:userId', async (req, res) => {
     try {
       console.log('[delete-user] Request from:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);

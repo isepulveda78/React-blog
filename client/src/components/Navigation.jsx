@@ -1,26 +1,28 @@
 const { React, useState, useEffect } = window;
 
 const Navigation = ({ user, onLogout }) => {
-  console.log('Navigation component - current user:', user);
+  console.log("Navigation component - current user:", user);
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   useEffect(() => {
     const handlePathChange = () => {
       setCurrentPath(window.location.pathname);
     };
-    
-    window.addEventListener('popstate', handlePathChange);
-    return () => window.removeEventListener('popstate', handlePathChange);
+
+    window.addEventListener("popstate", handlePathChange);
+    return () => window.removeEventListener("popstate", handlePathChange);
   }, []);
 
   const isActive = (path) => currentPath === path;
 
   const navigateTo = (path) => {
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.history.pushState({}, "", path);
+    window.dispatchEvent(new PopStateEvent("popstate"));
     setCurrentPath(path);
+    setIsNavOpen(false); // Close mobile nav when navigating
   };
 
   const handleAuthModalToggle = () => {
@@ -44,7 +46,7 @@ const Navigation = ({ user, onLogout }) => {
   // Simple inline AuthModal since window.AuthModal might not load properly
   const AuthModalComponent = () => {
     if (!showAuthModal) return null;
-    
+
     const [formData, setFormData] = useState({
       email: "",
       password: "",
@@ -82,12 +84,12 @@ const Navigation = ({ user, onLogout }) => {
 
         const userData = await response.json();
         console.log("Authentication successful:", userData);
-        
+
         // Update global user state and refresh
         window.currentUser = userData;
         localStorage.setItem("user", JSON.stringify(userData));
         window.location.reload();
-        
+
         setShowAuthModal(false);
         setFormData({ email: "", password: "", username: "", name: "" });
       } catch (err) {
@@ -97,123 +99,182 @@ const Navigation = ({ user, onLogout }) => {
       }
     };
 
-    return React.createElement("div", {
-      className: "modal show d-block",
-      style: { backgroundColor: "rgba(0,0,0,0.5)" },
-      onClick: (e) => {
-        if (e.target === e.currentTarget) setShowAuthModal(false);
-      }
-    },
-      React.createElement("div", {
-        className: "modal-dialog modal-dialog-centered",
-        onClick: (e) => e.stopPropagation()
+    return React.createElement(
+      "div",
+      {
+        className: "modal show d-block",
+        style: { backgroundColor: "rgba(0,0,0,0.5)" },
+        onClick: (e) => {
+          if (e.target === e.currentTarget) setShowAuthModal(false);
+        },
       },
-        React.createElement("div", { className: "modal-content" },
-          React.createElement("div", { className: "modal-header" },
-            React.createElement("h5", { className: "modal-title" },
-              isLoginMode ? "Sign In" : "Create Account"
+      React.createElement(
+        "div",
+        {
+          className: "modal-dialog modal-dialog-centered",
+          onClick: (e) => e.stopPropagation(),
+        },
+        React.createElement(
+          "div",
+          { className: "modal-content" },
+          React.createElement(
+            "div",
+            { className: "modal-header" },
+            React.createElement(
+              "h5",
+              { className: "modal-title" },
+              isLoginMode ? "Sign In" : "Create Account",
             ),
             React.createElement("button", {
               type: "button",
               className: "btn-close",
-              onClick: () => setShowAuthModal(false)
-            })
+              onClick: () => setShowAuthModal(false),
+            }),
           ),
-          React.createElement("form", { onSubmit: handleSubmit },
-            React.createElement("div", { className: "modal-body" },
-              error && React.createElement("div", { className: "alert alert-danger" }, error),
-              
+          React.createElement(
+            "form",
+            { onSubmit: handleSubmit },
+            React.createElement(
+              "div",
+              { className: "modal-body" },
+              error &&
+                React.createElement(
+                  "div",
+                  { className: "alert alert-danger" },
+                  error,
+                ),
+
               // Google Sign-In Button
-              React.createElement("div", { className: "d-grid gap-2 mb-3" },
-                React.createElement("a", {
-                  href: "/api/auth/google",
-                  className: "btn btn-outline-danger"
-                },
+              React.createElement(
+                "div",
+                { className: "d-grid gap-2 mb-3" },
+                React.createElement(
+                  "a",
+                  {
+                    href: "/api/auth/google",
+                    className: "btn btn-outline-danger",
+                  },
                   React.createElement("i", { className: "fab fa-google me-2" }),
-                  isLoginMode ? "Sign in with Google" : "Sign up with Google"
-                )
+                  isLoginMode ? "Sign in with Google" : "Sign up with Google",
+                ),
               ),
-              
-              React.createElement("div", { className: "text-center mb-3" },
-                React.createElement("span", { className: "text-muted" }, "or")
+
+              React.createElement(
+                "div",
+                { className: "text-center mb-3" },
+                React.createElement("span", { className: "text-muted" }, "or"),
               ),
 
               // Name field for registration
-              !isLoginMode && React.createElement("div", { className: "mb-3" },
-                React.createElement("label", { className: "form-label" }, "Full Name"),
-                React.createElement("input", {
-                  type: "text",
-                  className: "form-control",
-                  name: "name",
-                  value: formData.name,
-                  onChange: handleChange,
-                  required: true
-                })
-              ),
+              !isLoginMode &&
+                React.createElement(
+                  "div",
+                  { className: "mb-3" },
+                  React.createElement(
+                    "label",
+                    { className: "form-label" },
+                    "Full Name",
+                  ),
+                  React.createElement("input", {
+                    type: "text",
+                    className: "form-control",
+                    name: "name",
+                    value: formData.name,
+                    onChange: handleChange,
+                    required: true,
+                  }),
+                ),
 
               // Username field for registration
-              !isLoginMode && React.createElement("div", { className: "mb-3" },
-                React.createElement("label", { className: "form-label" }, "Username"),
-                React.createElement("input", {
-                  type: "text",
-                  className: "form-control",
-                  name: "username",
-                  value: formData.username,
-                  onChange: handleChange,
-                  required: true
-                })
-              ),
+              !isLoginMode &&
+                React.createElement(
+                  "div",
+                  { className: "mb-3" },
+                  React.createElement(
+                    "label",
+                    { className: "form-label" },
+                    "Username",
+                  ),
+                  React.createElement("input", {
+                    type: "text",
+                    className: "form-control",
+                    name: "username",
+                    value: formData.username,
+                    onChange: handleChange,
+                    required: true,
+                  }),
+                ),
 
               // Email field
-              React.createElement("div", { className: "mb-3" },
-                React.createElement("label", { className: "form-label" }, "Email"),
+              React.createElement(
+                "div",
+                { className: "mb-3" },
+                React.createElement(
+                  "label",
+                  { className: "form-label" },
+                  "Email",
+                ),
                 React.createElement("input", {
                   type: "email",
                   className: "form-control",
                   name: "email",
                   value: formData.email,
                   onChange: handleChange,
-                  required: true
-                })
+                  required: true,
+                }),
               ),
 
               // Password field
-              React.createElement("div", { className: "mb-3" },
-                React.createElement("label", { className: "form-label" }, "Password"),
+              React.createElement(
+                "div",
+                { className: "mb-3" },
+                React.createElement(
+                  "label",
+                  { className: "form-label" },
+                  "Password",
+                ),
                 React.createElement("input", {
                   type: "password",
                   className: "form-control",
                   name: "password",
                   value: formData.password,
                   onChange: handleChange,
-                  required: true
-                })
-              )
+                  required: true,
+                }),
+              ),
             ),
-            React.createElement("div", { className: "modal-footer" },
-              React.createElement("button", {
-                type: "button",
-                className: "btn btn-outline-secondary",
-                onClick: handleAuthModalToggle
-              },
+            React.createElement(
+              "div",
+              { className: "modal-footer" },
+              React.createElement(
+                "button",
+                {
+                  type: "button",
+                  className: "btn btn-outline-secondary",
+                  onClick: handleAuthModalToggle,
+                },
                 isLoginMode
                   ? "Need an account? Sign up"
-                  : "Already have an account? Sign in"
+                  : "Already have an account? Sign in",
               ),
-              React.createElement("button", {
-                type: "submit",
-                className: "btn btn-primary",
-                disabled: isLoading
-              },
+              React.createElement(
+                "button",
+                {
+                  type: "submit",
+                  className: "btn btn-primary",
+                  disabled: isLoading,
+                },
                 isLoading
-                  ? React.createElement("span", { className: "spinner-border spinner-border-sm me-2" })
+                  ? React.createElement("span", {
+                      className: "spinner-border spinner-border-sm me-2",
+                    })
                   : null,
-                isLoginMode ? "Sign In" : "Create Account"
-              )
-            )
-          )
-        )
-      )
+                isLoginMode ? "Sign In" : "Create Account",
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   };
 
@@ -221,226 +282,207 @@ const Navigation = ({ user, onLogout }) => {
     <>
       {/* Inline AuthModal */}
       {React.createElement(AuthModalComponent)}
-      
+
       {/* Navigation */}
-    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
-      <div className="container">
-        <a 
-          className="navbar-brand fw-bold text-primary"
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            navigateTo('/');
-          }}
-        >
-          Mr. S Teaches
-        </a>
-        
-        {/* Emergency logout link - always visible */}
-        <a 
-          href="/logout-test.html"
-          className="btn btn-warning btn-sm ms-auto me-2"
-          style={{ position: 'absolute', right: '10px', top: '10px', zIndex: 1000 }}
-        >
-          LOGOUT
-        </a>
-        
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
-        
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav me-auto">
-            <li className="nav-item">
-              <a
-                className={`nav-link ${isActive('/') ? 'active' : ''}`}
-                href="/"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigateTo('/');
-                }}
-              >
-                Home
-              </a>
-            </li>
-            <li className="nav-item">
-              <a
-                className={`nav-link ${isActive('/blog') ? 'active' : ''}`}
-                href="/blog"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigateTo('/blog');
-                }}
-              >
-                All Posts
-              </a>
-            </li>
-            {user && user.isAdmin && (
-              <li className="nav-item dropdown">
-                <a
-                  className="nav-link dropdown-toggle text-danger fw-bold"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  style={{ backgroundColor: '#fff3cd', padding: '8px 12px', borderRadius: '4px' }}
-                >
-                  🔧 ADMIN PANEL
-                </a>
-                <ul className="dropdown-menu">
-                  <li>
-                    <a
-                      className="dropdown-item"
-                      href="/admin"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigateTo('/admin');
-                      }}
-                    >
-                      Dashboard
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      className="dropdown-item"
-                      href="/admin/posts"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigateTo('/admin/posts');
-                      }}
-                    >
-                      Manage Posts
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      className="dropdown-item"
-                      href="/admin/users"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigateTo('/admin/users');
-                      }}
-                    >
-                      Manage Users
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      className="dropdown-item"
-                      href="/admin/comments"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigateTo('/admin/comments');
-                      }}
-                    >
-                      Manage Comments
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      className="dropdown-item"
-                      href="/seo-management"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigateTo('/seo-management');
-                      }}
-                    >
-                      SEO Management
-                    </a>
-                  </li>
-                </ul>
-              </li>
-            )}
-            {user && user.approved && (
+      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div className="container">
+          <a
+            className="navbar-brand fw-bold text-white ama-font shadow-for-ama text-decoration-none fs-1"
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateTo("/");
+            }}
+          >
+            Mr. S Teaches
+          </a>
+
+          <button
+            className="navbar-toggler"
+            type="button"
+            onClick={() => setIsNavOpen(!isNavOpen)}
+            aria-controls="navbarNav"
+            aria-expanded={isNavOpen}
+            aria-label="Toggle navigation"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </button>
+
+          <div className={`collapse navbar-collapse ${isNavOpen ? 'show' : ''}`} id="navbarNav">
+            <ul className="navbar-nav me-auto">
               <li className="nav-item">
                 <a
-                  className={`nav-link ${isActive('/profile') ? 'active' : ''}`}
-                  href="/profile"
+                  className={`nav-link ${isActive("/") ? "active" : ""}`}
+                  href="/"
                   onClick={(e) => {
                     e.preventDefault();
-                    navigateTo('/profile');
+                    navigateTo("/");
                   }}
                 >
-                  My Profile
+                  Home
                 </a>
               </li>
-            )}
-
-          </ul>
-          
-          <div className="navbar-nav">
-            {/* Debug info */}
-            <span className="navbar-text me-2 small text-muted">
-              User: {user ? `${user.username} (Admin: ${user.isAdmin ? 'Yes' : 'No'})` : 'Not logged in'}
-            </span>
-            
-            {/* Always visible admin access button */}
-            <button
-              className="btn btn-danger btn-sm me-2"
-              onClick={() => {
-                window.history.pushState({}, '', '/admin');
-                window.dispatchEvent(new PopStateEvent('popstate'));
-              }}
-            >
-              🔧 Admin Dashboard
-            </button>
-            
-            {/* Always visible logout button for testing */}
-            <button
-              className="btn btn-warning btn-sm me-2"
-              onClick={handleLogout}
-              style={{ backgroundColor: '#ffc107', border: '2px solid #000' }}
-            >
-              LOGOUT NOW
-            </button>
-            
-            {user ? (
-              <div className="d-flex align-items-center gap-2">
-                <span className="text-muted">Welcome, {user.username}!</span>
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <div className="d-flex gap-2">
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={() => {
-                    setIsLoginMode(true);
-                    setShowAuthModal(true);
-                  }}
-                >
-                  Sign In
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => {
-                    setIsLoginMode(false);
-                    setShowAuthModal(true);
-                  }}
-                >
-                  Sign Up
-                </button>
+              <li className="nav-item">
                 <a
-                  href="/api/auth/google"
-                  className="btn btn-outline-danger"
+                  className={`nav-link ${isActive("/blog") ? "active" : ""}`}
+                  href="/blog"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo("/blog");
+                  }}
                 >
-                  <i className="fab fa-google me-1"></i>
-                  Google
+                  All Posts
                 </a>
-              </div>
-            )}
+              </li>
+
+              {user && user.approved && (
+                <li className="nav-item">
+                  <a
+                    className={`nav-link ${isActive("/profile") ? "active" : ""}`}
+                    href="/profile"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateTo("/profile");
+                    }}
+                  >
+                    My Profile
+                  </a>
+                </li>
+              )}
+              
+              {user && user.isAdmin && (
+                <li className="nav-item dropdown">
+                  <a
+                    className="nav-link dropdown-toggle text-danger fw-bold"
+                    href="#"
+                    role="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // Simple dropdown toggle
+                      const dropdown = e.target.nextElementSibling;
+                      dropdown.classList.toggle('show');
+                    }}
+                    style={{ backgroundColor: '#fff3cd', padding: '8px 12px', borderRadius: '4px' }}
+                  >
+                    🔧 ADMIN PANEL
+                  </a>
+                  <ul className="dropdown-menu">
+                    <li>
+                      <a
+                        className="dropdown-item"
+                        href="/admin"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigateTo('/admin');
+                        }}
+                      >
+                        Dashboard
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        className="dropdown-item"
+                        href="/admin/posts"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigateTo('/admin/posts');
+                        }}
+                      >
+                        Manage Posts
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        className="dropdown-item"
+                        href="/admin/users"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigateTo('/admin/users');
+                        }}
+                      >
+                        Manage Users
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        className="dropdown-item"
+                        href="/admin/comments"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigateTo('/admin/comments');
+                        }}
+                      >
+                        Manage Comments
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        className="dropdown-item"
+                        href="/seo-management"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigateTo('/seo-management');
+                        }}
+                      >
+                        SEO Management
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              )}
+            </ul>
+
+            <div className="navbar-nav">
+              {/* Quick admin access button */}
+              {user && user.isAdmin && (
+                <button
+                  className="btn btn-danger btn-sm me-2"
+                  onClick={() => navigateTo("/admin")}
+                >
+                  Admin Dashboard
+                </button>
+              )}
+              {/* Always visible logout button for testing */}
+
+              {user ? (
+                <button
+                  className="btn btn-warning btn-sm me-2"
+                  onClick={handleLogout}
+                  style={{
+                    backgroundColor: "#ffc107",
+                    border: "2px solid #000",
+                  }}
+                >
+                  LOGOUT NOW
+                </button>
+              ) : null}
+
+              {!user ? (
+                <div className="d-flex gap-2">
+                  <button
+                    className="btn btn-outline-primary"
+                    onClick={() => {
+                      setIsLoginMode(true);
+                      setShowAuthModal(true);
+                    }}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      setIsLoginMode(false);
+                      setShowAuthModal(true);
+                    }}
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
     </>
   );
 };
