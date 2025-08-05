@@ -52,53 +52,28 @@ registerRoutes(app);
 // Configure Express to serve JSX files with JavaScript MIME type
 express.static.mime.define({'application/javascript': ['jsx']});
 
-// Serve static files - check for built assets first, then fall back to client directory
+// Serve static files from built assets
 if (process.env.NODE_ENV === 'production') {
-  // In production, serve from built assets
+  console.log('[server] serving static files from dist/public');
   app.use(express.static(path.join(__dirname, './public')));
 } else {
-  // In development, serve source files specifically for ES6 modules
-  app.use('/src', express.static(path.join(__dirname, '../client/src'), {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.jsx') || path.endsWith('.js')) {
-        res.setHeader('Content-Type', 'application/javascript');
-      }
-    }
-  }));
-  app.use(express.static(path.join(__dirname, '../client')));
+  console.log('[server] serving static files from dist/public (development)');
+  app.use(express.static(path.join(__dirname, '../dist/public')));
 }
 
-// Handle client-side routing - but not for static files
+// Handle client-side routing - serve from built files
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ message: 'API endpoint not found' });
   }
   
-  // Don't redirect component files and other static assets
-  if (req.path.startsWith('/src/') || 
-      req.path.endsWith('.js') || 
-      req.path.endsWith('.jsx') || 
-      req.path.endsWith('.css') ||
-      req.path.endsWith('.png') ||
-      req.path.endsWith('.jpg') ||
-      req.path.endsWith('.ico') ||
-      req.path.endsWith('.woff') ||
-      req.path.endsWith('.woff2') ||
-      req.path.endsWith('.ttf') ||
-      req.path.endsWith('.svg') ||
-      req.path.endsWith('.mp3') ||
-      req.path.endsWith('.mp4')) {
-    return res.status(404).send('File not found');
-  }
-  
   console.log('Serving index.html for path:', req.path);
   
-  if (process.env.NODE_ENV === 'production') {
-    // In production, serve the built index.html
-    res.sendFile(path.join(__dirname, './public/index.html'));
+  // In development, use built files from dist/public
+  if (process.env.NODE_ENV !== 'production') {
+    res.sendFile(path.join(__dirname, '../dist/public/index.html'));
   } else {
-    // In development, serve the ES6 module HTML
-    res.sendFile(path.join(__dirname, '../client/index.html'));
+    res.sendFile(path.join(__dirname, './public/index.html'));
   }
 });
 
