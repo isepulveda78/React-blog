@@ -373,46 +373,54 @@ const CityBuilder = ({ user }) => {
 
   const handleStreetDrag = (e, street) => {
     // Only allow dragging if not clicking on resize handles
-    if (e.target.classList.contains('position-absolute')) {
+    if (e.target.classList.contains('position-absolute') || e.target.closest('.resize-handle')) {
       return; // Don't drag if clicking on a resize handle
     }
-
-    e.stopPropagation();
-    e.preventDefault();
 
     const startX = e.clientX;
     const startY = e.clientY;
     const originalStreet = { ...street };
+    let isDragging = false;
+    let hasMoved = false;
 
     document.body.style.userSelect = 'none';
-    document.body.style.cursor = 'grabbing';
 
     let animationFrame;
 
     const handleMouseMove = (moveEvent) => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      
+      // Only start dragging if mouse has moved more than 5 pixels
+      if (!isDragging && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
+        isDragging = true;
+        document.body.style.cursor = 'grabbing';
+        console.log("Started dragging street:", street.id);
       }
 
-      animationFrame = requestAnimationFrame(() => {
-        const deltaX = moveEvent.clientX - startX;
-        const deltaY = moveEvent.clientY - startY;
-
-        let newStreet = {
-          ...originalStreet,
-          x: originalStreet.x + deltaX,
-          y: originalStreet.y + deltaY
-        };
-
-        // Apply grid snapping during drag for smoother experience
-        if (gridEnabled) {
-          const snapSize = 10; // Lighter snapping during drag
-          newStreet.x = Math.round(newStreet.x / snapSize) * snapSize;
-          newStreet.y = Math.round(newStreet.y / snapSize) * snapSize;
+      if (isDragging) {
+        hasMoved = true;
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
         }
 
-        updateStreet(street.id, newStreet);
-      });
+        animationFrame = requestAnimationFrame(() => {
+          let newStreet = {
+            ...originalStreet,
+            x: originalStreet.x + deltaX,
+            y: originalStreet.y + deltaY
+          };
+
+          // Apply grid snapping during drag for smoother experience
+          if (gridEnabled) {
+            const snapSize = 10; // Lighter snapping during drag
+            newStreet.x = Math.round(newStreet.x / snapSize) * snapSize;
+            newStreet.y = Math.round(newStreet.y / snapSize) * snapSize;
+          }
+
+          updateStreet(street.id, newStreet);
+        });
+      }
     };
 
     const handleMouseUp = (event) => {
@@ -425,19 +433,26 @@ const CityBuilder = ({ user }) => {
       document.body.style.cursor = "default";
       document.body.style.userSelect = 'auto';
 
-      // Final snap to grid if enabled
-      if (gridEnabled) {
-        const deltaX = event.clientX - startX;
-        const deltaY = event.clientY - startY;
+      if (isDragging && hasMoved) {
+        // Final snap to grid if enabled
+        if (gridEnabled) {
+          const deltaX = event.clientX - startX;
+          const deltaY = event.clientY - startY;
 
-        const finalStreet = {
-          ...originalStreet,
-          x: Math.round((originalStreet.x + deltaX) / 20) * 20,
-          y: Math.round((originalStreet.y + deltaY) / 20) * 20
-        };
+          const finalStreet = {
+            ...originalStreet,
+            x: Math.round((originalStreet.x + deltaX) / 20) * 20,
+            y: Math.round((originalStreet.y + deltaY) / 20) * 20
+          };
 
-        updateStreet(street.id, finalStreet);
-        console.log("Street dragged to:", finalStreet.x, finalStreet.y);
+          updateStreet(street.id, finalStreet);
+          console.log("Street dragged to:", finalStreet.x, finalStreet.y);
+        }
+        
+        // Prevent click event from firing after drag
+        setTimeout(() => {
+          document.body.style.pointerEvents = 'auto';
+        }, 10);
       }
     };
 
@@ -1063,10 +1078,7 @@ const CityBuilder = ({ user }) => {
               }}
               onMouseDown={(e) => {
                 console.log("Street mousedown:", street);
-                // Only allow dragging if not clicking on resize handles
-                if (!e.target.classList.contains('position-absolute') && !e.target.closest('.position-absolute')) {
-                  handleStreetDrag(e, street);
-                }
+                handleStreetDrag(e, street);
               }}
             >
               {/* Render different street types */}
@@ -1091,7 +1103,7 @@ const CityBuilder = ({ user }) => {
                 <>
                   {/* Corner resize handles */}
                   <div
-                    className="position-absolute bg-primary rounded-circle"
+                    className="position-absolute bg-primary rounded-circle resize-handle"
                     style={{
                       width: '8px',
                       height: '8px',
@@ -1100,10 +1112,13 @@ const CityBuilder = ({ user }) => {
                       cursor: 'nw-resize',
                       zIndex: 15
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 'nw')}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, street, 'nw');
+                    }}
                   />
                   <div
-                    className="position-absolute bg-primary rounded-circle"
+                    className="position-absolute bg-primary rounded-circle resize-handle"
                     style={{
                       width: '8px',
                       height: '8px',
@@ -1112,10 +1127,13 @@ const CityBuilder = ({ user }) => {
                       cursor: 'ne-resize',
                       zIndex: 15
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 'ne')}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, street, 'ne');
+                    }}
                   />
                   <div
-                    className="position-absolute bg-primary rounded-circle"
+                    className="position-absolute bg-primary rounded-circle resize-handle"
                     style={{
                       width: '8px',
                       height: '8px',
@@ -1124,10 +1142,13 @@ const CityBuilder = ({ user }) => {
                       cursor: 'sw-resize',
                       zIndex: 15
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 'sw')}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, street, 'sw');
+                    }}
                   />
                   <div
-                    className="position-absolute bg-primary rounded-circle"
+                    className="position-absolute bg-primary rounded-circle resize-handle"
                     style={{
                       width: '8px',
                       height: '8px',
@@ -1136,12 +1157,15 @@ const CityBuilder = ({ user }) => {
                       cursor: 'se-resize',
                       zIndex: 15
                     }}
-                    onMouseDown={(e) => handleResizeStart(e, street, 'se')}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, street, 'se');
+                    }}
                   />
                   
                   {/* Edge resize handles for stretching roads */}
                   <div
-                    className="position-absolute bg-primary"
+                    className="position-absolute bg-primary resize-handle"
                     style={{
                       width: '6px',
                       height: '12px',
@@ -1153,12 +1177,13 @@ const CityBuilder = ({ user }) => {
                       backgroundColor: '#28a745'
                     }}
                     onMouseDown={(e) => {
+                      e.stopPropagation();
                       console.log("West handle clicked for street:", street.id);
                       handleResizeStart(e, street, 'w');
                     }}
                   />
                   <div
-                    className="position-absolute bg-primary"
+                    className="position-absolute bg-primary resize-handle"
                     style={{
                       width: '6px',
                       height: '12px',
@@ -1170,12 +1195,13 @@ const CityBuilder = ({ user }) => {
                       backgroundColor: '#28a745'
                     }}
                     onMouseDown={(e) => {
+                      e.stopPropagation();
                       console.log("East handle clicked for street:", street.id);
                       handleResizeStart(e, street, 'e');
                     }}
                   />
                   <div
-                    className="position-absolute bg-primary"
+                    className="position-absolute bg-primary resize-handle"
                     style={{
                       width: '12px',
                       height: '6px',
@@ -1187,12 +1213,13 @@ const CityBuilder = ({ user }) => {
                       backgroundColor: '#dc3545'
                     }}
                     onMouseDown={(e) => {
+                      e.stopPropagation();
                       console.log("North handle clicked for street:", street.id);
                       handleResizeStart(e, street, 'n');
                     }}
                   />
                   <div
-                    className="position-absolute bg-primary"
+                    className="position-absolute bg-primary resize-handle"
                     style={{
                       width: '12px',
                       height: '6px',
@@ -1204,6 +1231,7 @@ const CityBuilder = ({ user }) => {
                       backgroundColor: '#dc3545'
                     }}
                     onMouseDown={(e) => {
+                      e.stopPropagation();
                       console.log("South handle clicked for street:", street.id);
                       handleResizeStart(e, street, 's');
                     }}
