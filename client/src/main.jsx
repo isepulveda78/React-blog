@@ -143,9 +143,32 @@ const SimpleNavigation = ({ user, onLogout }) => {
                 </button>
               </>
             ) : (
-              <a href="/api/auth/google" className="btn btn-primary">
-                Sign In with Google
-              </a>
+              <div className="d-flex gap-2">
+                <a href="/api/auth/google" className="btn btn-primary">
+                  Sign In with Google
+                </a>
+                <button 
+                  className="btn btn-outline-primary"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/auth/demo', {
+                        method: 'POST',
+                        credentials: 'include'
+                      });
+                      const data = await response.json();
+                      if (response.ok) {
+                        window.location.href = '/admin';
+                      } else {
+                        alert('Demo login failed: ' + data.message);
+                      }
+                    } catch (error) {
+                      alert('Demo login failed');
+                    }
+                  }}
+                >
+                  Demo Admin Login
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -167,9 +190,20 @@ const Hero = ({ user }) => {
               blog resources, and engaging learning experiences.
             </p>
             {!user && (
-              <a href="/api/auth/google" className="btn btn-light btn-lg">
-                Get Started
-              </a>
+              <div className="d-flex gap-3 justify-content-center">
+                <a href="/api/auth/google" className="btn btn-light btn-lg">
+                  Sign In with Google
+                </a>
+                <button 
+                  className="btn btn-outline-light btn-lg"
+                  onClick={() => {
+                    // Demo login for testing
+                    window.location.href = '/admin?demo=true';
+                  }}
+                >
+                  Demo Admin Access
+                </button>
+              </div>
             )}
           </div>
         </div>

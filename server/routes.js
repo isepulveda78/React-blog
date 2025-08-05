@@ -177,6 +177,44 @@ export function registerRoutes(app) {
     }
   });
 
+  // Demo login endpoint for testing dashboard
+  app.post('/api/auth/demo', async (req, res) => {
+    try {
+      // Create or get demo admin user
+      let demoUser = await storage.getUserByEmail('demo@mrsteaches.com');
+      
+      if (!demoUser) {
+        console.log('[demo-auth] Creating demo admin user');
+        const hashedPassword = await bcrypt.hash('demo123', 10);
+        demoUser = await storage.createUser({
+          email: 'demo@mrsteaches.com',
+          username: 'demo_admin',
+          name: 'Demo Admin',
+          isAdmin: true,
+          approved: true,
+          password: hashedPassword
+        });
+      }
+
+      // Remove password from response
+      const { password: _, ...userResponse } = demoUser;
+      
+      // Set session
+      req.session.userId = demoUser.id;
+      req.session.user = userResponse;
+      
+      console.log('[demo-auth] Demo user logged in successfully');
+      res.json({ 
+        message: 'Demo login successful', 
+        user: userResponse,
+        redirect: '/admin'
+      });
+    } catch (error) {
+      console.error('[demo-auth] Demo login error:', error);
+      res.status(500).json({ message: 'Demo login failed' });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
