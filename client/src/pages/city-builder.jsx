@@ -1177,12 +1177,12 @@ const CityBuilder = ({ user }) => {
                 <div 
                   className="position-absolute bg-dark text-white px-2 py-1 rounded small"
                   style={{ 
-                    bottom: '-25px', 
+                    bottom: `-${Math.max(20, building.height * 0.1)}px`, 
                     left: '50%', 
                     transform: 'translateX(-50%)',
-                    fontSize: '0.7rem',
+                    fontSize: building.width > 120 ? '0.9rem' : building.width > 80 ? '0.8rem' : '0.7rem',
                     whiteSpace: 'nowrap',
-                    maxWidth: '120px',
+                    maxWidth: `${Math.max(120, building.width * 0.8)}px`,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
                   }}
@@ -1196,7 +1196,7 @@ const CityBuilder = ({ user }) => {
                 <div 
                   className="position-absolute"
                   style={{ 
-                    bottom: '-35px', 
+                    bottom: `-${Math.max(30, building.height * 0.15)}px`, 
                     left: '50%', 
                     transform: 'translateX(-50%)',
                     zIndex: 20
@@ -1206,8 +1206,8 @@ const CityBuilder = ({ user }) => {
                     type="text"
                     className="form-control form-control-sm"
                     style={{
-                      width: '120px',
-                      fontSize: '0.75rem',
+                      width: `${Math.max(120, building.width * 0.8)}px`,
+                      fontSize: building.width > 120 ? '0.85rem' : '0.75rem',
                       padding: '2px 6px'
                     }}
                     value={buildingNameInput}
@@ -1225,10 +1225,10 @@ const CityBuilder = ({ user }) => {
                 <div 
                   className="position-absolute bg-primary text-white px-2 py-1 rounded small"
                   style={{ 
-                    top: '-25px', 
+                    top: `-${Math.max(20, building.height * 0.1)}px`, 
                     left: '50%', 
                     transform: 'translateX(-50%)',
-                    fontSize: '0.6rem',
+                    fontSize: building.width > 120 ? '0.75rem' : '0.6rem',
                     whiteSpace: 'nowrap'
                   }}
                 >
