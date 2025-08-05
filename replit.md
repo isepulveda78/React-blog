@@ -67,7 +67,27 @@ Cache management: Implemented hot reload system for instant change detection and
 - **Zod**: Runtime type validation and schema definition.
 
 ### Development Tools
-- **Vite**: Build tool and development server.
-- **Express.js**: Backend framework.
+- **Vite**: Build tool and development server with proper production build configuration.
+- **Express.js**: Backend framework configured to serve both development and production assets.
 - **Cloudinary**: Cloud storage for images.
 - **Passport.js** and **passport-google-oauth20**: For authentication.
+
+## Deployment Configuration
+
+### Build Process
+- **Build Command**: `npm run build` - Builds both frontend (Vite) and backend (esbuild)
+- **Frontend Build**: Vite processes React components and generates optimized bundles in `dist/public/`
+- **Backend Build**: esbuild bundles the Express server into `dist/index.js`
+- **Production Assets**: Server automatically serves static files from `dist/public/` in production mode
+
+### Deployment Setup (August 5, 2025)
+- **Platform**: Replit Cloud Run deployment
+- **Configuration**: `replit.toml` configured for Node.js full-stack application
+- **Environment Handling**: Server adapts static file serving based on NODE_ENV
+- **Entry Point**: `dist/index.js` for production, `server/index.ts` for development
+- **Port Configuration**: Port 5000 mapped to external port 80
+
+### Production Considerations
+- **Static File Serving**: Production mode serves bundled assets from `dist/public/`
+- **Development Mode**: Development mode serves source files from `client/` directory
+- **Build Output**: Frontend assets are optimized and fingerprinted for production caching

@@ -1,0 +1,14 @@
+[nix]
+channel = "stable-24_11"
+
+[deployment]
+deploymentTarget = "cloudrun"
+build = "npm run build"
+run = "NODE_ENV=production node dist/index.js"
+
+[unitTest]
+language = "nodejs"
+
+[[ports]]
+localPort = 5000
+externalPort = 80

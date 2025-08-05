@@ -1,20 +1,10 @@
-// Use global React and ReactDOM from CDN
-const { StrictMode } = React;
-const { createRoot } = ReactDOM;
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
 
-// Import App component
-const App = window.App;
-
-const container = document.getElementById('root');
-const root = createRoot(container);
-
-if (App) {
-  root.render(
-    React.createElement(StrictMode, null,
-      React.createElement(App)
-    )
-  );
-} else {
-  console.error('App component not found');
-  document.getElementById('root').innerHTML = '<div class="alert alert-danger">Loading error. Please refresh the page.</div>';
-}
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)

@@ -52,8 +52,12 @@ registerRoutes(app);
 // Configure Express to serve JSX files with JavaScript MIME type
 express.static.mime.define({'application/javascript': ['jsx']});
 
-// Serve static files from client directory
-app.use(express.static(path.join(__dirname, '../client')));
+// Serve static files from appropriate directory based on environment
+const staticDir = process.env.NODE_ENV === 'production' 
+  ? path.join(__dirname, 'public')  // Built frontend files in production
+  : path.join(__dirname, '../client'); // Source files in development
+
+app.use(express.static(staticDir));
 
 // Handle client-side routing - but not for static files
 app.get('*', (req, res) => {
@@ -73,7 +77,10 @@ app.get('*', (req, res) => {
   }
   
   console.log('Serving index.html for path:', req.path);
-  res.sendFile(path.join(__dirname, '../client/index.html'));
+  const indexPath = process.env.NODE_ENV === 'production'
+    ? path.join(__dirname, 'public/index.html')
+    : path.join(__dirname, '../client/index.html');
+  res.sendFile(indexPath);
 });
 
 app.listen(PORT, "0.0.0.0", () => {

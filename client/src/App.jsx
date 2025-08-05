@@ -298,3 +298,6 @@ const AppRoutes = () => {
 
 // Export to window for global access
 window.App = App;
+
+// Default export for ES6 module import
+export default App;
