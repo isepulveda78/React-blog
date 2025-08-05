@@ -1,26 +1,86 @@
 const { React } = window;
 const { useState, useEffect, useRef } = React;
 
-// Use the real hooks from window or fallback to simple versions
-const useCityBuilderHook = window.useCityBuilder || (() => ({
-  cityName: "My Amazing City",
-  buildings: [],
-  streets: [],
-  selectedBuilding: null,
-  selectedStreet: null,
-  gridEnabled: true,
-  backgroundColor: "#f3f4f6",
-  canvasRef: React.useRef(null),
-  // Mock functions as fallback
-  updateBuilding: () => {},
-  deleteBuilding: () => {},
-  updateStreet: () => {},
-  deleteStreet: () => {},
-  clearSelection: () => {},
-  selectBuilding: () => {},
-  handleClearCanvas: () => {},
-  getCityStats: () => ({ total: 0, labeled: 0, residential: 0, commercial: 0, public: 0, nature: 0 })
-}));
+// Working state management for CityBuilder
+const useCityBuilderHook = () => {
+  const [cityName, setCityName] = useState("My Amazing City");
+  const [buildings, setBuildings] = useState([]);
+  const [streets, setStreets] = useState([]);
+  const [selectedBuilding, setSelectedBuilding] = useState(null);
+  const [selectedStreet, setSelectedStreet] = useState(null);
+  const [gridEnabled, setGridEnabled] = useState(true);
+  const [backgroundColor, setBackgroundColor] = useState("#f3f4f6");
+  const canvasRef = useRef(null);
+
+  const selectBuilding = (building) => {
+    setSelectedBuilding(building);
+    setSelectedStreet(null);
+  };
+
+  const updateBuilding = (id, updates) => {
+    setBuildings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b));
+  };
+
+  const deleteBuilding = (id) => {
+    setBuildings(prev => prev.filter(b => b.id !== id));
+    setSelectedBuilding(null);
+  };
+
+  const updateStreet = (id, updates) => {
+    setStreets(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
+  };
+
+  const deleteStreet = (id) => {
+    setStreets(prev => prev.filter(s => s.id !== id));
+    setSelectedStreet(null);
+  };
+
+  const clearSelection = () => {
+    setSelectedBuilding(null);
+    setSelectedStreet(null);
+  };
+
+  const handleClearCanvas = () => {
+    setBuildings([]);
+    setStreets([]);
+    clearSelection();
+  };
+
+  const getCityStats = () => ({
+    totalBuildings: buildings.length,
+    totalStreets: streets.length,
+    residential: buildings.filter(b => b.category === 'residential').length,
+    commercial: buildings.filter(b => b.category === 'commercial').length,
+    industrial: buildings.filter(b => b.category === 'industrial').length,
+    nature: buildings.filter(b => b.category === 'nature').length
+  });
+
+  return {
+    cityName,
+    setCityName,
+    buildings,
+    setBuildings,
+    streets,
+    setStreets,
+    selectedBuilding,
+    setSelectedBuilding,
+    selectedStreet,
+    setSelectedStreet,
+    gridEnabled,
+    setGridEnabled,
+    backgroundColor,
+    setBackgroundColor,
+    canvasRef,
+    selectBuilding,
+    updateBuilding,
+    deleteBuilding,
+    updateStreet,
+    deleteStreet,
+    clearSelection,
+    handleClearCanvas,
+    getCityStats
+  };
+};
 
 const useToastHook = window.useToast || (() => ({
   toast: (options) => console.log('Toast:', options.title, options.description)
@@ -33,12 +93,19 @@ const CityBuilder = ({ user }) => {
   
   const {
     cityName,
+    setCityName,
     buildings,
+    setBuildings,
     streets,
+    setStreets,
     selectedBuilding,
+    setSelectedBuilding,
     selectedStreet,
+    setSelectedStreet,
     gridEnabled,
+    setGridEnabled,
     backgroundColor,
+    setBackgroundColor,
     canvasRef,
     updateBuilding,
     deleteBuilding,
@@ -46,6 +113,7 @@ const CityBuilder = ({ user }) => {
     deleteStreet,
     clearSelection,
     selectBuilding,
+    handleClearCanvas,
     getCityStats
   } = cityBuilderState;
 
@@ -223,15 +291,15 @@ const CityBuilder = ({ user }) => {
     });
   };
 
-  const handleClearCanvas = () => {
+  const handleClearCanvasClick = () => {
     if (
-      buildings.length > 0 &&
-      confirm("Are you sure you want to clear all buildings?")
+      (buildings.length > 0 || streets.length > 0) &&
+      confirm("Are you sure you want to clear all buildings and streets?")
     ) {
-      // clearCanvas function will be added by hook later
+      handleClearCanvas();
       toast({
         title: "Canvas Cleared",
-        description: "All buildings have been removed.",
+        description: "All buildings and streets have been removed.",
       });
     }
   };
@@ -649,7 +717,7 @@ const CityBuilder = ({ user }) => {
               <div className="d-flex gap-2 mb-3">
                 <button 
                   className="btn btn-secondary btn-sm flex-fill"
-                  onClick={handleClearCanvas}
+                  onClick={handleClearCanvasClick}
                 >
                   <i className="fas fa-trash me-1"></i>Clear
                 </button>
