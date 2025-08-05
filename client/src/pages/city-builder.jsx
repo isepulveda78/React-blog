@@ -1140,37 +1140,26 @@ const CityBuilder = ({ user }) => {
               }}
               onMouseDown={(e) => handleBuildingMouseDown(e, building)}
             >
-              {/* Actual Building Visual */}
+              {/* Actual Building Visual - Just the icon/content */}
               <div
                 className="w-100 h-100 d-flex align-items-center justify-content-center"
                 style={{
-                  backgroundColor: building.type === 'park' ? '#16a34a' : 
-                                 building.category === 'nature' ? '#22c55e' : 
-                                 building.category === 'residential' ? '#10b981' : 
-                                 building.category === 'commercial' ? '#3b82f6' :
-                                 building.category === 'public' ? '#dc2626' :
-                                 building.category === 'industrial' ? '#f59e0b' :
-                                 '#e2e8f0',
-                  border: selectedBuilding?.id === building.id ? '3px solid #3b82f6' : '1px solid #e5e7eb',
-                  borderRadius: building.type === 'park' ? '8px' : '4px',
-                  fontSize: building.width > 80 ? '2rem' : building.width > 60 ? '1.5rem' : building.width > 40 ? '1.2rem' : '1rem',
-                  boxShadow: selectedBuilding?.id === building.id ? '0 0 10px rgba(59, 130, 246, 0.5)' : '0 2px 4px rgba(0,0,0,0.1)',
-                  // Park-specific styling
-                  ...(building.type === 'park' && {
-                    backgroundImage: `
-                      radial-gradient(circle at 25% 25%, #22c55e 2px, transparent 2px),
-                      radial-gradient(circle at 75% 75%, #15803d 2px, transparent 2px),
-                      radial-gradient(circle at 50% 50%, #166534 1px, transparent 1px),
-                      linear-gradient(45deg, transparent 40%, rgba(34, 197, 94, 0.3) 40%, rgba(34, 197, 94, 0.3) 60%, transparent 60%)
-                    `,
-                    backgroundSize: '20px 20px, 15px 15px, 10px 10px, 8px 8px',
-                    backgroundPosition: '0 0, 10px 10px, 5px 5px, 0 0',
-                    border: selectedBuilding?.id === building.id ? '3px solid #3b82f6' : '2px solid #15803d'
-                  })
+                  backgroundColor: 'transparent',
+                  border: selectedBuilding?.id === building.id ? '2px dashed #3b82f6' : 'none',
+                  borderRadius: '4px',
+                  fontSize: building.width > 80 ? '3rem' : building.width > 60 ? '2.5rem' : building.width > 40 ? '2rem' : '1.5rem',
+                  boxShadow: selectedBuilding?.id === building.id ? '0 0 10px rgba(59, 130, 246, 0.3)' : 'none'
                 }}
               >
                 {building.type === 'park' ? (
-                  <div className="d-flex flex-wrap justify-content-center align-items-center h-100 w-100" style={{ fontSize: building.width > 60 ? '1rem' : '0.8rem', gap: '2px', padding: '2px' }}>
+                  <div 
+                    className="d-flex flex-wrap justify-content-center align-items-center h-100 w-100" 
+                    style={{ 
+                      fontSize: building.width > 80 ? '1.5rem' : building.width > 60 ? '1.2rem' : building.width > 40 ? '1rem' : '0.8rem', 
+                      gap: '4px', 
+                      padding: '4px' 
+                    }}
+                  >
                     <span>🌳</span>
                     <span>🌿</span>
                     {building.width > 40 && <span>🌸</span>}
