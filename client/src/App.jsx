@@ -16,23 +16,76 @@ if (typeof global !== 'undefined') {
 }
 
 // Simple fallback components for immediate functionality
-const Navigation = ({ user, onLogout }) => (
-  <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div className="container">
-      <a className="navbar-brand" href="/">BlogCraft</a>
-      <div className="navbar-nav ms-auto">
-        {user ? (
-          <>
-            <span className="navbar-text me-3">Hello, {user.name}</span>
-            <button className="btn btn-outline-light btn-sm" onClick={onLogout}>Logout</button>
-          </>
-        ) : (
-          <a className="btn btn-outline-light btn-sm" href="/api/auth/google">Login</a>
-        )}
-      </div>
-    </div>
-  </nav>
-);
+const Navigation = ({ user, onLogout }) => {
+  const navigate = (path) => {
+    window.history.pushState({}, '', path);
+    window.location.reload();
+  };
+
+  return React.createElement('nav', { className: 'navbar navbar-expand-lg navbar-dark bg-primary' },
+    React.createElement('div', { className: 'container' },
+      React.createElement('a', { 
+        className: 'navbar-brand', 
+        href: '/',
+        onClick: (e) => { e.preventDefault(); navigate('/'); }
+      }, 'Mr. S Teaches'),
+      
+      React.createElement('button', {
+        className: 'navbar-toggler',
+        type: 'button',
+        'data-bs-toggle': 'collapse',
+        'data-bs-target': '#navbarNav'
+      }, React.createElement('span', { className: 'navbar-toggler-icon' })),
+      
+      React.createElement('div', { className: 'collapse navbar-collapse', id: 'navbarNav' },
+        React.createElement('div', { className: 'navbar-nav me-auto' },
+          React.createElement('a', { 
+            className: 'nav-link', 
+            href: '/',
+            onClick: (e) => { e.preventDefault(); navigate('/'); }
+          }, 'City Builder'),
+          React.createElement('a', { 
+            className: 'nav-link', 
+            href: '/educational-tools',
+            onClick: (e) => { e.preventDefault(); navigate('/educational-tools'); }
+          }, 'Educational Tools'),
+          React.createElement('a', { 
+            className: 'nav-link', 
+            href: '/blog',
+            onClick: (e) => { e.preventDefault(); navigate('/blog'); }
+          }, 'Blog'),
+          user && user.isAdmin && React.createElement('a', { 
+            className: 'nav-link', 
+            href: '/admin',
+            onClick: (e) => { e.preventDefault(); navigate('/admin'); }
+          }, 'Admin')
+        ),
+        React.createElement('div', { className: 'navbar-nav ms-auto' },
+          user ? [
+            React.createElement('span', { 
+              key: 'greeting',
+              className: 'navbar-text me-3' 
+            }, `Hello, ${user.name}`),
+            React.createElement('a', { 
+              key: 'profile',
+              className: 'nav-link me-2', 
+              href: '/profile',
+              onClick: (e) => { e.preventDefault(); navigate('/profile'); }
+            }, 'Profile'),
+            React.createElement('button', { 
+              key: 'logout',
+              className: 'btn btn-outline-light btn-sm', 
+              onClick: onLogout 
+            }, 'Logout')
+          ] : React.createElement('a', { 
+            className: 'btn btn-outline-light btn-sm', 
+            href: '/api/auth/google' 
+          }, 'Login')
+        )
+      )
+    )
+  );
+};
 
 const Home = ({ user }) => (
   <div className="container my-5">
