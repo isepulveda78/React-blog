@@ -204,9 +204,14 @@ const AdminUsers = ({ user }) => {
                   </span>
                 </td>
                 <td>
-                  <span className={`badge ${userItem.isAdmin ? 'bg-danger' : 'bg-secondary'}`}>
-                    {userItem.isAdmin ? 'Admin' : 'User'}
-                  </span>
+                  <div className="d-flex flex-column">
+                    <span className={`badge ${userItem.role === 'teacher' ? 'bg-info' : 'bg-primary'} mb-1`}>
+                      {userItem.role === 'teacher' ? 'Teacher' : 'Student'}
+                    </span>
+                    {userItem.isAdmin && (
+                      <span className="badge bg-danger">Admin</span>
+                    )}
+                  </div>
                 </td>
                 <td>{new Date(userItem.createdAt).toLocaleDateString()}</td>
                 <td>

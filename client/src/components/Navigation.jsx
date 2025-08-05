@@ -52,6 +52,7 @@ const Navigation = ({ user, onLogout }) => {
       password: "",
       username: "",
       name: "",
+      role: "",
     });
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -91,7 +92,7 @@ const Navigation = ({ user, onLogout }) => {
         window.location.reload();
 
         setShowAuthModal(false);
-        setFormData({ email: "", password: "", username: "", name: "" });
+        setFormData({ email: "", password: "", username: "", name: "", role: "" });
       } catch (err) {
         setError(err.message);
       } finally {
@@ -203,6 +204,31 @@ const Navigation = ({ user, onLogout }) => {
                     onChange: handleChange,
                     required: true,
                   }),
+                ),
+
+              // Role selection for registration
+              !isLoginMode &&
+                React.createElement(
+                  "div",
+                  { className: "mb-3" },
+                  React.createElement(
+                    "label",
+                    { className: "form-label" },
+                    "I am a:",
+                  ),
+                  React.createElement(
+                    "select",
+                    {
+                      className: "form-select",
+                      name: "role",
+                      value: formData.role,
+                      onChange: handleChange,
+                      required: true,
+                    },
+                    React.createElement("option", { value: "" }, "Select your role"),
+                    React.createElement("option", { value: "teacher" }, "Teacher"),
+                    React.createElement("option", { value: "student" }, "Student"),
+                  ),
                 ),
 
               // Email field

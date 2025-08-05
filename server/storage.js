@@ -436,6 +436,7 @@ export class MongoStorage {
       username: "admin",
       name: "Admin User",
       password: await bcrypt.hash("password", 10),
+      role: "teacher",
       isAdmin: true,
       approved: true,
       createdAt: new Date().toISOString()
@@ -447,6 +448,7 @@ export class MongoStorage {
       username: "user",
       name: "Regular User",
       password: await bcrypt.hash("password", 10),
+      role: "student",
       isAdmin: false,
       approved: true,
       createdAt: new Date().toISOString()

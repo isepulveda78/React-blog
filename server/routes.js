@@ -180,7 +180,7 @@ export function registerRoutes(app) {
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { email, username, name, password } = req.body;
+      const { email, username, name, password, role } = req.body;
 
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
@@ -196,12 +196,18 @@ export function registerRoutes(app) {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      // Validate role
+      if (!role || !['teacher', 'student'].includes(role)) {
+        return res.status(400).json({ message: "Please select a valid role (teacher or student)" });
+      }
+
       // Create user
       const user = await storage.createUser({
         email,
         username,
         name,
         password: hashedPassword,
+        role: role,
         isAdmin: false,
         approved: false  // New users start as unapproved
       });
