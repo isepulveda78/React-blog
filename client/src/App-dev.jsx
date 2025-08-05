@@ -9,7 +9,7 @@ window.useRef = useRef;
 window.useCallback = useCallback;
 
 // Components will be loaded as window objects
-const Navigation = window.Navigation;
+const Navigation = window.SimpleNavigation || window.Navigation;
 const Hero = window.Hero;
 const Home = window.Home;
 const BlogListing = window.BlogListing;
