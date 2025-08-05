@@ -306,4 +306,7 @@ const BuildingPalette = ({
   );
 };
 
+// Export to window for global access
+console.log("BuildingPalette component loading...");
 window.BuildingPalette = BuildingPalette;
+console.log("BuildingPalette component loaded:", !!window.BuildingPalette);
