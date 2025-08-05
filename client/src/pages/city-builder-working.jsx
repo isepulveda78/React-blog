@@ -36,7 +36,8 @@ const BUILDING_TYPES = {
 
 const STREET_TYPES = {
   road: { name: "Road", icon: "🛣️", width: 20, height: 20, category: "infrastructure" },
-  water: { name: "Water", icon: "💧", width: 40, height: 40, category: "infrastructure" }
+  water: { name: "Water", icon: "💧", width: 40, height: 40, category: "infrastructure" },
+  white_road: { name: "White Road", icon: "🤍", width: 30, height: 30, category: "infrastructure", color: "white" }
 };
 
 const WorkingCityBuilder = () => {
@@ -202,8 +203,22 @@ const WorkingCityBuilder = () => {
     
     // Draw streets/roads
     streets.forEach(street => {
-      ctx.fillStyle = street.type === 'water' ? '#007bff' : '#000000';
+      if (street.type === 'water') {
+        ctx.fillStyle = '#007bff';
+      } else if (street.type === 'white_road') {
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#cccccc';
+        ctx.lineWidth = 2;
+      } else {
+        ctx.fillStyle = '#000000';
+      }
+      
       ctx.fillRect(street.x, street.y, street.width, street.height);
+      
+      // Add border for white road
+      if (street.type === 'white_road') {
+        ctx.strokeRect(street.x, street.y, street.width, street.height);
+      }
     });
     
     // Draw buildings with emojis or solid areas
@@ -647,7 +662,8 @@ const WorkingCityBuilder = () => {
             top: `${street.y}px`,
             width: `${street.width}px`,
             height: `${street.height}px`,
-            backgroundColor: street.type === 'water' ? '#007bff' : '#000000',
+            backgroundColor: street.type === 'water' ? '#007bff' : street.type === 'white_road' ? '#ffffff' : '#000000',
+            border: street.type === 'white_road' ? '2px solid #cccccc' : 'none',
             cursor: 'pointer'
           },
           onClick: (e) => {
