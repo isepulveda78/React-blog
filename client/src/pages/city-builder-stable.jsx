@@ -202,7 +202,7 @@ const StableCityBuilder = () => {
   return (
     <div className="container-fluid p-0 vh-100 d-flex">
       {/* Sidebar */}
-      <div className="bg-light border-end" style={{ width: "280px", overflowY: "auto", maxHeight: "100vh" }}>
+      <div className="bg-light border-end flex-shrink-0" style={{ width: "280px", overflowY: "auto", maxHeight: "100vh", zIndex: 10 }}>
         <div className="p-3">
           <h2 className="h5 fw-bold text-dark mb-3">🏗️ CityBuilder</h2>
           
@@ -304,9 +304,10 @@ const StableCityBuilder = () => {
         ref={canvasRef}
         className="flex-grow-1 position-relative overflow-hidden"
         style={{ 
-          minHeight: '400px', 
+          minHeight: '100vh', 
           backgroundColor: backgroundColor,
-          cursor: 'default'
+          cursor: 'default',
+          width: 'calc(100vw - 280px)'
         }}
         onDrop={handleCanvasDrop}
         onDragOver={(e) => e.preventDefault()}
