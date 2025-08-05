@@ -31,8 +31,8 @@ const BUILDING_TYPES = {
 };
 
 const STREET_TYPES = {
-  road: { name: "Road", icon: "🛣️", width: 20, height: 20, category: "roads" },
-  water: { name: "Water", icon: "💧", width: 40, height: 40, category: "nature" }
+  road: { name: "Road", icon: "🛣️", width: 20, height: 20, category: "infrastructure" },
+  water: { name: "Water", icon: "💧", width: 40, height: 40, category: "infrastructure" }
 };
 
 // Stable CityBuilder Component
@@ -81,7 +81,7 @@ const StableCityBuilder = () => {
       const newX = Math.max(0, item.x + (me.clientX - startX));
       const newY = Math.max(0, item.y + (me.clientY - startY));
       
-      // Check if it's a building (has category like residential, commercial, etc.) or street (roads, water)
+      // Check if it's a building (has specific building categories) or street/infrastructure
       const isBuilding = item.category && ['residential', 'commercial', 'industrial', 'public', 'nature'].includes(item.category);
       
       if (isBuilding) {
@@ -146,7 +146,7 @@ const StableCityBuilder = () => {
       
       const update = { width: newWidth, height: newHeight, x: Math.max(0, newX), y: Math.max(0, newY) };
       
-      // Check if it's a building (has category like residential, commercial, etc.) or street (roads, water)
+      // Check if it's a building (has specific building categories) or street/infrastructure
       const isBuilding = item.category && ['residential', 'commercial', 'industrial', 'public', 'nature'].includes(item.category);
       
       if (isBuilding) {
@@ -193,7 +193,7 @@ const StableCityBuilder = () => {
     if (dragData.isBuilding) {
       setBuildings(prev => [...prev, newItem]);
       console.log("Building added:", newItem);
-    } else {
+    } else if (dragData.isStreet) {
       setStreets(prev => [...prev, newItem]);
       console.log("Street added:", newItem);
     }
@@ -252,6 +252,7 @@ const StableCityBuilder = () => {
                       const dragData = { 
                         type: type, 
                         category: street.category,
+                        isBuilding: false,
                         isStreet: true,
                         itemData: street
                       };
