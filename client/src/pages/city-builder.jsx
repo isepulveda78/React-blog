@@ -390,12 +390,12 @@ const CityBuilder = () => {
     }
   };
 
-  // COMPLETE RESIZE FUNCTION - ALL DIRECTIONS
+  // WORKING RESIZE FUNCTION - NO INTERFERENCE
   const handleResizeStart = (e, item, direction) => {
     e.stopPropagation();
     e.preventDefault();
     
-    console.log("🎯 RESIZE START:", item.type, direction, "size:", item.width + "x" + item.height);
+    console.log("RESIZE:", item.type, direction, "from", item.width + "x" + item.height);
     
     const startX = e.clientX;
     const startY = e.clientY;
@@ -403,41 +403,43 @@ const CityBuilder = () => {
     const startHeight = item.height;
     const startPosX = item.x;
     const startPosY = item.y;
+    let isMoving = false;
     
     const onMouseMove = (moveEvent) => {
+      moveEvent.stopPropagation();
+      moveEvent.preventDefault();
+      
+      isMoving = true;
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
+      
+      console.log("DELTA:", deltaX, deltaY);
       
       let newWidth = startWidth;
       let newHeight = startHeight;
       let newX = startPosX;
       let newY = startPosY;
       
-      // Calculate new dimensions and position based on direction
-      switch (direction) {
-        case 'se': // Bottom-right corner
-          newWidth = Math.max(20, startWidth + deltaX);
-          newHeight = Math.max(20, startHeight + deltaY);
-          break;
-        case 'sw': // Bottom-left corner
-          newWidth = Math.max(20, startWidth - deltaX);
-          newHeight = Math.max(20, startHeight + deltaY);
-          newX = startPosX + Math.min(deltaX, startWidth - 20);
-          break;
-        case 'ne': // Top-right corner
-          newWidth = Math.max(20, startWidth + deltaX);
-          newHeight = Math.max(20, startHeight - deltaY);
-          newY = startPosY + Math.min(deltaY, startHeight - 20);
-          break;
-        case 'nw': // Top-left corner
-          newWidth = Math.max(20, startWidth - deltaX);
-          newHeight = Math.max(20, startHeight - deltaY);
-          newX = startPosX + Math.min(deltaX, startWidth - 20);
-          newY = startPosY + Math.min(deltaY, startHeight - 20);
-          break;
+      // Simple bottom-right resize for now
+      if (direction === 'se') {
+        newWidth = Math.max(20, startWidth + deltaX);
+        newHeight = Math.max(20, startHeight + deltaY);
+      } else if (direction === 'sw') {
+        newWidth = Math.max(20, startWidth - deltaX);
+        newHeight = Math.max(20, startHeight + deltaY);
+        if (newWidth > 20) newX = startPosX + deltaX;
+      } else if (direction === 'ne') {
+        newWidth = Math.max(20, startWidth + deltaX);
+        newHeight = Math.max(20, startHeight - deltaY);
+        if (newHeight > 20) newY = startPosY + deltaY;
+      } else if (direction === 'nw') {
+        newWidth = Math.max(20, startWidth - deltaX);
+        newHeight = Math.max(20, startHeight - deltaY);
+        if (newWidth > 20) newX = startPosX + deltaX;
+        if (newHeight > 20) newY = startPosY + deltaY;
       }
       
-      // Grid snapping if enabled
+      // Grid snap
       if (gridEnabled) {
         newWidth = Math.round(newWidth / 20) * 20;
         newHeight = Math.round(newHeight / 20) * 20;
@@ -445,16 +447,15 @@ const CityBuilder = () => {
         newY = Math.round(newY / 20) * 20;
       }
       
-      // Prepare updates
-      const updates = { width: newWidth, height: newHeight };
-      if (direction === 'sw' || direction === 'nw') {
-        updates.x = Math.max(0, newX);
-      }
-      if (direction === 'ne' || direction === 'nw') {
-        updates.y = Math.max(0, newY);
-      }
+      newX = Math.max(0, newX);
+      newY = Math.max(0, newY);
       
-      // Update the item
+      const updates = { width: newWidth, height: newHeight };
+      if (direction.includes('w')) updates.x = newX;
+      if (direction.includes('n')) updates.y = newY;
+      
+      console.log("UPDATE:", updates);
+      
       if (item.category) {
         updateBuilding(item.id, updates);
       } else {
@@ -462,15 +463,19 @@ const CityBuilder = () => {
       }
     };
     
-    const onMouseUp = () => {
-      console.log("✅ RESIZE COMPLETE");
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+    const onMouseUp = (upEvent) => {
+      upEvent.stopPropagation();
+      upEvent.preventDefault();
+      
+      console.log("RESIZE END, moved:", isMoving);
+      
+      document.removeEventListener('mousemove', onMouseMove, { capture: true });
+      document.removeEventListener('mouseup', onMouseUp, { capture: true });
       document.body.style.cursor = 'default';
     };
     
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('mousemove', onMouseMove, { capture: true });
+    document.addEventListener('mouseup', onMouseUp, { capture: true });
     document.body.style.cursor = `${direction}-resize`;
   };
 
