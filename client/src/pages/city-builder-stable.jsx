@@ -205,7 +205,7 @@ const StableCityBuilder = () => {
     <div className="d-flex" style={{ width: "100vw", height: "100vh" }}>
       {/* Sidebar */}
       <div 
-        className="bg-light border-end"
+        className="border-end"
         style={{ 
           width: "280px", 
           minWidth: "280px",
@@ -213,7 +213,9 @@ const StableCityBuilder = () => {
           overflowY: "auto", 
           zIndex: 10,
           display: "block",
-          position: "relative"
+          position: "relative",
+          backgroundColor: "#f8f9fa",
+          border: "2px solid #007bff"
         }}
       >
         <div className="p-3">
@@ -232,7 +234,16 @@ const StableCityBuilder = () => {
                   <div key={type} className="col-6">
                     <div
                       className="border border-2 border-dashed rounded-3 p-2 text-center"
-                      style={{ cursor: "grab", backgroundColor: "#f8f9fa" }}
+                      style={{ 
+                        cursor: "grab", 
+                        backgroundColor: "#ffffff", 
+                        border: "2px solid #28a745 !important",
+                        minHeight: "60px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      }}
                       draggable
                       onDragStart={(e) => {
                         const dragData = { 
@@ -265,7 +276,16 @@ const StableCityBuilder = () => {
                 <div key={type} className="col-6">
                   <div
                     className="border border-2 border-dashed rounded-3 p-2 text-center"
-                    style={{ cursor: "grab", backgroundColor: "#f8f9fa" }}
+                    style={{ 
+                      cursor: "grab", 
+                      backgroundColor: "#ffffff",
+                      border: "2px solid #dc3545 !important",
+                      minHeight: "60px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}
                     draggable
                     onDragStart={(e) => {
                       const dragData = { 
