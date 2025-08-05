@@ -78,6 +78,7 @@ const BingoGenerator = () => {
             h2 { text-align: center; margin-bottom: 20px; }
             table { width: 400px; margin: 0 auto; border-collapse: collapse; }
             td { width: 80px; height: 80px; border: 2px solid #000; text-align: center; font-size: 18px; font-weight: bold; }
+            th { width: 80px; height: 60px; border: 2px solid #000; text-align: center; font-size: 24px; font-weight: bold; background-color: #333; color: white; }
             .free { background-color: #f0f0f0; }
             @media print { .card { page-break-after: always; } }
           </style>
@@ -87,13 +88,24 @@ const BingoGenerator = () => {
             <div class="card">
               <h2>${title || 'BINGO'}</h2>
               <table>
-                ${card.map(row => `
+                <thead>
                   <tr>
-                    ${row.map(cell => `
-                      <td class="${cell === 'FREE' ? 'free' : ''}">${cell}</td>
-                    `).join('')}
+                    <th>B</th>
+                    <th>I</th>
+                    <th>N</th>
+                    <th>G</th>
+                    <th>O</th>
                   </tr>
-                `).join('')}
+                </thead>
+                <tbody>
+                  ${card.map(row => `
+                    <tr>
+                      ${row.map(cell => `
+                        <td class="${cell === 'FREE' ? 'free' : ''}">${cell}</td>
+                      `).join('')}
+                    </tr>
+                  `).join('')}
+                </tbody>
               </table>
             </div>
           `).join('')}
@@ -227,6 +239,24 @@ const BingoGenerator = () => {
               <div className="text-center">
                 <h4 className="mb-3">{title || 'BINGO'}</h4>
                 <table className="table table-bordered mx-auto" style={{width: '300px'}}>
+                  <thead>
+                    <tr>
+                      {['B', 'I', 'N', 'G', 'O'].map((letter, index) => (
+                        <th 
+                          key={index}
+                          className="text-center bg-dark text-white"
+                          style={{
+                            width: '60px',
+                            height: '50px',
+                            fontSize: '18px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {letter}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
                   <tbody>
                     {previewCard.map((row, rowIndex) => (
                       <tr key={rowIndex}>
