@@ -95,8 +95,7 @@ const SpanishAlphabet = () => {
 
   const playAllLetters = () => {
     if (isPlayingAll) {
-      stopAllLetters();
-      return;
+      return; // Don't start if already playing
     }
 
     setIsPlayingAll(true);
@@ -158,22 +157,35 @@ const SpanishAlphabet = () => {
             React.createElement('li', null, 'Click any letter to hear its pronunciation'),
             React.createElement('li', null, 'MP3 files should be placed in ', React.createElement('code', null, '/public/sounds/spanish/')),
             React.createElement('li', null, 'Falls back to text-to-speech if MP3 files are not available'),
-            React.createElement('li', null, 'Click "Play All" to hear the entire alphabet')
+            React.createElement('li', null, 'Use "Play All Letters" to hear the entire alphabet or "Stop" to interrupt')
           ),
           React.createElement(
             'div',
-            { className: 'd-flex gap-2' },
+            { className: 'd-flex gap-2 align-items-center' },
             React.createElement(
               'button',
               {
-                className: `btn ${isPlayingAll ? 'btn-danger' : 'btn-success'}`,
-                onClick: playAllLetters
+                className: 'btn btn-success',
+                onClick: playAllLetters,
+                disabled: isPlayingAll
               },
-              isPlayingAll ? 'Stop Playing' : 'Play All Letters'
+              'Play All Letters'
+            ),
+            React.createElement(
+              'button',
+              {
+                className: 'btn btn-danger',
+                onClick: stopAllLetters,
+                disabled: !isPlayingAll
+              },
+              'Stop'
             ),
             isPlayingAll && React.createElement(
               'div',
-              { className: 'spinner-border spinner-border-sm text-primary align-self-center' }
+              { 
+                className: 'spinner-border spinner-border-sm text-primary',
+                style: { marginLeft: '8px' }
+              }
             )
           )
         )
