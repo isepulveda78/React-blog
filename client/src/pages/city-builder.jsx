@@ -258,6 +258,18 @@ const CityBuilder = ({ user }) => {
     setBuildingNameInput('');
   };
 
+  const handleBuildingNameClear = () => {
+    if (editingBuilding) {
+      updateBuilding(editingBuilding.id, {
+        ...editingBuilding,
+        customName: null
+      });
+      console.log("Building label cleared for:", editingBuilding.id);
+    }
+    setEditingBuilding(null);
+    setBuildingNameInput('');
+  };
+
   const handleBuildingNameKeyPress = (e) => {
     if (e.key === "Enter") {
       handleBuildingNameSave();
@@ -1215,27 +1227,42 @@ const CityBuilder = ({ user }) => {
                 <div 
                   className="position-absolute"
                   style={{ 
-                    bottom: `-${Math.max(30, building.height * 0.15)}px`, 
+                    bottom: `-${Math.max(40, building.height * 0.2)}px`, 
                     left: '50%', 
                     transform: 'translateX(-50%)',
                     zIndex: 20
                   }}
                 >
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    style={{
-                      width: `${Math.max(120, building.width * 0.8)}px`,
-                      fontSize: building.width > 120 ? '0.85rem' : '0.75rem',
-                      padding: '2px 6px'
-                    }}
-                    value={buildingNameInput}
-                    onChange={(e) => setBuildingNameInput(e.target.value)}
-                    onKeyDown={handleBuildingNameKeyPress}
-                    onBlur={handleBuildingNameSave}
-                    autoFocus
-                    placeholder="Enter name..."
-                  />
+                  <div className="d-flex align-items-center gap-1">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      style={{
+                        width: `${Math.max(100, building.width * 0.6)}px`,
+                        fontSize: building.width > 120 ? '0.85rem' : '0.75rem',
+                        padding: '2px 6px'
+                      }}
+                      value={buildingNameInput}
+                      onChange={(e) => setBuildingNameInput(e.target.value)}
+                      onKeyDown={handleBuildingNameKeyPress}
+                      onBlur={handleBuildingNameSave}
+                      autoFocus
+                      placeholder="Enter name..."
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger"
+                      style={{
+                        fontSize: '0.7rem',
+                        padding: '1px 4px',
+                        lineHeight: '1'
+                      }}
+                      onClick={handleBuildingNameClear}
+                      title="Clear label"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               )}
 
