@@ -165,20 +165,6 @@ class MemStorage {
     return this.users[index];
   }
 
-  async updateUserRole(userId, isAdmin) {
-    const index = this.users.findIndex(u => u.id === userId);
-    if (index === -1) return null;
-    this.users[index] = { ...this.users[index], isAdmin };
-    return this.users[index];
-  }
-
-  async updateUserPassword(userId, hashedPassword) {
-    const user = this.users.find(u => u.id === userId);
-    if (!user) return false;
-    user.password = hashedPassword;
-    return true;
-  }
-
   async deleteUser(userId) {
     const index = this.users.findIndex(u => u.id === userId);
     if (index === -1) return false;

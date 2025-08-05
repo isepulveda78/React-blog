@@ -43,7 +43,7 @@ const BuildingPalette = ({
   onToggleGrid,
   backgroundColor,
   onBackgroundColorChange,
-}) {
+}) => {
   const handleDragStart = (e, buildingType) => {
     console.log("Drag started for building:", buildingType);
     console.log("Building data from palette:", BUILDING_TYPES[buildingType]);

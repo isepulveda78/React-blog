@@ -166,8 +166,6 @@ const SpanishAlphabet = () => {
           React.createElement('h6', null, 'How to Use:'),
           React.createElement('ul', { className: 'mb-2' },
             React.createElement('li', null, 'Click any letter to hear its pronunciation'),
-            React.createElement('li', null, 'MP3 files should be placed in ', React.createElement('code', null, '/public/sounds/spanish/')),
-            React.createElement('li', null, 'Falls back to text-to-speech if MP3 files are not available'),
             React.createElement('li', null, 'Use "Play All Letters" to hear the entire alphabet or "Stop" to interrupt')
           ),
           React.createElement(
@@ -252,43 +250,6 @@ const SpanishAlphabet = () => {
         )
       )
     ),
-
-    React.createElement(
-      'div',
-      { className: 'mt-5' },
-      React.createElement(
-        'div',
-        { className: 'card' },
-        React.createElement(
-          'div',
-          { className: 'card-body' },
-          React.createElement('h5', { className: 'card-title' }, 'Adding MP3 Sound Files'),
-          React.createElement(
-            'div',
-            { className: 'alert alert-warning' },
-            React.createElement('strong', null, 'To use real Spanish pronunciations:'),
-            React.createElement('ol', { className: 'mt-2 mb-0' },
-              React.createElement('li', null, 'Create folder: ', React.createElement('code', null, '/public/sounds/spanish/')),
-              React.createElement('li', null, 'Add MP3 files named: a.mp3, b.mp3, c.mp3, etc.'),
-              React.createElement('li', null, 'Include special letters: ñ.mp3'),
-              React.createElement('li', null, 'Files should be native Spanish pronunciations'),
-              React.createElement('li', null, 'Current fallback: Text-to-speech in Spanish')
-            )
-          ),
-          React.createElement(
-            'div',
-            { className: 'mt-3' },
-            React.createElement('h6', null, 'Recommended Sources for Spanish Audio:'),
-            React.createElement('ul', null,
-              React.createElement('li', null, React.createElement('a', { href: 'https://forvo.com', target: '_blank' }, 'Forvo.com'), ' - Native speaker pronunciations'),
-              React.createElement('li', null, React.createElement('a', { href: 'https://www.spanishdict.com', target: '_blank' }, 'SpanishDict.com'), ' - Spanish learning resources'),
-              React.createElement('li', null, 'Record native speakers pronouncing each letter'),
-              React.createElement('li', null, 'Use Google Translate\'s audio feature to download pronunciations')
-            )
-          )
-        )
-      )
-    )
   );
 };
 
