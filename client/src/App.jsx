@@ -43,6 +43,11 @@ const Navigation = ({ user, onLogout }) => {
             className: 'nav-link', 
             href: '/',
             onClick: (e) => { e.preventDefault(); navigate('/'); }
+          }, 'Home'),
+          React.createElement('a', { 
+            className: 'nav-link', 
+            href: '/city-builder',
+            onClick: (e) => { e.preventDefault(); navigate('/city-builder'); }
           }, 'City Builder'),
           React.createElement('a', { 
             className: 'nav-link', 
@@ -90,28 +95,49 @@ const Navigation = ({ user, onLogout }) => {
 const Home = ({ user }) => (
   <div className="container my-5">
     <div className="text-center mb-5">
-      <h1 className="display-4 mb-4">Welcome to BlogCraft</h1>
-      <p className="lead">A modern blog platform with advanced content management and SEO tools.</p>
+      <h1 className="display-4 mb-4">Welcome to Mr. S Teaches</h1>
+      <p className="lead">An interactive educational platform featuring engaging tools and activities for learning.</p>
       {!user && (
         <a href="/api/auth/google" className="btn btn-primary btn-lg">Get Started</a>
       )}
     </div>
     <div className="row">
-      <div className="col-md-8 mx-auto">
-        <div className="card">
+      <div className="col-md-4 mb-4">
+        <div className="card h-100">
           <div className="card-body">
-            <h5 className="card-title">Platform Features</h5>
-            <ul className="list-unstyled">
-              <li>✓ User authentication with Google OAuth</li>
-              <li>✓ Rich text blog post editing</li>
-              <li>✓ SEO optimization tools</li>
-              <li>✓ Admin dashboard for content management</li>
-              <li>✓ Educational tools and interactive components</li>
-            </ul>
+            <h5 className="card-title">🏗️ City Builder</h5>
+            <p className="card-text">Create and design your own virtual city with interactive building tools.</p>
+            <a href="/city-builder" className="btn btn-primary">Start Building</a>
+          </div>
+        </div>
+      </div>
+      <div className="col-md-4 mb-4">
+        <div className="card h-100">
+          <div className="card-body">
+            <h5 className="card-title">🎓 Educational Tools</h5>
+            <p className="card-text">Interactive learning activities including word sorting, bingo, and Spanish alphabet.</p>
+            <a href="/educational-tools" className="btn btn-primary">Explore Tools</a>
+          </div>
+        </div>
+      </div>
+      <div className="col-md-4 mb-4">
+        <div className="card h-100">
+          <div className="card-body">
+            <h5 className="card-title">📚 Blog & Resources</h5>
+            <p className="card-text">Educational content, tutorials, and teaching resources.</p>
+            <a href="/blog" className="btn btn-primary">Read Blog</a>
           </div>
         </div>
       </div>
     </div>
+    {user && (
+      <div className="row mt-4">
+        <div className="col-12 text-center">
+          <h4>Welcome back, {user.name}!</h4>
+          <p>Ready to continue your learning journey?</p>
+        </div>
+      </div>
+    )}
   </div>
 );
 
@@ -321,14 +347,14 @@ const AppRoutes = () => {
   // Make user available globally for all components
   window.currentUser = user;
 
-  // Simple routing based on location - default to CityBuilder for city-building platform
+  // Simple routing based on location - default to Home for educational platform
   console.log("DEBUG: Current location:", location);
   console.log("DEBUG: Available components:", {
     WorkingCityBuilder: !!WorkingCityBuilder,
     CityBuilder: !!CityBuilder,
     Home: !!Home
   });
-  let CurrentComponent = CityBuilder || Home;
+  let CurrentComponent = Home;
   let componentProps = { user };
   console.log("DEBUG: Initial component chosen:", CurrentComponent?.name || "No component");
 
@@ -395,7 +421,7 @@ const AppRoutes = () => {
     }
   } else if (location === "/city-builder") {
     console.log("ROUTE: Loading CityBuilder, WorkingCityBuilder available:", !!WorkingCityBuilder);
-    CurrentComponent = CityBuilder;
+    CurrentComponent = WorkingCityBuilder || CityBuilder;
   } else if (location === "/bingo-generator") {
     CurrentComponent = BingoGenerator;
   } else if (location === "/word-sorter") {
