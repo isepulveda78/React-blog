@@ -47,6 +47,26 @@ const StableCityBuilder = () => {
   const [backgroundColor, setBackgroundColor] = React.useState('#90EE90');
   const canvasRef = React.useRef(null);
   
+  // Handle Delete key for removing selected items
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedStreet) {
+          setStreets(prev => prev.filter(s => s.id !== selectedStreet.id));
+          setSelectedStreet(null);
+          console.log("STABLE: Street deleted with Delete key");
+        } else if (selectedBuilding) {
+          setBuildings(prev => prev.filter(b => b.id !== selectedBuilding.id));
+          setSelectedBuilding(null);
+          console.log("STABLE: Building deleted with Delete key");
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedStreet, selectedBuilding]);
+  
   // Simple drag function
   const handleDragStart = (e, item) => {
     if (e.target.classList.contains('resize-handle') || e.target.tagName === 'BUTTON') return;
@@ -77,7 +97,7 @@ const StableCityBuilder = () => {
     document.addEventListener('mouseup', onUp);
   };
   
-  // Simple resize function
+  // Complete resize function with all 4 corners
   const handleResizeStart = (e, item, direction) => {
     e.preventDefault();
     e.stopPropagation();
@@ -95,17 +115,33 @@ const StableCityBuilder = () => {
       let newX = item.x;
       let newY = item.y;
       
+      // Handle all 4 resize directions
       if (direction === 'se') {
         newWidth = Math.max(20, item.width + dx);
         newHeight = Math.max(20, item.height + dy);
+      } else if (direction === 'sw') {
+        newWidth = Math.max(20, item.width - dx);
+        newHeight = Math.max(20, item.height + dy);
+        newX = item.x + (item.width - newWidth);
+      } else if (direction === 'ne') {
+        newWidth = Math.max(20, item.width + dx);
+        newHeight = Math.max(20, item.height - dy);  
+        newY = item.y + (item.height - newHeight);
+      } else if (direction === 'nw') {
+        newWidth = Math.max(20, item.width - dx);
+        newHeight = Math.max(20, item.height - dy);
+        newX = item.x + (item.width - newWidth);
+        newY = item.y + (item.height - newHeight);
       }
       
       if (gridEnabled) {
         newWidth = Math.round(newWidth / 20) * 20;
         newHeight = Math.round(newHeight / 20) * 20;
+        newX = Math.round(newX / 20) * 20;
+        newY = Math.round(newY / 20) * 20;
       }
       
-      const update = { width: newWidth, height: newHeight, x: newX, y: newY };
+      const update = { width: newWidth, height: newHeight, x: Math.max(0, newX), y: Math.max(0, newY) };
       
       if (item.category) {
         setBuildings(prev => prev.map(b => b.id === item.id ? { ...b, ...update } : b));
@@ -240,11 +276,18 @@ const StableCityBuilder = () => {
               Clear All
             </button>
             <button 
-              className="btn btn-outline-secondary btn-sm w-100"
+              className="btn btn-outline-secondary btn-sm w-100 mb-2"
               onClick={() => setGridEnabled(!gridEnabled)}
             >
               Grid: {gridEnabled ? "On" : "Off"}
             </button>
+            <div className="alert alert-info small p-2 mb-0">
+              <strong>Controls:</strong><br/>
+              • Click to select items<br/>
+              • Drag items to move<br/>
+              • Drag blue corners to resize<br/>
+              • Press <kbd>Delete</kbd> to remove selected
+            </div>
           </div>
         </div>
       </div>
@@ -304,29 +347,9 @@ const StableCityBuilder = () => {
               }
             }}
           >
-            {/* Delete and Resize handles for selected street */}
+            {/* Resize handles for selected street - NO DELETE BUTTON */}
             {selectedStreet?.id === street.id && (
               <>
-                <button
-                  className="position-absolute btn btn-sm btn-danger"
-                  style={{
-                    top: '-8px',
-                    right: '-8px',
-                    width: '20px',
-                    height: '20px',
-                    padding: '0',
-                    fontSize: '0.7rem',
-                    zIndex: 20
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setStreets(prev => prev.filter(s => s.id !== street.id));
-                    setSelectedStreet(null);
-                  }}
-                >
-                  ✕
-                </button>
-                
                 {/* SE resize handle */}
                 <div
                   className="position-absolute bg-info rounded-circle resize-handle"
@@ -339,6 +362,48 @@ const StableCityBuilder = () => {
                     zIndex: 20
                   }}
                   onMouseDown={(e) => handleResizeStart(e, street, 'se')}
+                />
+                
+                {/* SW resize handle */}
+                <div
+                  className="position-absolute bg-info rounded-circle resize-handle"
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    bottom: '-6px',
+                    left: '-6px',
+                    cursor: 'sw-resize',
+                    zIndex: 20
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, street, 'sw')}
+                />
+                
+                {/* NE resize handle */}
+                <div
+                  className="position-absolute bg-info rounded-circle resize-handle"
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    top: '-6px',
+                    right: '-6px',
+                    cursor: 'ne-resize',
+                    zIndex: 20
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, street, 'ne')}
+                />
+                
+                {/* NW resize handle */}
+                <div
+                  className="position-absolute bg-info rounded-circle resize-handle"
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    top: '-6px',
+                    left: '-6px',
+                    cursor: 'nw-resize',
+                    zIndex: 20
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, street, 'nw')}
                 />
               </>
             )}
@@ -372,29 +437,9 @@ const StableCityBuilder = () => {
           >
             {BUILDING_TYPES[building.category]?.[building.type]?.icon}
             
-            {/* Delete and Resize handles for selected building */}
+            {/* Resize handles for selected building - NO DELETE BUTTON */}
             {selectedBuilding?.id === building.id && (
               <>
-                <button
-                  className="position-absolute btn btn-sm btn-danger"
-                  style={{
-                    top: '-8px',
-                    right: '-8px',
-                    width: '20px',
-                    height: '20px',
-                    padding: '0',
-                    fontSize: '0.7rem',
-                    zIndex: 20
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setBuildings(prev => prev.filter(b => b.id !== building.id));
-                    setSelectedBuilding(null);
-                  }}
-                >
-                  ✕
-                </button>
-                
                 {/* SE resize handle */}
                 <div
                   className="position-absolute bg-info rounded-circle resize-handle"
@@ -407,6 +452,48 @@ const StableCityBuilder = () => {
                     zIndex: 20
                   }}
                   onMouseDown={(e) => handleResizeStart(e, building, 'se')}
+                />
+                
+                {/* SW resize handle */}
+                <div
+                  className="position-absolute bg-info rounded-circle resize-handle"
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    bottom: '-6px',
+                    left: '-6px',
+                    cursor: 'sw-resize',
+                    zIndex: 20
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, building, 'sw')}
+                />
+                
+                {/* NE resize handle */}
+                <div
+                  className="position-absolute bg-info rounded-circle resize-handle"
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    top: '-6px',
+                    right: '-6px',
+                    cursor: 'ne-resize',
+                    zIndex: 20
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, building, 'ne')}
+                />
+                
+                {/* NW resize handle */}
+                <div
+                  className="position-absolute bg-info rounded-circle resize-handle"
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    top: '-6px',
+                    left: '-6px',
+                    cursor: 'nw-resize',
+                    zIndex: 20
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, building, 'nw')}
                 />
               </>
             )}
