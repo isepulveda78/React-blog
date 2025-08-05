@@ -203,15 +203,19 @@ const CityBuilder = ({ user }) => {
   };
 
   const handleLabelSave = () => {
-    if (selectedItem && editingLabel) {
+    if (selectedItem && editingLabel && labelInput.trim()) {
       if (selectedItem.isBuilding) {
         setBuildings(prev => prev.map(b => 
-          b.id === editingLabel ? { ...b, label: labelInput } : b
+          b.id === editingLabel ? { ...b, label: labelInput.trim() } : b
         ));
+        // Update selected item to reflect the new label
+        setSelectedItem(prev => ({ ...prev, label: labelInput.trim() }));
       } else {
         setStreets(prev => prev.map(s => 
-          s.id === editingLabel ? { ...s, label: labelInput } : s
+          s.id === editingLabel ? { ...s, label: labelInput.trim() } : s
         ));
+        // Update selected item to reflect the new label
+        setSelectedItem(prev => ({ ...prev, label: labelInput.trim() }));
       }
     }
     setEditingLabel(null);
