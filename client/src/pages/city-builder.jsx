@@ -223,7 +223,7 @@ const CityBuilder = ({ user }) => {
     const startX = e.clientX;
     const startY = e.clientY;
     const originalItem = { ...item };
-    const isBuilding = item.hasOwnProperty("category"); // Buildings have category, streets don't
+    const isBuilding = item.hasOwnProperty("category") && item.category !== "roads";
 
     const handleMouseMove = (moveEvent) => {
       const deltaX = moveEvent.clientX - startX;
@@ -232,7 +232,7 @@ const CityBuilder = ({ user }) => {
       let newItem = { ...originalItem };
       const minSize = 20; // Minimum size for all items
 
-      // Allow independent width and height resizing for both grass and streets
+      // Handle all resize directions including edge resizing
       switch (handle) {
         case "se": // Southeast - resize from bottom-right
           newItem.width = Math.max(minSize, originalItem.width + deltaX);
@@ -262,6 +262,33 @@ const CityBuilder = ({ user }) => {
           if (newItem.height === minSize)
             newItem.y = originalItem.y + originalItem.height - minSize;
           break;
+        // Edge resize handles
+        case "n": // North - resize height from top
+          newItem.height = Math.max(minSize, originalItem.height - deltaY);
+          newItem.y = originalItem.y + deltaY;
+          if (newItem.height === minSize)
+            newItem.y = originalItem.y + originalItem.height - minSize;
+          break;
+        case "s": // South - resize height from bottom
+          newItem.height = Math.max(minSize, originalItem.height + deltaY);
+          break;
+        case "e": // East - resize width from right
+          newItem.width = Math.max(minSize, originalItem.width + deltaX);
+          break;
+        case "w": // West - resize width from left
+          newItem.width = Math.max(minSize, originalItem.width - deltaX);
+          newItem.x = originalItem.x + deltaX;
+          if (newItem.width === minSize)
+            newItem.x = originalItem.x + originalItem.width - minSize;
+          break;
+      }
+
+      // Apply grid snapping if enabled
+      if (gridEnabled) {
+        newItem.x = Math.round(newItem.x / 20) * 20;
+        newItem.y = Math.round(newItem.y / 20) * 20;
+        newItem.width = Math.max(20, Math.round(newItem.width / 20) * 20);
+        newItem.height = Math.max(20, Math.round(newItem.height / 20) * 20);
       }
 
       // Update the appropriate item type
@@ -281,6 +308,48 @@ const CityBuilder = ({ user }) => {
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
     document.body.style.cursor = `${handle}-resize`;
+  };
+
+  const handleStreetMouseDown = (e, street) => {
+    if (e.target !== e.currentTarget) return; // Only handle direct clicks on the street, not resize handles
+    
+    e.stopPropagation();
+    e.preventDefault();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startStreetX = street.x;
+    const startStreetY = street.y;
+
+    const handleMouseMove = (moveEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+
+      let newX = startStreetX + deltaX;
+      let newY = startStreetY + deltaY;
+
+      // Apply grid snapping if enabled
+      if (gridEnabled) {
+        newX = Math.round(newX / 20) * 20;
+        newY = Math.round(newY / 20) * 20;
+      }
+
+      updateStreet(street.id, { 
+        ...street, 
+        x: Math.max(0, newX), 
+        y: Math.max(0, newY) 
+      });
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "default";
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.body.style.cursor = "grabbing";
   };
 
   const handleDuplicateBuilding = (building) => {
@@ -820,14 +889,130 @@ const CityBuilder = ({ user }) => {
                 backgroundColor: street.color || '#6b7280',
                 cursor: 'pointer',
                 zIndex: selectedStreet?.id === street.id ? 10 : 0,
-                userSelect: 'none'
+                userSelect: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.8rem'
               }}
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedStreet(street);
                 setSelectedBuilding(null);
               }}
-            />
+              onMouseDown={(e) => handleStreetMouseDown(e, street)}
+            >
+              {street.type === 'road' ? '🛣️' : street.type === 'water' ? '💧' : '🌿'}
+              
+              {/* Resize handles for selected street */}
+              {selectedStreet?.id === street.id && (
+                <>
+                  {/* Corner resize handles */}
+                  <div
+                    className="position-absolute bg-primary rounded-circle"
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      top: '-4px',
+                      left: '-4px',
+                      cursor: 'nw-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 'nw')}
+                  />
+                  <div
+                    className="position-absolute bg-primary rounded-circle"
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      top: '-4px',
+                      right: '-4px',
+                      cursor: 'ne-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 'ne')}
+                  />
+                  <div
+                    className="position-absolute bg-primary rounded-circle"
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      bottom: '-4px',
+                      left: '-4px',
+                      cursor: 'sw-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 'sw')}
+                  />
+                  <div
+                    className="position-absolute bg-primary rounded-circle"
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      bottom: '-4px',
+                      right: '-4px',
+                      cursor: 'se-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 'se')}
+                  />
+                  
+                  {/* Edge resize handles for stretching roads */}
+                  <div
+                    className="position-absolute bg-primary"
+                    style={{
+                      width: '4px',
+                      height: '8px',
+                      top: '50%',
+                      left: '-2px',
+                      transform: 'translateY(-50%)',
+                      cursor: 'w-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 'w')}
+                  />
+                  <div
+                    className="position-absolute bg-primary"
+                    style={{
+                      width: '4px',
+                      height: '8px',
+                      top: '50%',
+                      right: '-2px',
+                      transform: 'translateY(-50%)',
+                      cursor: 'e-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 'e')}
+                  />
+                  <div
+                    className="position-absolute bg-primary"
+                    style={{
+                      width: '8px',
+                      height: '4px',
+                      top: '-2px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      cursor: 'n-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 'n')}
+                  />
+                  <div
+                    className="position-absolute bg-primary"
+                    style={{
+                      width: '8px',
+                      height: '4px',
+                      bottom: '-2px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      cursor: 's-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 's')}
+                  />
+                </>
+              )}
+            </div>
           ))}
 
           {/* Canvas Instructions */}
