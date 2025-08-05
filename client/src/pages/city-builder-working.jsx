@@ -382,17 +382,12 @@ const WorkingCityBuilder = () => {
           // Control Buttons
           React.createElement('div', { style: { display: 'flex', gap: '8px', marginBottom: '15px' } },
             React.createElement('button', {
+              className: 'btn btn-danger',
               style: {
                 flex: '1',
-                padding: '8px',
-                backgroundColor: '#f56565',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: '600',
-                transition: 'all 0.2s ease'
+                borderRadius: '6px'
               },
               onClick: () => {
                 setBuildings([]);
@@ -403,17 +398,12 @@ const WorkingCityBuilder = () => {
             }, 'Clear All'),
             
             React.createElement('button', {
+              className: gridEnabled ? 'btn btn-success' : 'btn btn-outline-primary',
               style: {
                 flex: '1',
-                padding: '8px',
-                backgroundColor: gridEnabled ? '#68d391' : '#e9ecef',
-                color: gridEnabled ? 'white' : '#222f3e',
-                border: gridEnabled ? 'none' : '2px solid #0abde3',
-                borderRadius: '6px',
-                cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: '600',
-                transition: 'all 0.2s ease'
+                borderRadius: '6px'
               },
               onClick: () => setGridEnabled(!gridEnabled)
             }, `Grid: ${gridEnabled ? 'On' : 'Off'}`)
@@ -443,19 +433,13 @@ const WorkingCityBuilder = () => {
           
           // Export Button
           React.createElement('button', {
+            className: 'btn btn-primary w-100',
             style: {
-              width: '100%',
-              padding: '12px',
               marginTop: '10px',
-              backgroundColor: '#0abde3',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
               fontSize: '13px',
               fontWeight: 'bold',
-              boxShadow: '0 2px 8px rgba(10, 189, 227, 0.3)',
-              transition: 'all 0.2s ease'
+              borderRadius: '8px',
+              padding: '12px'
             },
             onClick: handleExportCanvas,
             title: 'Download your city design as PNG image'
