@@ -6,8 +6,22 @@ const Home = ({ user }) => {
   const [showLogin, setShowLogin] = useState(false);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
+    // Check for URL messages
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlMessage = urlParams.get('message');
+    if (urlMessage === 'login-required') {
+      setMessage('Please sign in to access that page.');
+      // Clear the URL parameter
+      window.history.replaceState({}, '', '/');
+    } else if (urlMessage === 'admin-required') {
+      setMessage('Admin access required for that page.');
+      // Clear the URL parameter  
+      window.history.replaceState({}, '', '/');
+    }
+
     // Fetch recent posts for the homepage
     fetch('/api/posts/public')
       .then(res => res.json())
@@ -40,6 +54,18 @@ const Home = ({ user }) => {
 
   return (
     <div>
+      {message && (
+        <div className="container py-3">
+          <div className="alert alert-warning alert-dismissible fade show" role="alert">
+            {message}
+            <button 
+              type="button" 
+              className="btn-close" 
+              onClick={() => setMessage('')}
+            ></button>
+          </div>
+        </div>
+      )}
       <Hero user={user} />
       
       <section className="py-5">

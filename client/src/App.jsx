@@ -183,18 +183,52 @@ const AppRoutes = () => {
   } else if (location.startsWith('/blog/')) {
     CurrentComponent = BlogPost;
     componentProps = { user, slug: location.replace('/blog/', '') };
-  } else if (location === '/admin' && user && user.isAdmin) {
-    CurrentComponent = AdminDashboard;
-  } else if (location === '/admin/posts' && user && user.isAdmin) {
+  } else if (location === '/admin') {
+    if (!user) {
+      // Redirect to home with login prompt for unauthenticated users
+      window.location.href = '/?message=login-required';
+      return null;
+    } else if (!user.isAdmin) {
+      // Show access denied for non-admin users
+      CurrentComponent = NotFound;
+      componentProps = { message: 'Access denied. Admin privileges required.' };
+    } else {
+      CurrentComponent = AdminDashboard;
+    }
+  } else if (location === '/admin/posts') {
+    if (!user || !user.isAdmin) {
+      window.location.href = '/?message=admin-required';
+      return null;
+    }
     CurrentComponent = AdminPosts;
-  } else if (location === '/admin/users' && user && user.isAdmin) {
+  } else if (location === '/admin/users') {
+    if (!user || !user.isAdmin) {
+      window.location.href = '/?message=admin-required';
+      return null;
+    }
     CurrentComponent = AdminUsers;
-  } else if (location === '/admin/comments' && user && user.isAdmin) {
+  } else if (location === '/admin/comments') {
+    if (!user || !user.isAdmin) {
+      window.location.href = '/?message=admin-required';
+      return null;
+    }
     CurrentComponent = AdminComments;
-  } else if (location === '/seo-management' && user && user.isAdmin) {
+  } else if (location === '/seo-management') {
+    if (!user || !user.isAdmin) {
+      window.location.href = '/?message=admin-required';
+      return null;
+    }
     CurrentComponent = SEOManagement;
-  } else if (location === '/profile' && user && user.approved) {
-    CurrentComponent = UserProfile;
+  } else if (location === '/profile') {
+    if (!user) {
+      window.location.href = '/?message=login-required';
+      return null;
+    } else if (!user.approved) {
+      CurrentComponent = NotFound;
+      componentProps = { message: 'Account pending approval. Please wait for admin approval.' };
+    } else {
+      CurrentComponent = UserProfile;
+    }
   } else if (location !== '/') {
     CurrentComponent = NotFound;
     componentProps = {};

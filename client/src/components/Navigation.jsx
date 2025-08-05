@@ -308,7 +308,10 @@ const Navigation = ({ user, onLogout }) => {
             <span className="navbar-toggler-icon"></span>
           </button>
 
-          <div className={`collapse navbar-collapse ${isNavOpen ? 'show' : ''}`} id="navbarNav">
+          <div
+            className={`collapse navbar-collapse ${isNavOpen ? "show" : ""}`}
+            id="navbarNav"
+          >
             <ul className="navbar-nav me-auto">
               <li className="nav-item">
                 <a
@@ -349,91 +352,10 @@ const Navigation = ({ user, onLogout }) => {
                   </a>
                 </li>
               )}
-              
-              {user && user.isAdmin && (
-                <li className="nav-item dropdown">
-                  <a
-                    className="nav-link dropdown-toggle text-danger fw-bold"
-                    href="#"
-                    role="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // Simple dropdown toggle
-                      const dropdown = e.target.nextElementSibling;
-                      dropdown.classList.toggle('show');
-                    }}
-                    style={{ backgroundColor: '#fff3cd', padding: '8px 12px', borderRadius: '4px' }}
-                  >
-                    🔧 ADMIN PANEL
-                  </a>
-                  <ul className="dropdown-menu">
-                    <li>
-                      <a
-                        className="dropdown-item"
-                        href="/admin"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigateTo('/admin');
-                        }}
-                      >
-                        Dashboard
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        className="dropdown-item"
-                        href="/admin/posts"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigateTo('/admin/posts');
-                        }}
-                      >
-                        Manage Posts
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        className="dropdown-item"
-                        href="/admin/users"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigateTo('/admin/users');
-                        }}
-                      >
-                        Manage Users
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        className="dropdown-item"
-                        href="/admin/comments"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigateTo('/admin/comments');
-                        }}
-                      >
-                        Manage Comments
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        className="dropdown-item"
-                        href="/seo-management"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigateTo('/seo-management');
-                        }}
-                      >
-                        SEO Management
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-              )}
             </ul>
 
             <div className="navbar-nav">
-              {/* Quick admin access button */}
+              {/* Quick admin access button - only show if user is authenticated admin */}
               {user && user.isAdmin && (
                 <button
                   className="btn btn-danger btn-sm me-2"
