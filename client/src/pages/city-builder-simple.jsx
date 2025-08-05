@@ -65,6 +65,30 @@ const CityBuilder = ({ user }) => {
     }
   };
 
+  const copySelected = () => {
+    if (selectedItem) {
+      if (selectedItem.isBuilding) {
+        const newBuilding = {
+          ...selectedItem,
+          id: Date.now() + Math.random(),
+          x: selectedItem.x + 20,
+          y: selectedItem.y + 20
+        };
+        setBuildings(prev => [...prev, newBuilding]);
+        setSelectedItem({ ...newBuilding, isBuilding: true });
+      } else {
+        const newStreet = {
+          ...selectedItem,
+          id: Date.now() + Math.random(),
+          x: selectedItem.x + 20,
+          y: selectedItem.y + 20
+        };
+        setStreets(prev => [...prev, newStreet]);
+        setSelectedItem({ ...newStreet, isBuilding: false });
+      }
+    }
+  };
+
   const clearAll = () => {
     setBuildings([]);
     setStreets([]);
@@ -215,14 +239,17 @@ const CityBuilder = ({ user }) => {
               </label>
             </div>
             
-            <div className="d-flex gap-2">
-              <button className="btn btn-danger btn-sm" onClick={deleteSelected} disabled={!selectedItem}>
-                Delete Selected
+            <div className="d-flex gap-2 mb-2">
+              <button className="btn btn-primary btn-sm" onClick={copySelected} disabled={!selectedItem}>
+                Copy
               </button>
-              <button className="btn btn-warning btn-sm" onClick={clearAll}>
-                Clear All
+              <button className="btn btn-danger btn-sm" onClick={deleteSelected} disabled={!selectedItem}>
+                Delete
               </button>
             </div>
+            <button className="btn btn-warning btn-sm w-100" onClick={clearAll}>
+              Clear All
+            </button>
           </div>
 
           {/* Building Categories */}
@@ -430,7 +457,8 @@ const CityBuilder = ({ user }) => {
               top: `${building.y}px`,
               width: `${building.width}px`,
               height: `${building.height}px`,
-              backgroundColor: building.color,
+              backgroundColor: building.color || '#f8f9fa',
+              border: '2px solid #dee2e6',
               cursor: 'pointer',
               fontSize: building.width > 60 ? '24px' : '18px'
             }}
@@ -527,7 +555,7 @@ const CityBuilder = ({ user }) => {
             • Drag items from sidebar to canvas<br/>
             • Click to select, double-click to name<br/>
             • Drag blue corners to resize<br/>
-            • Use Delete Selected to remove items
+            • Use Copy/Delete buttons to duplicate/remove items
           </small>
         </div>
 
