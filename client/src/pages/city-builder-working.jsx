@@ -230,10 +230,10 @@ const WorkingCityBuilder = () => {
           const textWidth = ctx.measureText(building.customLabel).width;
           ctx.fillStyle = 'rgba(255,255,255,0.9)';
           ctx.fillRect(
-            building.x + building.width / 2 - textWidth / 2 - 4,
-            building.y + building.height + 2,
-            textWidth + 8,
-            16
+            building.x + building.width / 2 - textWidth / 2 - 3,
+            building.y + building.height - 2,
+            textWidth + 6,
+            14
           );
           
           // Label text
@@ -241,7 +241,7 @@ const WorkingCityBuilder = () => {
           ctx.fillText(
             building.customLabel,
             building.x + building.width / 2,
-            building.y + building.height + 5
+            building.y + building.height
           );
         }
       }
@@ -727,18 +727,18 @@ const WorkingCityBuilder = () => {
             React.createElement('div', {
               style: {
                 position: 'absolute',
-                bottom: '-25px',
+                bottom: '-18px',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 backgroundColor: 'rgba(255,255,255,0.95)',
-                padding: '3px 8px',
-                borderRadius: '4px',
+                padding: '2px 6px',
+                borderRadius: '3px',
                 fontSize: '11px',
                 fontWeight: 'bold',
                 color: '#000',
                 border: '1px solid #007bff',
                 whiteSpace: 'nowrap',
-                minWidth: '70px',
+                minWidth: '60px',
                 textAlign: 'center',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 zIndex: 10,
