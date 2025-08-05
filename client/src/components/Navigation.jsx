@@ -336,7 +336,7 @@ const Navigation = ({ user, onLogout }) => {
               navigateTo("/");
             }}
           >
-            Mr. S Teaches Test
+            Mr. S Teaches
           </a>
 
           <button
