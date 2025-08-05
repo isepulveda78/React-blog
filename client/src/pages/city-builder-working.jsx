@@ -58,6 +58,103 @@ const WorkingCityBuilder = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedStreet, selectedBuilding]);
   
+  // Simple drag function
+  const handleDragStart = (e, item) => {
+    if (e.target.classList.contains('resize-handle') || e.target.tagName === 'BUTTON') return;
+    
+    e.preventDefault();
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    
+    function onMove(me) {
+      const newX = Math.max(0, item.x + (me.clientX - startX));
+      const newY = Math.max(0, item.y + (me.clientY - startY));
+      
+      const isBuilding = item.category && ['residential', 'commercial', 'industrial', 'public', 'nature'].includes(item.category);
+      
+      if (isBuilding) {
+        setBuildings(prev => prev.map(b => b.id === item.id ? { ...b, x: newX, y: newY } : b));
+      } else {
+        setStreets(prev => prev.map(s => s.id === item.id ? { ...s, x: newX, y: newY } : s));
+      }
+    }
+    
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
+  // Complete resize function with all 4 corners
+  const handleResizeStart = (e, item, direction) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = item.width;
+    const startHeight = item.height;
+    const startItemX = item.x;
+    const startItemY = item.y;
+    
+    function onMove(me) {
+      const deltaX = me.clientX - startX;
+      const deltaY = me.clientY - startY;
+      
+      let newWidth = startWidth;
+      let newHeight = startHeight;
+      let newX = startItemX;
+      let newY = startItemY;
+      
+      if (direction === 'se') {
+        newWidth = Math.max(20, startWidth + deltaX);
+        newHeight = Math.max(20, startHeight + deltaY);
+      } else if (direction === 'sw') {
+        newWidth = Math.max(20, startWidth - deltaX);
+        newHeight = Math.max(20, startHeight + deltaY);
+        newX = startItemX + deltaX;
+      } else if (direction === 'ne') {
+        newWidth = Math.max(20, startWidth + deltaX);
+        newHeight = Math.max(20, startHeight - deltaY);
+        newY = startItemY + deltaY;
+      } else if (direction === 'nw') {
+        newWidth = Math.max(20, startWidth - deltaX);
+        newHeight = Math.max(20, startHeight - deltaY);
+        newX = startItemX + deltaX;
+        newY = startItemY + deltaY;
+      }
+      
+      if (gridEnabled) {
+        newWidth = Math.round(newWidth / 20) * 20;
+        newHeight = Math.round(newHeight / 20) * 20;
+        newX = Math.round(newX / 20) * 20;
+        newY = Math.round(newY / 20) * 20;
+      }
+      
+      const update = { width: newWidth, height: newHeight, x: Math.max(0, newX), y: Math.max(0, newY) };
+      
+      const isBuilding = item.category && ['residential', 'commercial', 'industrial', 'public', 'nature'].includes(item.category);
+      
+      if (isBuilding) {
+        setBuildings(prev => prev.map(b => b.id === item.id ? { ...b, ...update } : b));
+      } else {
+        setStreets(prev => prev.map(s => s.id === item.id ? { ...s, ...update } : s));
+      }
+    }
+    
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
   // Handle canvas drop
   const handleCanvasDrop = (e) => {
     e.preventDefault();
@@ -399,8 +496,76 @@ const WorkingCityBuilder = () => {
             e.stopPropagation();
             setSelectedStreet(street);
             setSelectedBuilding(null);
+          },
+          onMouseDown: (e) => {
+            if (selectedStreet?.id === street.id && !e.target.classList.contains('resize-handle')) {
+              handleDragStart(e, street);
+            }
           }
-        })
+        },
+          // Resize handles for selected street
+          selectedStreet?.id === street.id && [
+            // SE resize handle
+            React.createElement('div', {
+              key: 'se',
+              className: 'position-absolute bg-info rounded-circle resize-handle',
+              style: {
+                width: '12px',
+                height: '12px',
+                bottom: '-6px',
+                right: '-6px',
+                cursor: 'se-resize',
+                zIndex: 20
+              },
+              onMouseDown: (e) => handleResizeStart(e, street, 'se')
+            }),
+            
+            // SW resize handle
+            React.createElement('div', {
+              key: 'sw',
+              className: 'position-absolute bg-info rounded-circle resize-handle',
+              style: {
+                width: '12px',
+                height: '12px',
+                bottom: '-6px',
+                left: '-6px',
+                cursor: 'sw-resize',
+                zIndex: 20
+              },
+              onMouseDown: (e) => handleResizeStart(e, street, 'sw')
+            }),
+            
+            // NE resize handle
+            React.createElement('div', {
+              key: 'ne',
+              className: 'position-absolute bg-info rounded-circle resize-handle',
+              style: {
+                width: '12px',
+                height: '12px',
+                top: '-6px',
+                right: '-6px',
+                cursor: 'ne-resize',
+                zIndex: 20
+              },
+              onMouseDown: (e) => handleResizeStart(e, street, 'ne')
+            }),
+            
+            // NW resize handle
+            React.createElement('div', {
+              key: 'nw',
+              className: 'position-absolute bg-info rounded-circle resize-handle',
+              style: {
+                width: '12px',
+                height: '12px',
+                top: '-6px',
+                left: '-6px',
+                cursor: 'nw-resize',
+                zIndex: 20
+              },
+              onMouseDown: (e) => handleResizeStart(e, street, 'nw')
+            })
+          ]
+        )
       ),
       
       // Buildings
@@ -426,6 +591,11 @@ const WorkingCityBuilder = () => {
               e.stopPropagation();
               setEditingLabel(building.id);
               setLabelInput(building.customLabel || building.name);
+            },
+            onMouseDown: (e) => {
+              if (selectedBuilding?.id === building.id && !e.target.classList.contains('resize-handle') && e.target.tagName !== 'INPUT') {
+                handleDragStart(e, building);
+              }
             }
           },
             BUILDING_TYPES[building.category]?.[building.type]?.icon,
@@ -492,7 +662,70 @@ const WorkingCityBuilder = () => {
                 textAlign: 'center'
               },
               onClick: (e) => e.stopPropagation()
-            })
+            }),
+            
+            // Resize handles for selected building
+            selectedBuilding?.id === building.id && [
+              // SE resize handle
+              React.createElement('div', {
+                key: 'se',
+                className: 'position-absolute bg-info rounded-circle resize-handle',
+                style: {
+                  width: '12px',
+                  height: '12px',
+                  bottom: '-6px',
+                  right: '-6px',
+                  cursor: 'se-resize',
+                  zIndex: 20
+                },
+                onMouseDown: (e) => handleResizeStart(e, building, 'se')
+              }),
+              
+              // SW resize handle
+              React.createElement('div', {
+                key: 'sw',
+                className: 'position-absolute bg-info rounded-circle resize-handle',
+                style: {
+                  width: '12px',
+                  height: '12px',
+                  bottom: '-6px',
+                  left: '-6px',
+                  cursor: 'sw-resize',
+                  zIndex: 20
+                },
+                onMouseDown: (e) => handleResizeStart(e, building, 'sw')
+              }),
+              
+              // NE resize handle
+              React.createElement('div', {
+                key: 'ne',
+                className: 'position-absolute bg-info rounded-circle resize-handle',
+                style: {
+                  width: '12px',
+                  height: '12px',
+                  top: '-6px',
+                  right: '-6px',
+                  cursor: 'ne-resize',
+                  zIndex: 20
+                },
+                onMouseDown: (e) => handleResizeStart(e, building, 'ne')
+              }),
+              
+              // NW resize handle
+              React.createElement('div', {
+                key: 'nw',
+                className: 'position-absolute bg-info rounded-circle resize-handle',
+                style: {
+                  width: '12px',
+                  height: '12px',
+                  top: '-6px',
+                  left: '-6px',
+                  cursor: 'nw-resize',
+                  zIndex: 20
+                },
+                onMouseDown: (e) => handleResizeStart(e, building, 'nw')
+              })
+            ]
           )
         )
       )
