@@ -292,6 +292,3 @@ const BingoGenerator = () => {
 };
 
 window.BingoGenerator = BingoGenerator;
-
-// ES6 default export for Vite build
-export default BingoGenerator;

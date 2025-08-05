@@ -307,5 +307,4 @@ window.UserProfile = function() {
   );
 };
 
-// ES6 default export for Vite build
-export default window.UserProfile;
+// Component available via window.UserProfile

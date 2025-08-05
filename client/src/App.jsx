@@ -1,21 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react';
 
-// Import actual components for production build
-import WorkingCityBuilder from './pages/city-builder-working.jsx';
-import EducationalTools from './pages/educational-tools.jsx';
-import BingoGenerator from './pages/bingo-generator.jsx';
-import SoundDemo from './pages/sound-demo.jsx';
-import MP3Guide from './pages/mp3-guide.jsx';
-import SpanishAlphabet from './pages/spanish-alphabet.jsx';
-import WordSorter from './pages/word-sorter.jsx';
-import UserProfile from './pages/user-profile.jsx';
-
-// Make React hooks available globally for all components (for compatibility with existing components)
+// Make React and hooks available globally for all components (for compatibility with existing components)
+// This must happen BEFORE importing any components that depend on global React
 window.React = React;
 window.useState = useState;
 window.useEffect = useEffect;
 window.useRef = useRef;
 window.useCallback = useCallback;
+
+// Also make React available as a global for the bundled components
+if (typeof global !== 'undefined') {
+  global.React = React;
+} else if (typeof globalThis !== 'undefined') {
+  globalThis.React = React;
+}
 
 // Simple fallback components for immediate functionality
 const Navigation = ({ user, onLogout }) => (
@@ -72,7 +70,7 @@ const NotFound = ({ message }) => (
   </div>
 );
 
-// Use imported components directly, with fallback for admin components not yet imported
+// Use window object components with loading fallbacks  
 const BlogListing = window.BlogListing || NotFound;
 const BlogPost = window.BlogPost || NotFound;
 const AdminDashboard = window.AdminDashboard || NotFound;
@@ -81,9 +79,29 @@ const AdminUsers = window.AdminUsers || NotFound;
 const AdminComments = window.AdminComments || NotFound;
 const AdminPostEditor = window.AdminPostEditor || NotFound;
 const SEOManagement = window.SEOManagement || NotFound;
+const EducationalTools = window.EducationalTools || Home;
+const BingoGenerator = window.BingoGenerator || Home;
+const SoundDemo = window.SoundDemo || Home;
+const MP3Guide = window.MP3Guide || Home;
+const SpanishAlphabet = window.SpanishAlphabet || Home;
+const WordSorter = window.WordSorter || Home;
+const UserProfile = window.UserProfile || Home;
 
-// Main components now imported directly
-const CityBuilder = WorkingCityBuilder;
+// Components that work via window objects - fallback to default home for production
+const CityBuilder = (props) => {
+  const WorkingCityBuilder = window.WorkingCityBuilder;
+  const StableCityBuilder = window.StableCityBuilder;
+  const BasicCityBuilder = window.CityBuilder;
+  
+  const SelectedComponent = WorkingCityBuilder || StableCityBuilder || BasicCityBuilder;
+  
+  if (SelectedComponent) {
+    return React.createElement(SelectedComponent, props);
+  }
+  
+  // For production, default to the Home page since components are not loaded yet
+  return React.createElement(Home, props);
+};
 
 // Auth Context
 const AuthContext = createContext(null);

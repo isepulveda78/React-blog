@@ -281,6 +281,3 @@ const SpanishAlphabet = () => {
 
 // Export to window for global access
 window.SpanishAlphabet = SpanishAlphabet;
-
-// ES6 default export for Vite build
-export default SpanishAlphabet;

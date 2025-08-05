@@ -207,6 +207,3 @@ const playSound = (file) => {
 };
 
 window.MP3Guide = MP3Guide;
-
-// ES6 default export for Vite build
-export default MP3Guide;

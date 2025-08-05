@@ -978,6 +978,3 @@ const WorkingCityBuilder = () => {
 // Export for global use
 window.WorkingCityBuilder = WorkingCityBuilder;
 console.log("WORKING: CityBuilder exported to window:", !!window.WorkingCityBuilder);
-
-// ES6 default export for Vite build
-export default WorkingCityBuilder;

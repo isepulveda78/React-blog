@@ -68,6 +68,3 @@ const EducationalTools = ({ user }) => {
 };
 
 window.EducationalTools = EducationalTools;
-
-// ES6 default export for Vite build
-export default EducationalTools;
