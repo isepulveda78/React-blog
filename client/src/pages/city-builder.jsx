@@ -524,6 +524,111 @@ const CityBuilder = ({ user }) => {
                 </div>
               </div>
 
+              {/* Industrial */}
+              <div className="mb-4">
+                <div className="d-flex align-items-center mb-2">
+                  <div className="rounded-circle me-2" style={{ width: "16px", height: "16px", backgroundColor: "#f59e0b" }}></div>
+                  <h3 className="h6 fw-medium text-dark mb-0">Industrial</h3>
+                </div>
+                <div className="row g-2">
+                  {[
+                    { type: "factory", name: "Factory", icon: "🏭", width: 100, height: 80 },
+                    { type: "warehouse", name: "Warehouse", icon: "🏢", width: 120, height: 60 }
+                  ].map((building) => (
+                    <div key={building.type} className="col-6">
+                      <div
+                        className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
+                        style={{
+                          borderColor: "#f59e0b",
+                          borderOpacity: "0.3",
+                          cursor: "grab",
+                          backgroundColor: "#f8f9fa"
+                        }}
+                        draggable
+                        onDragStart={(e) => {
+                          const dragData = { 
+                            type: building.type, 
+                            category: "industrial",
+                            isBuilding: true,
+                            itemData: building
+                          };
+                          e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+                          e.dataTransfer.effectAllowed = "copy";
+                          e.currentTarget.style.opacity = "0.5";
+                        }}
+                        onDragEnd={(e) => {
+                          e.currentTarget.style.opacity = "1";
+                        }}
+                      >
+                        <div className="mb-1 d-block" style={{ fontSize: "1.5rem", color: "#f59e0b" }}>
+                          {building.icon}
+                        </div>
+                        <p className="small fw-medium text-dark mb-0" style={{ fontSize: "0.65rem" }}>
+                          {building.name}
+                        </p>
+                        <p className="text-muted mb-0" style={{ fontSize: "0.55rem" }}>
+                          {building.width}×{building.height}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Nature */}
+              <div className="mb-4">
+                <div className="d-flex align-items-center mb-2">
+                  <div className="rounded-circle me-2" style={{ width: "16px", height: "16px", backgroundColor: "#22c55e" }}></div>
+                  <h3 className="h6 fw-medium text-dark mb-0">Nature & Roads</h3>
+                </div>
+                <div className="row g-2">
+                  {[
+                    { type: "tree", name: "Tree", icon: "🌳", width: 30, height: 30 },
+                    { type: "park", name: "Park", icon: "🌿", width: 60, height: 60 },
+                    { type: "road", name: "Road", icon: "🛣️", width: 20, height: 20 },
+                    { type: "water", name: "Water", icon: "💧", width: 40, height: 40 }
+                  ].map((building) => (
+                    <div key={building.type} className="col-6">
+                      <div
+                        className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
+                        style={{
+                          borderColor: "#22c55e",
+                          borderOpacity: "0.3",
+                          cursor: "grab",
+                          backgroundColor: "#f8f9fa"
+                        }}
+                        draggable
+                        onDragStart={(e) => {
+                          const dragData = { 
+                            type: building.type, 
+                            category: building.type === "road" ? "roads" : "nature",
+                            isBuilding: building.type !== "road",
+                            isStreet: building.type === "road",
+                            itemData: building
+                          };
+                          e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+                          e.dataTransfer.effectAllowed = "copy";
+                          e.currentTarget.style.opacity = "0.5";
+                        }}
+                        onDragEnd={(e) => {
+                          e.currentTarget.style.opacity = "1";
+                        }}
+                      >
+                        <div className="mb-1 d-block" style={{ fontSize: "1.5rem", color: "#22c55e" }}>
+                          {building.icon}
+                        </div>
+                        <p className="small fw-medium text-dark mb-0" style={{ fontSize: "0.65rem" }}>
+                          {building.name}
+                        </p>
+                        <p className="text-muted mb-0" style={{ fontSize: "0.55rem" }}>
+                          {building.width}×{building.height}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Debug info */}
               <div className="alert alert-info small">
                 <div>BuildingPalette status: {window.BuildingPalette ? 'Loaded' : 'Not loaded'}</div>
@@ -542,7 +647,11 @@ const CityBuilder = ({ user }) => {
                 </button>
                 <button 
                   className="btn btn-outline-secondary btn-sm flex-fill"
-                  onClick={() => setGridEnabled(!gridEnabled)}
+                  onClick={() => {
+                    const newGridState = !gridEnabled;
+                    setGridEnabled(newGridState);
+                    console.log("Grid toggled:", newGridState);
+                  }}
                 >
                   <i className="fas fa-th me-1"></i>Grid: {gridEnabled ? "On" : "Off"}
                 </button>
