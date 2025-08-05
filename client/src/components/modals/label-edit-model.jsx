@@ -6,7 +6,7 @@ const LabelEditModal = ({
   onClose,
   building,
   onSaveLabel
-}) {
+}) => {
   const [labelInput, setLabelInput] = useState('');
 
   useEffect(() => {
