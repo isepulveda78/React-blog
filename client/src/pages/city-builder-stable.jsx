@@ -221,133 +221,104 @@ const StableCityBuilder = () => {
         <div style={{ padding: "20px" }}>
           <h2 style={{ color: "black", marginBottom: "20px" }}>🏗️ CityBuilder</h2>
           
-          {/* Simple Building Test */}
-          <div style={{ marginBottom: "20px" }}>
-            <h3 style={{ color: "black", marginBottom: "10px" }}>RESIDENTIAL</h3>
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-              <div 
-                style={{
-                  width: "120px",
-                  height: "80px",
-                  backgroundColor: "white",
-                  border: "3px solid red",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "grab"
-                }}
-                draggable
-                onDragStart={(e) => {
-                  const dragData = { 
-                    type: "house", 
-                    category: "residential",
-                    isBuilding: true,
-                    itemData: { name: "House", icon: "🏠", width: 60, height: 50, color: "#4ade80" }
-                  };
-                  e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
-                }}
-              >
-                <div style={{ fontSize: "30px" }}>🏠</div>
-                <div style={{ fontSize: "12px", color: "black" }}>House</div>
-              </div>
-              
-              <div 
-                style={{
-                  width: "120px",
-                  height: "80px",
-                  backgroundColor: "white",
-                  border: "3px solid red",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "grab"
-                }}
-                draggable
-                onDragStart={(e) => {
-                  const dragData = { 
-                    type: "apartment", 
-                    category: "residential",
-                    isBuilding: true,
-                    itemData: { name: "Apartment", icon: "🏢", width: 80, height: 100, color: "#4ade80" }
-                  };
-                  e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
-                }}
-              >
-                <div style={{ fontSize: "30px" }}>🏢</div>
-                <div style={{ fontSize: "12px", color: "black" }}>Apartment</div>
+          {/* Full Building Categories */}
+          {Object.entries(BUILDING_TYPES).map(([categoryKey, category]) => (
+            <div key={categoryKey} style={{ marginBottom: "20px" }}>
+              <h3 style={{ color: "black", marginBottom: "10px", textTransform: "uppercase" }}>{categoryKey}</h3>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {Object.entries(category).map(([type, building]) => (
+                  <div 
+                    key={type}
+                    style={{
+                      width: "110px",
+                      height: "70px",
+                      backgroundColor: "white",
+                      border: "2px solid #28a745",
+                      borderRadius: "8px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "grab",
+                      padding: "4px"
+                    }}
+                    draggable
+                    onDragStart={(e) => {
+                      const dragData = { 
+                        type: type, 
+                        category: categoryKey,
+                        isBuilding: true,
+                        itemData: building
+                      };
+                      e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+                    }}
+                  >
+                    <div style={{ fontSize: "24px", marginBottom: "2px" }}>{building.icon}</div>
+                    <div style={{ fontSize: "10px", color: "black", textAlign: "center", lineHeight: "1.1" }}>
+                      {building.name}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          ))}
           
-          {/* Simple Infrastructure Test */}
+          {/* Infrastructure */}
           <div style={{ marginBottom: "20px" }}>
             <h3 style={{ color: "black", marginBottom: "10px" }}>INFRASTRUCTURE</h3>
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-              <div 
-                style={{
-                  width: "120px",
-                  height: "80px",
-                  backgroundColor: "white",
-                  border: "3px solid blue",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "grab"
-                }}
-                draggable
-                onDragStart={(e) => {
-                  const dragData = { 
-                    type: "road", 
-                    category: "infrastructure",
-                    isBuilding: false,
-                    isStreet: true,
-                    itemData: { name: "Road", icon: "🛣️", width: 20, height: 20 }
-                  };
-                  e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
-                }}
-              >
-                <div style={{ fontSize: "30px" }}>🛣️</div>
-                <div style={{ fontSize: "12px", color: "black" }}>Road</div>
-              </div>
-              
-              <div 
-                style={{
-                  width: "120px",
-                  height: "80px",
-                  backgroundColor: "white",
-                  border: "3px solid blue",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "grab"
-                }}
-                draggable
-                onDragStart={(e) => {
-                  const dragData = { 
-                    type: "water", 
-                    category: "infrastructure",
-                    isBuilding: false,
-                    isStreet: true,
-                    itemData: { name: "Water", icon: "💧", width: 40, height: 40 }
-                  };
-                  e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
-                }}
-              >
-                <div style={{ fontSize: "30px" }}>💧</div>
-                <div style={{ fontSize: "12px", color: "black" }}>Water</div>
-              </div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {Object.entries(STREET_TYPES).map(([type, street]) => (
+                <div 
+                  key={type}
+                  style={{
+                    width: "110px",
+                    height: "70px",
+                    backgroundColor: "white",
+                    border: "2px solid #007bff",
+                    borderRadius: "8px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "grab",
+                    padding: "4px"
+                  }}
+                  draggable
+                  onDragStart={(e) => {
+                    const dragData = { 
+                      type: type, 
+                      category: street.category,
+                      isBuilding: false,
+                      isStreet: true,
+                      itemData: street
+                    };
+                    e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+                  }}
+                >
+                  <div style={{ fontSize: "24px", marginBottom: "2px" }}>{street.icon}</div>
+                  <div style={{ fontSize: "10px", color: "black", textAlign: "center", lineHeight: "1.1" }}>
+                    {street.name}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
           
           {/* Tools */}
-          <div className="p-3 border-top">
+          <div style={{ padding: "20px", borderTop: "1px solid #ccc" }}>
             <button 
-              className="btn btn-secondary btn-sm w-100 mb-2"
+              style={{
+                width: "100%",
+                padding: "8px",
+                marginBottom: "10px",
+                backgroundColor: "#6c757d",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px"
+              }}
               onClick={() => {
                 setBuildings([]);
                 setStreets([]);
@@ -358,17 +329,34 @@ const StableCityBuilder = () => {
               Clear All
             </button>
             <button 
-              className="btn btn-outline-secondary btn-sm w-100 mb-2"
+              style={{
+                width: "100%",
+                padding: "8px",
+                marginBottom: "10px",
+                backgroundColor: gridEnabled ? "#28a745" : "#f8f9fa",
+                color: gridEnabled ? "white" : "black",
+                border: gridEnabled ? "none" : "1px solid #ccc",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "14px"
+              }}
               onClick={() => setGridEnabled(!gridEnabled)}
             >
               Grid: {gridEnabled ? "On" : "Off"}
             </button>
-            <div className="alert alert-info small p-2 mb-0">
+            <div style={{
+              backgroundColor: "#d1ecf1",
+              border: "1px solid #bee5eb",
+              borderRadius: "4px",
+              padding: "8px",
+              fontSize: "12px",
+              color: "#0c5460"
+            }}>
               <strong>Controls:</strong><br/>
               • Click to select items<br/>
               • Drag items to move<br/>
               • Drag blue corners to resize<br/>
-              • Press <kbd>Delete</kbd> to remove selected
+              • Press Delete to remove selected
             </div>
           </div>
         </div>
