@@ -1,5 +1,9 @@
 // STABLE CityBuilder - No Auto Reload Issues
 console.log("STABLE CITYBUILDER: Starting");
+
+// Make sure React hooks are available
+const { useState, useEffect, useRef } = React;
+
 console.log("BUILDING_TYPES:", BUILDING_TYPES);
 console.log("STREET_TYPES:", STREET_TYPES);
 
@@ -41,16 +45,18 @@ const STREET_TYPES = {
 const StableCityBuilder = () => {
   console.log("STABLE: Component loaded");
   
-  const [buildings, setBuildings] = React.useState([]);
-  const [streets, setStreets] = React.useState([]);
-  const [selectedBuilding, setSelectedBuilding] = React.useState(null);
-  const [selectedStreet, setSelectedStreet] = React.useState(null);
-  const [gridEnabled, setGridEnabled] = React.useState(true);
-  const [backgroundColor, setBackgroundColor] = React.useState('#90EE90');
-  const canvasRef = React.useRef(null);
+  const [buildings, setBuildings] = useState([]);
+  const [streets, setStreets] = useState([]);
+  const [selectedBuilding, setSelectedBuilding] = useState(null);
+  const [selectedStreet, setSelectedStreet] = useState(null);
+  const [gridEnabled, setGridEnabled] = useState(true);
+  const [backgroundColor, setBackgroundColor] = useState('#90EE90');
+  const [editingLabel, setEditingLabel] = useState(null);
+  const [labelInput, setLabelInput] = useState('');
+  const canvasRef = useRef(null);
   
   // Handle Delete key for removing selected items
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (selectedStreet) {
@@ -189,6 +195,7 @@ const StableCityBuilder = () => {
       width: dragData.itemData.width,
       height: dragData.itemData.height,
       name: dragData.itemData.name,
+      customLabel: '', // Custom label that user can edit
       category: dragData.category
     };
     
@@ -467,6 +474,7 @@ const StableCityBuilder = () => {
               • Click to select items<br/>
               • Drag items to move<br/>
               • Drag blue corners to resize<br/>
+              • <strong>Double-click to add label</strong><br/>
               • Press Delete to remove selected
             </div>
           </div>
@@ -594,30 +602,104 @@ const StableCityBuilder = () => {
         
         {/* Buildings */}
         {buildings.map((building) => (
-          <div
-            key={building.id}
-            className={`position-absolute d-flex align-items-center justify-content-center ${selectedBuilding?.id === building.id ? 'border border-info border-3' : ''}`}
-            style={{
-              left: `${building.x}px`,
-              top: `${building.y}px`,
-              width: `${building.width}px`,
-              height: `${building.height}px`,
-              backgroundColor: BUILDING_TYPES[building.category]?.[building.type]?.color || '#gray',
-              cursor: 'pointer',
-              fontSize: '2rem'
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedBuilding(building);
-              setSelectedStreet(null);
-            }}
-            onMouseDown={(e) => {
-              if (selectedBuilding?.id === building.id && !e.target.classList.contains('resize-handle')) {
-                handleDragStart(e, building);
-              }
-            }}
-          >
-            {BUILDING_TYPES[building.category]?.[building.type]?.icon}
+          <div key={building.id}>
+            <div
+              className={`position-absolute d-flex align-items-center justify-content-center ${selectedBuilding?.id === building.id ? 'border border-info border-3' : ''}`}
+              style={{
+                left: `${building.x}px`,
+                top: `${building.y}px`,
+                width: `${building.width}px`,
+                height: `${building.height}px`,
+                backgroundColor: BUILDING_TYPES[building.category]?.[building.type]?.color || '#gray',
+                cursor: 'pointer',
+                fontSize: '2rem'
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedBuilding(building);
+                setSelectedStreet(null);
+              }}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setEditingLabel(building.id);
+                setLabelInput(building.customLabel || building.name);
+              }}
+              onMouseDown={(e) => {
+                if (selectedBuilding?.id === building.id && !e.target.classList.contains('resize-handle') && !e.target.tagName === 'INPUT') {
+                  handleDragStart(e, building);
+                }
+              }}
+            >
+              {BUILDING_TYPES[building.category]?.[building.type]?.icon}
+              
+              {/* Custom Label Display */}
+              {(building.customLabel || selectedBuilding?.id === building.id) && editingLabel !== building.id && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '-20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: 'rgba(255,255,255,0.9)',
+                    padding: '2px 6px',
+                    borderRadius: '3px',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    color: '#000',
+                    border: '1px solid #ccc',
+                    whiteSpace: 'nowrap',
+                    minWidth: '60px',
+                    textAlign: 'center'
+                  }}
+                >
+                  {building.customLabel || building.name}
+                </div>
+              )}
+              
+              {/* Label Input for Editing */}
+              {editingLabel === building.id && (
+                <input
+                  autoFocus
+                  type="text"
+                  value={labelInput}
+                  onChange={(e) => setLabelInput(e.target.value)}
+                  onBlur={() => {
+                    setBuildings(prev => prev.map(b => 
+                      b.id === building.id ? { ...b, customLabel: labelInput } : b
+                    ));
+                    setEditingLabel(null);
+                    setLabelInput('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setBuildings(prev => prev.map(b => 
+                        b.id === building.id ? { ...b, customLabel: labelInput } : b
+                      ));
+                      setEditingLabel(null);
+                      setLabelInput('');
+                    } else if (e.key === 'Escape') {
+                      setEditingLabel(null);
+                      setLabelInput('');
+                    }
+                  }}
+                  style={{
+                    position: 'absolute',
+                    bottom: '-20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: 'white',
+                    padding: '2px 6px',
+                    borderRadius: '3px',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    color: '#000',
+                    border: '2px solid #007bff',
+                    minWidth: '80px',
+                    textAlign: 'center'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              )}
             
             {/* Resize handles for selected building - NO DELETE BUTTON */}
             {selectedBuilding?.id === building.id && (
@@ -688,3 +770,4 @@ const StableCityBuilder = () => {
 
 // Export for global use
 window.StableCityBuilder = StableCityBuilder;
+console.log("STABLE: StableCityBuilder exported to window:", window.StableCityBuilder);
