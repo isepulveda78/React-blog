@@ -330,31 +330,123 @@ const BlogPost = ({ user, slug }) => (
   </div>
 );
 
-const EducationalTools = ({ user }) => (
-  <div className="container py-5">
-    <h1>Educational Tools</h1>
-    <div className="row g-4">
-      <div className="col-md-6">
-        <div className="card">
-          <div className="card-body">
-            <h5 className="card-title">Spanish Alphabet</h5>
-            <p className="card-text">Learn the Spanish alphabet with interactive tools.</p>
-            <button className="btn btn-primary" disabled>Coming Soon</button>
-          </div>
+const EducationalTools = ({ user }) => {
+  const navigateTo = (path) => {
+    window.history.pushState({}, "", path);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
+
+  return (
+    <div className="container py-5">
+      <div className="row">
+        <div className="col-12">
+          <h1 className="display-4 fw-bold text-primary mb-4">Educational Tools</h1>
+          <p className="lead text-muted mb-5">
+            Interactive learning tools designed for engaging educational experiences.
+          </p>
         </div>
       </div>
-      <div className="col-md-6">
-        <div className="card">
-          <div className="card-body">
-            <h5 className="card-title">Word Sorter</h5>
-            <p className="card-text">Sort and organize words for learning activities.</p>
-            <button className="btn btn-primary" disabled>Coming Soon</button>
+
+      <div className="row g-4">
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">🏗️</div>
+              <h5 className="card-title">City Builder</h5>
+              <p className="card-text">Design and build your own virtual cities with drag-and-drop tools.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/city-builder')}
+              >
+                Start Building
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">🎲</div>
+              <h5 className="card-title">Bingo Card Generator</h5>
+              <p className="card-text">Create custom bingo cards for educational activities and games.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/bingo-generator')}
+              >
+                Generate Cards
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">🔤</div>
+              <h5 className="card-title">Spanish Alphabet Soundboard</h5>
+              <p className="card-text">Learn Spanish letters with interactive audio pronunciation.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/spanish-alphabet')}
+              >
+                Learn Letters
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">📝</div>
+              <h5 className="card-title">Word Sorter</h5>
+              <p className="card-text">Drag and drop words between lists for vocabulary activities.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/word-sorter')}
+              >
+                Sort Words
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">🎵</div>
+              <h5 className="card-title">Sound Demo</h5>
+              <p className="card-text">Explore audio features and sound integration examples.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/sound-demo')}
+              >
+                Try Sounds
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">📚</div>
+              <h5 className="card-title">MP3 Integration Guide</h5>
+              <p className="card-text">Learn how to integrate audio files into educational content.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/mp3-guide')}
+              >
+                View Guide
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const CityBuilder = ({ user }) => (
   <div className="container py-5">
@@ -374,6 +466,273 @@ const UserProfile = ({ user }) => (
       <div className="card-body">
         <h5 className="card-title">Welcome, {user?.name || user?.username}!</h5>
         <p className="card-text">Manage your profile and preferences here.</p>
+      </div>
+    </div>
+  </div>
+);
+
+// Educational Tool Components
+const SpanishAlphabet = ({ user }) => (
+  <div className="container py-5">
+    <h1 className="display-4 fw-bold text-primary mb-4">Spanish Alphabet Soundboard</h1>
+    <div className="alert alert-info">
+      <h5>Interactive Spanish Letter Learning</h5>
+      <p>This tool helps students learn Spanish letter pronunciation with audio feedback.</p>
+    </div>
+    <div className="row g-3">
+      {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'Ñ', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'].map(letter => (
+        <div key={letter} className="col-6 col-md-3 col-lg-2">
+          <button 
+            className="btn btn-outline-primary w-100 p-3 fw-bold fs-4"
+            onClick={() => alert(`Playing sound for letter ${letter}`)}
+          >
+            {letter}
+          </button>
+        </div>
+      ))}
+    </div>
+    <div className="mt-4">
+      <button className="btn btn-success btn-lg me-3">
+        🎵 Play All Letters
+      </button>
+      <button className="btn btn-secondary btn-lg">
+        🔇 Stop All
+      </button>
+    </div>
+  </div>
+);
+
+const WordSorter = ({ user }) => {
+  const [list1, setList1] = React.useState([]);
+  const [list2, setList2] = React.useState([]);
+  const [newWord, setNewWord] = React.useState('');
+  const [list1Title, setList1Title] = React.useState('List 1');
+  const [list2Title, setList2Title] = React.useState('List 2');
+
+  const addWord = () => {
+    if (newWord.trim()) {
+      setList1([...list1, { id: Date.now(), text: newWord.trim() }]);
+      setNewWord('');
+    }
+  };
+
+  return (
+    <div className="container py-5">
+      <h1 className="display-4 fw-bold text-primary mb-4">Word Sorter</h1>
+      <div className="alert alert-info">
+        <h5>Drag & Drop Word Sorting</h5>
+        <p>Add words and drag them between lists for vocabulary activities.</p>
+      </div>
+      
+      <div className="row mb-4">
+        <div className="col-md-6">
+          <div className="input-group">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Add new word..."
+              value={newWord}
+              onChange={(e) => setNewWord(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addWord()}
+            />
+            <button className="btn btn-primary" onClick={addWord}>Add Word</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-6">
+          <div className="card h-100">
+            <div className="card-header">
+              <input
+                type="text"
+                className="form-control"
+                value={list1Title}
+                onChange={(e) => setList1Title(e.target.value)}
+              />
+            </div>
+            <div className="card-body">
+              {list1.map(word => (
+                <div key={word.id} className="badge bg-primary m-1 p-2">
+                  {word.text}
+                </div>
+              ))}
+              {list1.length === 0 && <p className="text-muted">Drag words here...</p>}
+            </div>
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="card h-100">
+            <div className="card-header">
+              <input
+                type="text"
+                className="form-control"
+                value={list2Title}
+                onChange={(e) => setList2Title(e.target.value)}
+              />
+            </div>
+            <div className="card-body">
+              {list2.map(word => (
+                <div key={word.id} className="badge bg-success m-1 p-2">
+                  {word.text}
+                </div>
+              ))}
+              {list2.length === 0 && <p className="text-muted">Drag words here...</p>}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const BingoGenerator = ({ user }) => {
+  const [title, setTitle] = React.useState('BINGO');
+  const [minNumber, setMinNumber] = React.useState(1);
+  const [maxNumber, setMaxNumber] = React.useState(75);
+  const [numCards, setNumCards] = React.useState(1);
+
+  return (
+    <div className="container py-5">
+      <h1 className="display-4 fw-bold text-primary mb-4">Bingo Card Generator</h1>
+      <div className="alert alert-info">
+        <h5>Create Custom Bingo Cards</h5>
+        <p>Generate educational bingo cards with custom number ranges and titles.</p>
+      </div>
+      
+      <div className="row mb-4">
+        <div className="col-md-6">
+          <div className="card">
+            <div className="card-header"><h5>Card Settings</h5></div>
+            <div className="card-body">
+              <div className="mb-3">
+                <label className="form-label">Title</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+              <div className="row">
+                <div className="col-6">
+                  <label className="form-label">Min Number</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={minNumber}
+                    onChange={(e) => setMinNumber(parseInt(e.target.value))}
+                  />
+                </div>
+                <div className="col-6">
+                  <label className="form-label">Max Number</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={maxNumber}
+                    onChange={(e) => setMaxNumber(parseInt(e.target.value))}
+                  />
+                </div>
+              </div>
+              <div className="mt-3">
+                <label className="form-label">Number of Cards</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={numCards}
+                  onChange={(e) => setNumCards(parseInt(e.target.value))}
+                />
+              </div>
+              <button className="btn btn-primary mt-3">Generate Cards</button>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="card">
+            <div className="card-header"><h5>Preview</h5></div>
+            <div className="card-body text-center">
+              <h4>{title}</h4>
+              <div className="row">
+                {['B', 'I', 'N', 'G', 'O'].map(letter => (
+                  <div key={letter} className="col">
+                    <div className="fw-bold p-2 bg-primary text-white">{letter}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-muted mt-2">Sample bingo card layout</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SoundDemo = ({ user }) => (
+  <div className="container py-5">
+    <h1 className="display-4 fw-bold text-primary mb-4">Sound Demo</h1>
+    <div className="alert alert-info">
+      <h5>Audio Integration Examples</h5>
+      <p>Explore different ways to integrate audio into educational content.</p>
+    </div>
+    
+    <div className="row g-4">
+      <div className="col-md-6">
+        <div className="card">
+          <div className="card-body text-center">
+            <h5 className="card-title">Button Click Sound</h5>
+            <button className="btn btn-primary btn-lg">
+              🔊 Click Me
+            </button>
+            <p className="text-muted mt-2">Plays sound on button interaction</p>
+          </div>
+        </div>
+      </div>
+      <div className="col-md-6">
+        <div className="card">
+          <div className="card-body text-center">
+            <h5 className="card-title">Success Sound</h5>
+            <button className="btn btn-success btn-lg">
+              ✅ Success
+            </button>
+            <p className="text-muted mt-2">Celebration sound for achievements</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const MP3Guide = ({ user }) => (
+  <div className="container py-5">
+    <h1 className="display-4 fw-bold text-primary mb-4">MP3 Integration Guide</h1>
+    <div className="alert alert-success">
+      <h5>📚 Audio Integration Best Practices</h5>
+      <p>Learn how to effectively integrate audio files into educational applications.</p>
+    </div>
+    
+    <div className="row">
+      <div className="col-md-8">
+        <div className="card">
+          <div className="card-body">
+            <h5>Key Features</h5>
+            <ul>
+              <li>Web Audio API integration for precise sound control</li>
+              <li>Preloading audio files for better performance</li>
+              <li>Error handling for missing audio files</li>
+              <li>Accessibility considerations for audio content</li>
+              <li>Mobile device compatibility</li>
+            </ul>
+            
+            <h5 className="mt-4">Implementation Examples</h5>
+            <div className="bg-light p-3 rounded">
+              <code>
+                const audio = new Audio('/sounds/example.mp3');<br/>
+                audio.play().catch(console.error);
+              </code>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -573,6 +932,16 @@ const AppRoutes = () => {
     CurrentComponent = EducationalTools;
   } else if (location === "/city-builder") {
     CurrentComponent = CityBuilder;
+  } else if (location === "/spanish-alphabet") {
+    CurrentComponent = SpanishAlphabet;
+  } else if (location === "/word-sorter") {
+    CurrentComponent = WordSorter;
+  } else if (location === "/bingo-generator") {
+    CurrentComponent = BingoGenerator;
+  } else if (location === "/sound-demo") {
+    CurrentComponent = SoundDemo;
+  } else if (location === "/mp3-guide") {
+    CurrentComponent = MP3Guide;
   } else if (location === "/profile" && user && user.approved) {
     CurrentComponent = UserProfile;
   }
