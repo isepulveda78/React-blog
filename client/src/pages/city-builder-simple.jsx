@@ -33,6 +33,9 @@ const CityBuilder = ({ user }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [gridEnabled, setGridEnabled] = useState(true);
   const [backgroundColor, setBackgroundColor] = useState('#90EE90');
+  const [editingLabel, setEditingLabel] = useState(null);
+  const [labelInput, setLabelInput] = useState('');
+  const [isResizing, setIsResizing] = useState(false);
   const canvasRef = useRef(null);
 
   const addBuilding = (building) => {
@@ -107,7 +110,76 @@ const CityBuilder = ({ user }) => {
   };
 
   const handleItemClick = (item, isBuilding) => {
+    if (isResizing) return;
     setSelectedItem({ ...item, isBuilding });
+  };
+
+  const handleDoubleClick = (item, isBuilding) => {
+    setEditingLabel(item.id);
+    setLabelInput(item.label || item.name);
+  };
+
+  const handleLabelSave = () => {
+    if (selectedItem && editingLabel) {
+      if (selectedItem.isBuilding) {
+        setBuildings(prev => prev.map(b => 
+          b.id === editingLabel ? { ...b, label: labelInput } : b
+        ));
+      } else {
+        setStreets(prev => prev.map(s => 
+          s.id === editingLabel ? { ...s, label: labelInput } : s
+        ));
+      }
+    }
+    setEditingLabel(null);
+    setLabelInput('');
+  };
+
+  const handleResizeStart = (e, item, direction) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = item.width;
+    const startHeight = item.height;
+    
+    const handleMouseMove = (moveEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      
+      let newWidth = startWidth;
+      let newHeight = startHeight;
+      
+      if (direction.includes('e')) newWidth = Math.max(20, startWidth + deltaX);
+      if (direction.includes('w')) newWidth = Math.max(20, startWidth - deltaX);
+      if (direction.includes('s')) newHeight = Math.max(20, startHeight + deltaY);
+      if (direction.includes('n')) newHeight = Math.max(20, startHeight - deltaY);
+      
+      if (gridEnabled) {
+        newWidth = Math.round(newWidth / 20) * 20;
+        newHeight = Math.round(newHeight / 20) * 20;
+      }
+      
+      if (selectedItem.isBuilding) {
+        setBuildings(prev => prev.map(b => 
+          b.id === item.id ? { ...b, width: newWidth, height: newHeight } : b
+        ));
+      } else {
+        setStreets(prev => prev.map(s => 
+          s.id === item.id ? { ...s, width: newWidth, height: newHeight } : s
+        ));
+      }
+    };
+    
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   return (
@@ -253,7 +325,7 @@ const CityBuilder = ({ user }) => {
         {streets.map((street) => (
           <div
             key={street.id}
-            className={`position-absolute ${selectedItem?.id === street.id ? 'border border-primary border-3' : ''}`}
+            className={`position-absolute d-flex align-items-center justify-content-center ${selectedItem?.id === street.id ? 'border border-primary border-3' : ''}`}
             style={{
               left: `${street.x}px`,
               top: `${street.y}px`,
@@ -266,14 +338,91 @@ const CityBuilder = ({ user }) => {
               e.stopPropagation();
               handleItemClick(street, false);
             }}
-          />
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              handleDoubleClick(street, false);
+            }}
+          >
+            {street.label && (
+              <div style={{ 
+                fontSize: '10px', 
+                backgroundColor: 'rgba(255,255,255,0.8)', 
+                padding: '2px 4px', 
+                borderRadius: '3px',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}>
+                {street.label}
+              </div>
+            )}
+            
+            {/* Resize handles for selected street */}
+            {selectedItem?.id === street.id && (
+              <>
+                {/* SE corner */}
+                <div
+                  className="position-absolute bg-primary rounded-circle"
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    bottom: '-5px',
+                    right: '-5px',
+                    cursor: 'se-resize',
+                    zIndex: 10
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, street, 'se')}
+                />
+                {/* SW corner */}
+                <div
+                  className="position-absolute bg-primary rounded-circle"
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    bottom: '-5px',
+                    left: '-5px',
+                    cursor: 'sw-resize',
+                    zIndex: 10
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, street, 'sw')}
+                />
+                {/* NE corner */}
+                <div
+                  className="position-absolute bg-primary rounded-circle"
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    top: '-5px',
+                    right: '-5px',
+                    cursor: 'ne-resize',
+                    zIndex: 10
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, street, 'ne')}
+                />
+                {/* NW corner */}
+                <div
+                  className="position-absolute bg-primary rounded-circle"
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    top: '-5px',
+                    left: '-5px',
+                    cursor: 'nw-resize',
+                    zIndex: 10
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, street, 'nw')}
+                />
+              </>
+            )}
+          </div>
         ))}
 
         {/* Buildings */}
         {buildings.map((building) => (
           <div
             key={building.id}
-            className={`position-absolute d-flex align-items-center justify-content-center ${
+            className={`position-absolute d-flex flex-column align-items-center justify-content-center ${
               selectedItem?.id === building.id ? 'border border-primary border-3' : ''
             }`}
             style={{
@@ -289,8 +438,85 @@ const CityBuilder = ({ user }) => {
               e.stopPropagation();
               handleItemClick(building, true);
             }}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              handleDoubleClick(building, true);
+            }}
           >
-            {building.icon}
+            <div>{building.icon}</div>
+            {building.label && (
+              <div style={{ 
+                fontSize: '10px', 
+                backgroundColor: 'rgba(255,255,255,0.8)', 
+                padding: '2px 4px', 
+                borderRadius: '3px',
+                marginTop: '2px',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}>
+                {building.label}
+              </div>
+            )}
+            
+            {/* Resize handles for selected building */}
+            {selectedItem?.id === building.id && (
+              <>
+                {/* SE corner */}
+                <div
+                  className="position-absolute bg-primary rounded-circle"
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    bottom: '-5px',
+                    right: '-5px',
+                    cursor: 'se-resize',
+                    zIndex: 10
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, building, 'se')}
+                />
+                {/* SW corner */}
+                <div
+                  className="position-absolute bg-primary rounded-circle"
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    bottom: '-5px',
+                    left: '-5px',
+                    cursor: 'sw-resize',
+                    zIndex: 10
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, building, 'sw')}
+                />
+                {/* NE corner */}
+                <div
+                  className="position-absolute bg-primary rounded-circle"
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    top: '-5px',
+                    right: '-5px',
+                    cursor: 'ne-resize',
+                    zIndex: 10
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, building, 'ne')}
+                />
+                {/* NW corner */}
+                <div
+                  className="position-absolute bg-primary rounded-circle"
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    top: '-5px',
+                    left: '-5px',
+                    cursor: 'nw-resize',
+                    zIndex: 10
+                  }}
+                  onMouseDown={(e) => handleResizeStart(e, building, 'nw')}
+                />
+              </>
+            )}
           </div>
         ))}
 
@@ -299,10 +525,39 @@ const CityBuilder = ({ user }) => {
           <small>
             <strong>Instructions:</strong><br/>
             • Drag items from sidebar to canvas<br/>
-            • Click items to select them<br/>
+            • Click to select, double-click to name<br/>
+            • Drag blue corners to resize<br/>
             • Use Delete Selected to remove items
           </small>
         </div>
+
+        {/* Label Edit Modal */}
+        {editingLabel && (
+          <div className="position-fixed top-50 start-50 translate-middle bg-white p-3 rounded shadow" style={{ zIndex: 1000 }}>
+            <h6>Enter Name:</h6>
+            <input
+              type="text"
+              className="form-control mb-2"
+              value={labelInput}
+              onChange={(e) => setLabelInput(e.target.value)}
+              autoFocus
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') handleLabelSave();
+              }}
+            />
+            <div className="d-flex gap-2">
+              <button className="btn btn-primary btn-sm" onClick={handleLabelSave}>
+                Save
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={() => {
+                setEditingLabel(null);
+                setLabelInput('');
+              }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
