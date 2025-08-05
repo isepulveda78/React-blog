@@ -26,6 +26,10 @@ const BUILDING_TYPES = {
   "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
 };
 
+// Grid size constant
+const GRID_SIZE = 20;
+
 // Export to window for global access
 window.BUILDING_CATEGORIES = BUILDING_CATEGORIES;
 window.BUILDING_TYPES = BUILDING_TYPES;
+window.GRID_SIZE = GRID_SIZE;

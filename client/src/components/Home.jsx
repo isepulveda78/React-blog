@@ -87,9 +87,9 @@ const Home = ({ user }) => {
             </div>
           ) : posts.length > 0 ? (
             <div className="row">
-              {posts.map(post => (
+              {posts.map((post, index) => (
                 <BlogCard
-                  key={post._id}
+                  key={post._id || post.id || `post-${index}`}
                   post={post}
                   onReadMore={() => handleReadMore(post)}
                   showReadMore={true}

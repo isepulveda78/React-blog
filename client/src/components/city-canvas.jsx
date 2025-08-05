@@ -1,5 +1,5 @@
-import { useRef, useEffect, forwardRef } from 'react';
-import { GRID_SIZE } from '../lib/building-data';
+const { React, useRef, useEffect, forwardRef } = window;
+const { GRID_SIZE } = window;
 
 const CityCanvas = forwardRef(function CityCanvas({
   buildings,
@@ -620,4 +620,5 @@ const CityCanvas = forwardRef(function CityCanvas({
   );
 });
 
-export default CityCanvas;
+// Export to window for global access
+window.CityCanvas = CityCanvas;

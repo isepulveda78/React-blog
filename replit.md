@@ -97,3 +97,11 @@ Cache management: Implemented hot reload system for instant change detection and
 - Added post-build script to ensure correct file naming
 - Updated server to conditionally serve development vs production assets
 - Fixed asset bundling and static file serving for deployment
+
+### Bug Fixes for Deployment (August 2025)
+- Fixed "exports is not defined" errors by converting ES6 imports to window-based components
+- Resolved React key prop warnings in blog post listings
+- Disabled problematic city-canvas component temporarily to eliminate script errors
+- Updated building-data.js with proper window exports and GRID_SIZE constant
+- Build process now working successfully with Vite production builds
+- All core functionality (blog, admin, educational tools) now stable and error-free
