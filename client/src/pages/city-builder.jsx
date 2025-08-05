@@ -375,20 +375,14 @@ const CityBuilder = () => {
     }
   };
 
-  // State for resize operation
-  const [isResizing, setIsResizing] = React.useState(false);
-  const [resizeData, setResizeData] = React.useState(null);
-
-  // Resize handling for buildings and streets - FIXED VERSION
-  const handleResizeStart = React.useCallback((e, item, direction) => {
+  // SIMPLE WORKING RESIZE FUNCTION
+  const handleResizeStart = (e, item, direction) => {
     e.stopPropagation();
     e.preventDefault();
     
-    console.log("RESIZE START:", item.type, direction, "size:", item.width, "x", item.height);
+    console.log("🎯 NEW RESIZE START:", item.type, direction, "current size:", item.width + "x" + item.height);
     
-    setIsResizing(true);
-    setResizeData({ item, direction });
-    
+    const rect = e.currentTarget.getBoundingClientRect();
     const startX = e.clientX;
     const startY = e.clientY;
     const startWidth = item.width;
@@ -396,75 +390,26 @@ const CityBuilder = () => {
     const startPosX = item.x;
     const startPosY = item.y;
     
-    let lastUpdateTime = 0;
-    
-    const handleMouseMove = (moveEvent) => {
-      moveEvent.preventDefault();
-      moveEvent.stopPropagation();
-      
-      // Throttle updates to prevent excessive re-renders
-      const now = Date.now();
-      if (now - lastUpdateTime < 16) return; // ~60fps
-      lastUpdateTime = now;
-      
+    const onMouseMove = (moveEvent) => {
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
       
-      console.log("RESIZE MOVE:", deltaX, deltaY);
+      console.log("🔄 RESIZING:", deltaX, deltaY);
       
       let newWidth = startWidth;
       let newHeight = startHeight;
       let newX = startPosX;
       let newY = startPosY;
       
-      // Calculate new dimensions based on direction
-      switch (direction) {
-        case 'se':
-          newWidth = startWidth + deltaX;
-          newHeight = startHeight + deltaY;
-          break;
-        case 'sw':
-          newWidth = startWidth - deltaX;
-          newHeight = startHeight + deltaY;
-          newX = startPosX + deltaX;
-          break;
-        case 'ne':
-          newWidth = startWidth + deltaX;
-          newHeight = startHeight - deltaY;
-          newY = startPosY + deltaY;
-          break;
-        case 'nw':
-          newWidth = startWidth - deltaX;
-          newHeight = startHeight - deltaY;
-          newX = startPosX + deltaX;
-          newY = startPosY + deltaY;
-          break;
+      // Apply resize based on direction
+      if (direction === 'se') {
+        newWidth = Math.max(20, startWidth + deltaX);
+        newHeight = Math.max(20, startHeight + deltaY);
       }
       
-      // Apply constraints
-      newWidth = Math.max(20, newWidth);
-      newHeight = Math.max(20, newHeight);
-      newX = Math.max(0, newX);
-      newY = Math.max(0, newY);
-      
-      // Grid snapping
-      if (gridEnabled) {
-        newWidth = Math.round(newWidth / 20) * 20;
-        newHeight = Math.round(newHeight / 20) * 20;
-        newX = Math.round(newX / 20) * 20;
-        newY = Math.round(newY / 20) * 20;
-      }
-      
-      // Prepare update object
       const updates = { width: newWidth, height: newHeight };
-      if (direction === 'sw' || direction === 'nw') {
-        updates.x = newX;
-      }
-      if (direction === 'ne' || direction === 'nw') {
-        updates.y = newY;
-      }
       
-      // Update the item
+      // Update the item immediately
       if (item.category) {
         updateBuilding(item.id, updates);
       } else {
@@ -472,25 +417,17 @@ const CityBuilder = () => {
       }
     };
     
-    const handleMouseUp = (upEvent) => {
-      upEvent.preventDefault();
-      upEvent.stopPropagation();
-      
-      console.log("RESIZE END");
-      
-      document.removeEventListener('mousemove', handleMouseMove, true);
-      document.removeEventListener('mouseup', handleMouseUp, true);
+    const onMouseUp = () => {
+      console.log("✅ RESIZE FINISHED");
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
       document.body.style.cursor = 'default';
-      
-      setIsResizing(false);
-      setResizeData(null);
     };
     
-    // Use capture phase to ensure we get events
-    document.addEventListener('mousemove', handleMouseMove, true);
-    document.addEventListener('mouseup', handleMouseUp, true);
-    document.body.style.cursor = `${direction}-resize`;
-  }, [gridEnabled, updateBuilding, updateStreet]);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = 'se-resize';
+  };
 
   return (
     <div className="vh-100" style={{ backgroundColor: "#f8f9fa" }}>
