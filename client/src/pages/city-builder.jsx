@@ -432,7 +432,7 @@ const CityBuilder = ({ user }) => {
           width: itemData.width,
           height: itemData.height,
           name: itemData.name,
-          color: '#6b7280'
+          color: type === 'road' ? '#2d3748' : '#6b7280'
         };
         console.log("Adding street:", newStreet);
         setStreets(prev => {
@@ -887,7 +887,7 @@ const CityBuilder = ({ user }) => {
                 top: street.y,
                 width: street.width,
                 height: street.height,
-                backgroundColor: street.color || '#6b7280',
+                backgroundColor: street.type === 'road' ? 'transparent' : (street.color || '#6b7280'),
                 cursor: 'pointer',
                 zIndex: selectedStreet?.id === street.id ? 10 : 0,
                 userSelect: 'none',
@@ -907,7 +907,18 @@ const CityBuilder = ({ user }) => {
                 handleStreetMouseDown(e, street);
               }}
             >
-              {street.type === 'road' ? '🛣️' : street.type === 'water' ? '💧' : '🌿'}
+              {/* Render different street types */}
+              {street.type === 'road' && (
+                <div 
+                  className="w-100 h-100"
+                  style={{
+                    backgroundColor: '#2d3748',
+                    border: selectedStreet?.id === street.id ? '2px solid #3b82f6' : '1px solid #4a5568'
+                  }}
+                />
+              )}
+              {street.type === 'water' && '💧'}
+              {street.type === 'grass-patch' && '🌿'}
               
               {/* Resize handles for selected street */}
               {selectedStreet?.id === street.id && (
