@@ -136,8 +136,9 @@ const CityBuilder = ({ user }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const handleItemClick = (item, isBuilding) => {
-    if (isResizing || isDragging) return;
+  const handleItemClick = (e, item, isBuilding) => {
+    if (isResizing) return;
+    e.stopPropagation();
     setSelectedItem({ ...item, isBuilding });
     setEditingLabel(item.id);
     setLabelInput(item.label || item.name);
@@ -147,6 +148,10 @@ const CityBuilder = ({ user }) => {
     if (isResizing) return;
     e.stopPropagation();
     
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let hasMoved = false;
+    
     const rect = e.currentTarget.getBoundingClientRect();
     const canvasRect = canvasRef.current.getBoundingClientRect();
     
@@ -155,24 +160,30 @@ const CityBuilder = ({ user }) => {
       y: e.clientY - rect.top
     });
     
-    setIsDragging(true);
-    setSelectedItem({ ...item, isBuilding });
-    
     const handleMouseMove = (moveEvent) => {
-      const canvasX = moveEvent.clientX - canvasRect.left - dragOffset.x;
-      const canvasY = moveEvent.clientY - canvasRect.top - dragOffset.y;
+      const deltaX = Math.abs(moveEvent.clientX - startX);
+      const deltaY = Math.abs(moveEvent.clientY - startY);
       
-      const snappedX = gridEnabled ? Math.round(canvasX / 20) * 20 : canvasX;
-      const snappedY = gridEnabled ? Math.round(canvasY / 20) * 20 : canvasY;
-      
-      if (isBuilding) {
-        setBuildings(prev => prev.map(b => 
-          b.id === item.id ? { ...b, x: Math.max(0, snappedX), y: Math.max(0, snappedY) } : b
-        ));
-      } else {
-        setStreets(prev => prev.map(s => 
-          s.id === item.id ? { ...s, x: Math.max(0, snappedX), y: Math.max(0, snappedY) } : s
-        ));
+      if (deltaX > 5 || deltaY > 5) {
+        hasMoved = true;
+        setIsDragging(true);
+        setSelectedItem({ ...item, isBuilding });
+        
+        const canvasX = moveEvent.clientX - canvasRect.left - dragOffset.x;
+        const canvasY = moveEvent.clientY - canvasRect.top - dragOffset.y;
+        
+        const snappedX = gridEnabled ? Math.round(canvasX / 20) * 20 : canvasX;
+        const snappedY = gridEnabled ? Math.round(canvasY / 20) * 20 : canvasY;
+        
+        if (isBuilding) {
+          setBuildings(prev => prev.map(b => 
+            b.id === item.id ? { ...b, x: Math.max(0, snappedX), y: Math.max(0, snappedY) } : b
+          ));
+        } else {
+          setStreets(prev => prev.map(s => 
+            s.id === item.id ? { ...s, x: Math.max(0, snappedX), y: Math.max(0, snappedY) } : s
+          ));
+        }
       }
     };
     
@@ -180,6 +191,11 @@ const CityBuilder = ({ user }) => {
       setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      
+      if (!hasMoved) {
+        // This was a click, not a drag
+        handleItemClick(e, item, isBuilding);
+      }
     };
     
     document.addEventListener('mousemove', handleMouseMove);
