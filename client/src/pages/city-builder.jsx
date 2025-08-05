@@ -1055,13 +1055,6 @@ const CityBuilder = ({ user }) => {
                 </div>
               </div>
 
-              {/* Debug info */}
-              <div className="alert alert-info small">
-                <div>BuildingPalette status: {window.BuildingPalette ? 'Loaded' : 'Not loaded'}</div>
-                <div>Using fallback palette for now</div>
-              </div>
-            </div>
-            
             {/* Tools section */}
             <div className="p-3 border-top">
               <div className="d-flex gap-2 mb-3">

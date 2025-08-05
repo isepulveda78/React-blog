@@ -80,7 +80,7 @@ Cache management: Implemented hot reload system for instant change detection and
 - **NPM-Based React Setup**: Converted from CDN-based React to proper NPM dependencies with component imports
 - **Component Architecture**: Restructured to use individual React component files with ES6 imports/exports
 - **Modern Development Setup**: Implemented proper Vite build system with React JSX transformation
-- **University Icon Issue (August 2025)**: Identified browser caching issue where university shows graduation cap (🎓) instead of building icon (🏛️) - building definitions updated but cache persists
+- **Critical Browser Cache Issue (January 2025)**: Severe browser caching preventing JavaScript updates from loading despite multiple cache-busting attempts including version parameters, timestamps, file exclusions, and hardcoded overrides. University building icon remains cached as graduation cap (🎓) despite code changes to classical building (🏛️). Multiple approaches attempted: new building types, cache headers, manual refresh instructions - all unsuccessful.
 
 ## System Architecture
 
