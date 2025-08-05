@@ -37,7 +37,7 @@ const BUILDING_TYPES = {
 const STREET_TYPES = {
   road: { name: "Road", icon: "🛣️", width: 20, height: 20, category: "infrastructure" },
   water: { name: "Water", icon: "💧", width: 40, height: 40, category: "infrastructure" },
-  white_road: { name: "White Road", icon: "🤍", width: 30, height: 30, category: "infrastructure", color: "white" }
+  white_road: { name: "White Road", icon: "🛣️", width: 30, height: 30, category: "infrastructure", color: "white" }
 };
 
 const WorkingCityBuilder = () => {
