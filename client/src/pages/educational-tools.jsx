@@ -15,7 +15,7 @@ const EducationalTools = ({ user }) => {
 
       <div className="row g-4">
         {/* City Builder */}
-        <div className="col-md-6 col-lg-4">
+        <div className="col-md-6">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🏗️</div>
@@ -33,7 +33,7 @@ const EducationalTools = ({ user }) => {
         </div>
 
         {/* Bingo Generator */}
-        <div className="col-md-6 col-lg-4">
+        <div className="col-md-6">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🎲</div>
@@ -51,7 +51,7 @@ const EducationalTools = ({ user }) => {
         </div>
 
         {/* Spanish Alphabet */}
-        <div className="col-md-6 col-lg-4">
+        <div className="col-md-6">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🔤</div>
@@ -69,7 +69,7 @@ const EducationalTools = ({ user }) => {
         </div>
 
         {/* Word Sorter */}
-        <div className="col-md-6 col-lg-4">
+        <div className="col-md-6">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">📝</div>
@@ -81,42 +81,6 @@ const EducationalTools = ({ user }) => {
                 window.location.reload();
               }}>
                 Sort Words
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Sound Demo */}
-        <div className="col-md-6 col-lg-4">
-          <div className="card h-100 shadow-sm">
-            <div className="card-body text-center">
-              <div className="display-6 text-primary mb-3">🎵</div>
-              <h5 className="card-title">Sound Demo</h5>
-              <p className="card-text">Explore audio integration examples and interactive sound features.</p>
-              <a href="/sound-demo" className="btn btn-primary" onClick={(e) => {
-                e.preventDefault();
-                window.history.pushState({}, '', '/sound-demo');
-                window.location.reload();
-              }}>
-                Try Sounds
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* MP3 Guide */}
-        <div className="col-md-6 col-lg-4">
-          <div className="card h-100 shadow-sm">
-            <div className="card-body text-center">
-              <div className="display-6 text-primary mb-3">📚</div>
-              <h5 className="card-title">MP3 Integration Guide</h5>
-              <p className="card-text">Learn how to integrate audio files into educational applications.</p>
-              <a href="/mp3-guide" className="btn btn-primary" onClick={(e) => {
-                e.preventDefault();
-                window.history.pushState({}, '', '/mp3-guide');
-                window.location.reload();
-              }}>
-                View Guide
               </a>
             </div>
           </div>
