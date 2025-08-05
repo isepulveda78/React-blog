@@ -589,11 +589,13 @@ const WorkingCityBuilder = () => {
             },
             onDoubleClick: (e) => {
               e.stopPropagation();
+              e.preventDefault();
+              console.log("Double-click detected on building:", building.id, building.name);
               setEditingLabel(building.id);
               setLabelInput(building.customLabel || building.name);
             },
             onMouseDown: (e) => {
-              if (selectedBuilding?.id === building.id && !e.target.classList.contains('resize-handle') && e.target.tagName !== 'INPUT') {
+              if (selectedBuilding?.id === building.id && !e.target.classList.contains('resize-handle') && e.target.tagName !== 'INPUT' && editingLabel !== building.id) {
                 handleDragStart(e, building);
               }
             }
@@ -605,19 +607,28 @@ const WorkingCityBuilder = () => {
             React.createElement('div', {
               style: {
                 position: 'absolute',
-                bottom: '-20px',
+                bottom: '-25px',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                backgroundColor: 'rgba(255,255,255,0.9)',
-                padding: '2px 6px',
-                borderRadius: '3px',
-                fontSize: '10px',
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                padding: '3px 8px',
+                borderRadius: '4px',
+                fontSize: '11px',
                 fontWeight: 'bold',
                 color: '#000',
                 border: '1px solid #ccc',
                 whiteSpace: 'nowrap',
-                minWidth: '60px',
-                textAlign: 'center'
+                minWidth: '70px',
+                textAlign: 'center',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                zIndex: 10
+              },
+              onDoubleClick: (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                console.log("Label double-clicked, editing:", building.id);
+                setEditingLabel(building.id);
+                setLabelInput(building.customLabel || building.name);
               }
             }, building.customLabel || building.name),
             
@@ -626,40 +637,52 @@ const WorkingCityBuilder = () => {
               autoFocus: true,
               type: 'text',
               value: labelInput,
-              onChange: (e) => setLabelInput(e.target.value),
+              onChange: (e) => {
+                console.log("Label input changed:", e.target.value);
+                setLabelInput(e.target.value);
+              },
               onBlur: () => {
+                console.log("Saving label:", labelInput);
                 setBuildings(prev => prev.map(b => 
-                  b.id === building.id ? { ...b, customLabel: labelInput } : b
+                  b.id === building.id ? { ...b, customLabel: labelInput.trim() || building.name } : b
                 ));
                 setEditingLabel(null);
                 setLabelInput('');
               },
               onKeyDown: (e) => {
+                e.stopPropagation();
                 if (e.key === 'Enter') {
+                  console.log("Enter pressed, saving label:", labelInput);
                   setBuildings(prev => prev.map(b => 
-                    b.id === building.id ? { ...b, customLabel: labelInput } : b
+                    b.id === building.id ? { ...b, customLabel: labelInput.trim() || building.name } : b
                   ));
                   setEditingLabel(null);
                   setLabelInput('');
                 } else if (e.key === 'Escape') {
+                  console.log("Escape pressed, canceling label edit");
                   setEditingLabel(null);
                   setLabelInput('');
                 }
               },
+              onMouseDown: (e) => {
+                e.stopPropagation();
+              },
               style: {
                 position: 'absolute',
-                bottom: '-20px',
+                bottom: '-25px',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 backgroundColor: 'white',
-                padding: '2px 6px',
-                borderRadius: '3px',
-                fontSize: '10px',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                fontSize: '12px',
                 fontWeight: 'bold',
                 color: '#000',
                 border: '2px solid #007bff',
-                minWidth: '80px',
-                textAlign: 'center'
+                minWidth: '100px',
+                textAlign: 'center',
+                zIndex: 30,
+                outline: 'none'
               },
               onClick: (e) => e.stopPropagation()
             }),
