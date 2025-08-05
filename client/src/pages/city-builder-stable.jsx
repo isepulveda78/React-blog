@@ -334,7 +334,9 @@ const StableCityBuilder = () => {
               <h4 style={{ fontSize: "12px", fontWeight: "bold", color: "black", marginBottom: "8px" }}>
                 BACKGROUND COLOR
               </h4>
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              
+              {/* Preset Colors */}
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>
                 {[
                   { name: "Grass", color: "#90EE90" },
                   { name: "Desert", color: "#F4A460" },
@@ -365,6 +367,39 @@ const StableCityBuilder = () => {
                     {bg.name.slice(0,4)}
                   </div>
                 ))}
+              </div>
+              
+              {/* Custom Color Picker */}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <label style={{ fontSize: "10px", color: "black", fontWeight: "bold" }}>
+                  Custom:
+                </label>
+                <input
+                  type="color"
+                  value={backgroundColor}
+                  onChange={(e) => setBackgroundColor(e.target.value)}
+                  style={{
+                    width: "40px",
+                    height: "30px",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    backgroundColor: "transparent"
+                  }}
+                  title="Choose custom background color"
+                />
+                <div 
+                  style={{
+                    fontSize: "9px",
+                    color: "#666",
+                    backgroundColor: "#f8f9fa",
+                    padding: "2px 6px",
+                    borderRadius: "3px",
+                    border: "1px solid #ddd"
+                  }}
+                >
+                  {backgroundColor}
+                </div>
               </div>
             </div>
 
