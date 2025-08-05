@@ -189,3 +189,6 @@ sounds.buttonClick(); // Tries MP3, falls back to beep`
 
 // Export to window for global access
 window.SoundDemo = SoundDemo;
+
+// ES6 default export for Vite build
+export default SoundDemo;

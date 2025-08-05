@@ -392,3 +392,6 @@ const WordSorter = ({ user }) => {
 };
 
 window.WordSorter = WordSorter;
+
+// ES6 default export for Vite build
+export default WordSorter;

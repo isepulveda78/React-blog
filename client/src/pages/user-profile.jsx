@@ -306,3 +306,6 @@ window.UserProfile = function() {
     </div>
   );
 };
+
+// ES6 default export for Vite build
+export default window.UserProfile;

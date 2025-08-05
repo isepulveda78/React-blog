@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react';
 
+// Import actual components for production build
+import WorkingCityBuilder from './pages/city-builder-working.jsx';
+import EducationalTools from './pages/educational-tools.jsx';
+import BingoGenerator from './pages/bingo-generator.jsx';
+import SoundDemo from './pages/sound-demo.jsx';
+import MP3Guide from './pages/mp3-guide.jsx';
+import SpanishAlphabet from './pages/spanish-alphabet.jsx';
+import WordSorter from './pages/word-sorter.jsx';
+import UserProfile from './pages/user-profile.jsx';
+
 // Make React hooks available globally for all components (for compatibility with existing components)
 window.React = React;
 window.useState = useState;
@@ -62,7 +72,7 @@ const NotFound = ({ message }) => (
   </div>
 );
 
-// Use fallback components or window objects if available
+// Use imported components directly, with fallback for admin components not yet imported
 const BlogListing = window.BlogListing || NotFound;
 const BlogPost = window.BlogPost || NotFound;
 const AdminDashboard = window.AdminDashboard || NotFound;
@@ -71,14 +81,9 @@ const AdminUsers = window.AdminUsers || NotFound;
 const AdminComments = window.AdminComments || NotFound;
 const AdminPostEditor = window.AdminPostEditor || NotFound;
 const SEOManagement = window.SEOManagement || NotFound;
-const UserProfile = window.UserProfile || NotFound;
-const CityBuilder = window.CityBuilder || NotFound;
-const EducationalTools = window.EducationalTools || NotFound;
-const BingoGenerator = window.BingoGenerator || NotFound;
-const SoundDemo = window.SoundDemo || NotFound;
-const MP3Guide = window.MP3Guide || NotFound;
-const SpanishAlphabet = window.SpanishAlphabet || NotFound;
-const WordSorter = window.WordSorter || NotFound;
+
+// Main components now imported directly
+const CityBuilder = WorkingCityBuilder;
 
 // Auth Context
 const AuthContext = createContext(null);
@@ -246,8 +251,15 @@ const AppRoutes = () => {
   window.currentUser = user;
 
   // Simple routing based on location - default to CityBuilder for city-building platform
-  let CurrentComponent = window.WorkingCityBuilder || window.StableCityBuilder || CityBuilder || Home;
+  console.log("DEBUG: Current location:", location);
+  console.log("DEBUG: Available components:", {
+    WorkingCityBuilder: !!WorkingCityBuilder,
+    CityBuilder: !!CityBuilder,
+    Home: !!Home
+  });
+  let CurrentComponent = CityBuilder || Home;
   let componentProps = { user };
+  console.log("DEBUG: Initial component chosen:", CurrentComponent?.name || "No component");
 
   if (location === "/blog") {
     CurrentComponent = BlogListing;
@@ -311,8 +323,8 @@ const AppRoutes = () => {
       CurrentComponent = UserProfile;
     }
   } else if (location === "/city-builder") {
-    console.log("ROUTE: Loading CityBuilder, WorkingCityBuilder available:", !!window.WorkingCityBuilder);
-    CurrentComponent = window.WorkingCityBuilder || window.StableCityBuilder || CityBuilder;
+    console.log("ROUTE: Loading CityBuilder, WorkingCityBuilder available:", !!WorkingCityBuilder);
+    CurrentComponent = CityBuilder;
   } else if (location === "/bingo-generator") {
     CurrentComponent = BingoGenerator;
   } else if (location === "/word-sorter") {
@@ -321,6 +333,9 @@ const AppRoutes = () => {
     CurrentComponent = NotFound;
     componentProps = {};
   }
+
+  console.log("DEBUG: Final component chosen:", CurrentComponent?.name || "No component");
+  console.log("DEBUG: Component props:", componentProps);
 
   return React.createElement(
     "div",
