@@ -166,8 +166,16 @@ const AppRoutes = () => {
   window.currentUser = user;
 
   // Simple routing based on location - default to CityBuilder for city-building platform
+  console.log("DEBUG: Current location:", location);
+  console.log("DEBUG: Available components:", {
+    WorkingCityBuilder: !!window.WorkingCityBuilder,
+    StableCityBuilder: !!window.StableCityBuilder,
+    CityBuilder: !!window.CityBuilder,
+    Home: !!window.Home
+  });
   let CurrentComponent = window.WorkingCityBuilder || window.StableCityBuilder || CityBuilder || Home;
   let componentProps = { user };
+  console.log("DEBUG: Initial component chosen:", CurrentComponent?.name || "No component");
 
   if (location === "/blog") {
     CurrentComponent = BlogListing;
@@ -247,6 +255,9 @@ const AppRoutes = () => {
     CurrentComponent = NotFound;
     componentProps = {};
   }
+
+  console.log("DEBUG: Final component chosen:", CurrentComponent?.name || "No component");
+  console.log("DEBUG: Component props:", componentProps);
 
   return React.createElement(
     "div",
