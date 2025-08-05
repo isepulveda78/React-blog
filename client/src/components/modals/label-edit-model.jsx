@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { BUILDING_TYPES } from '../../lib/building-data';
+const { React, useState, useEffect } = window;
+const { BUILDING_TYPES } = window;
 
-export default function LabelEditModal({
+const LabelEditModal = ({
   isOpen,
   onClose,
   building,
@@ -91,4 +91,7 @@ export default function LabelEditModal({
       </div>
     </div>
   );
-}
+};
+
+// Export to window for global access
+window.LabelEditModal = LabelEditModal;
