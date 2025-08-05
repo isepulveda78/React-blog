@@ -147,7 +147,7 @@ const BuildingPalette = ({
                           color: category.color,
                         }}
                       >
-                        {building.icon}
+                        {buildingType === 'university' || buildingType === 'university-building' ? '🏛️' : building.icon}
                       </div>
                       <p
                         className="small fw-medium text-dark mb-0"
