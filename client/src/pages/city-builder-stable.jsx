@@ -221,39 +221,25 @@ const StableCityBuilder = () => {
         <div style={{ padding: "20px" }}>
           <h2 style={{ color: "black", marginBottom: "20px" }}>🏗️ CityBuilder</h2>
           
-          {/* TEST VISIBILITY */}
-          <div style={{ backgroundColor: "yellow", padding: "10px", margin: "10px 0", border: "3px solid red" }}>
-            <h3 style={{ color: "red" }}>TEST SECTION - Can you see this yellow box?</h3>
-          </div>
-
-          {/* Full Building Categories */}
-          {Object.entries(BUILDING_TYPES).map(([categoryKey, category]) => {
-            console.log("RENDERING CATEGORY:", categoryKey);
-            return (
-            <div key={categoryKey} style={{ 
-              marginBottom: "20px", 
-              backgroundColor: "pink", 
-              padding: "10px", 
-              border: "2px solid purple" 
-            }}>
+          {/* Building Categories */}
+          {Object.entries(BUILDING_TYPES).map(([categoryKey, category]) => (
+            <div key={categoryKey} style={{ marginBottom: "20px" }}>
               <h3 style={{ 
                 color: "black", 
                 marginBottom: "10px", 
                 textTransform: "uppercase",
-                backgroundColor: "orange",
-                padding: "5px"
+                fontSize: "14px",
+                fontWeight: "600"
               }}>{categoryKey}</h3>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {Object.entries(category).map(([type, building]) => {
-                  console.log("RENDERING BUILDING:", type, building);
-                  return (
+                {Object.entries(category).map(([type, building]) => (
                   <div 
                     key={type}
                     style={{
                       width: "110px",
                       height: "70px",
-                      backgroundColor: "white",
-                      border: "5px solid red",
+                      backgroundColor: "#ffffff",
+                      border: "2px solid #28a745",
                       borderRadius: "8px",
                       display: "flex",
                       flexDirection: "column",
@@ -261,8 +247,8 @@ const StableCityBuilder = () => {
                       justifyContent: "center",
                       cursor: "grab",
                       padding: "4px",
-                      position: "relative",
-                      zIndex: 1000
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                      transition: "all 0.2s ease"
                     }}
                     draggable
                     onDragStart={(e) => {
@@ -274,18 +260,30 @@ const StableCityBuilder = () => {
                       };
                       e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
                     }}
+                    onMouseEnter={(e) => {
+                      e.target.style.borderColor = "#1e7e34";
+                      e.target.style.transform = "scale(1.05)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.borderColor = "#28a745";
+                      e.target.style.transform = "scale(1)";
+                    }}
                   >
                     <div style={{ fontSize: "24px", marginBottom: "2px" }}>{building.icon}</div>
-                    <div style={{ fontSize: "10px", color: "black", textAlign: "center", lineHeight: "1.1" }}>
+                    <div style={{ 
+                      fontSize: "10px", 
+                      color: "#333", 
+                      textAlign: "center", 
+                      lineHeight: "1.1",
+                      fontWeight: "500"
+                    }}>
                       {building.name}
                     </div>
                   </div>
-                  );
-                })}
+                ))}
               </div>
             </div>
-            );
-          })}
+          ))}
           
           {/* Infrastructure */}
           <div style={{ marginBottom: "20px" }}>

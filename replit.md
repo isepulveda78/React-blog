@@ -81,6 +81,7 @@ Cache management: Implemented hot reload system for instant change detection and
 - **Component Architecture**: Restructured to use individual React component files with ES6 imports/exports
 - **Modern Development Setup**: Implemented proper Vite build system with React JSX transformation
 - **Critical Browser Cache Issue (January 2025)**: Severe browser caching preventing JavaScript updates from loading despite multiple cache-busting attempts including version parameters, timestamps, file exclusions, and hardcoded overrides. University building icon remains cached as graduation cap (🎓) despite code changes to classical building (🏛️). Multiple approaches attempted: new building types, cache headers, manual refresh instructions - all unsuccessful.
+- **CityBuilder Color Palette Issue Resolved (January 2025)**: Successfully diagnosed and fixed Bootstrap CSS conflicts that were hiding building palette items. Issue was Bootstrap classes interfering with React component rendering. Solution: Replaced all Bootstrap classes with inline CSS styling for the sidebar palette, ensuring full visibility of all building categories (Residential, Commercial, Industrial, Public, Nature) and infrastructure items (Road, Water). Sidebar now fully functional with drag-and-drop building placement, resize functionality, and keyboard deletion system.
 
 ## System Architecture
 
