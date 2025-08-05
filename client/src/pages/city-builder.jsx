@@ -1208,8 +1208,149 @@ const CityBuilder = ({ user }) => {
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  Click to rename
+                  Click to rename • Drag corners to resize
                 </div>
+              )}
+
+              {/* Resize handles for selected building */}
+              {selectedBuilding?.id === building.id && (
+                <>
+                  {/* Corner resize handles */}
+                  <div
+                    className="position-absolute bg-primary rounded-circle resize-handle"
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      top: '-4px',
+                      left: '-4px',
+                      cursor: 'nw-resize',
+                      zIndex: 15,
+                      backgroundColor: '#007bff'
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, building, 'nw');
+                    }}
+                  />
+                  <div
+                    className="position-absolute bg-primary rounded-circle resize-handle"
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      top: '-4px',
+                      right: '-4px',
+                      cursor: 'ne-resize',
+                      zIndex: 15,
+                      backgroundColor: '#007bff'
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, building, 'ne');
+                    }}
+                  />
+                  <div
+                    className="position-absolute bg-primary rounded-circle resize-handle"
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      bottom: '-4px',
+                      left: '-4px',
+                      cursor: 'sw-resize',
+                      zIndex: 15,
+                      backgroundColor: '#007bff'
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, building, 'sw');
+                    }}
+                  />
+                  <div
+                    className="position-absolute bg-primary rounded-circle resize-handle"
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      bottom: '-4px',
+                      right: '-4px',
+                      cursor: 'se-resize',
+                      zIndex: 15,
+                      backgroundColor: '#007bff'
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, building, 'se');
+                    }}
+                  />
+
+                  {/* Edge resize handles */}
+                  <div
+                    className="position-absolute bg-secondary resize-handle"
+                    style={{
+                      width: '6px',
+                      height: '12px',
+                      top: '50%',
+                      left: '-3px',
+                      transform: 'translateY(-50%)',
+                      cursor: 'w-resize',
+                      zIndex: 15,
+                      backgroundColor: '#28a745'
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, building, 'w');
+                    }}
+                  />
+                  <div
+                    className="position-absolute bg-secondary resize-handle"
+                    style={{
+                      width: '6px',
+                      height: '12px',
+                      top: '50%',
+                      right: '-3px',
+                      transform: 'translateY(-50%)',
+                      cursor: 'e-resize',
+                      zIndex: 15,
+                      backgroundColor: '#28a745'
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, building, 'e');
+                    }}
+                  />
+                  <div
+                    className="position-absolute bg-secondary resize-handle"
+                    style={{
+                      width: '12px',
+                      height: '6px',
+                      top: '-3px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      cursor: 'n-resize',
+                      zIndex: 15,
+                      backgroundColor: '#dc3545'
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, building, 'n');
+                    }}
+                  />
+                  <div
+                    className="position-absolute bg-secondary resize-handle"
+                    style={{
+                      width: '12px',
+                      height: '6px',
+                      bottom: '-3px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      cursor: 's-resize',
+                      zIndex: 15,
+                      backgroundColor: '#dc3545'
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, building, 's');
+                    }}
+                  />
+                </>
               )}
             </div>
           ))}
