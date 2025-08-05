@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Mr. S Teaches</title>
+    <link href="/src/custom.css" rel="stylesheet" />
+    <link href="/src/index.css?v=1" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Load React libraries first -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Load essential components only -->
+    <script type="text/babel" src="/src/components/Hero.jsx"></script>
+    <script type="text/babel" src="/src/components/Navigation.jsx"></script>
+    <script type="text/babel" src="/src/components/Home.jsx"></script>
+    
+    <!-- Load main app -->
+    <script type="text/babel" src="/src/App.jsx"></script>
+    <script type="text/babel" src="/src/main.jsx"></script>
+  </body>
+</html>
