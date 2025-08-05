@@ -1398,7 +1398,18 @@ const CityBuilder = ({ user }) => {
                   }}
                 />
               )}
-              {street.type === 'water' && '💧'}
+              {street.type === 'water' && (
+                <div 
+                  className="w-100 h-100"
+                  style={{
+                    backgroundColor: '#1e40af',
+                    border: selectedStreet?.id === street.id ? '2px solid #3b82f6' : '1px solid #2563eb',
+                    transition: selectedStreet?.id === street.id ? 'none' : 'all 0.2s ease',
+                    backgroundImage: 'linear-gradient(45deg, #1e40af 25%, #2563eb 25%, #2563eb 50%, #1e40af 50%, #1e40af 75%, #2563eb 75%, #2563eb)',
+                    backgroundSize: '8px 8px'
+                  }}
+                />
+              )}
               {street.type === 'grass-patch' && '🌿'}
               
               {/* Debug selected street */}
