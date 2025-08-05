@@ -18,7 +18,7 @@ import EducationalTools from './pages/educational-tools.jsx'
 import BingoGenerator from './pages/bingo-generator.jsx'
 import SpanishAlphabet from './pages/spanish-alphabet.jsx'
 import WordSorter from './pages/word-sorter.jsx'
-import CityBuilder from './pages/city-builder-simple.jsx'
+import CityBuilder from './pages/city-builder-working.jsx'
 import NotFound from './components/NotFound.jsx'
 
 // Auth Context
