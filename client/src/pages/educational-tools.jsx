@@ -46,6 +46,20 @@ const EducationalTools = ({ user }) => {
                 <p className="text-muted">Learn Spanish letters with audio</p>
               </div>
             </div>
+            <div className="col-md-4">
+              <div className="card p-2 text-center">
+                <h3>
+                  <a href="/word-sorter" onClick={(e) => {
+                    e.preventDefault();
+                    window.history.pushState({}, '', '/word-sorter');
+                    window.location.reload();
+                  }}>
+                    Word Sorter
+                  </a>
+                </h3>
+                <p className="text-muted">Drag and drop words between lists</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

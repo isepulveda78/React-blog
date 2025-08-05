@@ -264,6 +264,8 @@ const AppRoutes = () => {
     CurrentComponent = window.WorkingCityBuilder || window.StableCityBuilder || CityBuilder;
   } else if (location === "/bingo-generator") {
     CurrentComponent = BingoGenerator;
+  } else if (location === "/word-sorter") {
+    CurrentComponent = WordSorter;
   } else if (location !== "/") {
     CurrentComponent = NotFound;
     componentProps = {};
