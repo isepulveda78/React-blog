@@ -83,6 +83,23 @@ app.get('*', (req, res) => {
   res.sendFile(indexPath);
 });
 
-app.listen(PORT, "0.0.0.0", () => {
+// Add error handling for server startup
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`[express] serving on port ${PORT}`);
+});
+
+server.on('error', (error) => {
+  console.error('[express] Server startup error:', error);
+  process.exit(1);
+});
+
+// Handle uncaught exceptions and unhandled rejections
+process.on('uncaughtException', (error) => {
+  console.error('[process] Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[process] Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });

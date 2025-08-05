@@ -165,19 +165,7 @@ class MemStorage {
     return this.users[index];
   }
 
-  async updateUserRole(userId, isAdmin) {
-    const index = this.users.findIndex(u => u.id === userId);
-    if (index === -1) return null;
-    this.users[index] = { ...this.users[index], isAdmin };
-    return this.users[index];
-  }
 
-  async updateUserPassword(userId, hashedPassword) {
-    const user = this.users.find(u => u.id === userId);
-    if (!user) return false;
-    user.password = hashedPassword;
-    return true;
-  }
 
   async deleteUser(userId) {
     const index = this.users.findIndex(u => u.id === userId);
@@ -1127,7 +1115,7 @@ export class MongoStorage {
   }
 }
 
-// Create storage instance with improved fallback
+// Create storage instance with improved error handling and fallback
 let storage;
 
 async function initializeStorage() {
@@ -1135,7 +1123,13 @@ async function initializeStorage() {
     if (process.env.MONGODB_URI) {
       console.log('[storage] Attempting MongoDB connection...');
       const mongoStorage = new MongoStorage();
-      await mongoStorage.connect(); // Test connection
+      
+      // Test connection with timeout
+      const connectionTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('MongoDB connection timeout after 15 seconds')), 15000)
+      );
+      
+      await Promise.race([mongoStorage.connect(), connectionTimeout]);
       storage = mongoStorage;
       console.log('[storage] MongoDB initialized successfully');
     } else {
@@ -1150,15 +1144,18 @@ async function initializeStorage() {
 
 // Initialize storage but don't block startup
 initializeStorage().catch(error => {
-  console.error('[storage] Storage initialization failed:', error);
+  console.error('[storage] Storage initialization failed:', error.message);
+  console.error('[storage] Full error:', error);
   // Fallback to in-memory storage if everything fails
   if (!storage) {
+    console.log('[storage] Creating emergency fallback storage');
     storage = new MemStorage();
   }
 });
 
-// Provide immediate fallback
+// Provide immediate fallback to prevent undefined storage
 if (!storage) {
+  console.log('[storage] Initializing immediate fallback storage');
   storage = new MemStorage();
 }
 

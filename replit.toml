@@ -4,7 +4,7 @@ channel = "stable-24_11"
 [deployment]
 deploymentTarget = "cloudrun"
 build = "npm run build"
-run = "NODE_ENV=production node dist/index.js"
+run = "npm run start"
 
 [unitTest]
 language = "nodejs"
