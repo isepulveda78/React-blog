@@ -271,11 +271,16 @@ const StableCityBuilder = () => {
                   >
                     <div style={{ fontSize: "24px", marginBottom: "2px" }}>{building.icon}</div>
                     <div style={{ 
-                      fontSize: "10px", 
-                      color: "#333", 
+                      fontSize: "11px", 
+                      color: "#000000", 
                       textAlign: "center", 
-                      lineHeight: "1.1",
-                      fontWeight: "500"
+                      lineHeight: "1.2",
+                      fontWeight: "600",
+                      marginTop: "3px",
+                      textShadow: "none",
+                      backgroundColor: "rgba(255,255,255,0.8)",
+                      padding: "1px 3px",
+                      borderRadius: "3px"
                     }}>
                       {building.name}
                     </div>
@@ -318,7 +323,17 @@ const StableCityBuilder = () => {
                   }}
                 >
                   <div style={{ fontSize: "24px", marginBottom: "2px" }}>{street.icon}</div>
-                  <div style={{ fontSize: "10px", color: "black", textAlign: "center", lineHeight: "1.1" }}>
+                  <div style={{ 
+                    fontSize: "11px", 
+                    color: "#000000", 
+                    textAlign: "center", 
+                    lineHeight: "1.2",
+                    fontWeight: "600",
+                    marginTop: "3px",
+                    backgroundColor: "rgba(255,255,255,0.9)",
+                    padding: "1px 3px",
+                    borderRadius: "3px"
+                  }}>
                     {street.name}
                   </div>
                 </div>
