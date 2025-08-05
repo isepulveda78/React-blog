@@ -1173,7 +1173,7 @@ const CityBuilder = ({ user }) => {
               </div>
               
               {/* Building Name Display */}
-              {building.customName && !editingBuilding && (
+              {(building.customName || building.name) && !editingBuilding && (
                 <div 
                   className="position-absolute bg-dark text-white px-2 py-1 rounded small"
                   style={{ 
@@ -1187,7 +1187,7 @@ const CityBuilder = ({ user }) => {
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  {building.customName}
+                  {building.customName || building.name}
                 </div>
               )}
 
