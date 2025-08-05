@@ -1191,6 +1191,8 @@ const CityBuilder = ({ user }) => {
                   <span>🏛️</span>
                 ) : building.type === 'university-building' ? (
                   <span>🏛️</span>
+                ) : building.type === 'college-campus' ? (
+                  <span>🏛️</span>
                 ) : (
                   <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
                 )}

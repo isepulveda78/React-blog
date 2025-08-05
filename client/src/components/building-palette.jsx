@@ -20,7 +20,7 @@ const BUILDING_TYPES = {
   "fire-station": { category: "public", name: "Fire Station", icon: "🚒", width: 70, height: 60 },
   "police-station": { category: "public", name: "Police Station", icon: "🚓", width: 70, height: 60 },
   school: { category: "public", name: "School", icon: "🏫", width: 100, height: 70 },
-  "university-building": { category: "public", name: "University", icon: "🏛️", width: 140, height: 120 },
+  "college-campus": { category: "public", name: "University", icon: "🏛️", width: 140, height: 120 },
   "hair-salon": { category: "public", name: "Hair Salon", icon: "💇", width: 50, height: 50 },
   tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 },
   park: { category: "nature", name: "Park", icon: "🌿", width: 60, height: 60 },
@@ -147,7 +147,7 @@ const BuildingPalette = ({
                           color: category.color,
                         }}
                       >
-                        {buildingType === 'university' || buildingType === 'university-building' ? '🏛️' : building.icon}
+                        {buildingType === 'university' || buildingType === 'university-building' || buildingType === 'college-campus' ? '🏛️' : building.icon}
                       </div>
                       <p
                         className="small fw-medium text-dark mb-0"
