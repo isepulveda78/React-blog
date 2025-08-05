@@ -1,11 +1,13 @@
-import { useState } from "react";
-import {
-  exportCityAsImage,
-  exportCityAsHighResImage,
-} from "../../lib/image-export";
-import { useToast } from "@/hooks/use-toast.jsx";
+const { React, useState } = window;
 
-export default function ExportModal({
+// Simple toast placeholder
+const useToast = () => ({
+  toast: (options) => {
+    console.log('Toast:', options.title, options.description);
+  }
+});
+
+const ExportModal = ({
   isOpen,
   onClose,
   cityName,
@@ -184,4 +186,6 @@ export default function ExportModal({
       </div>
     </div>
   );
-}
+};
+
+window.ExportModal = ExportModal;

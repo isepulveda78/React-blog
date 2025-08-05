@@ -1,7 +1,16 @@
-import { useState, useEffect } from 'react';
-import { BUILDING_TYPES } from '../lib/building-data';
+const { React, useState, useEffect } = window;
 
-export default function BuildingPropertiesPanel({
+// Mock building data for now
+const BUILDING_TYPES = {
+  house: { category: "residential", name: "House", icon: "🏠", width: 40, height: 40 },
+  apartment: { category: "residential", name: "Apartment", icon: "🏢", width: 60, height: 80 },
+  shop: { category: "commercial", name: "Shop", icon: "🏪", width: 50, height: 50 },
+  office: { category: "commercial", name: "Office", icon: "🏢", width: 80, height: 100 },
+  factory: { category: "industrial", name: "Factory", icon: "🏭", width: 100, height: 80 },
+  tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 }
+};
+
+const BuildingPropertiesPanel = ({
   selectedBuilding,
   onClose,
   onUpdateBuilding,
@@ -294,4 +303,6 @@ export default function BuildingPropertiesPanel({
       </div>
     </aside>
   );
-}
+};
+
+window.BuildingPropertiesPanel = BuildingPropertiesPanel;

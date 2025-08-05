@@ -354,41 +354,64 @@ const CityBuilder = ({ user }) => {
       </header>
 
       <div className="d-flex" style={{ height: "calc(100vh - 76px)" }}>
+        {/* Building Palette */}
+        {window.BuildingPalette && React.createElement(window.BuildingPalette, {
+          onBuildingDragStart: handleBuildingDragStart,
+          onStreetDragStart: handleStreetDragStart,
+          onClearCanvas: handleClearCanvas,
+          gridEnabled: gridEnabled,
+          onToggleGrid: () => setGridEnabled(!gridEnabled),
+          backgroundColor: backgroundColor,
+          onBackgroundColorChange: handleBackgroundColorChange
+        })}
+
         {/* Simplified Canvas Area */}
-        <div className="flex-grow-1 position-relative bg-light border" style={{ minHeight: '400px' }}>
+        <div className="flex-grow-1 position-relative bg-light border" style={{ minHeight: '400px', backgroundColor: backgroundColor }}>
           <div className="d-flex align-items-center justify-content-center h-100">
             <div className="text-center">
               <div className="display-1 mb-3">🏗️</div>
               <h3>City Builder Canvas</h3>
-              <p className="text-muted">This is where your city building interface will go.</p>
+              <p className="text-muted">Your building palette is now connected!</p>
               <p className="small text-info">
-                Your components need to be converted to work with our browser-based React setup.
+                Canvas area is ready for your city building functionality.
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Property panels and modals will be added here once components are converted */}
-      {showExportModal && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Export City</h5>
-                <button 
-                  type="button" 
-                  className="btn-close" 
-                  onClick={() => setShowExportModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p>Export functionality will be implemented here.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Building Properties Panel */}
+      {selectedBuilding && window.BuildingPropertiesPanel && React.createElement(window.BuildingPropertiesPanel, {
+        selectedBuilding: selectedBuilding,
+        onClose: () => clearSelection(),
+        onUpdateBuilding: updateBuilding,
+        onDeleteBuilding: deleteBuilding,
+        onDuplicateBuilding: handleDuplicateBuilding,
+        getCityStats: getCityStats,
+        buildings: buildings,
+        onSelectBuilding: selectBuilding
+      })}
+
+      {/* Street Properties Panel */}
+      {selectedStreet && window.StreetPropertiesPanel && React.createElement(window.StreetPropertiesPanel, {
+        selectedStreet: selectedStreet,
+        onClose: () => clearSelection(),
+        onUpdateStreet: updateStreet,
+        onDeleteStreet: deleteStreet,
+        streets: streets
+      })}
+
+      {/* Export Modal */}
+      {showExportModal && window.ExportModal && React.createElement(window.ExportModal, {
+        isOpen: showExportModal,
+        onClose: () => setShowExportModal(false),
+        cityName: cityName,
+        buildings: buildings,
+        streets: streets,
+        backgroundColor: backgroundColor,
+        getCityStats: getCityStats,
+        canvasRef: canvasRef
+      })}
     </div>
   );
 };

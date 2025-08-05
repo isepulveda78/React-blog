@@ -1,7 +1,11 @@
-import { useState, useEffect } from 'react';
-import { STREET_TYPES } from '../lib/building-data';
+const { React, useState, useEffect } = window;
+// Mock street data
+const STREET_TYPES = {
+  road: { category: "roads", name: "Road", icon: "🛣️", width: 20, height: 20 },
+  "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
+};
 
-export default function StreetPropertiesPanel({
+const StreetPropertiesPanel = ({
   selectedStreet,
   onClose,
   onUpdateStreet,
@@ -174,4 +178,6 @@ export default function StreetPropertiesPanel({
       </div>
     </div>
   );
-}
+};
+
+window.StreetPropertiesPanel = StreetPropertiesPanel;

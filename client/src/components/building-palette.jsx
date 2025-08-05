@@ -1,11 +1,31 @@
-import {
-  BUILDING_CATEGORIES,
-  BUILDING_TYPES,
-  STREET_CATEGORIES,
-  STREET_TYPES,
-} from "../lib/building-data";
+const { React } = window;
 
-export default function BuildingPalette({
+// Mock building data for now
+const BUILDING_CATEGORIES = {
+  residential: { name: "Residential", icon: "🏠", color: "#10b981" },
+  commercial: { name: "Commercial", icon: "🏢", color: "#3b82f6" },
+  industrial: { name: "Industrial", icon: "🏭", color: "#f59e0b" },
+  nature: { name: "Nature", icon: "🌳", color: "#22c55e" }
+};
+
+const BUILDING_TYPES = {
+  house: { category: "residential", name: "House", icon: "🏠", width: 40, height: 40 },
+  apartment: { category: "residential", name: "Apartment", icon: "🏢", width: 60, height: 80 },
+  shop: { category: "commercial", name: "Shop", icon: "🏪", width: 50, height: 50 },
+  office: { category: "commercial", name: "Office", icon: "🏢", width: 80, height: 100 },
+  factory: { category: "industrial", name: "Factory", icon: "🏭", width: 100, height: 80 },
+  tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 }
+};
+
+const STREET_CATEGORIES = {
+  roads: { name: "Roads", icon: "🛣️", color: "#6b7280" }
+};
+
+const STREET_TYPES = {
+  road: { category: "roads", name: "Road", icon: "🛣️", width: 20, height: 20 }
+};
+
+const BuildingPalette = ({
   onBuildingDragStart,
   onStreetDragStart,
   onClearCanvas,
@@ -271,4 +291,6 @@ export default function BuildingPalette({
       </div>
     </aside>
   );
-}
+};
+
+window.BuildingPalette = BuildingPalette;
