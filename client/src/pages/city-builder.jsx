@@ -334,21 +334,24 @@ const CityBuilder = () => {
   // Resize handling for buildings and streets
   const handleResizeStart = (e, item, direction) => {
     e.stopPropagation();
-    setResizing({ item, direction, startX: e.clientX, startY: e.clientY });
+    e.preventDefault();
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = item.width;
+    const startHeight = item.height;
     
     const handleMouseMove = (e) => {
-      if (!resizing) return;
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
       
-      const deltaX = e.clientX - resizing.startX;
-      const deltaY = e.clientY - resizing.startY;
+      let newWidth = startWidth;
+      let newHeight = startHeight;
       
-      let newWidth = resizing.item.width;
-      let newHeight = resizing.item.height;
-      
-      if (resizing.direction.includes('e')) newWidth += deltaX;
-      if (resizing.direction.includes('w')) newWidth -= deltaX;
-      if (resizing.direction.includes('s')) newHeight += deltaY;
-      if (resizing.direction.includes('n')) newHeight -= deltaY;
+      if (direction.includes('e')) newWidth = startWidth + deltaX;
+      if (direction.includes('w')) newWidth = startWidth - deltaX;
+      if (direction.includes('s')) newHeight = startHeight + deltaY;
+      if (direction.includes('n')) newHeight = startHeight - deltaY;
       
       newWidth = Math.max(20, newWidth);
       newHeight = Math.max(20, newHeight);
@@ -358,21 +361,22 @@ const CityBuilder = () => {
         newHeight = Math.round(newHeight / 20) * 20;
       }
       
-      if (resizing.item.category) {
-        updateBuilding(resizing.item.id, { width: newWidth, height: newHeight });
+      if (item.category) {
+        updateBuilding(item.id, { width: newWidth, height: newHeight });
       } else {
-        updateStreet(resizing.item.id, { width: newWidth, height: newHeight });
+        updateStreet(item.id, { width: newWidth, height: newHeight });
       }
     };
     
     const handleMouseUp = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-      setResizing(null);
+      document.body.style.cursor = 'default';
     };
     
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = `${direction}-resize`;
   };
 
   return (
@@ -622,28 +626,42 @@ const CityBuilder = () => {
           {streets.map((street) => (
             <div
               key={street.id}
-              className={`position-absolute border rounded ${selectedStreet?.id === street.id ? 'border-info border-3' : 'border-secondary'}`}
+              className={`position-absolute border ${selectedStreet?.id === street.id ? 'border-info border-3' : 'border-secondary'}`}
               style={{
                 left: `${street.x}px`,
                 top: `${street.y}px`,
                 width: `${street.width}px`,
                 height: `${street.height}px`,
-                backgroundColor: street.type === 'water' ? 'rgba(135, 206, 235, 0.8)' : 'rgba(128, 128, 128, 0.6)',
+                backgroundColor: street.type === 'water' ? '#4A90E2' : '#333333',
                 cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: street.width > 40 ? '1.5rem' : '1rem',
                 transition: 'all 0.2s ease',
                 zIndex: selectedStreet?.id === street.id ? 10 : 1
               }}
               onClick={(e) => handleStreetClick(e, street)}
             >
-              <span>{STREET_TYPES[street.type]?.icon || '🛣️'}</span>
-              
-              {/* Resize handles for selected street */}
+              {/* Delete button for selected street */}
               {selectedStreet?.id === street.id && (
                 <>
+                  <button
+                    className="position-absolute btn btn-sm btn-danger"
+                    style={{
+                      top: '-8px',
+                      right: '-8px',
+                      width: '20px',
+                      height: '20px',
+                      padding: '0',
+                      fontSize: '0.7rem',
+                      lineHeight: '1',
+                      zIndex: 20
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteStreet(street.id);
+                    }}
+                  >
+                    ✕
+                  </button>
+                  
                   {/* Corner resize handles */}
                   <div
                     className="position-absolute bg-info rounded-circle"
@@ -652,10 +670,46 @@ const CityBuilder = () => {
                       height: '10px',
                       bottom: '-5px',
                       right: '-5px',
-                      cursor: 'nw-resize',
+                      cursor: 'se-resize',
                       zIndex: 15
                     }}
                     onMouseDown={(e) => handleResizeStart(e, street, 'se')}
+                  />
+                  <div
+                    className="position-absolute bg-info rounded-circle"
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      top: '-5px',
+                      left: '-5px',
+                      cursor: 'nw-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 'nw')}
+                  />
+                  <div
+                    className="position-absolute bg-info rounded-circle"
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      top: '-5px',
+                      right: '-5px',
+                      cursor: 'ne-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 'ne')}
+                  />
+                  <div
+                    className="position-absolute bg-info rounded-circle"
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      bottom: '-5px',
+                      left: '-5px',
+                      cursor: 'sw-resize',
+                      zIndex: 15
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, street, 'sw')}
                   />
                 </>
               )}
@@ -683,22 +737,20 @@ const CityBuilder = () => {
               }}
               onClick={(e) => handleBuildingClick(e, building)}
             >
-              {/* Building Icon */}
-              <div className="text-center">
+              {/* Building Icon/Content */}
+              <div className="text-center w-100 h-100 d-flex align-items-center justify-content-center">
                 {building.type === 'university' ? (
                   <span>🏛️</span>
                 ) : building.type === 'grass-patch' ? (
                   <div 
-                    className="w-100 h-100 d-flex align-items-center justify-content-center"
+                    className="w-100 h-100"
                     style={{
-                      background: 'linear-gradient(45deg, #90EE90 25%, transparent 25%)',
+                      backgroundColor: '#32CD32',
                       borderRadius: '4px'
                     }}
-                  >
-                    <span>🌿</span>
-                    {building.width > 30 && <span>🌱</span>}
-                    {building.width > 50 && <span>🍀</span>}
-                  </div>
+                  />
+                ) : building.type === 'park' ? (
+                  <span>🌳</span>
                 ) : (
                   <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
                 )}
@@ -783,9 +835,30 @@ const CityBuilder = () => {
                 </div>
               )}
 
-              {/* Resize handles for selected building */}
+              {/* Delete and resize handles for selected building */}
               {selectedBuilding?.id === building.id && (
                 <>
+                  {/* Delete button */}
+                  <button
+                    className="position-absolute btn btn-sm btn-danger"
+                    style={{
+                      top: '-8px',
+                      right: '-8px',
+                      width: '20px',
+                      height: '20px',
+                      padding: '0',
+                      fontSize: '0.7rem',
+                      lineHeight: '1',
+                      zIndex: 20
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteBuilding(building.id);
+                    }}
+                  >
+                    ✕
+                  </button>
+                  
                   {/* Corner resize handles */}
                   <div
                     className="position-absolute bg-primary rounded-circle"
@@ -794,7 +867,7 @@ const CityBuilder = () => {
                       height: '10px',
                       bottom: '-5px',
                       right: '-5px',
-                      cursor: 'nw-resize',
+                      cursor: 'se-resize',
                       zIndex: 15
                     }}
                     onMouseDown={(e) => handleResizeStart(e, building, 'se')}
