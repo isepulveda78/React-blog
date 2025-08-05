@@ -420,15 +420,132 @@ const CityBuilder = ({ user }) => {
           <div className="bg-white shadow border-end d-flex flex-column" style={{ width: "320px", maxHeight: "100vh" }}>
             <div className="p-3 border-bottom flex-fill overflow-auto">
               <h2 className="h5 fw-semibold text-dark mb-3">Building Palette</h2>
-              <div className="alert alert-warning">
-                <div className="d-flex align-items-center">
-                  <i className="fas fa-exclamation-triangle me-2"></i>
-                  <div>
-                    <strong>Loading...</strong>
-                    <div className="small">Building palette is loading. Check console for errors.</div>
-                    <div className="small text-muted">BuildingPalette available: {window.BuildingPalette ? 'Yes' : 'No'}</div>
-                  </div>
+              
+              {/* Fallback Building Categories */}
+              <div className="mb-4">
+                <div className="d-flex align-items-center mb-2">
+                  <div className="rounded-circle me-2" style={{ width: "16px", height: "16px", backgroundColor: "#10b981" }}></div>
+                  <h3 className="h6 fw-medium text-dark mb-0">Residential</h3>
                 </div>
+                <div className="row g-2">
+                  {[
+                    { type: "house", name: "House", icon: "🏠", width: 40, height: 40 },
+                    { type: "apartment", name: "Apartment", icon: "🏢", width: 60, height: 80 }
+                  ].map((building) => (
+                    <div key={building.type} className="col-6">
+                      <div
+                        className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
+                        style={{
+                          borderColor: "#10b981",
+                          borderOpacity: "0.3",
+                          transition: "all 0.2s ease",
+                          cursor: "grab",
+                          backgroundColor: "#f8f9fa"
+                        }}
+                        draggable
+                        onDragStart={(e) => {
+                          const dragData = { 
+                            type: building.type, 
+                            category: "residential",
+                            isBuilding: true,
+                            itemData: building
+                          };
+                          e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+                          e.dataTransfer.effectAllowed = "copy";
+                          e.currentTarget.style.opacity = "0.5";
+                        }}
+                        onDragEnd={(e) => {
+                          e.currentTarget.style.opacity = "1";
+                        }}
+                      >
+                        <div className="mb-1 d-block" style={{ fontSize: "1.5rem", color: "#10b981" }}>
+                          {building.icon}
+                        </div>
+                        <p className="small fw-medium text-dark mb-0" style={{ fontSize: "0.65rem", lineHeight: "1.1" }}>
+                          {building.name}
+                        </p>
+                        <p className="text-muted mb-0" style={{ fontSize: "0.55rem" }}>
+                          {building.width}×{building.height}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Commercial */}
+              <div className="mb-4">
+                <div className="d-flex align-items-center mb-2">
+                  <div className="rounded-circle me-2" style={{ width: "16px", height: "16px", backgroundColor: "#3b82f6" }}></div>
+                  <h3 className="h6 fw-medium text-dark mb-0">Commercial</h3>
+                </div>
+                <div className="row g-2">
+                  {[
+                    { type: "shop", name: "Shop", icon: "🏪", width: 50, height: 50 },
+                    { type: "office", name: "Office", icon: "🏢", width: 80, height: 100 }
+                  ].map((building) => (
+                    <div key={building.type} className="col-6">
+                      <div
+                        className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
+                        style={{
+                          borderColor: "#3b82f6",
+                          borderOpacity: "0.3",
+                          cursor: "grab",
+                          backgroundColor: "#f8f9fa"
+                        }}
+                        draggable
+                        onDragStart={(e) => {
+                          const dragData = { 
+                            type: building.type, 
+                            category: "commercial",
+                            isBuilding: true,
+                            itemData: building
+                          };
+                          e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+                          e.dataTransfer.effectAllowed = "copy";
+                          e.currentTarget.style.opacity = "0.5";
+                        }}
+                        onDragEnd={(e) => {
+                          e.currentTarget.style.opacity = "1";
+                        }}
+                      >
+                        <div className="mb-1 d-block" style={{ fontSize: "1.5rem", color: "#3b82f6" }}>
+                          {building.icon}
+                        </div>
+                        <p className="small fw-medium text-dark mb-0" style={{ fontSize: "0.65rem" }}>
+                          {building.name}
+                        </p>
+                        <p className="text-muted mb-0" style={{ fontSize: "0.55rem" }}>
+                          {building.width}×{building.height}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Debug info */}
+              <div className="alert alert-info small">
+                <div>BuildingPalette status: {window.BuildingPalette ? 'Loaded' : 'Not loaded'}</div>
+                <div>Using fallback palette for now</div>
+              </div>
+            </div>
+            
+            {/* Tools section */}
+            <div className="p-3 border-top">
+              <div className="d-flex gap-2 mb-3">
+                <button 
+                  className="btn btn-secondary btn-sm flex-fill"
+                  onClick={handleClearCanvas}
+                >
+                  <i className="fas fa-trash me-1"></i>Clear
+                </button>
+                <button 
+                  className="btn btn-outline-secondary btn-sm flex-fill"
+                  onClick={() => setGridEnabled(!gridEnabled)}
+                >
+                  <i className="fas fa-th me-1"></i>Grid: {gridEnabled ? "On" : "Off"}
+                </button>
               </div>
             </div>
           </div>
