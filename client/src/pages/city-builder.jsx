@@ -13,6 +13,7 @@ const useCityBuilderHook = () => {
   const canvasRef = useRef(null);
 
   const selectBuilding = (building) => {
+    console.log("Selecting building:", building);
     setSelectedBuilding(building);
     setSelectedStreet(null);
   };
@@ -897,10 +898,14 @@ const CityBuilder = ({ user }) => {
               }}
               onClick={(e) => {
                 e.stopPropagation();
+                console.log("Street clicked:", street);
                 setSelectedStreet(street);
                 setSelectedBuilding(null);
               }}
-              onMouseDown={(e) => handleStreetMouseDown(e, street)}
+              onMouseDown={(e) => {
+                console.log("Street mousedown:", street);
+                handleStreetMouseDown(e, street);
+              }}
             >
               {street.type === 'road' ? '🛣️' : street.type === 'water' ? '💧' : '🌿'}
               
