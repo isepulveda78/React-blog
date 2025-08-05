@@ -348,12 +348,13 @@ const EducationalTools = ({ user }) => {
       </div>
 
       <div className="row g-4">
-        <div className="col-md-6 col-lg-4">
+        {/* City Builder */}
+        <div className="col-md-6">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🏗️</div>
               <h5 className="card-title">City Builder</h5>
-              <p className="card-text">Design and build your own virtual cities with drag-and-drop tools.</p>
+              <p className="card-text">Design and build your own virtual cities with interactive drag-and-drop tools.</p>
               <button
                 className="btn btn-primary"
                 onClick={() => navigateTo('/city-builder')}
@@ -364,28 +365,30 @@ const EducationalTools = ({ user }) => {
           </div>
         </div>
 
-        <div className="col-md-6 col-lg-4">
+        {/* Bingo Generator */}
+        <div className="col-md-6">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🎲</div>
               <h5 className="card-title">Bingo Card Generator</h5>
-              <p className="card-text">Create custom bingo cards for educational activities and games.</p>
+              <p className="card-text">Create custom bingo cards with number ranges and print-ready layouts.</p>
               <button
                 className="btn btn-primary"
                 onClick={() => navigateTo('/bingo-generator')}
               >
-                Generate Cards
+                Generate Cards  
               </button>
             </div>
           </div>
         </div>
 
-        <div className="col-md-6 col-lg-4">
+        {/* Spanish Alphabet */}
+        <div className="col-md-6">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🔤</div>
               <h5 className="card-title">Spanish Alphabet Soundboard</h5>
-              <p className="card-text">Learn Spanish letters with interactive audio pronunciation.</p>
+              <p className="card-text">Interactive Spanish letter learning with audio pronunciation and speech synthesis.</p>
               <button
                 className="btn btn-primary"
                 onClick={() => navigateTo('/spanish-alphabet')}
@@ -396,12 +399,13 @@ const EducationalTools = ({ user }) => {
           </div>
         </div>
 
-        <div className="col-md-6 col-lg-4">
+        {/* Word Sorter */}
+        <div className="col-md-6">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">📝</div>
               <h5 className="card-title">Word Sorter</h5>
-              <p className="card-text">Drag and drop words between lists for vocabulary activities.</p>
+              <p className="card-text">Drag and drop words between customizable lists for vocabulary activities with PDF export.</p>
               <button
                 className="btn btn-primary"
                 onClick={() => navigateTo('/word-sorter')}
@@ -412,37 +416,7 @@ const EducationalTools = ({ user }) => {
           </div>
         </div>
 
-        <div className="col-md-6 col-lg-4">
-          <div className="card h-100 shadow-sm">
-            <div className="card-body text-center">
-              <div className="display-6 text-primary mb-3">🎵</div>
-              <h5 className="card-title">Sound Demo</h5>
-              <p className="card-text">Explore audio features and sound integration examples.</p>
-              <button
-                className="btn btn-primary"
-                onClick={() => navigateTo('/sound-demo')}
-              >
-                Try Sounds
-              </button>
-            </div>
-          </div>
-        </div>
 
-        <div className="col-md-6 col-lg-4">
-          <div className="card h-100 shadow-sm">
-            <div className="card-body text-center">
-              <div className="display-6 text-primary mb-3">📚</div>
-              <h5 className="card-title">MP3 Integration Guide</h5>
-              <p className="card-text">Learn how to integrate audio files into educational content.</p>
-              <button
-                className="btn btn-primary"
-                onClick={() => navigateTo('/mp3-guide')}
-              >
-                View Guide
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
