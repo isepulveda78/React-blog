@@ -318,11 +318,11 @@ const WorkingCityBuilder = () => {
             // Preset Colors
             React.createElement('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' } },
               ...[
-                { name: 'Grass', color: '#90EE90' },
-                { name: 'Desert', color: '#F4A460' },
-                { name: 'Ocean', color: '#87CEEB' },
-                { name: 'Snow', color: '#FFFAFA' },
-                { name: 'Dark', color: '#2F4F4F' }
+                { name: 'Light', color: '#f8f9fa' },
+                { name: 'Primary', color: '#0abde3' },
+                { name: 'Success', color: '#68d391' },
+                { name: 'Info', color: '#22d2ed' },
+                { name: 'Dark', color: '#222f3e' }
               ].map((bg) =>
                 React.createElement('div', {
                   key: bg.name,
@@ -338,8 +338,8 @@ const WorkingCityBuilder = () => {
                     justifyContent: 'center',
                     fontSize: '8px',
                     fontWeight: 'bold',
-                    color: bg.color === '#FFFAFA' ? 'black' : 'white',
-                    textShadow: bg.color === '#FFFAFA' ? 'none' : '0 1px 1px rgba(0,0,0,0.5)'
+                    color: (bg.color === '#f8f9fa' || bg.color === '#68d391' || bg.color === '#22d2ed') ? '#222f3e' : 'white',
+                    textShadow: (bg.color === '#f8f9fa' || bg.color === '#68d391' || bg.color === '#22d2ed') ? 'none' : '0 1px 1px rgba(0,0,0,0.5)'
                   },
                   onClick: () => setBackgroundColor(bg.color),
                   title: bg.name
