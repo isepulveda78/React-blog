@@ -390,92 +390,91 @@ const CityBuilder = () => {
     }
   };
 
-  // WORKING RESIZE FUNCTION - NO INTERFERENCE
+  // SIMPLIFIED RESIZE FUNCTION - WORKS EVERYWHERE
   const handleResizeStart = (e, item, direction) => {
     e.stopPropagation();
     e.preventDefault();
     
-    console.log("RESIZE:", item.type, direction, "from", item.width + "x" + item.height);
+    console.log("✂️ RESIZE START:", item.type, direction, item.width + "x" + item.height);
     
+    const rect = e.target.getBoundingClientRect();
     const startX = e.clientX;
     const startY = e.clientY;
-    const startWidth = item.width;
-    const startHeight = item.height;
-    const startPosX = item.x;
-    const startPosY = item.y;
-    let isMoving = false;
     
-    const onMouseMove = (moveEvent) => {
-      moveEvent.stopPropagation();
-      moveEvent.preventDefault();
+    let moved = false;
+    
+    function onMove(me) {
+      me.preventDefault();
+      me.stopPropagation();
       
-      isMoving = true;
-      const deltaX = moveEvent.clientX - startX;
-      const deltaY = moveEvent.clientY - startY;
+      moved = true;
+      const dx = me.clientX - startX;
+      const dy = me.clientY - startY;
       
-      console.log("DELTA:", deltaX, deltaY);
+      console.log("✂️ MOVING:", dx, dy);
       
-      let newWidth = startWidth;
-      let newHeight = startHeight;
-      let newX = startPosX;
-      let newY = startPosY;
+      let w = item.width;
+      let h = item.height;
+      let x = item.x;
+      let y = item.y;
       
-      // Simple bottom-right resize for now
+      // Apply changes based on direction
       if (direction === 'se') {
-        newWidth = Math.max(20, startWidth + deltaX);
-        newHeight = Math.max(20, startHeight + deltaY);
-      } else if (direction === 'sw') {
-        newWidth = Math.max(20, startWidth - deltaX);
-        newHeight = Math.max(20, startHeight + deltaY);
-        if (newWidth > 20) newX = startPosX + deltaX;
-      } else if (direction === 'ne') {
-        newWidth = Math.max(20, startWidth + deltaX);
-        newHeight = Math.max(20, startHeight - deltaY);
-        if (newHeight > 20) newY = startPosY + deltaY;
-      } else if (direction === 'nw') {
-        newWidth = Math.max(20, startWidth - deltaX);
-        newHeight = Math.max(20, startHeight - deltaY);
-        if (newWidth > 20) newX = startPosX + deltaX;
-        if (newHeight > 20) newY = startPosY + deltaY;
+        w = Math.max(20, item.width + dx);
+        h = Math.max(20, item.height + dy);
+      }
+      
+      if (direction === 'sw') {
+        w = Math.max(20, item.width - dx);
+        h = Math.max(20, item.height + dy);
+        x = item.x + dx;
+      }
+      
+      if (direction === 'ne') {
+        w = Math.max(20, item.width + dx);
+        h = Math.max(20, item.height - dy);
+        y = item.y + dy;
+      }
+      
+      if (direction === 'nw') {
+        w = Math.max(20, item.width - dx);
+        h = Math.max(20, item.height - dy);
+        x = item.x + dx;
+        y = item.y + dy;
       }
       
       // Grid snap
       if (gridEnabled) {
-        newWidth = Math.round(newWidth / 20) * 20;
-        newHeight = Math.round(newHeight / 20) * 20;
-        newX = Math.round(newX / 20) * 20;
-        newY = Math.round(newY / 20) * 20;
+        w = Math.round(w / 20) * 20;
+        h = Math.round(h / 20) * 20;
+        x = Math.round(x / 20) * 20;
+        y = Math.round(y / 20) * 20;
       }
       
-      newX = Math.max(0, newX);
-      newY = Math.max(0, newY);
+      const update = { width: w, height: h };
+      if (x !== item.x) update.x = Math.max(0, x);
+      if (y !== item.y) update.y = Math.max(0, y);
       
-      const updates = { width: newWidth, height: newHeight };
-      if (direction.includes('w')) updates.x = newX;
-      if (direction.includes('n')) updates.y = newY;
-      
-      console.log("UPDATE:", updates);
+      console.log("✂️ UPDATE:", update);
       
       if (item.category) {
-        updateBuilding(item.id, updates);
+        updateBuilding(item.id, update);
       } else {
-        updateStreet(item.id, updates);
+        updateStreet(item.id, update);
       }
-    };
+    }
     
-    const onMouseUp = (upEvent) => {
-      upEvent.stopPropagation();
-      upEvent.preventDefault();
+    function onUp(ue) {
+      ue.preventDefault();
+      console.log("✂️ RESIZE COMPLETE - moved:", moved);
       
-      console.log("RESIZE END, moved:", isMoving);
-      
-      document.removeEventListener('mousemove', onMouseMove, { capture: true });
-      document.removeEventListener('mouseup', onMouseUp, { capture: true });
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
       document.body.style.cursor = 'default';
-    };
+    }
     
-    document.addEventListener('mousemove', onMouseMove, { capture: true });
-    document.addEventListener('mouseup', onMouseUp, { capture: true });
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
     document.body.style.cursor = `${direction}-resize`;
   };
 

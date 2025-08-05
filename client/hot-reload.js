@@ -1,5 +1,5 @@
 // Hot reload COMPLETELY DISABLED for drag/resize debugging
-if (false && (window.location.hostname.includes('replit') || window.location.hostname === 'localhost'))) {
+if (false) {
   let lastCheck = Date.now();
   let checkCount = 0;
   
