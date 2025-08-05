@@ -1,5 +1,4 @@
-const { React } = window;
-const { useState, useEffect, useRef } = React;
+import React, { useState, useEffect, useRef } from 'react';
 
 // Enhanced Building Types Configuration with all features
 const BUILDING_TYPES = {
@@ -1096,5 +1095,4 @@ const CityBuilder = () => {
   );
 };
 
-// Export to global scope
-window.CityBuilder = CityBuilder;
+export default CityBuilder;
