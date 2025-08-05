@@ -1187,6 +1187,33 @@ const CityBuilder = ({ user }) => {
                     {building.width > 30 && <span>🌱</span>}
                     {building.width > 50 && <span>🍀</span>}
                   </div>
+                ) : building.type === 'university' ? (
+                  <div 
+                    className="d-flex flex-wrap justify-content-center align-items-center h-100 w-100" 
+                    style={{ 
+                      fontSize: building.width > 120 ? '1.2rem' : building.width > 80 ? '1rem' : '0.8rem',
+                      gap: '4px',
+                      padding: '4px',
+                      backgroundColor: '#8b5cf6',
+                      backgroundImage: `
+                        linear-gradient(45deg, #7c3aed 25%, transparent 25%),
+                        linear-gradient(-45deg, #7c3aed 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #6d28d9 75%),
+                        linear-gradient(-45deg, transparent 75%, #6d28d9 75%)
+                      `,
+                      backgroundSize: '20px 20px',
+                      backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+                      border: '2px solid #6d28d9',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <span>🎓</span>
+                    <span>📚</span>
+                    {building.width > 100 && <span>🏛️</span>}
+                    {building.width > 120 && <span>🔬</span>}
+                    {building.width > 140 && <span>🎨</span>}
+                    {building.width > 160 && <span>⚗️</span>}
+                  </div>
                 ) : (
                   <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
                 )}
