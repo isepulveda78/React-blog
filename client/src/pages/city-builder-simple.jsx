@@ -422,7 +422,7 @@ const CityBuilder = ({ user }) => {
             )}
             
             {/* Resize handles for selected street */}
-            {selectedItem?.id === street.id && (
+            {selectedItem?.id === street.id && !selectedItem.isBuilding && (
               <>
                 {/* SE corner */}
                 <div
@@ -517,7 +517,7 @@ const CityBuilder = ({ user }) => {
             )}
             
             {/* Resize handles for selected building */}
-            {selectedItem?.id === building.id && (
+            {selectedItem?.id === building.id && selectedItem.isBuilding && (
               <>
                 {/* SE corner */}
                 <div
