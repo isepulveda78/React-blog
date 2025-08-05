@@ -2,7 +2,9 @@ const { React } = window;
 
 const SpanishAlphabet = () => {
   const [isPlaying, setIsPlaying] = React.useState(null);
+  const [isPlayingAll, setIsPlayingAll] = React.useState(false);
   const audioRefs = React.useRef({});
+  const playAllTimeoutRef = React.useRef(null);
 
   // Spanish alphabet with pronunciations
   const spanishLetters = [
@@ -36,6 +38,11 @@ const SpanishAlphabet = () => {
   ];
 
   const playLetter = (letter, letterName) => {
+    // Don't play individual letters if we're in the middle of stopping all
+    if (!isPlayingAll) {
+      setIsPlaying(letter);
+    }
+    
     try {
       // First try to play MP3 file
       const soundPath = `/sounds/spanish/${letter.toLowerCase()}.mp3`;
@@ -47,8 +54,6 @@ const SpanishAlphabet = () => {
         audioRefs.current[letter] = audio;
       }
 
-      setIsPlaying(letter);
-      
       audio.currentTime = 0;
       audio.volume = 0.7;
       
@@ -64,13 +69,17 @@ const SpanishAlphabet = () => {
             playWithSpeechSynthesis(letterName);
           })
           .finally(() => {
-            setTimeout(() => setIsPlaying(null), 800);
+            if (!isPlayingAll) {
+              setTimeout(() => setIsPlaying(null), 800);
+            }
           });
       }
     } catch (error) {
       // Fallback to speech synthesis
       playWithSpeechSynthesis(letterName);
-      setTimeout(() => setIsPlaying(null), 800);
+      if (!isPlayingAll) {
+        setTimeout(() => setIsPlaying(null), 800);
+      }
     }
   };
 
@@ -85,16 +94,49 @@ const SpanishAlphabet = () => {
   };
 
   const playAllLetters = () => {
+    if (isPlayingAll) {
+      stopAllLetters();
+      return;
+    }
+
+    setIsPlayingAll(true);
     let index = 0;
+    
     const playNext = () => {
-      if (index < spanishLetters.length) {
+      if (index < spanishLetters.length && isPlayingAll) {
         const currentLetter = spanishLetters[index];
         playLetter(currentLetter.letter, currentLetter.name);
         index++;
-        setTimeout(playNext, 1200); // Wait 1.2 seconds between letters
+        playAllTimeoutRef.current = setTimeout(playNext, 1200); // Wait 1.2 seconds between letters
+      } else {
+        setIsPlayingAll(false);
       }
     };
     playNext();
+  };
+
+  const stopAllLetters = () => {
+    setIsPlayingAll(false);
+    setIsPlaying(null);
+    
+    // Clear any pending timeout
+    if (playAllTimeoutRef.current) {
+      clearTimeout(playAllTimeoutRef.current);
+      playAllTimeoutRef.current = null;
+    }
+    
+    // Stop any currently playing audio
+    Object.values(audioRefs.current).forEach(audio => {
+      if (audio && !audio.paused) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    });
+    
+    // Stop speech synthesis
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
   };
 
   return React.createElement(
@@ -119,12 +161,20 @@ const SpanishAlphabet = () => {
             React.createElement('li', null, 'Click "Play All" to hear the entire alphabet')
           ),
           React.createElement(
-            'button',
-            {
-              className: 'btn btn-success',
-              onClick: playAllLetters
-            },
-            'Play All Letters'
+            'div',
+            { className: 'd-flex gap-2' },
+            React.createElement(
+              'button',
+              {
+                className: `btn ${isPlayingAll ? 'btn-danger' : 'btn-success'}`,
+                onClick: playAllLetters
+              },
+              isPlayingAll ? 'Stop Playing' : 'Play All Letters'
+            ),
+            isPlayingAll && React.createElement(
+              'div',
+              { className: 'spinner-border spinner-border-sm text-primary align-self-center' }
+            )
           )
         )
       )
