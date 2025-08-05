@@ -1030,9 +1030,9 @@ const CityBuilder = ({ user }) => {
                         onDragStart={(e) => {
                           const dragData = { 
                             type: building.type, 
-                            category: building.type === "road" ? "roads" : "nature",
-                            isBuilding: building.type !== "road",
-                            isStreet: building.type === "road",
+                            category: (building.type === "road" || building.type === "water") ? "roads" : "nature",
+                            isBuilding: building.type !== "road" && building.type !== "water",
+                            isStreet: building.type === "road" || building.type === "water",
                             itemData: building
                           };
                           e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
