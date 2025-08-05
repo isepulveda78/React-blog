@@ -588,7 +588,7 @@ const WorkingCityBuilder = () => {
               top: `${building.y}px`,
               width: `${building.width}px`,
               height: `${building.height}px`,
-              backgroundColor: BUILDING_TYPES[building.category]?.[building.type]?.color || '#gray',
+              backgroundColor: 'transparent',
               cursor: 'pointer',
               fontSize: '2rem'
             },
