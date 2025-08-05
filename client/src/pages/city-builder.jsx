@@ -180,7 +180,7 @@ const useCityBuilderState = () => {
 
 // Main CityBuilder Component - Updated with fixes
 const CityBuilder = () => {
-  console.log("CityBuilder component loaded with fixes - roads should be black, water blue, grass green");
+  console.log("CityBuilder component loaded with RESIZE FIXES - roads should be resizable");
   const {
     cityName, setCityName,
     buildings, streets,
@@ -381,6 +381,7 @@ const CityBuilder = () => {
     e.preventDefault();
     
     console.log("Starting resize for:", item.type, "direction:", direction);
+    setResizing({ item, direction });
     
     const startX = e.clientX;
     const startY = e.clientY;
@@ -390,6 +391,7 @@ const CityBuilder = () => {
     const startPosY = item.y;
     
     const handleMouseMove = (e) => {
+      e.preventDefault();
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
       
@@ -435,8 +437,10 @@ const CityBuilder = () => {
       
       // Update the item
       const updates = { width: newWidth, height: newHeight };
-      if (direction.includes('w') || direction.includes('n')) {
+      if (direction === 'sw' || direction === 'nw') {
         updates.x = newX;
+      }
+      if (direction === 'ne' || direction === 'nw') {
         updates.y = newY;
       }
       
@@ -447,11 +451,13 @@ const CityBuilder = () => {
       }
     };
     
-    const handleMouseUp = () => {
+    const handleMouseUp = (e) => {
+      e.preventDefault();
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
       document.body.style.cursor = 'default';
-      console.log("Resize complete");
+      setResizing(null);
+      console.log("Resize complete - final size:", item.width, "x", item.height);
     };
     
     document.addEventListener('mousemove', handleMouseMove);
@@ -719,7 +725,7 @@ const CityBuilder = () => {
               }}
               onClick={(e) => handleStreetClick(e, street)}
               onMouseDown={(e) => {
-                if (selectedStreet?.id === street.id && !e.target.closest('.resize-handle') && !e.target.closest('button')) {
+                if (selectedStreet?.id === street.id && !e.target.closest('.resize-handle') && !e.target.closest('button') && !resizing) {
                   handleDragStart(e, street);
                 }
               }}
@@ -822,7 +828,7 @@ const CityBuilder = () => {
               }}
               onClick={(e) => handleBuildingClick(e, building)}
               onMouseDown={(e) => {
-                if (selectedBuilding?.id === building.id && !e.target.closest('.resize-handle') && !e.target.closest('button')) {
+                if (selectedBuilding?.id === building.id && !e.target.closest('.resize-handle') && !e.target.closest('button') && !resizing) {
                   handleDragStart(e, building);
                 }
               }}
