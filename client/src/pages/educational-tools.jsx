@@ -32,6 +32,20 @@ const EducationalTools = ({ user }) => {
                 </h3>
               </div>
             </div>
+            <div className="col-md-4">
+              <div className="card p-2 text-center">
+                <h3>
+                  <a href="/spanish-alphabet" onClick={(e) => {
+                    e.preventDefault();
+                    window.history.pushState({}, '', '/spanish-alphabet');
+                    window.location.reload();
+                  }}>
+                    Spanish Alphabet Soundboard
+                  </a>
+                </h3>
+                <p className="text-muted">Learn Spanish letters with audio</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

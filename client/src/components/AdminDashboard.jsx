@@ -91,6 +91,22 @@ const AdminDashboard = ({ user }) => {
             </div>
           </div>
         </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm hover-shadow">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">🔊</div>
+              <h5 className="card-title">Sound System</h5>
+              <p className="card-text">Test sound effects and audio integration.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/sound-demo')}
+              >
+                Sound Demo
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

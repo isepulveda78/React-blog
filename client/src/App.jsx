@@ -26,6 +26,7 @@ const EducationalTools = window.EducationalTools;
 const BingoGenerator = window.BingoGenerator;
 const SoundDemo = window.SoundDemo;
 const MP3Guide = window.MP3Guide;
+const SpanishAlphabet = window.SpanishAlphabet;
 const NotFound = window.NotFound;
 
 // Auth Context
@@ -208,6 +209,8 @@ const AppRoutes = () => {
     CurrentComponent = SoundDemo;
   } else if (location === "/mp3-guide") {
     CurrentComponent = MP3Guide;
+  } else if (location === "/spanish-alphabet") {
+    CurrentComponent = SpanishAlphabet;
   } else if (location === "/admin") {
     if (!user) {
       // Redirect to home with login prompt for unauthenticated users
