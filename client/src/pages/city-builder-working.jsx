@@ -228,12 +228,12 @@ const WorkingCityBuilder = () => {
                 fontWeight: '600'
               }
             }, categoryKey),
-            React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' } },
+            React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingRight: '8px' } },
               ...Object.entries(category).map(([type, building]) =>
                 React.createElement('div', {
                   key: type,
                   style: {
-                    width: '120px',
+                    width: '115px',
                     height: '65px',
                     backgroundColor: '#ffffff',
                     border: '2px solid #28a745',
@@ -280,12 +280,12 @@ const WorkingCityBuilder = () => {
         // Infrastructure
         React.createElement('div', { style: { marginBottom: '20px' } },
           React.createElement('h3', { style: { color: 'black', marginBottom: '10px' } }, 'INFRASTRUCTURE'),
-          React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' } },
+          React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingRight: '8px' } },
             ...Object.entries(STREET_TYPES).map(([type, street]) =>
               React.createElement('div', {
                 key: type,
                 style: {
-                  width: '120px',
+                  width: '115px',
                   height: '65px',
                   backgroundColor: 'white',
                   border: '2px solid #007bff',
