@@ -1,11 +1,7 @@
 const { React, useState, useEffect } = window;
+const { Link } = "wouter";
 
 const EducationalTools = ({ user }) => {
-  const navigateTo = (path) => {
-    window.history.pushState({}, '', path);
-    window.location.reload();
-  };
-
   return (
     <div className="container py-5">
       <div className="row">
@@ -18,98 +14,110 @@ const EducationalTools = ({ user }) => {
       </div>
 
       <div className="row g-4">
+        {/* City Builder */}
         <div className="col-md-6 col-lg-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🏗️</div>
               <h5 className="card-title">City Builder</h5>
-              <p className="card-text">Design and build your own virtual cities with drag-and-drop tools.</p>
-              <button
-                className="btn btn-primary"
-                onClick={() => navigateTo('/city-builder')}
-              >
+              <p className="card-text">Design and build your own virtual cities with interactive drag-and-drop tools.</p>
+              <a href="/city-builder" className="btn btn-primary" onClick={(e) => {
+                e.preventDefault();
+                window.history.pushState({}, '', '/city-builder');
+                window.location.reload();
+              }}>
                 Start Building
-              </button>
+              </a>
             </div>
           </div>
         </div>
 
+        {/* Bingo Generator */}
         <div className="col-md-6 col-lg-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🎲</div>
               <h5 className="card-title">Bingo Card Generator</h5>
-              <p className="card-text">Create custom bingo cards for educational activities and games.</p>
-              <button
-                className="btn btn-primary"
-                onClick={() => navigateTo('/bingo-generator')}
-              >
+              <p className="card-text">Create custom bingo cards with number ranges and print-ready layouts.</p>
+              <a href="/bingo-generator" className="btn btn-primary" onClick={(e) => {
+                e.preventDefault();
+                window.history.pushState({}, '', '/bingo-generator');
+                window.location.reload();
+              }}>
                 Generate Cards
-              </button>
+              </a>
             </div>
           </div>
         </div>
 
+        {/* Spanish Alphabet */}
         <div className="col-md-6 col-lg-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🔤</div>
               <h5 className="card-title">Spanish Alphabet Soundboard</h5>
-              <p className="card-text">Learn Spanish letters with interactive audio pronunciation.</p>
-              <button
-                className="btn btn-primary"
-                onClick={() => navigateTo('/spanish-alphabet')}
-              >
+              <p className="card-text">Interactive Spanish letter learning with audio pronunciation and speech synthesis.</p>
+              <a href="/spanish-alphabet" className="btn btn-primary" onClick={(e) => {
+                e.preventDefault();
+                window.history.pushState({}, '', '/spanish-alphabet');
+                window.location.reload();
+              }}>
                 Learn Letters
-              </button>
+              </a>
             </div>
           </div>
         </div>
 
+        {/* Word Sorter */}
         <div className="col-md-6 col-lg-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">📝</div>
               <h5 className="card-title">Word Sorter</h5>
-              <p className="card-text">Drag and drop words between lists for vocabulary activities.</p>
-              <button
-                className="btn btn-primary"
-                onClick={() => navigateTo('/word-sorter')}
-              >
+              <p className="card-text">Drag and drop words between customizable lists for vocabulary activities with PDF export.</p>
+              <a href="/word-sorter" className="btn btn-primary" onClick={(e) => {
+                e.preventDefault();
+                window.history.pushState({}, '', '/word-sorter');
+                window.location.reload();
+              }}>
                 Sort Words
-              </button>
+              </a>
             </div>
           </div>
         </div>
 
+        {/* Sound Demo */}
         <div className="col-md-6 col-lg-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🎵</div>
               <h5 className="card-title">Sound Demo</h5>
-              <p className="card-text">Explore audio features and sound integration examples.</p>
-              <button
-                className="btn btn-primary"
-                onClick={() => navigateTo('/sound-demo')}
-              >
+              <p className="card-text">Explore audio integration examples and interactive sound features.</p>
+              <a href="/sound-demo" className="btn btn-primary" onClick={(e) => {
+                e.preventDefault();
+                window.history.pushState({}, '', '/sound-demo');
+                window.location.reload();
+              }}>
                 Try Sounds
-              </button>
+              </a>
             </div>
           </div>
         </div>
 
+        {/* MP3 Guide */}
         <div className="col-md-6 col-lg-4">
           <div className="card h-100 shadow-sm">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">📚</div>
               <h5 className="card-title">MP3 Integration Guide</h5>
-              <p className="card-text">Learn how to integrate audio files into educational content.</p>
-              <button
-                className="btn btn-primary"
-                onClick={() => navigateTo('/mp3-guide')}
-              >
+              <p className="card-text">Learn how to integrate audio files into educational applications.</p>
+              <a href="/mp3-guide" className="btn btn-primary" onClick={(e) => {
+                e.preventDefault();
+                window.history.pushState({}, '', '/mp3-guide');
+                window.location.reload();
+              }}>
                 View Guide
-              </button>
+              </a>
             </div>
           </div>
         </div>
