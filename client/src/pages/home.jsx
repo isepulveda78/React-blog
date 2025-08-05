@@ -154,7 +154,7 @@ function BlogNavbar() {
           <Navbar.Brand
             as={Link}
             href="/"
-            className="fw-bold text-primary fs-3"
+            className="fw-bold text-primary fs-1 ama-font shadow-for-ama"
           >
             Mr. S Teaches
           </Navbar.Brand>
