@@ -1069,10 +1069,10 @@ const CityBuilder = ({ user }) => {
               onClick={(e) => {
                 e.stopPropagation();
                 selectBuilding(building);
-              }}
-              onDoubleClick={(e) => {
-                e.stopPropagation();
-                handleBuildingNameEdit(building);
+                // Start editing name immediately after selection
+                setTimeout(() => {
+                  handleBuildingNameEdit(building);
+                }, 100);
               }}
               onMouseDown={(e) => handleBuildingMouseDown(e, building)}
             >
@@ -1138,7 +1138,7 @@ const CityBuilder = ({ user }) => {
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  Double-click to rename
+                  Click to rename
                 </div>
               )}
             </div>
