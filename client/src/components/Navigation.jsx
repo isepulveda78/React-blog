@@ -326,7 +326,7 @@ const Navigation = ({ user, onLogout }) => {
       {React.createElement(AuthModalComponent)}
 
       {/* Navigation */}
-      <nav className="navbar navbar-expand-lg navbar-dark shadow-sm fixed-top" style={{ zIndex: 1050, background: 'var(--primary-gradient)' }}>
+      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div className="container">
           <a
             className="navbar-brand fw-bold text-white ama-font shadow-for-ama text-decoration-none fs-1"
