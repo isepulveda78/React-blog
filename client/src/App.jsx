@@ -354,7 +354,7 @@ const AppRoutes = () => {
     CityBuilder: !!CityBuilder,
     Home: !!Home
   });
-  let CurrentComponent = Home;
+  let CurrentComponent = Home; // Always start with Home
   let componentProps = { user };
   console.log("DEBUG: Initial component chosen:", CurrentComponent?.name || "No component");
 
@@ -426,7 +426,10 @@ const AppRoutes = () => {
     CurrentComponent = BingoGenerator;
   } else if (location === "/word-sorter") {
     CurrentComponent = WordSorter;
-  } else if (location !== "/") {
+  } else if (location === "/") {
+    // Explicitly set Home for root path
+    CurrentComponent = Home;
+  } else {
     CurrentComponent = NotFound;
     componentProps = {};
   }
