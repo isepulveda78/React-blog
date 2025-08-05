@@ -178,8 +178,9 @@ const useCityBuilderState = () => {
   };
 };
 
-// Main CityBuilder Component
+// Main CityBuilder Component - Updated with fixes
 const CityBuilder = () => {
+  console.log("CityBuilder component loaded with fixes - roads should be black, water blue, grass green");
   const {
     cityName, setCityName,
     buildings, streets,
@@ -632,7 +633,7 @@ const CityBuilder = () => {
                 top: `${street.y}px`,
                 width: `${street.width}px`,
                 height: `${street.height}px`,
-                backgroundColor: street.type === 'water' ? '#4A90E2' : '#333333',
+                backgroundColor: street.type === 'water' ? '#007bff' : '#000000',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 zIndex: selectedStreet?.id === street.id ? 10 : 1
