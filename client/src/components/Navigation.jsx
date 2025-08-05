@@ -69,6 +69,9 @@ const Navigation = ({ user, onLogout }) => {
       setError("");
       setIsLoading(true);
 
+      // Initialize sound hook
+      const { sounds } = window.useSound ? window.useSound() : { sounds: { buttonClick: () => {}, success: () => {}, error: () => {} } };
+
       try {
         const endpoint = isLoginMode ? "/api/auth/login" : "/api/auth/register";
         const response = await fetch(endpoint, {
@@ -80,11 +83,13 @@ const Navigation = ({ user, onLogout }) => {
 
         if (!response.ok) {
           const error = await response.json();
+          sounds.error(); // Play error sound
           throw new Error(error.message || "Authentication failed");
         }
 
         const userData = await response.json();
         console.log("Authentication successful:", userData);
+        sounds.success(); // Play success sound
 
         // Update global user state and refresh
         window.currentUser = userData;
@@ -374,6 +379,19 @@ const Navigation = ({ user, onLogout }) => {
                   }}
                 >
                   Educational Tools
+                </a>
+              </li>
+
+              <li className="nav-item">
+                <a
+                  className={`nav-link ${isActive("/sound-demo") ? "active" : ""}`}
+                  href="/sound-demo"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo("/sound-demo");
+                  }}
+                >
+                  Sound Demo
                 </a>
               </li>
 

@@ -24,6 +24,7 @@ const UserProfile = window.UserProfile;
 const CityBuilder = window.CityBuilder;
 const EducationalTools = window.EducationalTools;
 const BingoGenerator = window.BingoGenerator;
+const SoundDemo = window.SoundDemo;
 const NotFound = window.NotFound;
 
 // Auth Context
@@ -202,6 +203,8 @@ const AppRoutes = () => {
     componentProps = { user, slug: location.replace("/blog/", "") };
   } else if (location === "/educational-tools") {
     CurrentComponent = EducationalTools;
+  } else if (location === "/sound-demo") {
+    CurrentComponent = SoundDemo;
   } else if (location === "/admin") {
     if (!user) {
       // Redirect to home with login prompt for unauthenticated users

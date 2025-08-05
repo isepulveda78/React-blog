@@ -1,0 +1,3 @@
+// Placeholder for success sound file
+// You can add MP3, WAV, or OGG files here
+// For now, the system will use Web Audio API beeps as fallback

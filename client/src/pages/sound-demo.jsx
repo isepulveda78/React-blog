@@ -1,0 +1,161 @@
+const { React, useState } = window;
+
+const SoundDemo = () => {
+  const { sounds, playSound } = window.useSound();
+  const [volume, setVolume] = useState(0.5);
+
+  const testSounds = [
+    { name: 'Button Click', action: () => sounds.buttonClick() },
+    { name: 'Success', action: () => sounds.success() },
+    { name: 'Error', action: () => sounds.error() },
+    { name: 'Notification', action: () => sounds.notification() },
+    { name: 'Low Beep', action: () => sounds.beep(400, 300) },
+    { name: 'High Beep', action: () => sounds.beep(1200, 200) },
+    { name: 'Long Beep', action: () => sounds.beep(800, 500) }
+  ];
+
+  return React.createElement(
+    'div',
+    { className: 'container py-5' },
+    React.createElement('h1', { className: 'display-4 fw-bold text-primary mb-4' }, 'Sound Effects Demo'),
+    
+    React.createElement(
+      'div',
+      { className: 'mb-4' },
+      React.createElement('h3', { className: 'h5 mb-3' }, 'Volume Control'),
+      React.createElement('input', {
+        type: 'range',
+        className: 'form-range',
+        min: '0',
+        max: '1',
+        step: '0.1',
+        value: volume,
+        onChange: (e) => setVolume(parseFloat(e.target.value))
+      }),
+      React.createElement('small', { className: 'text-muted' }, `Volume: ${Math.round(volume * 100)}%`)
+    ),
+
+    React.createElement(
+      'div',
+      { className: 'row' },
+      React.createElement(
+        'div',
+        { className: 'col-md-6' },
+        React.createElement('h3', { className: 'h5 mb-3' }, 'Built-in Sound Effects'),
+        React.createElement(
+          'div',
+          { className: 'd-grid gap-2' },
+          ...testSounds.map((sound, index) =>
+            React.createElement(
+              'button',
+              {
+                key: index,
+                className: 'btn btn-outline-primary',
+                onClick: sound.action
+              },
+              sound.name
+            )
+          )
+        )
+      ),
+      
+      React.createElement(
+        'div',
+        { className: 'col-md-6' },
+        React.createElement('h3', { className: 'h5 mb-3' }, 'SoundButton Component Examples'),
+        React.createElement(
+          'div',
+          { className: 'd-grid gap-2' },
+          React.createElement(
+            window.SoundButton,
+            {
+              className: 'btn-success',
+              soundType: 'success',
+              onClick: () => alert('Success action!')
+            },
+            'Success Button'
+          ),
+          React.createElement(
+            window.SoundButton,
+            {
+              className: 'btn-danger',
+              soundType: 'error',
+              onClick: () => alert('Error action!')
+            },
+            'Error Button'
+          ),
+          React.createElement(
+            window.SoundButton,
+            {
+              className: 'btn-info',
+              soundType: 'custom',
+              soundOptions: { frequency: 600, duration: 300 },
+              onClick: () => alert('Custom beep!')
+            },
+            'Custom Beep'
+          )
+        )
+      )
+    ),
+
+    React.createElement(
+      'div',
+      { className: 'mt-5' },
+      React.createElement('h3', { className: 'h5 mb-3' }, 'How to Use Sounds in Your App'),
+      React.createElement(
+        'div',
+        { className: 'alert alert-info' },
+        React.createElement('strong', null, 'Three ways to add sounds:'),
+        React.createElement('ol', { className: 'mt-2 mb-0' },
+          React.createElement('li', null, 'Use the ', React.createElement('code', null, 'useSound'), ' hook directly'),
+          React.createElement('li', null, 'Use the ', React.createElement('code', null, 'SoundButton'), ' component'),
+          React.createElement('li', null, 'Add sound files to ', React.createElement('code', null, '/public/sounds/'), ' folder')
+        )
+      )
+    ),
+
+    React.createElement(
+      'div',
+      { className: 'mt-4' },
+      React.createElement(
+        'div',
+        { className: 'card' },
+        React.createElement(
+          'div',
+          { className: 'card-body' },
+          React.createElement('h5', { className: 'card-title' }, 'Code Examples'),
+          React.createElement(
+            'pre',
+            { className: 'bg-light p-3 rounded' },
+            `// Using the hook directly
+const { sounds } = useSound();
+
+<button onClick={() => sounds.buttonClick()}>
+  Click me!
+</button>
+
+// Using SoundButton component
+<SoundButton 
+  className="btn-primary" 
+  soundType="success"
+  onClick={() => console.log('clicked!')}
+>
+  Success Button
+</SoundButton>
+
+// Custom sound with file
+<SoundButton
+  soundType="custom"
+  soundOptions={{ path: '/sounds/my-sound.mp3', volume: 0.8 }}
+>
+  Custom Sound
+</SoundButton>`
+          )
+        )
+      )
+    )
+  );
+};
+
+// Export to window for global access
+window.SoundDemo = SoundDemo;
