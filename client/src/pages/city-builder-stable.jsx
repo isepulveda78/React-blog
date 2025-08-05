@@ -221,26 +221,48 @@ const StableCityBuilder = () => {
         <div style={{ padding: "20px" }}>
           <h2 style={{ color: "black", marginBottom: "20px" }}>🏗️ CityBuilder</h2>
           
+          {/* TEST VISIBILITY */}
+          <div style={{ backgroundColor: "yellow", padding: "10px", margin: "10px 0", border: "3px solid red" }}>
+            <h3 style={{ color: "red" }}>TEST SECTION - Can you see this yellow box?</h3>
+          </div>
+
           {/* Full Building Categories */}
-          {Object.entries(BUILDING_TYPES).map(([categoryKey, category]) => (
-            <div key={categoryKey} style={{ marginBottom: "20px" }}>
-              <h3 style={{ color: "black", marginBottom: "10px", textTransform: "uppercase" }}>{categoryKey}</h3>
+          {Object.entries(BUILDING_TYPES).map(([categoryKey, category]) => {
+            console.log("RENDERING CATEGORY:", categoryKey);
+            return (
+            <div key={categoryKey} style={{ 
+              marginBottom: "20px", 
+              backgroundColor: "pink", 
+              padding: "10px", 
+              border: "2px solid purple" 
+            }}>
+              <h3 style={{ 
+                color: "black", 
+                marginBottom: "10px", 
+                textTransform: "uppercase",
+                backgroundColor: "orange",
+                padding: "5px"
+              }}>{categoryKey}</h3>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {Object.entries(category).map(([type, building]) => (
+                {Object.entries(category).map(([type, building]) => {
+                  console.log("RENDERING BUILDING:", type, building);
+                  return (
                   <div 
                     key={type}
                     style={{
                       width: "110px",
                       height: "70px",
                       backgroundColor: "white",
-                      border: "2px solid #28a745",
+                      border: "5px solid red",
                       borderRadius: "8px",
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
                       justifyContent: "center",
                       cursor: "grab",
-                      padding: "4px"
+                      padding: "4px",
+                      position: "relative",
+                      zIndex: 1000
                     }}
                     draggable
                     onDragStart={(e) => {
@@ -258,10 +280,12 @@ const StableCityBuilder = () => {
                       {building.name}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
-          ))}
+            );
+          })}
           
           {/* Infrastructure */}
           <div style={{ marginBottom: "20px" }}>
