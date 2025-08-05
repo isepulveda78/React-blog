@@ -17,11 +17,11 @@ const BUILDING_TYPES = {
   university: { category: "public", name: "University", icon: "🎓", width: 120, height: 100 },
   "hair-salon": { category: "public", name: "Hair Salon", icon: "💇", width: 50, height: 50 },
   tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 },
-  park: { category: "nature", name: "Park", icon: "🌿", width: 60, height: 60 }
+  park: { category: "nature", name: "Park", icon: "🌿", width: 60, height: 60 },
+  "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
 };
 const STREET_TYPES = {
-  road: { category: "roads", name: "Road", icon: "🛣️", width: 20, height: 20 },
-  "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
+  road: { category: "roads", name: "Road", icon: "🛣️", width: 20, height: 20 }
 };
 
 const useCityBuilder = () => {

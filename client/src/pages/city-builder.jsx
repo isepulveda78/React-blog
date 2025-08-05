@@ -1164,6 +1164,29 @@ const CityBuilder = ({ user }) => {
                     {building.width > 80 && <span>🌺</span>}
                     {building.width > 100 && <span>🐦</span>}
                   </div>
+                ) : building.type === 'grass-patch' ? (
+                  <div 
+                    className="d-flex flex-wrap justify-content-center align-items-center h-100 w-100" 
+                    style={{ 
+                      fontSize: building.width > 60 ? '1rem' : '0.8rem',
+                      gap: '2px',
+                      padding: '2px',
+                      backgroundColor: '#22c55e',
+                      backgroundImage: `
+                        radial-gradient(circle at 20% 30%, #16a34a 1px, transparent 1px),
+                        radial-gradient(circle at 70% 20%, #15803d 1px, transparent 1px),
+                        radial-gradient(circle at 40% 70%, #166534 1px, transparent 1px),
+                        linear-gradient(45deg, transparent 30%, rgba(21, 128, 61, 0.2) 30%, rgba(21, 128, 61, 0.2) 70%, transparent 70%)
+                      `,
+                      backgroundSize: '12px 12px, 8px 8px, 6px 6px, 4px 4px',
+                      backgroundPosition: '0 0, 6px 6px, 3px 3px, 0 0',
+                      borderRadius: '4px'
+                    }}
+                  >
+                    <span>🌿</span>
+                    {building.width > 30 && <span>🌱</span>}
+                    {building.width > 50 && <span>🍀</span>}
+                  </div>
                 ) : (
                   <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
                 )}
