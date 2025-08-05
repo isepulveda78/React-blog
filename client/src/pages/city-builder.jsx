@@ -248,53 +248,61 @@ const CityBuilder = ({ user }) => {
   const handleCanvasDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
+    console.log("Drop event triggered on canvas");
 
     const dragData = e.dataTransfer.getData("text/plain");
-    if (!dragData) return;
+    if (!dragData) {
+      console.log("No drag data found");
+      return;
+    }
 
     try {
-      const { type, category, itemData } = JSON.parse(dragData);
+      const parsedData = JSON.parse(dragData);
+      console.log("Parsed drag data:", parsedData);
+      
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
+      console.log("Drop position:", x, y);
 
-      // Get building/street data from drag payload or fallback
-      const typeData = itemData || BUILDING_TYPES[type] || STREET_TYPES[type];
-      if (!typeData) return;
-
-      const newItem = {
-        type: type,
-        x: Math.max(0, x - typeData.width / 2),
-        y: Math.max(0, y - typeData.height / 2),
-        width: typeData.width,
-        height: typeData.height,
-        category: typeData.category
-      };
-
-      // Add building or street using hook functions if available
-      if (category === "roads" || type === "grass-patch") {
-        // It's a street/road
-        newItem.color = type === "grass-patch" ? "#22c55e" : "#6b7280";
-        if (cityBuilderState.addStreet) {
-          cityBuilderState.addStreet(newItem);
-        } else {
-          // Fallback - direct state manipulation
-          console.log("Adding street:", newItem);
-        }
-      } else {
-        // It's a building
-        if (cityBuilderState.addBuilding) {
-          cityBuilderState.addBuilding(newItem);
-        } else {
-          // Fallback - direct state manipulation  
-          console.log("Adding building:", newItem);
-        }
+      const { type, category, itemData, isBuilding, isStreet } = parsedData;
+      
+      if (isBuilding) {
+        const newBuilding = {
+          id: Date.now() + Math.random(),
+          type: type,
+          category: category,
+          x: gridEnabled ? Math.round(x / 20) * 20 : Math.max(0, x - itemData.width / 2),
+          y: gridEnabled ? Math.round(y / 20) * 20 : Math.max(0, y - itemData.height / 2),
+          width: itemData.width,
+          height: itemData.height,
+          name: itemData.name
+        };
+        console.log("Adding building:", newBuilding);
+        setBuildings(prev => {
+          const updated = [...prev, newBuilding];
+          console.log("Updated buildings array:", updated);
+          return updated;
+        });
+      } else if (isStreet) {
+        const newStreet = {
+          id: Date.now() + Math.random(),
+          type: type,
+          category: category,
+          x: gridEnabled ? Math.round(x / 20) * 20 : Math.max(0, x - itemData.width / 2),
+          y: gridEnabled ? Math.round(y / 20) * 20 : Math.max(0, y - itemData.height / 2),
+          width: itemData.width,
+          height: itemData.height,
+          name: itemData.name,
+          color: '#6b7280'
+        };
+        console.log("Adding street:", newStreet);
+        setStreets(prev => {
+          const updated = [...prev, newStreet];
+          console.log("Updated streets array:", updated);
+          return updated;
+        });
       }
-
-      toast({
-        title: "Item Placed",
-        description: `${typeData.name} has been added to your city.`,
-      });
     } catch (error) {
       console.error("Error dropping item:", error);
     }
