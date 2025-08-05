@@ -1,6 +1,18 @@
 const { React } = window;
 const { useState, useEffect, useRef } = React;
 
+// Building types configuration
+const BUILDING_TYPES = {
+  house: { category: "residential", name: "House", icon: "🏠", width: 40, height: 40 },
+  apartment: { category: "residential", name: "Apartment", icon: "🏢", width: 60, height: 80 },
+  shop: { category: "commercial", name: "Shop", icon: "🏪", width: 50, height: 50 },
+  office: { category: "commercial", name: "Office", icon: "🏢", width: 80, height: 100 },
+  factory: { category: "industrial", name: "Factory", icon: "🏭", width: 100, height: 80 },
+  tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 },
+  "oak-tree": { category: "nature", name: "Oak Tree", icon: "🌳", width: 30, height: 30 },
+  "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
+};
+
 // Working state management for CityBuilder
 const useCityBuilderHook = () => {
   const [cityName, setCityName] = useState("My Amazing City");
@@ -121,6 +133,8 @@ const CityBuilder = ({ user }) => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [isEditingCityName, setIsEditingCityName] = useState(false);
   const [cityNameInput, setCityNameInput] = useState(cityName);
+  const [editingBuilding, setEditingBuilding] = useState(null);
+  const [buildingNameInput, setBuildingNameInput] = useState('');
 
   // Keyboard shortcuts for copy/paste
   useEffect(() => {
@@ -210,6 +224,33 @@ const CityBuilder = ({ user }) => {
 
   const handleSelectBuilding = (building) => {
     selectBuilding(building);
+  };
+
+  const handleBuildingNameEdit = (building) => {
+    setEditingBuilding(building);
+    setBuildingNameInput(building.customName || building.name || '');
+  };
+
+  const handleBuildingNameSave = () => {
+    if (editingBuilding && buildingNameInput.trim()) {
+      updateBuilding(editingBuilding.id, {
+        ...editingBuilding,
+        customName: buildingNameInput.trim()
+      });
+      console.log("Building renamed to:", buildingNameInput);
+    }
+    setEditingBuilding(null);
+    setBuildingNameInput('');
+  };
+
+  const handleBuildingNameKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleBuildingNameSave();
+    }
+    if (e.key === "Escape") {
+      setEditingBuilding(null);
+      setBuildingNameInput('');
+    }
   };
 
   const handleSelectStreet = (street) => {
@@ -1029,21 +1070,75 @@ const CityBuilder = ({ user }) => {
                 e.stopPropagation();
                 selectBuilding(building);
               }}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                handleBuildingNameEdit(building);
+              }}
               onMouseDown={(e) => handleBuildingMouseDown(e, building)}
             >
               <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
-              {building.label && (
+              
+              {/* Building Name Display */}
+              {(building.customName || building.name) && !editingBuilding && (
                 <div 
-                  className="position-absolute bg-dark text-white px-1 rounded small"
+                  className="position-absolute bg-dark text-white px-2 py-1 rounded small"
                   style={{ 
-                    bottom: '-20px', 
+                    bottom: '-25px', 
                     left: '50%', 
                     transform: 'translateX(-50%)',
                     fontSize: '0.7rem',
+                    whiteSpace: 'nowrap',
+                    maxWidth: '120px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {building.customName || building.name}
+                </div>
+              )}
+
+              {/* Building Name Editor */}
+              {editingBuilding?.id === building.id && (
+                <div 
+                  className="position-absolute"
+                  style={{ 
+                    bottom: '-35px', 
+                    left: '50%', 
+                    transform: 'translateX(-50%)',
+                    zIndex: 20
+                  }}
+                >
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
+                    style={{
+                      width: '120px',
+                      fontSize: '0.75rem',
+                      padding: '2px 6px'
+                    }}
+                    value={buildingNameInput}
+                    onChange={(e) => setBuildingNameInput(e.target.value)}
+                    onKeyDown={handleBuildingNameKeyPress}
+                    onBlur={handleBuildingNameSave}
+                    autoFocus
+                    placeholder="Enter name..."
+                  />
+                </div>
+              )}
+
+              {/* Edit Instructions for Selected Building */}
+              {selectedBuilding?.id === building.id && !editingBuilding && (
+                <div 
+                  className="position-absolute bg-primary text-white px-2 py-1 rounded small"
+                  style={{ 
+                    top: '-25px', 
+                    left: '50%', 
+                    transform: 'translateX(-50%)',
+                    fontSize: '0.6rem',
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  {building.label}
+                  Double-click to rename
                 </div>
               )}
             </div>
