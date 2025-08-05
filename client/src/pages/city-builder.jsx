@@ -802,10 +802,10 @@ const CityBuilder = ({ user }) => {
                   <h3 className="h6 fw-medium text-dark mb-0">Residential</h3>
                 </div>
                 <div className="row g-2">
-                  {[
-                    { type: "house", name: "House", icon: "🏠", width: 40, height: 40 },
-                    { type: "apartment", name: "Apartment", icon: "🏢", width: 60, height: 80 }
-                  ].map((building) => (
+                  {Object.entries(BUILDING_TYPES)
+                    .filter(([type, building]) => building.category === "residential")
+                    .map(([type, building]) => ({ type, ...building }))
+                    .map((building) => (
                     <div key={building.type} className="col-6">
                       <div
                         className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
@@ -854,11 +854,10 @@ const CityBuilder = ({ user }) => {
                   <h3 className="h6 fw-medium text-dark mb-0">Commercial</h3>
                 </div>
                 <div className="row g-2">
-                  {[
-                    { type: "shop", name: "Shop", icon: "🏪", width: 50, height: 50 },
-                    { type: "office", name: "Office", icon: "🏢", width: 80, height: 100 },
-                    { type: "hair-salon", name: "Hair Salon", icon: "💇", width: 50, height: 50 }
-                  ].map((building) => (
+                  {Object.entries(BUILDING_TYPES)
+                    .filter(([type, building]) => building.category === "commercial")
+                    .map(([type, building]) => ({ type, ...building }))
+                    .map((building) => (
                     <div key={building.type} className="col-6">
                       <div
                         className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
@@ -906,13 +905,10 @@ const CityBuilder = ({ user }) => {
                   <h3 className="h6 fw-medium text-dark mb-0">Public Services</h3>
                 </div>
                 <div className="row g-2">
-                  {[
-                    { type: "hospital", name: "Hospital", icon: "🏥", width: 120, height: 100 },
-                    { type: "fire-station", name: "Fire Station", icon: "🚒", width: 80, height: 60 },
-                    { type: "police-station", name: "Police Station", icon: "🚔", width: 80, height: 60 },
-                    { type: "school", name: "School", icon: "🏫", width: 100, height: 80 },
-                    { type: "university", name: "University", icon: "🎓", width: 140, height: 120 }
-                  ].map((building) => (
+                  {Object.entries(BUILDING_TYPES)
+                    .filter(([type, building]) => building.category === "public")
+                    .map(([type, building]) => ({ type, ...building }))
+                    .map((building) => (
                     <div key={building.type} className="col-6">
                       <div
                         className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
@@ -960,10 +956,10 @@ const CityBuilder = ({ user }) => {
                   <h3 className="h6 fw-medium text-dark mb-0">Industrial</h3>
                 </div>
                 <div className="row g-2">
-                  {[
-                    { type: "factory", name: "Factory", icon: "🏭", width: 100, height: 80 },
-                    { type: "warehouse", name: "Warehouse", icon: "🏢", width: 120, height: 60 }
-                  ].map((building) => (
+                  {Object.entries(BUILDING_TYPES)
+                    .filter(([type, building]) => building.category === "industrial")
+                    .map(([type, building]) => ({ type, ...building }))
+                    .map((building) => (
                     <div key={building.type} className="col-6">
                       <div
                         className="building-item border border-2 border-dashed rounded-3 p-2 text-center"
@@ -1012,8 +1008,9 @@ const CityBuilder = ({ user }) => {
                 </div>
                 <div className="row g-2">
                   {[
-                    { type: "tree", name: "Tree", icon: "🌳", width: 30, height: 30 },
-                    { type: "park", name: "Park", icon: "🌿", width: 60, height: 60 },
+                    ...Object.entries(BUILDING_TYPES)
+                      .filter(([type, building]) => building.category === "nature")
+                      .map(([type, building]) => ({ type, ...building })),
                     { type: "road", name: "Road", icon: "🛣️", width: 20, height: 20 },
                     { type: "water", name: "Water", icon: "💧", width: 40, height: 40 }
                   ].map((building) => (
