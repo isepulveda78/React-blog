@@ -117,6 +117,7 @@ const BuildingPalette = ({
             <div className="row g-2">
               {Object.entries(BUILDING_TYPES)
                 .filter(([_, building]) => building.category === categoryId)
+                .filter(([buildingType, _]) => buildingType !== 'university') // Force exclude old university
                 .map(([buildingType, building]) => (
                   <div key={buildingType} className="col-6">
                     <div
