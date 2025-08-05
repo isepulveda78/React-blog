@@ -165,7 +165,7 @@ const AppRoutes = () => {
   // Make user available globally for all components
   window.currentUser = user;
 
-  // Simple routing based on location - default to CityBuilder for city-building platform
+  // Simple routing based on location - default to Home for educational platform
   console.log("DEBUG: Current location:", location);
   console.log("DEBUG: Available components:", {
     WorkingCityBuilder: !!window.WorkingCityBuilder,
@@ -173,9 +173,9 @@ const AppRoutes = () => {
     CityBuilder: !!window.CityBuilder,
     Home: !!window.Home
   });
-  let CurrentComponent = window.WorkingCityBuilder || window.StableCityBuilder || CityBuilder || Home;
+  let CurrentComponent = Home; // Default to educational platform homepage
   let componentProps = { user };
-  console.log("DEBUG: Initial component chosen:", CurrentComponent?.name || "No component");
+  console.log("DEBUG: Initial component chosen:", CurrentComponent === Home ? "Home" : CurrentComponent?.name || "Unknown component");
 
   if (location === "/blog") {
     CurrentComponent = BlogListing;
@@ -251,12 +251,15 @@ const AppRoutes = () => {
     CurrentComponent = BingoGenerator;
   } else if (location === "/word-sorter") {
     CurrentComponent = WordSorter;
-  } else if (location !== "/") {
+  } else if (location === "/") {
+    // Explicitly set Home for root path
+    CurrentComponent = Home;
+  } else {
     CurrentComponent = NotFound;
     componentProps = {};
   }
 
-  console.log("DEBUG: Final component chosen:", CurrentComponent?.name || "No component");
+  console.log("DEBUG: Final component chosen:", CurrentComponent === Home ? "Home" : CurrentComponent?.name || "Unknown component");
   console.log("DEBUG: Component props:", componentProps);
 
   return React.createElement(

@@ -356,7 +356,7 @@ const AppRoutes = () => {
   });
   let CurrentComponent = Home; // Always start with Home
   let componentProps = { user };
-  console.log("DEBUG: Initial component chosen:", CurrentComponent?.name || "No component");
+  console.log("DEBUG: Initial component chosen:", CurrentComponent === Home ? "Home" : CurrentComponent?.name || "Unknown component");
 
   if (location === "/blog") {
     CurrentComponent = BlogListing;
@@ -434,7 +434,7 @@ const AppRoutes = () => {
     componentProps = {};
   }
 
-  console.log("DEBUG: Final component chosen:", CurrentComponent?.name || "No component");
+  console.log("DEBUG: Final component chosen:", CurrentComponent === Home ? "Home" : CurrentComponent?.name || "Unknown component");
   console.log("DEBUG: Component props:", componentProps);
 
   return React.createElement(
