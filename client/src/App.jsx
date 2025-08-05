@@ -250,8 +250,8 @@ const AppRoutes = () => {
       CurrentComponent = UserProfile;
     }
   } else if (location === "/city-builder") {
-    console.log("ROUTE: Loading CityBuilder, StableCityBuilder available:", !!window.StableCityBuilder);
-    CurrentComponent = window.StableCityBuilder || CityBuilder;
+    console.log("ROUTE: Loading CityBuilder, WorkingCityBuilder available:", !!window.WorkingCityBuilder);
+    CurrentComponent = window.WorkingCityBuilder || window.StableCityBuilder || CityBuilder;
   } else if (location !== "/") {
     CurrentComponent = NotFound;
     componentProps = {};
