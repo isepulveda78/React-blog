@@ -4,23 +4,33 @@ const { useState, useEffect, useRef } = React;
 const BUILDING_TYPES = {
   residential: {
     house: { name: "House", icon: "🏠", width: 60, height: 50, color: "#4ade80" },
-    apartment: { name: "Apartment", icon: "🏢", width: 80, height: 100, color: "#4ade80" }
+    apartment: { name: "Apartment", icon: "🏢", width: 80, height: 100, color: "#4ade80" },
+    mansion: { name: "Mansion", icon: "🏘️", width: 120, height: 90, color: "#4ade80" }
   },
   commercial: {
     shop: { name: "Shop", icon: "🏪", width: 70, height: 60, color: "#3b82f6" },
-    restaurant: { name: "Restaurant", icon: "🍽️", width: 80, height: 70, color: "#3b82f6" }
+    restaurant: { name: "Restaurant", icon: "🍽️", width: 80, height: 70, color: "#3b82f6" },
+    mall: { name: "Mall", icon: "🏬", width: 150, height: 120, color: "#3b82f6" },
+    gas_station: { name: "Gas Station", icon: "⛽", width: 90, height: 70, color: "#3b82f6" },
+    bank: { name: "Bank", icon: "🏦", width: 100, height: 80, color: "#3b82f6" }
   },
   industrial: {
     factory: { name: "Factory", icon: "🏭", width: 100, height: 80, color: "#f97316" },
-    warehouse: { name: "Warehouse", icon: "📦", width: 90, height: 70, color: "#f97316" }
+    warehouse: { name: "Warehouse", icon: "📦", width: 90, height: 70, color: "#f97316" },
+    power_plant: { name: "Power Plant", icon: "⚡", width: 130, height: 100, color: "#f97316" }
   },
   public: {
     school: { name: "School", icon: "🏫", width: 100, height: 80, color: "#ef4444" },
-    hospital: { name: "Hospital", icon: "🏥", width: 110, height: 90, color: "#ef4444" }
+    hospital: { name: "Hospital", icon: "🏥", width: 110, height: 90, color: "#ef4444" },
+    fire_station: { name: "Fire Station", icon: "🚒", width: 90, height: 80, color: "#ef4444" },
+    police_station: { name: "Police Station", icon: "🚔", width: 90, height: 80, color: "#ef4444" },
+    city_hall: { name: "City Hall", icon: "🏛️", width: 120, height: 100, color: "#ef4444" },
+    library: { name: "Library", icon: "📚", width: 80, height: 70, color: "#ef4444" }
   },
   nature: {
     park: { name: "Park", icon: "🌳", width: 80, height: 80, color: "#84cc16" },
-    tree: { name: "Tree", icon: "🌳", width: 30, height: 30, color: "#84cc16" }
+    tree: { name: "Tree", icon: "🌳", width: 30, height: 30, color: "#84cc16" },
+    lake: { name: "Lake", icon: "🏞️", width: 100, height: 80, color: "#84cc16" }
   }
 };
 
