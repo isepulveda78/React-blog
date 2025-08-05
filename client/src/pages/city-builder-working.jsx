@@ -206,19 +206,28 @@ const WorkingCityBuilder = () => {
       ctx.fillRect(street.x, street.y, street.width, street.height);
     });
     
-    // Draw buildings with emojis
+    // Draw buildings with emojis or solid areas
     buildings.forEach(building => {
       const buildingData = BUILDING_TYPES[building.category]?.[building.type];
       if (buildingData) {
-        // Draw emoji
-        ctx.font = '2rem serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(
-          buildingData.icon,
-          building.x + building.width / 2,
-          building.y + building.height / 2
-        );
+        if (building.type === 'grass') {
+          // Draw grass as solid green rectangle
+          ctx.fillStyle = '#68d391';
+          ctx.fillRect(building.x, building.y, building.width, building.height);
+          ctx.strokeStyle = '#48bb78';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(building.x, building.y, building.width, building.height);
+        } else {
+          // Draw emoji for other buildings
+          ctx.font = '2rem serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(
+            buildingData.icon,
+            building.x + building.width / 2,
+            building.y + building.height / 2
+          );
+        }
         
         // Draw label if exists
         if (building.customLabel) {
@@ -717,7 +726,18 @@ const WorkingCityBuilder = () => {
               }
             }
           },
-            BUILDING_TYPES[building.category]?.[building.type]?.icon,
+            // Display grass as solid green area or normal icon
+            building.type === 'grass' ? 
+              React.createElement('div', {
+                style: {
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: '#68d391',
+                  borderRadius: '4px',
+                  border: '2px solid #48bb78'
+                }
+              }) : 
+              BUILDING_TYPES[building.category]?.[building.type]?.icon,
             
             // Custom Label Display
             (building.customLabel || selectedBuilding?.id === building.id) && editingLabel !== building.id && 
