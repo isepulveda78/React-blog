@@ -36,27 +36,40 @@ const BuildingPalette = ({
 }) {
   const handleDragStart = (e, buildingType) => {
     console.log("Drag started for building:", buildingType);
-    e.dataTransfer.setData("text/plain", buildingType); // Use standard MIME type
-    e.dataTransfer.setData("buildingType", buildingType);
+    const buildingData = BUILDING_TYPES[buildingType];
+    const dragData = { 
+      type: buildingType, 
+      category: buildingData.category,
+      isBuilding: true,
+      itemData: buildingData
+    };
+    e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = "copy";
-    onBuildingDragStart(buildingType);
+    e.currentTarget.style.opacity = "0.5";
+    onBuildingDragStart && onBuildingDragStart(buildingType);
   };
 
-  const handleDragEnd = () => {
-    onBuildingDragStart(null);
+  const handleDragEnd = (e) => {
+    e.currentTarget.style.opacity = "1";
   };
 
   const handleStreetDragStart = (e, streetType) => {
     console.log("Drag started for street:", streetType);
-    e.dataTransfer.setData("text/plain", streetType); // Use standard MIME type
-    e.dataTransfer.setData("streetType", streetType);
+    const streetData = STREET_TYPES[streetType];
+    const dragData = { 
+      type: streetType, 
+      category: streetData.category,
+      isStreet: true,
+      itemData: streetData
+    };
+    e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = "copy";
-    onStreetDragStart(streetType);
+    e.currentTarget.style.opacity = "0.5";
+    onStreetDragStart && onStreetDragStart(streetType);
   };
 
-  const handleStreetDragEnd = () => {
-    // Don't clear street type on drag end - let the street drawing finish first
-    // onStreetDragStart(null);
+  const handleStreetDragEnd = (e) => {
+    e.currentTarget.style.opacity = "1";
   };
 
   return (

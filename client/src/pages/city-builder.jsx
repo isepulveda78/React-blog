@@ -236,6 +236,128 @@ const CityBuilder = ({ user }) => {
     }
   };
 
+  // Real drag-and-drop handlers
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
+
+  const handleCanvasDragOver = (e) => {
+    e.preventDefault(); // Allow drop
+    e.dataTransfer.dropEffect = "copy";
+  };
+
+  const handleCanvasDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const dragData = e.dataTransfer.getData("text/plain");
+    if (!dragData) return;
+
+    try {
+      const { type, category, itemData } = JSON.parse(dragData);
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Get building/street data from drag payload or fallback
+      const typeData = itemData || BUILDING_TYPES[type] || STREET_TYPES[type];
+      if (!typeData) return;
+
+      const newItem = {
+        type: type,
+        x: Math.max(0, x - typeData.width / 2),
+        y: Math.max(0, y - typeData.height / 2),
+        width: typeData.width,
+        height: typeData.height,
+        category: typeData.category
+      };
+
+      // Add building or street using hook functions if available
+      if (category === "roads" || type === "grass-patch") {
+        // It's a street/road
+        newItem.color = type === "grass-patch" ? "#22c55e" : "#6b7280";
+        if (cityBuilderState.addStreet) {
+          cityBuilderState.addStreet(newItem);
+        } else {
+          // Fallback - direct state manipulation
+          console.log("Adding street:", newItem);
+        }
+      } else {
+        // It's a building
+        if (cityBuilderState.addBuilding) {
+          cityBuilderState.addBuilding(newItem);
+        } else {
+          // Fallback - direct state manipulation  
+          console.log("Adding building:", newItem);
+        }
+      }
+
+      toast({
+        title: "Item Placed",
+        description: `${typeData.name} has been added to your city.`,
+      });
+    } catch (error) {
+      console.error("Error dropping item:", error);
+    }
+  };
+
+  const handleCanvasClick = (e) => {
+    // Clear selection when clicking empty canvas
+    if (e.target === e.currentTarget) {
+      clearSelection();
+    }
+  };
+
+  const handleBuildingMouseDown = (e, building) => {
+    if (e.detail === 2) {
+      // Double click - select for editing
+      selectBuilding(building);
+      return;
+    }
+
+    // Single click - start dragging
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const originalBuilding = { ...building };
+
+    const handleMouseMove = (moveEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+
+      const newBuilding = {
+        ...originalBuilding,
+        x: Math.max(0, originalBuilding.x + deltaX),
+        y: Math.max(0, originalBuilding.y + deltaY)
+      };
+
+      updateBuilding(building.id, newBuilding);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "default";
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.body.style.cursor = "grabbing";
+  };
+
+  // Add BUILDING_TYPES and STREET_TYPES data
+  const BUILDING_TYPES = window.BUILDING_TYPES || {
+    house: { category: "residential", name: "House", icon: "🏠", width: 40, height: 40 },
+    apartment: { category: "residential", name: "Apartment", icon: "🏢", width: 60, height: 80 },
+    shop: { category: "commercial", name: "Shop", icon: "🏪", width: 50, height: 50 },
+    office: { category: "commercial", name: "Office", icon: "🏢", width: 80, height: 100 },
+    factory: { category: "industrial", name: "Factory", icon: "🏭", width: 100, height: 80 },
+    tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 }
+  };
+
+  const STREET_TYPES = window.STREET_TYPES || {
+    road: { category: "roads", name: "Road", icon: "🛣️", width: 20, height: 20 },
+    "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
+  };
+
   return (
     <div className="vh-100" style={{ backgroundColor: "#f8f9fa" }}>
       {/* Header */}
@@ -296,18 +418,108 @@ const CityBuilder = ({ user }) => {
           onBackgroundColorChange: handleBackgroundColorChange
         })}
 
-        {/* Simplified Canvas Area */}
-        <div className="flex-grow-1 position-relative bg-light border" style={{ minHeight: '400px', backgroundColor: backgroundColor }}>
-          <div className="d-flex align-items-center justify-content-center h-100">
-            <div className="text-center">
-              <div className="display-1 mb-3">🏗️</div>
-              <h3>City Builder Canvas</h3>
-              <p className="text-muted">Your building palette is now connected!</p>
-              <p className="small text-info">
-                Canvas area is ready for your city building functionality.
-              </p>
+        {/* Interactive Canvas Area */}
+        <div 
+          className="flex-grow-1 position-relative overflow-hidden border"
+          style={{ 
+            minHeight: '400px', 
+            backgroundColor: backgroundColor,
+            cursor: isDragging ? 'grabbing' : 'default'
+          }}
+          onDrop={handleCanvasDrop}
+          onDragOver={handleCanvasDragOver}
+          onClick={handleCanvasClick}
+        >
+          {/* Grid Background */}
+          {gridEnabled && (
+            <div 
+              className="position-absolute w-100 h-100"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
+                `,
+                backgroundSize: '20px 20px',
+                pointerEvents: 'none'
+              }}
+            />
+          )}
+
+          {/* Render Buildings */}
+          {buildings.map((building) => (
+            <div
+              key={building.id}
+              className={`position-absolute border ${selectedBuilding?.id === building.id ? 'border-primary border-3' : 'border-secondary'}`}
+              style={{
+                left: building.x,
+                top: building.y,
+                width: building.width,
+                height: building.height,
+                backgroundColor: building.customColor || '#e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.2rem',
+                cursor: 'pointer',
+                boxShadow: selectedBuilding?.id === building.id ? '0 0 10px rgba(59, 130, 246, 0.5)' : '0 2px 4px rgba(0,0,0,0.1)',
+                zIndex: selectedBuilding?.id === building.id ? 10 : 1,
+                userSelect: 'none'
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectBuilding(building);
+              }}
+              onMouseDown={(e) => handleBuildingMouseDown(e, building)}
+            >
+              <span>{BUILDING_TYPES[building.type]?.icon || '🏢'}</span>
+              {building.label && (
+                <div 
+                  className="position-absolute bg-dark text-white px-1 rounded small"
+                  style={{ 
+                    bottom: '-20px', 
+                    left: '50%', 
+                    transform: 'translateX(-50%)',
+                    fontSize: '0.7rem',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {building.label}
+                </div>
+              )}
             </div>
-          </div>
+          ))}
+
+          {/* Render Streets */}
+          {streets.map((street) => (
+            <div
+              key={street.id}
+              className={`position-absolute border ${selectedStreet?.id === street.id ? 'border-primary border-3' : 'border-secondary'}`}
+              style={{
+                left: street.x,
+                top: street.y,
+                width: street.width,
+                height: street.height,
+                backgroundColor: street.color || '#6b7280',
+                cursor: 'pointer',
+                zIndex: selectedStreet?.id === street.id ? 10 : 0,
+                userSelect: 'none'
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedStreet(street);
+                setSelectedBuilding(null);
+              }}
+            />
+          ))}
+
+          {/* Canvas Instructions */}
+          {buildings.length === 0 && streets.length === 0 && (
+            <div className="position-absolute top-50 start-50 translate-middle text-center text-muted">
+              <div className="display-1 mb-3">🏗️</div>
+              <h5>Start Building Your City</h5>
+              <p>Drag buildings from the left panel to place them here</p>
+            </div>
+          )}
         </div>
       </div>
 
