@@ -393,6 +393,19 @@ const Navigation = ({ user, onLogout }) => {
                 </a>
               </li>
 
+              <li className="nav-item">
+                <a
+                  className={`nav-link ${isActive("/city-builder") ? "active" : ""}`}
+                  href="/city-builder"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateTo("/city-builder");
+                  }}
+                >
+                  City Builder
+                </a>
+              </li>
+
 
 
               {user && user.approved && (
