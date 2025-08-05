@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="container">
         <div className="row">
           <div className="col-md-6">
-            <h5 className="ama-font shadow-for-ama">Mr. S Teaches</h5>
+            <h5 className="text-white ama-font shadow-for-ama" style={{ fontFamily: 'ama !important', textShadow: '2px 2px 2px #000000' }}>Mr. S Teaches</h5>
             <p className="mb-0">Educational tools and interactive learning experiences.</p>
           </div>
           <div className="col-md-6 text-md-end">
