@@ -4,14 +4,30 @@ const { useState, useCallback, useRef } = React;
 // Mock data constants
 const GRID_SIZE = 20;
 const BUILDING_TYPES = {
-  house: { category: "residential", name: "House", icon: "🏠", width: 40, height: 40 },
-  apartment: { category: "residential", name: "Apartment", icon: "🏢", width: 60, height: 80 },
-  shop: { category: "commercial", name: "Shop", icon: "🏪", width: 50, height: 50 },
-  office: { category: "commercial", name: "Office", icon: "🏢", width: 80, height: 100 },
-  factory: { category: "industrial", name: "Factory", icon: "🏭", width: 100, height: 80 },
-  tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 },
-  "oak-tree": { category: "nature", name: "Oak Tree", icon: "🌳", width: 30, height: 30 },
-  "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }
+  house: { category: "residential", name: "", icon: "🏠", width: 40, height: 40 },
+  apartment: { category: "residential", name: "", icon: "🏢", width: 60, height: 80 },
+  villa: { category: "residential", name: "", icon: "🏘️", width: 80, height: 60 },
+  cottage: { category: "residential", name: "", icon: "🏡", width: 50, height: 45 },
+  
+  shop: { category: "commercial", name: "", icon: "🏪", width: 50, height: 50 },
+  office: { category: "commercial", name: "", icon: "🏢", width: 80, height: 100 },
+  mall: { category: "commercial", name: "", icon: "🏬", width: 120, height: 80 },
+  bank: { category: "commercial", name: "", icon: "🏦", width: 70, height: 90 },
+  hotel: { category: "commercial", name: "", icon: "🏨", width: 90, height: 120 },
+  
+  factory: { category: "industrial", name: "", icon: "🏭", width: 100, height: 80 },
+  warehouse: { category: "industrial", name: "", icon: "🏢", width: 120, height: 60 },
+  power: { category: "industrial", name: "", icon: "⚡", width: 60, height: 80 },
+  
+  school: { category: "public", name: "", icon: "🏫", width: 100, height: 70 },
+  hospital: { category: "public", name: "", icon: "🏥", width: 90, height: 80 },
+  library: { category: "public", name: "", icon: "📚", width: 70, height: 60 },
+  church: { category: "public", name: "", icon: "⛪", width: 60, height: 90 },
+  
+  tree: { category: "nature", name: "", icon: "🌳", width: 30, height: 30 },
+  park: { category: "nature", name: "", icon: "🌿", width: 60, height: 60 },
+  fountain: { category: "nature", name: "", icon: "⛲", width: 40, height: 40 },
+  garden: { category: "nature", name: "", icon: "🌻", width: 50, height: 50 }
 };
 const STREET_TYPES = {
   road: { category: "roads", name: "Road", icon: "🛣️", width: 20, height: 20 },
