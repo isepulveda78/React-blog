@@ -180,7 +180,7 @@ const useCityBuilderState = () => {
 
 // Main CityBuilder Component - Updated with fixes
 const CityBuilder = () => {
-  console.log("CityBuilder component loaded with RESIZE FIXES - roads should be resizable");
+  console.log("🎯 CityBuilder READY - drag & resize ENABLED");
   const {
     cityName, setCityName,
     buildings, streets,
@@ -310,31 +310,43 @@ const CityBuilder = () => {
     }
   };
 
-  // Drag functionality for moving buildings and streets
+  // FIXED DRAG FUNCTIONALITY - WORKS WITH GRID
   const handleDragStart = (e, item) => {
-    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('.resize-handle')) return;
     
+    e.stopPropagation();
     e.preventDefault();
+    
+    console.log("🏃 DRAG START:", item.type, "from", item.x + "," + item.y);
+    
     const startX = e.clientX;
     const startY = e.clientY;
     const startItemX = item.x;
     const startItemY = item.y;
     
-    const handleMouseMove = (e) => {
-      const deltaX = e.clientX - startX;
-      const deltaY = e.clientY - startY;
+    const onMouseMove = (moveEvent) => {
+      moveEvent.preventDefault();
+      moveEvent.stopPropagation();
+      
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
       
       let newX = startItemX + deltaX;
       let newY = startItemY + deltaY;
       
+      // Grid snapping
       if (gridEnabled) {
         newX = Math.round(newX / 20) * 20;
         newY = Math.round(newY / 20) * 20;
       }
       
+      // Boundary constraints
       newX = Math.max(0, newX);
       newY = Math.max(0, newY);
       
+      console.log("🏃 DRAGGING:", newX, newY);
+      
+      // Update position
       if (item.category) {
         updateBuilding(item.id, { x: newX, y: newY });
       } else {
@@ -342,14 +354,17 @@ const CityBuilder = () => {
       }
     };
     
-    const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+    const onMouseUp = (upEvent) => {
+      upEvent.preventDefault();
+      console.log("🏁 DRAG END");
+      
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
       document.body.style.cursor = 'default';
     };
     
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
     document.body.style.cursor = 'grabbing';
   };
 

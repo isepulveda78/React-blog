@@ -63,8 +63,9 @@ if (window.location.hostname.includes('replit') || window.location.hostname === 
       });
   }
   
-  // Check every 300ms for faster response
-  const reloadInterval = setInterval(checkForChanges, 300);
+  // DISABLED during drag/resize debugging - was every 300ms
+  // const reloadInterval = setInterval(checkForChanges, 300);
+  console.log('Hot reload DISABLED for CityBuilder drag/resize debugging');
   
   // Also check when window gains focus
   window.addEventListener('focus', checkForChanges);
