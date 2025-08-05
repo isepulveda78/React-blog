@@ -315,7 +315,7 @@ const CityBuilder = ({ user }) => {
     if (e.target !== e.currentTarget) return; // Only handle direct clicks on the street, not resize handles
     
     e.stopPropagation();
-    e.preventDefault();
+    // Don't prevent default to allow click events to fire
 
     // First select the street
     console.log("Selecting street on mousedown:", street.id);
@@ -327,26 +327,31 @@ const CityBuilder = ({ user }) => {
     const startStreetX = street.x;
     const startStreetY = street.y;
     let hasMoved = false;
+    let dragThreshold = 5; // Only start dragging after moving 5 pixels
 
     const handleMouseMove = (moveEvent) => {
-      hasMoved = true;
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      
+      if (distance > dragThreshold) {
+        hasMoved = true;
+        
+        let newX = startStreetX + deltaX;
+        let newY = startStreetY + deltaY;
 
-      let newX = startStreetX + deltaX;
-      let newY = startStreetY + deltaY;
+        // Apply grid snapping if enabled
+        if (gridEnabled) {
+          newX = Math.round(newX / 20) * 20;
+          newY = Math.round(newY / 20) * 20;
+        }
 
-      // Apply grid snapping if enabled
-      if (gridEnabled) {
-        newX = Math.round(newX / 20) * 20;
-        newY = Math.round(newY / 20) * 20;
+        updateStreet(street.id, { 
+          ...street, 
+          x: Math.max(0, newX), 
+          y: Math.max(0, newY) 
+        });
       }
-
-      updateStreet(street.id, { 
-        ...street, 
-        x: Math.max(0, newX), 
-        y: Math.max(0, newY) 
-      });
     };
 
     const handleMouseUp = () => {
@@ -362,7 +367,13 @@ const CityBuilder = ({ user }) => {
 
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-    document.body.style.cursor = "grabbing";
+    
+    // Only change cursor if we're actually dragging
+    setTimeout(() => {
+      if (hasMoved) {
+        document.body.style.cursor = "grabbing";
+      }
+    }, 50);
   };
 
   const handleDuplicateBuilding = (building) => {
@@ -918,7 +929,10 @@ const CityBuilder = ({ user }) => {
               }}
               onMouseDown={(e) => {
                 console.log("Street mousedown:", street);
-                handleStreetMouseDown(e, street);
+                // Only call mouse down handler for dragging, not selection
+                if (e.shiftKey) { // Use shift+click for dragging
+                  handleStreetMouseDown(e, street);
+                }
               }}
             >
               {/* Render different street types */}
