@@ -86,6 +86,8 @@ Cache management: Implemented hot reload system for instant change detection and
 - **Environment Handling**: Server adapts static file serving based on NODE_ENV
 - **Entry Point**: `dist/index.js` for production, `server/index.ts` for development
 - **Port Configuration**: Port 5000 mapped to external port 80
+- **Vite Entry Fix**: Added missing `client/index.html` file as Vite build entry point (resolved "cannot find entry module" error)
+- **Production Path Fix**: Updated server paths to correctly serve built assets from `dist/public/` in production mode
 
 ### Production Considerations
 - **Static File Serving**: Production mode serves bundled assets from `dist/public/`

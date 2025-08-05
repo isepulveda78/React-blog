@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react()],
   root: path.resolve(process.cwd(), 'client'),
   build: {
+    rollupOptions: {
+      input: path.resolve(process.cwd(), 'client/index-build.html'),
+    },
     outDir: path.resolve(process.cwd(), 'dist/public'),
     emptyOutDir: true,
   },

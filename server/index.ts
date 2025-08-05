@@ -54,7 +54,7 @@ express.static.mime.define({'application/javascript': ['jsx']});
 
 // Serve static files from appropriate directory based on environment
 const staticDir = process.env.NODE_ENV === 'production' 
-  ? path.join(__dirname, 'public')  // Built frontend files in production
+  ? path.join(process.cwd(), 'dist/public')  // Built frontend files in production
   : path.join(__dirname, '../client'); // Source files in development
 
 app.use(express.static(staticDir));
@@ -78,7 +78,7 @@ app.get('*', (req, res) => {
   
   console.log('Serving index.html for path:', req.path);
   const indexPath = process.env.NODE_ENV === 'production'
-    ? path.join(__dirname, 'public/index.html')
+    ? path.join(process.cwd(), 'dist/public/index-build.html')
     : path.join(__dirname, '../client/index-dev.html');
   res.sendFile(indexPath);
 });
