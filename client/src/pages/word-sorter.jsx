@@ -76,8 +76,19 @@ const WordSorter = ({ user }) => {
   const exportToPDF = async () => {
     setIsLoading(true);
     try {
-      // Import jsPDF dynamically
-      const jsPDF = (await import('jspdf')).default;
+      // Check if jsPDF is available via CDN first
+      let jsPDF;
+      if (window.jsPDF) {
+        jsPDF = window.jsPDF;
+      } else {
+        // Try dynamic import as fallback
+        const module = await import('jspdf');
+        jsPDF = module.default || module.jsPDF;
+      }
+
+      if (!jsPDF) {
+        throw new Error('jsPDF library not available');
+      }
       
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
@@ -86,14 +97,12 @@ const WordSorter = ({ user }) => {
 
       // Title
       doc.setFontSize(20);
-      doc.setFont('helvetica', 'bold');
       doc.text('Word Sorter Lists', pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 20;
 
       // User name
       if (userName.trim()) {
         doc.setFontSize(14);
-        doc.setFont('helvetica', 'normal');
         doc.text(`Created by: ${userName}`, pageWidth / 2, yPosition, { align: 'center' });
         yPosition += 20;
       }
@@ -105,50 +114,49 @@ const WordSorter = ({ user }) => {
 
       // List 1
       doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
       doc.text(list1Title, margin, yPosition);
-      yPosition += 10;
+      yPosition += 15;
 
       doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
       if (list1.length === 0) {
         doc.text('(No words)', margin + 5, yPosition);
-        yPosition += 10;
+        yPosition += 15;
       } else {
         list1.forEach((word, index) => {
           doc.text(`${index + 1}. ${word.text}`, margin + 5, yPosition);
-          yPosition += 8;
+          yPosition += 10;
         });
       }
       yPosition += 20;
 
       // List 2
       doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
       doc.text(list2Title, margin, yPosition);
-      yPosition += 10;
+      yPosition += 15;
 
       doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
       if (list2.length === 0) {
         doc.text('(No words)', margin + 5, yPosition);
-        yPosition += 10;
+        yPosition += 15;
       } else {
         list2.forEach((word, index) => {
           doc.text(`${index + 1}. ${word.text}`, margin + 5, yPosition);
-          yPosition += 8;
+          yPosition += 10;
         });
       }
 
       // Save the PDF
       const fileName = userName.trim() ? 
-        `${userName.replace(/[^a-zA-Z0-9]/g, '_')}_word_sorter.pdf` : 
+        `${userName.replace(/[^a-zA-Z0-9\s]/g, '_')}_word_sorter.pdf` : 
         'word_sorter.pdf';
       doc.save(fileName);
 
+      // Success feedback
+      alert('PDF exported successfully!');
+
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Error generating PDF. Please try again.');
+      alert(`Error generating PDF: ${error.message}. The jsPDF library may not be loaded properly.`);
     } finally {
       setIsLoading(false);
     }
