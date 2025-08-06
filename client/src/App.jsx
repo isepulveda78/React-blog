@@ -131,9 +131,9 @@ const AppRoutes = () => {
   }
 
   return (
-    <div>
+    <div className="d-flex flex-column min-vh-100">
       <Navigation user={user} />
-      <main>
+      <main className="flex-grow-1">
         <Switch>
           <Route path="/" component={() => <Home user={user} />} />
           <Route path="/blog" component={() => <BlogListing user={user} />} />
