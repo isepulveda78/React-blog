@@ -506,14 +506,27 @@ const CityBuilder = ({ user }) => {
                 className="btn btn-danger btn-sm" 
                 onClick={() => {
                   console.log('Delete button physically clicked!');
+                  console.log('Current selectedItem:', selectedItem);
                   deleteSelected();
                 }} 
                 disabled={!selectedItem}
+                style={{cursor: 'pointer'}}
               >
                 Delete
               </button>
             </div>
-            <button className="btn btn-warning btn-sm w-100 mb-2" onClick={clearAll}>
+            <div className="mb-2">
+              <small className="text-muted">
+                {selectedItem ? `Selected: ${selectedItem.name || selectedItem.type}` : 'No item selected'}
+              </small>
+            </div>
+            <button 
+              className="btn btn-warning btn-sm w-100 mb-2" 
+              onClick={() => {
+                console.log('Clear All button clicked!');
+                clearAll();
+              }}
+            >
               Clear All
             </button>
             <button className="btn btn-success btn-sm w-100" onClick={exportAsImage}>
