@@ -163,11 +163,21 @@ const AppRoutes = () => {
               <AdminDashboard user={user} />
             </ProtectedRoute>
           )} />
-          <Route path="/admin/posts" component={() => (
-            <ProtectedRoute requireAdmin={true}>
-              <AdminPosts user={user} />
-            </ProtectedRoute>
-          )} />
+          <Route path="/admin/posts" component={() => {
+            console.log('Route /admin/posts accessed - testing AdminPosts component');
+            return (
+              <ProtectedRoute requireAdmin={true}>
+                <div className="container py-5">
+                  <h1 className="display-4 fw-bold text-success">✅ Route Working!</h1>
+                  <div className="alert alert-info">
+                    User: {user?.name}, Admin: {user?.isAdmin ? 'Yes' : 'No'}
+                    <br />
+                    AdminPosts component temporarily bypassed for testing
+                  </div>
+                </div>
+              </ProtectedRoute>
+            );
+          }} />
           <Route path="/admin/posts/new" component={() => (
             <ProtectedRoute requireAdmin={true}>
               <AdminPostEditor user={user} />
