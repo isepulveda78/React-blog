@@ -502,7 +502,14 @@ const CityBuilder = ({ user }) => {
               <button className="btn btn-primary btn-sm" onClick={copySelected} disabled={!selectedItem}>
                 Copy
               </button>
-              <button className="btn btn-danger btn-sm" onClick={deleteSelected} disabled={!selectedItem}>
+              <button 
+                className="btn btn-danger btn-sm" 
+                onClick={() => {
+                  console.log('Delete button physically clicked!');
+                  deleteSelected();
+                }} 
+                disabled={!selectedItem}
+              >
                 Delete
               </button>
             </div>
