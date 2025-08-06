@@ -8,35 +8,38 @@ import Home from './components/Home.jsx'
 import BlogListing from './components/BlogListing.jsx'
 import BlogPost from './pages/blog-post.jsx'
 import AdminDashboard from './components/AdminDashboard.jsx'
-// Use function declaration with full ES5 compatibility
-function AdminPosts(props) {
-  const user = props.user;
-  console.log('FUNCTION AdminPosts rendering - user:', user ? user.name : 'none');
+// ES6 inline component to bypass import issues
+const AdminPosts = ({ user }) => {
+  console.log('ES6 AdminPosts rendering - user:', user?.name);
 
-  if (!user || !user.isAdmin) {
-    return React.createElement('div', {className: 'container py-5'}, 
-      React.createElement('div', {className: 'alert alert-danger'}, 
-        'Access denied. Admin privileges required.'
-      )
+  if (!user?.isAdmin) {
+    return (
+      <div className="container py-5">
+        <div className="alert alert-danger">
+          Access denied. Admin privileges required.
+        </div>
+      </div>
     );
   }
 
-  return React.createElement('div', {className: 'container py-5'},
-    React.createElement('h1', {className: 'display-4 fw-bold text-success'}, 
-      '✅ Function Component Working!'
-    ),
-    React.createElement('div', {className: 'alert alert-info'}, 
-      'Component loaded successfully with user: ', user.name
-    ),
-    React.createElement('button', {
-      className: 'btn btn-primary btn-lg',
-      onClick: function() {
-        console.log('Button clicked - this should work');
-        alert('Button works! No React errors.');
-      }
-    }, 'Test Button')
+  return (
+    <div className="container py-5">
+      <h1 className="display-4 fw-bold text-success">✅ ES6 Component Working!</h1>
+      <div className="alert alert-info">
+        Component loaded successfully with user: {user.name}
+      </div>
+      <button 
+        className="btn btn-primary btn-lg"
+        onClick={() => {
+          console.log('Button clicked - this should work');
+          alert('Button works! No React errors.');
+        }}
+      >
+        Test Button
+      </button>
+    </div>
   );
-}
+};
 import AdminUsers from './components/AdminUsers.jsx'
 import AdminComments from './components/AdminComments.jsx'
 import AdminPostEditor from './components/AdminPostEditor.jsx'
@@ -128,12 +131,16 @@ const AppRoutes = () => {
 
   // Protected route wrapper
   const ProtectedRoute = ({ children, requireAdmin = false, requireApproval = true }) => {
+    console.log('ProtectedRoute - user:', user?.name, 'requireAdmin:', requireAdmin);
+    
     if (!user) {
+      console.log('No user, redirecting to Google auth');
       window.location.href = '/api/auth/google'
       return null
     }
 
     if (requireApproval && !user.approved) {
+      console.log('User not approved');
       return (
         <div className="container py-5">
           <div className="alert alert-warning">
@@ -145,6 +152,7 @@ const AppRoutes = () => {
     }
 
     if (requireAdmin && !user.isAdmin) {
+      console.log('User not admin, isAdmin:', user.isAdmin);
       return (
         <div className="container py-5">
           <div className="alert alert-danger">
@@ -155,6 +163,7 @@ const AppRoutes = () => {
       )
     }
 
+    console.log('ProtectedRoute - rendering children');
     return children
   }
 
@@ -185,11 +194,14 @@ const AppRoutes = () => {
               <AdminDashboard user={user} />
             </ProtectedRoute>
           )} />
-          <Route path="/admin/posts" component={() => (
-            <ProtectedRoute requireAdmin={true}>
-              <AdminPosts user={user} />
-            </ProtectedRoute>
-          )} />
+          <Route path="/admin/posts" component={() => {
+            console.log('Route /admin/posts accessed - user:', user?.name);
+            return (
+              <ProtectedRoute requireAdmin={true}>
+                <AdminPosts user={user} />
+              </ProtectedRoute>
+            );
+          }} />
           <Route path="/admin/posts/new" component={() => (
             <ProtectedRoute requireAdmin={true}>
               <AdminPostEditor user={user} />
