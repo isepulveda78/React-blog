@@ -100,6 +100,120 @@ const CityBuilder = ({ user }) => {
     setSelectedItem(null);
   };
 
+  const exportAsImage = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Create a new canvas for export with higher resolution
+    const exportCanvas = document.createElement('canvas');
+    const exportCtx = exportCanvas.getContext('2d');
+    
+    // Set export dimensions (4x resolution for better quality)
+    const scale = 4;
+    const canvasRect = canvas.getBoundingClientRect();
+    exportCanvas.width = canvasRect.width * scale;
+    exportCanvas.height = canvasRect.height * scale;
+    
+    // Set background
+    exportCtx.fillStyle = backgroundColor;
+    exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+    
+    // Draw grid if enabled
+    if (gridEnabled) {
+      exportCtx.strokeStyle = 'rgba(0,0,0,0.1)';
+      exportCtx.lineWidth = 1;
+      const gridSize = 20 * scale;
+      
+      for (let x = 0; x <= exportCanvas.width; x += gridSize) {
+        exportCtx.beginPath();
+        exportCtx.moveTo(x, 0);
+        exportCtx.lineTo(x, exportCanvas.height);
+        exportCtx.stroke();
+      }
+      
+      for (let y = 0; y <= exportCanvas.height; y += gridSize) {
+        exportCtx.beginPath();
+        exportCtx.moveTo(0, y);
+        exportCtx.lineTo(exportCanvas.width, y);
+        exportCtx.stroke();
+      }
+    }
+    
+    // Draw streets (infrastructure)
+    streets.forEach(street => {
+      exportCtx.fillStyle = street.color;
+      exportCtx.fillRect(
+        street.x * scale,
+        street.y * scale,
+        street.width * scale,
+        street.height * scale
+      );
+      
+      // Draw label if exists
+      if (street.label) {
+        exportCtx.fillStyle = 'rgba(255,255,255,0.9)';
+        exportCtx.fillRect(
+          (street.x + street.width/2 - 30) * scale,
+          (street.y - 25) * scale,
+          60 * scale,
+          20 * scale
+        );
+        exportCtx.fillStyle = 'black';
+        exportCtx.font = `${12 * scale}px Arial`;
+        exportCtx.textAlign = 'center';
+        exportCtx.fillText(
+          street.label,
+          (street.x + street.width/2) * scale,
+          (street.y - 10) * scale
+        );
+      }
+    });
+    
+    // Draw buildings
+    buildings.forEach(building => {
+      // Draw building icon
+      exportCtx.font = `${(building.width > 60 ? 36 : 28) * scale}px Arial`;
+      exportCtx.textAlign = 'center';
+      exportCtx.fillStyle = 'black';
+      exportCtx.fillText(
+        building.icon,
+        (building.x + building.width/2) * scale,
+        (building.y + building.height/2 + 10) * scale
+      );
+      
+      // Draw label if exists
+      if (building.label) {
+        exportCtx.fillStyle = 'rgba(255,255,255,0.9)';
+        exportCtx.fillRect(
+          (building.x + building.width/2 - 30) * scale,
+          (building.y - 25) * scale,
+          60 * scale,
+          20 * scale
+        );
+        exportCtx.fillStyle = 'black';
+        exportCtx.font = `${12 * scale}px Arial`;
+        exportCtx.textAlign = 'center';
+        exportCtx.fillText(
+          building.label,
+          (building.x + building.width/2) * scale,
+          (building.y - 10) * scale
+        );
+      }
+    });
+    
+    // Create download link
+    exportCanvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `my-city-${new Date().toISOString().split('T')[0]}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  };
+
   const handleCanvasDrop = (e) => {
     e.preventDefault();
     const dragData = JSON.parse(e.dataTransfer.getData("text/plain"));
@@ -340,8 +454,11 @@ const CityBuilder = ({ user }) => {
                 Delete
               </button>
             </div>
-            <button className="btn btn-warning btn-sm w-100" onClick={clearAll}>
+            <button className="btn btn-warning btn-sm w-100 mb-2" onClick={clearAll}>
               Clear All
+            </button>
+            <button className="btn btn-success btn-sm w-100" onClick={exportAsImage}>
+              Export as Image
             </button>
           </div>
 
