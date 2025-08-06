@@ -150,7 +150,9 @@ const AdminPosts = ({ user }) => {
       
       if (response.ok) {
         const updatedPost = await response.json();
-        setPosts(posts.map(p => p.id === postId ? updatedPost : p));
+        setPosts(posts.map(p => p.id === postId ? { ...p, status: newStatus } : p));
+      } else {
+        console.error('Failed to update post status');
       }
     } catch (error) {
       console.error('Error updating post status:', error);
@@ -272,8 +274,8 @@ const AdminPosts = ({ user }) => {
                     {(post.excerpt || post.content || '').length > 100 && '...'}
                   </p>
                   <div className="mb-3">
-                    <span className={`badge ${post.status === 'published' ? 'bg-success' : 'bg-warning'}`}>
-                      {post.status}
+                    <span className={`badge ${post.status === 'published' ? 'bg-success' : 'bg-secondary'}`}>
+                      {post.status === 'published' ? 'Published' : 'Draft'}
                     </span>
                     <small className="text-muted ms-2">
                       by {post.authorName}
