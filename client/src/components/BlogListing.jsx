@@ -58,11 +58,7 @@ const BlogListing = ({ user }) => {
       return;
     }
     
-    if (!user.approved) {
-      alert('Your account is pending approval. Please wait for admin approval to access posts.');
-      return;
-    }
-    
+    // All registered users can now read posts
     // Navigate to blog post
     window.history.pushState({}, '', `/blog/${post.slug}`);
     window.dispatchEvent(new PopStateEvent('popstate'));

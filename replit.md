@@ -39,9 +39,10 @@ Cache management: Implemented hot reload system for instant change detection and
 ### Authentication & Authorization
 - **User Registration/Login**: Email/password and Google OAuth authentication.
 - **Password Security**: bcrypt hashing.
-- **Multi-Level Access Control**: Three-tier security (login required → approval required → admin required).
+- **Immediate Blog Access**: New registered users can immediately read posts and leave comments.
 - **Role-Based Access**: Admin users have access to management interfaces.
 - **Session Management**: Client-side storage with localStorage persistence and server-side validation.
+- **Simplified Approval**: Removed approval requirement for basic blog reading functionality.
 
 ### Rich Text Editing
 - **Custom Editor**: Built-in WYSIWYG editor with formatting controls.

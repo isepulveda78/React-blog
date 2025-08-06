@@ -64,10 +64,10 @@ function CommentForm({ postId, parentId, onSuccess, onCancel }) {
     }
   };
 
-  if (!user?.approved) {
+  if (!user) {
     return (
       <div className="alert alert-info mt-3">
-        Please sign in and get your account approved to leave comments.
+        Please sign in to leave comments.
       </div>
     );
   }
@@ -156,7 +156,7 @@ function CommentItem({ comment, postId, onReply }) {
             dangerouslySetInnerHTML={{ __html: comment.content }}
           />
 
-          {isApproved && user?.approved && !comment.parentId && (
+          {isApproved && user && !comment.parentId && (
             <div className="mt-2">
               <button
                 className="btn btn-outline-primary btn-sm"
@@ -302,8 +302,8 @@ function CommentsSection({ postId, user }) {
         Comments ({allCommentsFlat.length})
       </h3>
 
-      {/* Comment Form - only show if user is approved */}
-      {user?.approved && <CommentForm postId={postId} onSuccess={handleCommentAdded} />}
+      {/* Comment Form - show for any logged in user */}
+      {user && <CommentForm postId={postId} onSuccess={handleCommentAdded} />}
 
       {/* Comments List */}
       <div className="comments-list mt-4">

@@ -74,7 +74,7 @@ passport.use(new GoogleStrategy({
       name: profile.displayName,
       googleId: profile.id,
       isAdmin: false,
-      approved: false  // New users start as unapproved
+      approved: true   // New users can read posts immediately
     });
 
     return done(null, newUser);
@@ -130,15 +130,8 @@ export function registerRoutes(app) {
       try {
         console.log('[google-callback] User authenticated:', req.user?.email);
         
-        // Check if user is approved
-        if (!req.user.approved) {
-          console.log('[google-callback] User not approved, logging out');
-          // Don't set session for unapproved users
-          req.logout((err) => {
-            if (err) console.error('Logout error:', err);
-          });
-          return res.redirect('/?message=pending-approval');
-        }
+        // All new users are now automatically approved for reading posts
+        console.log('[google-callback] User approved, setting session');
         
         console.log('[google-callback] Setting user session');
         // Set session for approved users
@@ -209,16 +202,19 @@ export function registerRoutes(app) {
         password: hashedPassword,
         role: role,
         isAdmin: false,
-        approved: false  // New users start as unapproved
+        approved: true   // New users can read posts immediately
       });
 
       // Remove password from response
       const { password: _, ...userResponse } = user;
       
-      // Don't set session for unapproved users
+      // Set session for new user (automatically approved for reading)
+      req.session.userId = user.id;
+      req.session.user = userResponse;
+      
       res.json({ 
         ...userResponse, 
-        message: "Registration successful! Your account is pending approval. Please wait for an administrator to approve your account before you can access the blog." 
+        message: "Registration successful! You can now read blog posts and use educational tools." 
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -242,10 +238,8 @@ export function registerRoutes(app) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Check if user is approved
-      if (!user.approved) {
-        return res.status(403).json({ message: "Your account is pending approval. Please wait for an administrator to approve your account." });
-      }
+      // All users are now automatically approved for reading posts
+      // (Admin privileges still require separate approval)
 
       // Remove password from response
       const { password: _, ...userResponse } = user;
