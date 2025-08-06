@@ -480,53 +480,65 @@ const CityBuilder = ({ user }) => {
               <>
                 {/* SE corner */}
                 <div
-                  className="position-absolute bg-primary rounded-circle"
+                  className="position-absolute rounded-circle"
                   style={{
-                    width: '10px',
-                    height: '10px',
-                    bottom: '-5px',
-                    right: '-5px',
+                    width: '12px',
+                    height: '12px',
+                    bottom: '-6px',
+                    right: '-6px',
                     cursor: 'se-resize',
-                    zIndex: 10
+                    zIndex: 25,
+                    backgroundColor: '#007bff',
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
                   }}
                   onMouseDown={(e) => handleResizeStart(e, street, 'se')}
                 />
                 {/* SW corner */}
                 <div
-                  className="position-absolute bg-primary rounded-circle"
+                  className="position-absolute rounded-circle"
                   style={{
-                    width: '10px',
-                    height: '10px',
-                    bottom: '-5px',
-                    left: '-5px',
+                    width: '12px',
+                    height: '12px',
+                    bottom: '-6px',
+                    left: '-6px',
                     cursor: 'sw-resize',
-                    zIndex: 10
+                    zIndex: 25,
+                    backgroundColor: '#007bff',
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
                   }}
                   onMouseDown={(e) => handleResizeStart(e, street, 'sw')}
                 />
                 {/* NE corner */}
                 <div
-                  className="position-absolute bg-primary rounded-circle"
+                  className="position-absolute rounded-circle"
                   style={{
-                    width: '10px',
-                    height: '10px',
-                    top: '-5px',
-                    right: '-5px',
+                    width: '12px',
+                    height: '12px',
+                    top: '-6px',
+                    right: '-6px',
                     cursor: 'ne-resize',
-                    zIndex: 10
+                    zIndex: 25,
+                    backgroundColor: '#007bff',
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
                   }}
                   onMouseDown={(e) => handleResizeStart(e, street, 'ne')}
                 />
                 {/* NW corner */}
                 <div
-                  className="position-absolute bg-primary rounded-circle"
+                  className="position-absolute rounded-circle"
                   style={{
-                    width: '10px',
-                    height: '10px',
-                    top: '-5px',
-                    left: '-5px',
+                    width: '12px',
+                    height: '12px',
+                    top: '-6px',
+                    left: '-6px',
                     cursor: 'nw-resize',
-                    zIndex: 10
+                    zIndex: 25,
+                    backgroundColor: '#007bff',
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
                   }}
                   onMouseDown={(e) => handleResizeStart(e, street, 'nw')}
                 />
@@ -581,53 +593,65 @@ const CityBuilder = ({ user }) => {
               <>
                 {/* SE corner */}
                 <div
-                  className="position-absolute bg-primary rounded-circle"
+                  className="position-absolute rounded-circle"
                   style={{
-                    width: '10px',
-                    height: '10px',
-                    bottom: '-5px',
-                    right: '-5px',
+                    width: '12px',
+                    height: '12px',
+                    bottom: '-6px',
+                    right: '-6px',
                     cursor: 'se-resize',
-                    zIndex: 10
+                    zIndex: 25,
+                    backgroundColor: '#007bff',
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
                   }}
                   onMouseDown={(e) => handleResizeStart(e, building, 'se')}
                 />
                 {/* SW corner */}
                 <div
-                  className="position-absolute bg-primary rounded-circle"
+                  className="position-absolute rounded-circle"
                   style={{
-                    width: '10px',
-                    height: '10px',
-                    bottom: '-5px',
-                    left: '-5px',
+                    width: '12px',
+                    height: '12px',
+                    bottom: '-6px',
+                    left: '-6px',
                     cursor: 'sw-resize',
-                    zIndex: 10
+                    zIndex: 25,
+                    backgroundColor: '#007bff',
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
                   }}
                   onMouseDown={(e) => handleResizeStart(e, building, 'sw')}
                 />
                 {/* NE corner */}
                 <div
-                  className="position-absolute bg-primary rounded-circle"
+                  className="position-absolute rounded-circle"
                   style={{
-                    width: '10px',
-                    height: '10px',
-                    top: '-5px',
-                    right: '-5px',
+                    width: '12px',
+                    height: '12px',
+                    top: '-6px',
+                    right: '-6px',
                     cursor: 'ne-resize',
-                    zIndex: 10
+                    zIndex: 25,
+                    backgroundColor: '#007bff',
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
                   }}
                   onMouseDown={(e) => handleResizeStart(e, building, 'ne')}
                 />
                 {/* NW corner */}
                 <div
-                  className="position-absolute bg-primary rounded-circle"
+                  className="position-absolute rounded-circle"
                   style={{
-                    width: '10px',
-                    height: '10px',
-                    top: '-5px',
-                    left: '-5px',
+                    width: '12px',
+                    height: '12px',
+                    top: '-6px',
+                    left: '-6px',
                     cursor: 'nw-resize',
-                    zIndex: 10
+                    zIndex: 25,
+                    backgroundColor: '#007bff',
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
                   }}
                   onMouseDown={(e) => handleResizeStart(e, building, 'nw')}
                 />
