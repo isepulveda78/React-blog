@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const AdminPosts = ({ user }) => {
   const [posts, setPosts] = useState([]);
@@ -11,7 +13,29 @@ const AdminPosts = ({ user }) => {
   const [content, setContent] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [status, setStatus] = useState('draft');
+  const [featuredImage, setFeaturedImage] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // ReactQuill configuration
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'indent': '-1'}, { 'indent': '+1' }],
+      ['link', 'image'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'align': [] }],
+      ['clean']
+    ],
+  };
+
+  const formats = [
+    'header', 'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'color', 'background', 'align'
+  ];
 
   console.log('AdminPosts component - user:', user);
   
@@ -37,11 +61,13 @@ const AdminPosts = ({ user }) => {
       setContent(editingPost.content || '');
       setExcerpt(editingPost.excerpt || '');
       setStatus(editingPost.status || 'draft');
+      setFeaturedImage(editingPost.featuredImage || '');
     } else {
       setTitle('');
       setContent('');
       setExcerpt('');
       setStatus('draft');
+      setFeaturedImage('');
     }
   }, [editingPost]);
 
@@ -62,6 +88,35 @@ const AdminPosts = ({ user }) => {
       console.error('AdminPosts: Error fetching posts:', error);
     }
     setLoading(false);
+  };
+
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFeaturedImage(data.url);
+        alert('Image uploaded successfully!');
+      } else {
+        alert('Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image');
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleCreateNew = () => {
@@ -100,6 +155,7 @@ const AdminPosts = ({ user }) => {
           content,
           excerpt,
           status,
+          featuredImage,
           authorId: user.id,
           authorName: user.name || user.username
         })
@@ -201,12 +257,14 @@ const AdminPosts = ({ user }) => {
           
           <div className="mb-3">
             <label className="form-label">Content *</label>
-            <textarea
-              className="form-control"
-              rows={12}
+            <ReactQuill
+              theme="snow"
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={setContent}
+              modules={modules}
+              formats={formats}
               placeholder="Write your post content here..."
+              style={{ height: '300px', marginBottom: '50px' }}
             />
           </div>
           
@@ -221,6 +279,37 @@ const AdminPosts = ({ user }) => {
             />
           </div>
           
+          <div className="mb-3">
+            <label className="form-label">Featured Image</label>
+            <div className="input-group">
+              <input
+                type="file"
+                className="form-control"
+                accept="image/*"
+                onChange={(e) => e.target.files[0] && handleImageUpload(e.target.files[0])}
+                disabled={uploadingImage}
+              />
+              <button 
+                className="btn btn-outline-secondary" 
+                type="button"
+                disabled={uploadingImage}
+              >
+                {uploadingImage ? 'Uploading...' : 'Upload'}
+              </button>
+            </div>
+            {featuredImage && (
+              <div className="mt-2">
+                <img 
+                  src={featuredImage} 
+                  alt="Featured preview" 
+                  style={{ maxWidth: '200px', height: 'auto' }}
+                  className="img-thumbnail"
+                />
+                <p className="small text-muted mt-1">Featured image preview</p>
+              </div>
+            )}
+          </div>
+
           <div className="mb-3">
             <label className="form-label">Status</label>
             <select
