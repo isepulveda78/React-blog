@@ -3,16 +3,17 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
   return {
-    resolve: {
-      alias: {
-        // Fix for React error #130 in dev mode
-        'react/jsx-runtime': 'react/jsx-runtime.js',
-      },
+    esbuild: {
+      jsx: 'automatic'
     },
     plugins: [react({
+      jsxRuntime: 'automatic',
       babel: {
         plugins: [
-          ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }],
+          ['@babel/plugin-transform-react-jsx', { 
+            runtime: 'automatic',
+            importSource: 'react' 
+          }],
         ]
       },
     })],
@@ -22,6 +23,8 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
     },
     server: {
+      host: '0.0.0.0',
+      port: 3000,
       proxy: {
         '/api': 'http://localhost:5000'
       }

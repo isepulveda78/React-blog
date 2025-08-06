@@ -66,14 +66,9 @@ registerRoutes(app);
 // Configure Express to serve JSX files with JavaScript MIME type
 express.static.mime.define({'application/javascript': ['jsx']});
 
-// Serve static files from built assets
-if (process.env.NODE_ENV === 'production') {
-  console.log('[server] serving static files from dist/public');
-  app.use(express.static(path.join(__dirname, './public')));
-} else {
-  console.log('[server] serving static files from dist/public (development)');
-  app.use(express.static(path.join(__dirname, '../dist/public')));
-}
+// Serve static files from built assets (using production build for stability)
+console.log('[server] serving static files from dist/public');
+app.use(express.static(path.join(__dirname, '../dist/public')));
 
 // Handle client-side routing - serve from built files
 app.get('*', (req, res) => {
@@ -83,12 +78,8 @@ app.get('*', (req, res) => {
   
   console.log('Serving index.html for path:', req.path);
   
-  // In development, use built files from dist/public
-  if (process.env.NODE_ENV !== 'production') {
-    res.sendFile(path.join(__dirname, '../dist/public/index.html'));
-  } else {
-    res.sendFile(path.join(__dirname, './public/index.html'));
-  }
+  // Always serve built index.html for React routing stability
+  res.sendFile(path.join(__dirname, '../dist/public/index.html'));
 });
 
 app.listen(PORT, "0.0.0.0", () => {
