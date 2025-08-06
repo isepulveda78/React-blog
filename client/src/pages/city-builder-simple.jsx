@@ -647,7 +647,7 @@ const CityBuilder = ({ user }) => {
         ref={canvasRef}
         className="position-relative flex-grow-1"
         style={{
-          height: 'calc(100vh - 60px)',
+          height: '100vh',
           backgroundColor: backgroundColor,
           overflow: 'hidden'
         }}
