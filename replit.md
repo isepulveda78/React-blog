@@ -113,3 +113,23 @@ Cache management: Implemented hot reload system for instant change detection and
 - SEOManagement, NotFound, BlogPost, UserProfile
 - EducationalTools, BingoGenerator, SpanishAlphabet, WordSorter
 - Simplified CityBuilder (complex version temporarily disabled)
+
+## Deployment Configuration (Latest)
+
+### Port Configuration
+- **Application Port**: Server listens on port 5000 (configurable via PORT environment variable)
+- **Binding Interface**: Server binds to "0.0.0.0" for external access compatibility
+- **Port Forwarding**: Replit forwards external port 80 to internal port 5000
+- **Environment Variable**: PORT is set to "5000" in .replit configuration
+
+### Production Deployment Setup
+- **Build Command**: `npm run build` - Creates production bundles in dist/
+- **Start Command**: `npm run start` - Runs production server from dist/index.js
+- **Static Files**: Production serves from `dist/public/` directory
+- **Server Bundle**: Backend code compiled to `dist/index.js` via esbuild
+
+### Deployment Fixes Applied (August 2025)
+- Verified server binds to "0.0.0.0" interface for external access
+- Confirmed PORT environment variable configuration matches .replit settings
+- Ensured production build process generates correct file structure
+- Server correctly serves static files from dist/public in production mode
