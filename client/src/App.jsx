@@ -1,7 +1,7 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
 import { Router, Route, Switch, Link, useLocation } from 'wouter'
 
-// Import components
+// Import components - Adding debug logs to find undefined component
 import Navigation from './components/Navigation.jsx'
 import Hero from './components/Hero.jsx'
 import Home from './components/Home.jsx'
@@ -13,6 +13,12 @@ import AdminUsers from './components/AdminUsers.jsx'
 import AdminComments from './components/AdminComments.jsx'
 import AdminPostEditor from './components/AdminPostEditor.jsx'
 import SEOManagement from './components/SEOManagement.jsx'
+
+// Debug: Log all imports to find undefined component
+console.log('DEBUG IMPORTS:', {
+  Navigation, Hero, Home, BlogListing, BlogPost, AdminDashboard, 
+  AdminPosts, AdminUsers, AdminComments, AdminPostEditor, SEOManagement
+})
 import Footer from './components/Footer.jsx'
 import UserProfile from './pages/user-profile.jsx'
 import EducationalTools from './pages/educational-tools.jsx'
@@ -141,33 +147,12 @@ const AppRoutes = () => {
       <Navigation user={user} />
       <main className="flex-grow-1">
         <Switch>
-          <Route path="/admin/posts" component={() => {
-            console.log('🟢 ROUTE MATCHED: /admin/posts - This should appear in logs');
-            return (
-              <div style={{
-                backgroundColor: '#e6f3ff', 
-                border: '5px solid #007bff', 
-                padding: '20px',
-                margin: '20px',
-                borderRadius: '10px'
-              }}>
-                <h1 style={{ color: '#007bff', fontSize: '48px', textAlign: 'center' }}>
-                  🎯 ROUTE TEST SUCCESS!
-                </h1>
-                <div style={{
-                  backgroundColor: '#d4edda',
-                  border: '2px solid #28a745',
-                  padding: '15px',
-                  borderRadius: '5px',
-                  margin: '10px 0'
-                }}>
-                  <strong>SUCCESS:</strong> The /admin/posts route is working!<br/>
-                  User: {user?.name || 'No user'}<br/>
-                  Admin Status: {user?.isAdmin ? 'Admin' : 'Not Admin'}
-                </div>
-              </div>
-            );
-          }} />
+          <Route path="/admin/posts">
+            <div className="container py-5">
+              <h1 className="display-4 text-success">ROUTE WORKS!</h1>
+              <p>If you see this, the route matching works fine.</p>
+            </div>
+          </Route>
           <Route path="/" component={() => <Home user={user} />} />
           <Route path="/blog" component={() => <BlogListing user={user} />} />
           <Route path="/blog/:slug" component={({ params }) => (
