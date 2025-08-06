@@ -142,6 +142,13 @@ const CityBuilder = ({ user }) => {
     e.stopPropagation();
     const selectedItemData = { ...item, isBuilding };
     setSelectedItem(selectedItemData);
+    
+    // If no label exists, start editing immediately
+    if (!item.label) {
+      setEditingLabel(item.id);
+      setLabelInput(item.name);
+    }
+    
     console.log('Item clicked - selectedItem set to:', selectedItemData);
   };
 
@@ -447,7 +454,7 @@ const CityBuilder = ({ user }) => {
             }}
             onMouseDown={(e) => handleItemMouseDown(e, street, false)}
           >
-            {(street.label || selectedItem?.id === street.id) && (
+            {street.label && (
               <div style={{ 
                 position: 'absolute',
                 top: '-20px',
@@ -464,7 +471,7 @@ const CityBuilder = ({ user }) => {
               }}
               onClick={(e) => handleLabelClick(e, street.id, street.label)}
               >
-                {street.label || 'Click to name'}
+                {street.label}
               </div>
             )}
             
@@ -548,7 +555,7 @@ const CityBuilder = ({ user }) => {
             onMouseDown={(e) => handleItemMouseDown(e, building, true)}
           >
             <div>{building.icon}</div>
-            {(building.label || selectedItem?.id === building.id) && (
+            {building.label && (
               <div style={{ 
                 position: 'absolute',
                 top: '-20px',
@@ -565,7 +572,7 @@ const CityBuilder = ({ user }) => {
               }}
               onClick={(e) => handleLabelClick(e, building.id, building.label)}
               >
-                {building.label || 'Click to name'}
+                {building.label}
               </div>
             )}
             
