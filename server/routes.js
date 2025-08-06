@@ -426,12 +426,9 @@ export function registerRoutes(app) {
   // Posts routes (authenticated users only)
   app.get("/api/posts", async (req, res) => {
     try {
-      // Check if user is authenticated and approved
+      // Check if user is authenticated (approval no longer required)
       if (!req.session.user) {
         return res.status(401).json({ message: "Authentication required to view blog posts" });
-      }
-      if (!req.session.user.approved) {
-        return res.status(403).json({ message: "Your account must be approved to view blog posts" });
       }
 
       const posts = await storage.getPosts();
@@ -444,12 +441,9 @@ export function registerRoutes(app) {
 
   app.get("/api/posts/:slugOrId", async (req, res) => {
     try {
-      // Check if user is authenticated and approved
+      // Check if user is authenticated (approval no longer required)
       if (!req.session.user) {
         return res.status(401).json({ message: "Authentication required to view blog posts" });
-      }
-      if (!req.session.user.approved) {
-        return res.status(403).json({ message: "Your account must be approved to view blog posts" });
       }
 
       const { slugOrId } = req.params;
