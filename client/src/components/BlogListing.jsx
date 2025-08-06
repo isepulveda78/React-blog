@@ -53,14 +53,10 @@ const BlogListing = ({ user }) => {
   }, []);
 
   const handleReadMore = (post) => {
-    if (!user) {
-      window.location.href = '/api/auth/google';
-      return;
-    }
-    
-    // All registered users can now read posts
-    // Navigate to blog post
-    window.history.pushState({}, '', `/blog/${post.slug}`);
+    // Posts are now publicly accessible - no authentication required
+    // Use slug if available, otherwise use ID
+    const identifier = post.slug || post.id;
+    window.history.pushState({}, '', `/blog/${identifier}`);
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
