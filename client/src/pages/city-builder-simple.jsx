@@ -210,10 +210,10 @@ const CityBuilder = ({ user }) => {
   };
 
   const handleLabelSave = () => {
-    if (selectedItem && editingLabel && labelInput.trim()) {
-      console.log('Saving label:', labelInput.trim(), 'for item:', editingLabel, 'isBuilding:', selectedItem.isBuilding);
+    if (editingLabel && labelInput.trim()) {
+      console.log('Saving label:', labelInput.trim(), 'for item:', editingLabel, 'isBuilding:', selectedItem?.isBuilding);
       
-      if (selectedItem.isBuilding) {
+      if (selectedItem?.isBuilding) {
         setBuildings(prev => {
           const updated = prev.map(b => 
             b.id === editingLabel ? { ...b, label: labelInput.trim() } : b
@@ -221,7 +221,6 @@ const CityBuilder = ({ user }) => {
           console.log('Updated buildings:', updated);
           return updated;
         });
-        // Update selected item to reflect the new label
         setSelectedItem(prev => ({ ...prev, label: labelInput.trim() }));
       } else {
         setStreets(prev => {
@@ -231,11 +230,8 @@ const CityBuilder = ({ user }) => {
           console.log('Updated streets:', updated);
           return updated;
         });
-        // Update selected item to reflect the new label
         setSelectedItem(prev => ({ ...prev, label: labelInput.trim() }));
       }
-    } else {
-      console.log('Label save failed - selectedItem:', selectedItem, 'editingLabel:', editingLabel, 'labelInput:', labelInput);
     }
     setEditingLabel(null);
     setLabelInput('');
