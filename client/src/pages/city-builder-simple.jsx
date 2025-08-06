@@ -351,7 +351,7 @@ const CityBuilder = ({ user }) => {
                         e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
                       }}
                     >
-                      <div style={{ fontSize: '20px' }}>{building.icon}</div>
+                      <div style={{ fontSize: '32px' }}>{building.icon}</div>
                       <small>{building.name}</small>
                     </div>
                   </div>
@@ -379,7 +379,7 @@ const CityBuilder = ({ user }) => {
                       e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
                     }}
                   >
-                    <div style={{ fontSize: '20px' }}>{street.icon}</div>
+                    <div style={{ fontSize: '32px' }}>{street.icon}</div>
                     <small>{street.name}</small>
                   </div>
                 </div>
@@ -536,7 +536,7 @@ const CityBuilder = ({ user }) => {
               height: `${building.height}px`,
               backgroundColor: 'transparent',
               cursor: 'pointer',
-              fontSize: building.width > 60 ? '24px' : '18px',
+              fontSize: building.width > 60 ? '36px' : '28px',
               zIndex: 10
             }}
             onMouseDown={(e) => handleItemMouseDown(e, building, true)}
