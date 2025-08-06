@@ -401,12 +401,26 @@ export class MongoStorage {
     console.log('[mongodb] Admin user fix result:', result.modifiedCount, 'documents modified');
   }
 
+  async fixTestPostSlug() {
+    console.log('[mongodb] Fixing test post slug...');
+    const testPost = await this.db.collection('posts').findOne({ title: "test" });
+    if (testPost && !testPost.slug) {
+      const result = await this.db.collection('posts').updateOne(
+        { id: testPost.id },
+        { $set: { slug: "test" } }
+      );
+      console.log('[mongodb] Test post slug fix result:', result.modifiedCount, 'documents modified');
+    }
+  }
+
   async initializeSampleData() {
     // Check if data already exists
     const existingUsers = await this.db.collection('users').countDocuments();
     if (existingUsers > 0) {
       // Fix admin user if data exists
       await this.fixAdminUser();
+      // Fix the test post slug if it exists
+      await this.fixTestPostSlug();
       return; // Data already exists
     }
     
