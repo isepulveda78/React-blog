@@ -498,44 +498,38 @@ const CityBuilder = ({ user }) => {
               </label>
             </div>
             
+            <button 
+              className="btn btn-danger w-100 mb-2" 
+              onClick={(e) => {
+                alert('Delete button clicked!'); // Visual confirmation
+                console.log('Delete button physically clicked!');
+                console.log('Current selectedItem:', selectedItem);
+                if (selectedItem) {
+                  if (selectedItem.isBuilding) {
+                    setBuildings(prev => prev.filter(b => b.id !== selectedItem.id));
+                  } else {
+                    setStreets(prev => prev.filter(s => s.id !== selectedItem.id));
+                  }
+                  setSelectedItem(null);
+                  alert('Item deleted!');
+                } else {
+                  alert('No item selected');
+                }
+              }} 
+              disabled={!selectedItem}
+              style={{
+                cursor: 'pointer',
+                fontSize: '16px',
+                padding: '10px',
+                backgroundColor: selectedItem ? '#dc3545' : '#6c757d'
+              }}
+            >
+              🗑️ DELETE SELECTED ITEM
+            </button>
+            
             <div className="d-flex gap-2 mb-2">
               <button className="btn btn-primary btn-sm" onClick={copySelected} disabled={!selectedItem}>
                 Copy
-              </button>
-              <button 
-                className="btn btn-danger btn-sm" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Delete button physically clicked!');
-                  console.log('Current selectedItem:', selectedItem);
-                  console.log('Button disabled?', !selectedItem);
-                  if (selectedItem) {
-                    if (selectedItem.isBuilding) {
-                      console.log('About to filter buildings array, current length:', buildings.length);
-                      setBuildings(prev => {
-                        const filtered = prev.filter(b => b.id !== selectedItem.id);
-                        console.log('Buildings after filter:', filtered.length);
-                        return filtered;
-                      });
-                    } else {
-                      console.log('About to filter streets array, current length:', streets.length);
-                      setStreets(prev => {
-                        const filtered = prev.filter(s => s.id !== selectedItem.id);
-                        console.log('Streets after filter:', filtered.length);
-                        return filtered;
-                      });
-                    }
-                    setSelectedItem(null);
-                    console.log('Item should be deleted now');
-                  } else {
-                    console.log('No selectedItem to delete');
-                  }
-                }} 
-                disabled={!selectedItem}
-                style={{cursor: 'pointer'}}
-              >
-                Delete
               </button>
             </div>
             <div className="mb-2">
