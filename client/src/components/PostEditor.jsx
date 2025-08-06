@@ -288,13 +288,13 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                             <div className="btn-toolbar">
                               <div className="btn-group btn-group-sm me-2">
                                 <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('bold')} title="Bold">
-                                  <i className="fas fa-bold"></i>
+                                  <strong>B</strong>
                                 </button>
                                 <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('italic')} title="Italic">
-                                  <i className="fas fa-italic"></i>
+                                  <em>I</em>
                                 </button>
                                 <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('underline')} title="Underline">
-                                  <i className="fas fa-underline"></i>
+                                  <u>U</u>
                                 </button>
                               </div>
                               
@@ -315,31 +315,31 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               
                               <div className="btn-group btn-group-sm me-2">
                                 <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('insertUnorderedList')} title="Bullet List">
-                                  <i className="fas fa-list-ul"></i>
+                                  •
                                 </button>
                                 <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('insertOrderedList')} title="Numbered List">
-                                  <i className="fas fa-list-ol"></i>
+                                  1.
                                 </button>
                               </div>
                               
                               <div className="btn-group btn-group-sm me-2">
                                 <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('justifyLeft')} title="Align Left">
-                                  <i className="fas fa-align-left"></i>
+                                  ←
                                 </button>
                                 <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('justifyCenter')} title="Align Center">
-                                  <i className="fas fa-align-center"></i>
+                                  ↔
                                 </button>
                                 <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('justifyRight')} title="Align Right">
-                                  <i className="fas fa-align-right"></i>
+                                  →
                                 </button>
                               </div>
                               
                               <div className="btn-group btn-group-sm me-2">
                                 <button type="button" className="btn btn-outline-secondary" onClick={insertLink} title="Insert Link">
-                                  <i className="fas fa-link"></i>
+                                  🔗
                                 </button>
                                 <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('unlink')} title="Remove Link">
-                                  <i className="fas fa-unlink"></i>
+                                  ⛓️‍💥
                                 </button>
                               </div>
                               
@@ -362,14 +362,14 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                                   {imageUploading ? (
                                     <span className="spinner-border spinner-border-sm"></span>
                                   ) : (
-                                    <i className="fas fa-image"></i>
+                                    "📷"
                                   )}
                                 </button>
                               </div>
                               
                               <div className="btn-group btn-group-sm">
                                 <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('removeFormat')} title="Clear Formatting">
-                                  <i className="fas fa-remove-format"></i>
+                                  ✂️
                                 </button>
                               </div>
                             </div>
