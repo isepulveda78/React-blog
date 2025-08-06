@@ -478,7 +478,7 @@ const CityBuilder = ({ user }) => {
         </div>
       )}
       {/* Sidebar */}
-      <div className="bg-light border-end" style={{ width: '280px', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
+      <div className="bg-light border-end" style={{ width: '280px', height: '100vh', overflowY: 'auto' }}>
         <div className="p-3">
           <h2 className="h4 mb-3">City Builder</h2>
           

@@ -142,7 +142,7 @@ const AppRoutes = () => {
           <Route path="/bingo-generator" component={() => <BingoGenerator user={user} />} />
           <Route path="/spanish-alphabet" component={() => <SpanishAlphabet user={user} />} />
           <Route path="/word-sorter" component={() => <WordSorter user={user} />} />
-          <Route path="/city-builder" component={() => <CityBuilder user={user} />} />
+          <Route path="/city-builder" component={() => <div style={{ height: '100vh', overflow: 'hidden' }}><CityBuilder user={user} /></div>} />
           <Route path="/profile" component={() => (
             <ProtectedRoute>
               <UserProfile user={user} />
