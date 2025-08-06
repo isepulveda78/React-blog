@@ -461,7 +461,7 @@ const CityBuilder = ({ user }) => {
   };
 
   return (
-    <div className="container-fluid p-0" style={{ height: 'calc(100vh - 60px)', display: 'flex', marginTop: '60px' }}>
+    <div className="container-fluid p-0" style={{ height: 'calc(100vh - 60px)', display: 'flex', marginTop: '80px' }}>
       {/* Toast Notification */}
       {toastVisible && (
         <div 
