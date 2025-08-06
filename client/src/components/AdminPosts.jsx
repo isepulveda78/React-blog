@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PostEditor from './PostEditor.jsx';
 
 const AdminPosts = ({ user }) => {
   const [posts, setPosts] = useState([]);
@@ -86,23 +87,25 @@ const AdminPosts = ({ user }) => {
   }
 
   if (showEditor) {
-    return React.createElement(window.PostEditor, {
-      user,
-      post: editingPost,
-      onSave: (savedPost) => {
-        if (editingPost) {
-          setPosts(posts.map(p => p.id === savedPost.id ? savedPost : p));
-        } else {
-          setPosts([savedPost, ...posts]);
-        }
-        setShowEditor(false);
-        setEditingPost(null);
-      },
-      onCancel: () => {
-        setShowEditor(false);
-        setEditingPost(null);
-      }
-    });
+    return (
+      <PostEditor
+        user={user}
+        post={editingPost}
+        onSave={(savedPost) => {
+          if (editingPost) {
+            setPosts(posts.map(p => p.id === savedPost.id ? savedPost : p));
+          } else {
+            setPosts([savedPost, ...posts]);
+          }
+          setShowEditor(false);
+          setEditingPost(null);
+        }}
+        onCancel={() => {
+          setShowEditor(false);
+          setEditingPost(null);
+        }}
+      />
+    );
   }
 
   return (

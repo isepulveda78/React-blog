@@ -1,4 +1,4 @@
-const { React, useState, useEffect } = window;
+import React, { useState, useEffect } from 'react';
 
 const PostEditor = ({ user, post, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -636,4 +636,4 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   );
 };
 
-window.PostEditor = PostEditor;
+export default PostEditor;
