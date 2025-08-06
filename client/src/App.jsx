@@ -137,7 +137,11 @@ const AppRoutes = () => {
         <Switch>
           <Route path="/" component={() => <Home user={user} />} />
           <Route path="/blog" component={() => <BlogListing user={user} />} />
-          <Route path="/blog/:slug" component={({ params }) => <BlogPost slug={params.slug} user={user} />} />
+          <Route path="/blog/:slug" component={({ params }) => (
+            <ProtectedRoute requireApproval={false}>
+              <BlogPost slug={params.slug} user={user} />
+            </ProtectedRoute>
+          )} />
           <Route path="/educational-tools" component={() => <EducationalTools user={user} />} />
           <Route path="/bingo-generator" component={() => <BingoGenerator user={user} />} />
           <Route path="/spanish-alphabet" component={() => <SpanishAlphabet user={user} />} />

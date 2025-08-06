@@ -28,8 +28,7 @@ const formatCommentDate = (dateString) => {
   });
 };
 
-function CommentForm({ postId, parentId, onSuccess, onCancel }) {
-  const user = window.currentUser;
+function CommentForm({ postId, parentId, onSuccess, onCancel, user }) {
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Use simple fetch for API calls
@@ -118,8 +117,7 @@ function CommentForm({ postId, parentId, onSuccess, onCancel }) {
   );
 }
 
-function CommentItem({ comment, postId, onReply }) {
-  const user = window.currentUser;
+function CommentItem({ comment, postId, onReply, user }) {
   const [showReplyForm, setShowReplyForm] = useState(false);
 
   const handleReplySuccess = () => {
@@ -173,6 +171,7 @@ function CommentItem({ comment, postId, onReply }) {
               parentId={comment.id}
               onSuccess={handleReplySuccess}
               onCancel={() => setShowReplyForm(false)}
+              user={user}
             />
           )}
         </div>
@@ -303,7 +302,7 @@ function CommentsSection({ postId, user }) {
       </h3>
 
       {/* Comment Form - show for any logged in user */}
-      {user && <CommentForm postId={postId} onSuccess={handleCommentAdded} />}
+      {user && <CommentForm postId={postId} onSuccess={handleCommentAdded} user={user} />}
 
       {/* Comments List */}
       <div className="comments-list mt-4">
@@ -319,6 +318,7 @@ function CommentsSection({ postId, user }) {
                 comment={comment}
                 postId={postId}
                 onReply={handleCommentAdded}
+                user={user}
               />
               
               {/* Render replies */}
@@ -328,6 +328,7 @@ function CommentsSection({ postId, user }) {
                   comment={reply}
                   postId={postId}
                   onReply={handleCommentAdded}
+                  user={user}
                 />
               ))}
             </div>
@@ -338,23 +339,20 @@ function CommentsSection({ postId, user }) {
   );
 }
 
-function BlogPost() {
+function BlogPost({ user, slug }) {
   const [post, setPost] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Get slug from URL
-  const slug = window.location.pathname.split('/').pop();
-  
-  // Get user from auth context
-  const user = window.currentUser;
+  // Get slug from URL if not provided as prop
+  const postSlug = slug || window.location.pathname.split('/').pop();
 
   useEffect(() => {
     const fetchPost = async () => {
-      if (!user || !slug) return;
+      if (!user || !postSlug) return;
       
       try {
-        const response = await fetch(`/api/posts/${slug}`, {
+        const response = await fetch(`/api/posts/${postSlug}`, {
           credentials: "include",
         });
         
@@ -373,7 +371,7 @@ function BlogPost() {
     };
 
     fetchPost();
-  }, [slug, user]);
+  }, [postSlug, user]);
 
   if (!user) {
     return (

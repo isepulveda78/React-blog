@@ -1110,12 +1110,9 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
   app.post("/api/posts/:postId/comments", async (req, res) => {
     try {
-      // Check if user is authenticated and approved
+      // Check if user is authenticated (approval no longer required)
       if (!req.session.user) {
         return res.status(401).json({ message: "Authentication required" });
-      }
-      if (!req.session.user.approved) {
-        return res.status(403).json({ message: "Account approval required" });
       }
 
       const { postId } = req.params;
