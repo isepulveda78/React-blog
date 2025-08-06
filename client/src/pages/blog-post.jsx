@@ -351,7 +351,7 @@ function BlogPost() {
 
   useEffect(() => {
     const fetchPost = async () => {
-      if (!user?.approved || !slug) return;
+      if (!user || !slug) return;
       
       try {
         const response = await fetch(`/api/posts/${slug}`, {
@@ -386,16 +386,7 @@ function BlogPost() {
     );
   }
 
-  if (!user.approved) {
-    return (
-      <div className="container py-5">
-        <div className="alert alert-warning text-center">
-          <h4>Account Pending Approval</h4>
-          <p>Your account needs to be approved before you can view blog posts.</p>
-        </div>
-      </div>
-    );
-  }
+  // Remove approval check - all authenticated users can read posts
 
   if (isLoading) {
     return (
