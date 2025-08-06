@@ -44,6 +44,14 @@ const CityBuilder = ({ user }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [cityName, setCityName] = useState('My City');
   const canvasRef = useRef(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+
+  const showToast = (message) => {
+    setToastMessage(message);
+    setToastVisible(true);
+    setTimeout(() => setToastVisible(false), 3000);
+  };
 
   const addBuilding = (building) => {
     const newBuilding = {
@@ -454,6 +462,21 @@ const CityBuilder = ({ user }) => {
 
   return (
     <div className="container-fluid p-0" style={{ height: 'calc(100vh - 60px)', display: 'flex', marginTop: '60px' }}>
+      {/* Toast Notification */}
+      {toastVisible && (
+        <div 
+          className="position-fixed bg-success text-white px-4 py-2 rounded shadow"
+          style={{
+            top: '80px',
+            right: '20px',
+            zIndex: 9999,
+            opacity: toastVisible ? 1 : 0,
+            transition: 'opacity 0.3s ease'
+          }}
+        >
+          {toastMessage}
+        </div>
+      )}
       {/* Sidebar */}
       <div className="bg-light border-end" style={{ width: '280px', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
         <div className="p-3">
@@ -501,19 +524,19 @@ const CityBuilder = ({ user }) => {
             <button 
               className="btn btn-danger w-100 mb-2" 
               onClick={(e) => {
-                alert('Delete button clicked!'); // Visual confirmation
                 console.log('Delete button physically clicked!');
                 console.log('Current selectedItem:', selectedItem);
                 if (selectedItem) {
+                  const itemName = selectedItem.label || selectedItem.name || selectedItem.type;
                   if (selectedItem.isBuilding) {
                     setBuildings(prev => prev.filter(b => b.id !== selectedItem.id));
                   } else {
                     setStreets(prev => prev.filter(s => s.id !== selectedItem.id));
                   }
                   setSelectedItem(null);
-                  alert('Item deleted!');
+                  showToast(`${itemName} deleted successfully!`);
                 } else {
-                  alert('No item selected');
+                  showToast('Please select an item to delete first.');
                 }
               }} 
               disabled={!selectedItem}
