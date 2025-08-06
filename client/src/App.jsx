@@ -9,11 +9,11 @@ import BlogListing from './components/BlogListing.jsx'
 import BlogPost from './pages/blog-post.jsx'
 import AdminDashboard from './components/AdminDashboard.jsx'
 // Removed AdminPosts component definition to eliminate conflicts
-import AdminUsers from './components/AdminUsers.jsx'
-import AdminComments from './components/AdminComments.jsx'
-// Temporarily commented out AdminPostEditor import
+// Temporarily commenting out all Admin imports to isolate the issue
+// import AdminUsers from './components/AdminUsers.jsx'
+// import AdminComments from './components/AdminComments.jsx'
 // import AdminPostEditor from './components/AdminPostEditor.jsx'
-import SEOManagement from './components/SEOManagement.jsx'
+// import SEOManagement from './components/SEOManagement.jsx'
 import Footer from './components/Footer.jsx'
 import UserProfile from './pages/user-profile.jsx'
 import EducationalTools from './pages/educational-tools.jsx'
@@ -164,22 +164,54 @@ const AppRoutes = () => {
               <AdminDashboard user={user} />
             </ProtectedRoute>
           )} />
-          <Route path="/admin/posts" component={() => {
+          <Route path="/admin/posts" component={({ params }) => {
             console.log('Route /admin/posts accessed - user:', user?.name);
+            
+            // Dynamic import to bypass static import issues
+            const [AdminPostsComponent, setAdminPostsComponent] = useState(null);
+            const [importError, setImportError] = useState(null);
+            
+            useEffect(() => {
+              import('./components/WorkingAdminPosts.jsx')
+                .then(module => {
+                  console.log('Successfully imported WorkingAdminPosts');
+                  setAdminPostsComponent(() => module.default);
+                })
+                .catch(error => {
+                  console.error('Failed to import WorkingAdminPosts:', error);
+                  setImportError(error);
+                });
+            }, []);
+            
+            if (importError) {
+              return (
+                <ProtectedRoute requireAdmin={true}>
+                  <div className="container py-5">
+                    <div className="alert alert-danger">
+                      Error loading post management: {importError.message}
+                    </div>
+                  </div>
+                </ProtectedRoute>
+              );
+            }
+            
+            if (!AdminPostsComponent) {
+              return (
+                <ProtectedRoute requireAdmin={true}>
+                  <div className="container py-5">
+                    <div className="text-center">
+                      <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+                  </div>
+                </ProtectedRoute>
+              );
+            }
+            
             return (
               <ProtectedRoute requireAdmin={true}>
-                <div className="container py-5">
-                  <h1 className="display-4 fw-bold text-success">✅ Direct JSX Working!</h1>
-                  <div className="alert alert-info">
-                    User: {user?.name}, Admin: {user?.isAdmin ? 'Yes' : 'No'}
-                  </div>
-                  <button 
-                    className="btn btn-primary btn-lg"
-                    onClick={() => alert('Direct JSX button works!')}
-                  >
-                    Test Direct JSX
-                  </button>
-                </div>
+                <AdminPostsComponent user={user} />
               </ProtectedRoute>
             );
           }} />
@@ -201,17 +233,26 @@ const AppRoutes = () => {
           )} />
           <Route path="/admin/users" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminUsers user={user} />
+              <div className="container py-5">
+                <h1>User Management</h1>
+                <div className="alert alert-info">User management temporarily disabled for debugging</div>
+              </div>
             </ProtectedRoute>
           )} />
           <Route path="/admin/comments" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminComments user={user} />
+              <div className="container py-5">
+                <h1>Comment Management</h1>
+                <div className="alert alert-info">Comment management temporarily disabled for debugging</div>
+              </div>
             </ProtectedRoute>
           )} />
           <Route path="/admin/seo" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <SEOManagement user={user} />
+              <div className="container py-5">
+                <h1>SEO Management</h1>
+                <div className="alert alert-info">SEO management temporarily disabled for debugging</div>
+              </div>
             </ProtectedRoute>
           )} />
           <Route component={NotFound} />
