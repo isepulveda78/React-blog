@@ -449,14 +449,17 @@ const CityBuilder = ({ user }) => {
           >
             {street.label && (
               <div style={{ 
-                fontSize: '10px', 
-                backgroundColor: 'rgba(255,255,255,0.8)', 
-                padding: '2px 4px', 
-                borderRadius: '3px',
-                maxWidth: '100%',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
+                position: 'absolute',
+                top: '-20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                fontSize: '12px', 
+                backgroundColor: 'rgba(255,255,255,0.9)', 
+                padding: '2px 6px', 
+                borderRadius: '4px',
+                border: '1px solid rgba(0,0,0,0.1)',
+                whiteSpace: 'nowrap',
+                zIndex: 20
               }}>
                 {street.label}
               </div>
@@ -544,15 +547,17 @@ const CityBuilder = ({ user }) => {
             <div>{building.icon}</div>
             {building.label && (
               <div style={{ 
-                fontSize: '10px', 
-                backgroundColor: 'rgba(255,255,255,0.8)', 
-                padding: '2px 4px', 
-                borderRadius: '3px',
-                marginTop: '2px',
-                maxWidth: '100%',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
+                position: 'absolute',
+                top: '-20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                fontSize: '12px', 
+                backgroundColor: 'rgba(255,255,255,0.9)', 
+                padding: '2px 6px', 
+                borderRadius: '4px',
+                border: '1px solid rgba(0,0,0,0.1)',
+                whiteSpace: 'nowrap',
+                zIndex: 20
               }}>
                 {building.label}
               </div>
