@@ -8,9 +8,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('🚀 Starting production build...');
+console.log('🚀 Starting deployment build...');
 
-async function build() {
 try {
   // Step 1: Clean the dist directory
   console.log('🧹 Cleaning dist directory...');
@@ -27,19 +26,10 @@ try {
     cwd: __dirname 
   });
 
-  // Step 3: Copy the current index.html as fallback for development mode detection
-  console.log('📄 Setting up production HTML...');
-  const productionHtml = path.join(__dirname, 'client/index-production.html');
-  const builtHtml = path.join(__dirname, 'dist/public/index.html');
-  
-  if (fs.existsSync(productionHtml) && !fs.existsSync(builtHtml)) {
-    fs.copyFileSync(productionHtml, builtHtml);
-  }
+  // Step 3: Wait a moment for filesystem to sync
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
-  // Step 4: Wait for filesystem sync and build the server
-  console.log('⏳ Waiting for filesystem sync...');
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
+  // Step 4: Build the server
   console.log('🔧 Building server...');
   execSync('esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist', { 
     stdio: 'inherit',
@@ -74,18 +64,13 @@ try {
   const publicDest = path.join(__dirname, 'dist/public');
   copyAssets(publicSrc, publicDest);
 
-  console.log('✅ Build completed successfully!');
+  console.log('✅ Deployment build completed successfully!');
   console.log('');
   console.log('🌐 Production files are ready in ./dist/');
   console.log('📦 Frontend assets: ./dist/public/');
   console.log('🖥️  Server bundle: ./dist/index.js');
-  console.log('');
-  console.log('To start the production server, run: npm start');
 
 } catch (error) {
-  console.error('❌ Build failed:', error.message);
+  console.error('❌ Deployment build failed:', error.message);
   process.exit(1);
 }
-}
-
-build();
