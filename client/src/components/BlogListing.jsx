@@ -56,6 +56,7 @@ const BlogListing = ({ user }) => {
     // Posts are now publicly accessible - no authentication required
     // Use slug if available, otherwise use ID
     const identifier = post.slug || post.id;
+    console.log('Post navigation:', { title: post.title, slug: post.slug, id: post.id, identifier });
     window.history.pushState({}, '', `/blog/${identifier}`);
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
