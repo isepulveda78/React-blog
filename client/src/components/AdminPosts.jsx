@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import PostEditor from './PostEditor.jsx';
+import SimplePostEditor from './SimplePostEditor.jsx';
 
 const AdminPosts = ({ user }) => {
   const [posts, setPosts] = useState([]);
@@ -88,7 +88,7 @@ const AdminPosts = ({ user }) => {
 
   if (showEditor) {
     return (
-      <PostEditor
+      <SimplePostEditor
         user={user}
         post={editingPost}
         onSave={(savedPost) => {
