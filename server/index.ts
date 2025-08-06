@@ -35,8 +35,8 @@ app.use(session({
 }));
 
 // Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Add cache-busting headers for development
 app.use((req, res, next) => {
