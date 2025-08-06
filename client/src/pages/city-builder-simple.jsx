@@ -504,10 +504,33 @@ const CityBuilder = ({ user }) => {
               </button>
               <button 
                 className="btn btn-danger btn-sm" 
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   console.log('Delete button physically clicked!');
                   console.log('Current selectedItem:', selectedItem);
-                  deleteSelected();
+                  console.log('Button disabled?', !selectedItem);
+                  if (selectedItem) {
+                    if (selectedItem.isBuilding) {
+                      console.log('About to filter buildings array, current length:', buildings.length);
+                      setBuildings(prev => {
+                        const filtered = prev.filter(b => b.id !== selectedItem.id);
+                        console.log('Buildings after filter:', filtered.length);
+                        return filtered;
+                      });
+                    } else {
+                      console.log('About to filter streets array, current length:', streets.length);
+                      setStreets(prev => {
+                        const filtered = prev.filter(s => s.id !== selectedItem.id);
+                        console.log('Streets after filter:', filtered.length);
+                        return filtered;
+                      });
+                    }
+                    setSelectedItem(null);
+                    console.log('Item should be deleted now');
+                  } else {
+                    console.log('No selectedItem to delete');
+                  }
                 }} 
                 disabled={!selectedItem}
                 style={{cursor: 'pointer'}}
