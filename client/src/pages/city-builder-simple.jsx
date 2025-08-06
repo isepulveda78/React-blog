@@ -139,9 +139,11 @@ const CityBuilder = ({ user }) => {
   const handleItemClick = (e, item, isBuilding) => {
     if (isResizing) return;
     e.stopPropagation();
-    setSelectedItem({ ...item, isBuilding });
+    const selectedItemData = { ...item, isBuilding };
+    setSelectedItem(selectedItemData);
     setEditingLabel(item.id);
     setLabelInput(item.label || item.name);
+    console.log('Item clicked - selectedItem set to:', selectedItemData);
   };
 
   const handleItemMouseDown = (e, item, isBuilding) => {
@@ -406,7 +408,12 @@ const CityBuilder = ({ user }) => {
         }}
         onDrop={handleCanvasDrop}
         onDragOver={(e) => e.preventDefault()}
-        onClick={() => setSelectedItem(null)}
+        onClick={(e) => {
+          // Only clear selection if clicking on canvas background, not during editing
+          if (!editingLabel) {
+            setSelectedItem(null);
+          }
+        }}
       >
         {/* Grid */}
         {gridEnabled && (
