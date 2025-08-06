@@ -465,17 +465,18 @@ const CityBuilder = ({ user }) => {
             {street.label && (
               <div style={{ 
                 position: 'absolute',
-                top: '-20px',
+                top: '-25px',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 fontSize: '12px', 
                 backgroundColor: 'rgba(255,255,255,0.9)', 
-                padding: '2px 6px', 
+                padding: '4px 8px', 
                 borderRadius: '4px',
                 border: '1px solid rgba(0,0,0,0.1)',
                 whiteSpace: 'nowrap',
                 zIndex: 20,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                marginBottom: '5px'
               }}
               onClick={(e) => handleLabelClick(e, street.id, street.label)}
               >
@@ -578,17 +579,18 @@ const CityBuilder = ({ user }) => {
             {building.label && (
               <div style={{ 
                 position: 'absolute',
-                top: '-20px',
+                top: '-25px',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 fontSize: '12px', 
                 backgroundColor: 'rgba(255,255,255,0.9)', 
-                padding: '2px 6px', 
+                padding: '4px 8px', 
                 borderRadius: '4px',
                 border: '1px solid rgba(0,0,0,0.1)',
                 whiteSpace: 'nowrap',
                 zIndex: 20,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                marginBottom: '5px'
               }}
               onClick={(e) => handleLabelClick(e, building.id, building.label)}
               >
