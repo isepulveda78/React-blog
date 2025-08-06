@@ -41,6 +41,7 @@ const CityBuilder = ({ user }) => {
   const [editingLabel, setEditingLabel] = useState(null);
   const [labelInput, setLabelInput] = useState('');
   const [isResizing, setIsResizing] = useState(false);
+  const [cityName, setCityName] = useState('My City');
   const canvasRef = useRef(null);
 
   const addBuilding = (building) => {
@@ -117,6 +118,14 @@ const CityBuilder = ({ user }) => {
     // Set background
     exportCtx.fillStyle = backgroundColor;
     exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+    
+    // Draw city name at the top
+    exportCtx.fillStyle = 'rgba(255,255,255,0.95)';
+    exportCtx.fillRect(20 * scale, 20 * scale, (cityName.length * 20 + 40) * scale, 60 * scale);
+    exportCtx.fillStyle = 'black';
+    exportCtx.font = `bold ${24 * scale}px Arial`;
+    exportCtx.textAlign = 'left';
+    exportCtx.fillText(cityName, 40 * scale, 55 * scale);
     
     // Draw grid if enabled
     if (gridEnabled) {
@@ -206,7 +215,7 @@ const CityBuilder = ({ user }) => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `my-city-${new Date().toISOString().split('T')[0]}.png`;
+      link.download = `${cityName.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -420,7 +429,20 @@ const CityBuilder = ({ user }) => {
         <div className="p-3">
           <h2 className="h4 mb-3">City Builder</h2>
           
-          {/* Background Color - Top Priority */}
+          {/* City Name - Top Priority */}
+          <div className="mb-3">
+            <label className="form-label fw-bold">City Name:</label>
+            <input
+              type="text"
+              className="form-control"
+              value={cityName}
+              onChange={(e) => setCityName(e.target.value)}
+              placeholder="Enter city name..."
+              maxLength="30"
+            />
+          </div>
+
+          {/* Background Color */}
           <div className="mb-3">
             <label className="form-label fw-bold">Background Color:</label>
             <input
