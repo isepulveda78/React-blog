@@ -164,19 +164,28 @@ const AppRoutes = () => {
             </ProtectedRoute>
           )} />
           <Route path="/admin/posts" component={() => {
-            console.log('Route /admin/posts accessed - testing AdminPosts component');
-            return (
-              <ProtectedRoute requireAdmin={true}>
-                <div className="container py-5">
-                  <h1 className="display-4 fw-bold text-success">✅ Route Working!</h1>
-                  <div className="alert alert-info">
-                    User: {user?.name}, Admin: {user?.isAdmin ? 'Yes' : 'No'}
+            console.log('🔴 CRITICAL: Route /admin/posts accessed but React error #130 still occurring');
+            console.log('🔴 User object:', user);
+            try {
+              return (
+                <div className="container py-5" style={{backgroundColor: '#f0f8ff', border: '3px solid #28a745'}}>
+                  <h1 className="display-4 fw-bold text-success">✅ BASIC ROUTE TEST</h1>
+                  <div className="alert alert-success">
+                    <strong>SUCCESS:</strong> This route loads without ProtectedRoute wrapper
                     <br />
-                    AdminPosts component temporarily bypassed for testing
+                    User: {user?.name || 'undefined'}
+                    <br />
+                    Admin: {user?.isAdmin ? 'Yes' : 'No'}
+                  </div>
+                  <div className="alert alert-warning">
+                    If you see this message, the route works but something in ProtectedRoute or AdminPosts is causing React error #130
                   </div>
                 </div>
-              </ProtectedRoute>
-            );
+              );
+            } catch (error) {
+              console.error('🔴 Error in basic route test:', error);
+              return <div>Error occurred in route test</div>;
+            }
           }} />
           <Route path="/admin/posts/new" component={() => (
             <ProtectedRoute requireAdmin={true}>
