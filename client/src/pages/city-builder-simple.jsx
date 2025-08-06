@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const BUILDING_TYPES = {
   residential: {
@@ -44,6 +44,23 @@ const CityBuilder = ({ user }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [cityName, setCityName] = useState('My City');
   const canvasRef = useRef(null);
+
+  // Add keyboard event handler for delete functionality
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedItem && !editingLabel) {
+          e.preventDefault();
+          deleteSelected();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedItem, editingLabel]);
 
   const addBuilding = (building) => {
     const newBuilding = {
