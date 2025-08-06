@@ -448,6 +448,33 @@ export function registerRoutes(app) {
     }
   });
 
+  // Public individual post route (no authentication required)
+  app.get("/api/posts/public/:slugOrId", async (req, res) => {
+    try {
+      const { slugOrId } = req.params;
+      
+      // Try to find by slug first, then by ID
+      let post = await storage.getPostBySlug(slugOrId);
+      if (!post) {
+        post = await storage.getPostById(slugOrId);
+      }
+
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      // Only return published posts for public access
+      if (post.status !== 'published') {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      res.json(post);
+    } catch (error) {
+      console.error("Error fetching public post:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/api/posts/:slugOrId", async (req, res) => {
     try {
       // Check if user is authenticated (approval no longer required)

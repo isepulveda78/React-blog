@@ -349,12 +349,10 @@ function BlogPost({ user, slug }) {
 
   useEffect(() => {
     const fetchPost = async () => {
-      if (!user || !postSlug) return;
+      if (!postSlug) return;
       
       try {
-        const response = await fetch(`/api/posts/${postSlug}`, {
-          credentials: "include",
-        });
+        const response = await fetch(`/api/posts/public/${postSlug}`);
         
         if (response.ok) {
           const data = await response.json();
@@ -373,16 +371,7 @@ function BlogPost({ user, slug }) {
     fetchPost();
   }, [postSlug, user]);
 
-  if (!user) {
-    return (
-      <div className="container py-5">
-        <div className="alert alert-info text-center">
-          <h4>Authentication Required</h4>
-          <p>Please sign in to view this blog post.</p>
-        </div>
-      </div>
-    );
-  }
+  // Posts are now publicly accessible
 
   // Remove approval check - all authenticated users can read posts
 

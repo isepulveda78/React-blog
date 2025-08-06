@@ -865,9 +865,22 @@ export class MongoStorage {
 
   async createPost(postData) {
     await this.connect();
+    
+    // Generate a slug from title if not provided
+    let slug = postData.slug;
+    if (!slug && postData.title) {
+      slug = postData.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+    
+    console.log('[storage] Creating post with slug:', slug);
+    
     const post = {
       id: nanoid(),
       ...postData,
+      slug: slug,
       // SEO defaults if not provided
       metaDescription: postData.metaDescription || postData.excerpt || '',
       metaKeywords: postData.metaKeywords || [],
