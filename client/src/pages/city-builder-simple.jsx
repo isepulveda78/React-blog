@@ -45,23 +45,6 @@ const CityBuilder = ({ user }) => {
   const [cityName, setCityName] = useState('My City');
   const canvasRef = useRef(null);
 
-  // Add keyboard event handler for delete functionality
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (selectedItem && !editingLabel) {
-          e.preventDefault();
-          deleteSelected();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedItem, editingLabel, deleteSelected]);
-
   const addBuilding = (building) => {
     const newBuilding = {
       ...building,
@@ -100,6 +83,23 @@ const CityBuilder = ({ user }) => {
       console.log('No item selected for deletion');
     }
   };
+
+  // Add keyboard event handler for delete functionality
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedItem && !editingLabel) {
+          e.preventDefault();
+          deleteSelected();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedItem, editingLabel]);
 
   const copySelected = () => {
     if (selectedItem) {
