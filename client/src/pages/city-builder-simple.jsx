@@ -60,7 +60,7 @@ const CityBuilder = ({ user }) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedItem, editingLabel]);
+  }, [selectedItem, editingLabel, deleteSelected]);
 
   const addBuilding = (building) => {
     const newBuilding = {
@@ -79,13 +79,25 @@ const CityBuilder = ({ user }) => {
   };
 
   const deleteSelected = () => {
+    console.log('Delete button clicked, selectedItem:', selectedItem);
     if (selectedItem) {
+      console.log('Deleting item:', selectedItem.id, 'isBuilding:', selectedItem.isBuilding);
       if (selectedItem.isBuilding) {
-        setBuildings(prev => prev.filter(b => b.id !== selectedItem.id));
+        setBuildings(prev => {
+          const filtered = prev.filter(b => b.id !== selectedItem.id);
+          console.log('Buildings after delete:', filtered);
+          return filtered;
+        });
       } else {
-        setStreets(prev => prev.filter(s => s.id !== selectedItem.id));
+        setStreets(prev => {
+          const filtered = prev.filter(s => s.id !== selectedItem.id);
+          console.log('Streets after delete:', filtered);
+          return filtered;
+        });
       }
       setSelectedItem(null);
+    } else {
+      console.log('No item selected for deletion');
     }
   };
 
