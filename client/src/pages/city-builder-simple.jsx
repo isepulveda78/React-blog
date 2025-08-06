@@ -461,13 +461,13 @@ const CityBuilder = ({ user }) => {
   };
 
   return (
-    <div className="container-fluid p-0" style={{ height: 'calc(100vh - 60px)', display: 'flex', marginTop: '60px' }}>
+    <div className="container-fluid p-0" style={{ height: 'calc(100vh - 60px)', display: 'flex', marginTop: '0px', marginBottom: '60px' }}>
       {/* Toast Notification */}
       {toastVisible && (
         <div 
           className="position-fixed bg-danger text-white px-4 py-2 rounded shadow"
           style={{
-            top: '70px',
+            top: '20px',
             right: '20px',
             zIndex: 9999,
             opacity: toastVisible ? 1 : 0,
