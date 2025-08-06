@@ -8,41 +8,11 @@ import Home from './components/Home.jsx'
 import BlogListing from './components/BlogListing.jsx'
 import BlogPost from './pages/blog-post.jsx'
 import AdminDashboard from './components/AdminDashboard.jsx'
-// ES6 inline component to bypass import issues
-const AdminPosts = ({ user }) => {
-  console.log('ES6 AdminPosts rendering - user:', user?.name);
-
-  if (!user?.isAdmin) {
-    return (
-      <div className="container py-5">
-        <div className="alert alert-danger">
-          Access denied. Admin privileges required.
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container py-5">
-      <h1 className="display-4 fw-bold text-success">✅ ES6 Component Working!</h1>
-      <div className="alert alert-info">
-        Component loaded successfully with user: {user.name}
-      </div>
-      <button 
-        className="btn btn-primary btn-lg"
-        onClick={() => {
-          console.log('Button clicked - this should work');
-          alert('Button works! No React errors.');
-        }}
-      >
-        Test Button
-      </button>
-    </div>
-  );
-};
+// Removed AdminPosts component definition to eliminate conflicts
 import AdminUsers from './components/AdminUsers.jsx'
 import AdminComments from './components/AdminComments.jsx'
-import AdminPostEditor from './components/AdminPostEditor.jsx'
+// Temporarily commented out AdminPostEditor import
+// import AdminPostEditor from './components/AdminPostEditor.jsx'
 import SEOManagement from './components/SEOManagement.jsx'
 import Footer from './components/Footer.jsx'
 import UserProfile from './pages/user-profile.jsx'
@@ -215,12 +185,18 @@ const AppRoutes = () => {
           }} />
           <Route path="/admin/posts/new" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminPostEditor user={user} />
+              <div className="container py-5">
+                <h1>Create New Post</h1>
+                <div className="alert alert-info">Post creation temporarily disabled for debugging</div>
+              </div>
             </ProtectedRoute>
           )} />
           <Route path="/admin/posts/edit/:id" component={({ params }) => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminPostEditor user={user} postId={params.id} />
+              <div className="container py-5">
+                <h1>Edit Post {params.id}</h1>
+                <div className="alert alert-info">Post editing temporarily disabled for debugging</div>
+              </div>
             </ProtectedRoute>
           )} />
           <Route path="/admin/users" component={() => (
