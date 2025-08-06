@@ -18,7 +18,8 @@ const BUILDING_TYPES = {
     fireStation: { name: "Fire Station", icon: "🚒", width: 90, height: 70, color: "#ef4444" },
     gasStation: { name: "Gas Station", icon: "⛽", width: 80, height: 60, color: "#ef4444" },
     postOffice: { name: "Post Office", icon: "📮", width: 85, height: 65, color: "#ef4444" },
-    library: { name: "Library", icon: "📚", width: 95, height: 75, color: "#ef4444" }
+    library: { name: "Library", icon: "📚", width: 95, height: 75, color: "#ef4444" },
+    bank: { name: "Bank", icon: "🏦", width: 100, height: 80, color: "#ef4444" }
   },
   nature: {
     park: { name: "Park", icon: "🏊", width: 80, height: 80, color: "#84cc16" },
