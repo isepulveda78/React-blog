@@ -353,7 +353,7 @@ const CityBuilder = ({ user }) => {
                 {Object.entries(buildings).map(([type, building]) => (
                   <div key={type} className="col-6">
                     <div
-                      className="card text-center p-2"
+                      className="card text-center p-2 d-flex flex-column justify-content-center"
                       style={{ cursor: 'grab', height: '80px' }}
                       draggable
                       onDragStart={(e) => {
@@ -366,8 +366,8 @@ const CityBuilder = ({ user }) => {
                         e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
                       }}
                     >
-                      <div style={{ fontSize: '32px' }}>{building.icon}</div>
-                      <small>{building.name}</small>
+                      <div style={{ fontSize: '32px', marginBottom: '4px' }}>{building.icon}</div>
+                      <small style={{ marginTop: '2px', paddingTop: '2px' }}>{building.name}</small>
                     </div>
                   </div>
                 ))}
@@ -382,7 +382,7 @@ const CityBuilder = ({ user }) => {
               {Object.entries(STREET_TYPES).map(([type, street]) => (
                 <div key={type} className="col-6">
                   <div
-                    className="card text-center p-2"
+                    className="card text-center p-2 d-flex flex-column justify-content-center"
                     style={{ cursor: 'grab', height: '80px' }}
                     draggable
                     onDragStart={(e) => {
@@ -394,8 +394,8 @@ const CityBuilder = ({ user }) => {
                       e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
                     }}
                   >
-                    <div style={{ fontSize: '32px' }}>{street.icon}</div>
-                    <small>{street.name}</small>
+                    <div style={{ fontSize: '32px', marginBottom: '4px' }}>{street.icon}</div>
+                    <small style={{ marginTop: '2px', paddingTop: '2px' }}>{street.name}</small>
                   </div>
                 </div>
               ))}
