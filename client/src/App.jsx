@@ -147,12 +147,11 @@ const AppRoutes = () => {
       <Navigation user={user} />
       <main className="flex-grow-1">
         <Switch>
-          <Route path="/admin/posts">
-            <div className="container py-5">
-              <h1 className="display-4 text-success">ROUTE WORKS!</h1>
-              <p>If you see this, the route matching works fine.</p>
-            </div>
-          </Route>
+          <Route path="/admin/posts" component={() => (
+            <ProtectedRoute requireAdmin={true}>
+              <AdminPosts user={user} />
+            </ProtectedRoute>
+          )} />
           <Route path="/" component={() => <Home user={user} />} />
           <Route path="/blog" component={() => <BlogListing user={user} />} />
           <Route path="/blog/:slug" component={({ params }) => (
@@ -175,30 +174,7 @@ const AppRoutes = () => {
               <AdminDashboard user={user} />
             </ProtectedRoute>
           )} />
-          <Route path="/admin/posts" component={() => {
-            console.log('🔴 CRITICAL: Route /admin/posts accessed but React error #130 still occurring');
-            console.log('🔴 User object:', user);
-            try {
-              return (
-                <div className="container py-5" style={{backgroundColor: '#f0f8ff', border: '3px solid #28a745'}}>
-                  <h1 className="display-4 fw-bold text-success">✅ BASIC ROUTE TEST</h1>
-                  <div className="alert alert-success">
-                    <strong>SUCCESS:</strong> This route loads without ProtectedRoute wrapper
-                    <br />
-                    User: {user?.name || 'undefined'}
-                    <br />
-                    Admin: {user?.isAdmin ? 'Yes' : 'No'}
-                  </div>
-                  <div className="alert alert-warning">
-                    If you see this message, the route works but something in ProtectedRoute or AdminPosts is causing React error #130
-                  </div>
-                </div>
-              );
-            } catch (error) {
-              console.error('🔴 Error in basic route test:', error);
-              return <div>Error occurred in route test</div>;
-            }
-          }} />
+
           <Route path="/admin/posts/new" component={() => (
             <ProtectedRoute requireAdmin={true}>
               <AdminPostEditor user={user} />

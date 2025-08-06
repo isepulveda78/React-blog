@@ -13,11 +13,15 @@ const AdminPosts = ({ user }) => {
   const [status, setStatus] = useState('draft');
   const [saving, setSaving] = useState(false);
 
+  console.log('AdminPosts component - user:', user);
+  
   if (!user || !user.isAdmin) {
     return (
       <div className="container py-5">
         <div className="alert alert-danger">
-          Access denied. Admin privileges required.
+          <h4>Access Denied</h4>
+          <p>Admin privileges required to access this page.</p>
+          <p>Current user: {user ? user.name : 'Not authenticated'}</p>
         </div>
       </div>
     );
@@ -43,13 +47,19 @@ const AdminPosts = ({ user }) => {
 
   const fetchPosts = async () => {
     try {
+      console.log('AdminPosts: Fetching posts...');
       const response = await fetch('/api/posts', { credentials: 'include' });
+      console.log('AdminPosts: Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('AdminPosts: Posts received:', data.length);
         setPosts(data);
+      } else {
+        console.error('AdminPosts: Failed to fetch posts:', response.status);
       }
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error('AdminPosts: Error fetching posts:', error);
     }
     setLoading(false);
   };
