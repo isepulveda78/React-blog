@@ -27,7 +27,7 @@ const BUILDING_TYPES = {
 };
 
 const STREET_TYPES = {
-  road: { name: "Road", icon: "🛣️", width: 20, height: 20, color: "#666" },
+  road: { name: "Road", icon: "🛣️", width: 20, height: 20, color: "#d1d5db" },
   water: { name: "Water", icon: "💧", width: 40, height: 40, color: "#007bff" },
   grass: { name: "Grass", icon: "🟩", width: 100, height: 100, color: "#22c55e" }
 };
