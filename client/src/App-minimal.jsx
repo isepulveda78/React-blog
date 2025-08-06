@@ -2,6 +2,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react'
 import { Router, Route, Switch } from 'wouter'
 
 console.log('🔴 MINIMAL APP LOADING - Testing React error #130 fix')
+console.log('🔴 THIS IS THE MINIMAL APP - NOT THE ORIGINAL APP')
 
 // Minimal working components
 const Navigation = () => <nav><h3>Navigation Works</h3></nav>
