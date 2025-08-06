@@ -21,6 +21,7 @@ const BUILDING_TYPES = {
   school: { category: "public", name: "School", icon: "🏫", width: 100, height: 70 },
   "college-campus": { category: "public", name: "University", icon: "🏛️", width: 140, height: 120 },
   "hair-salon": { category: "public", name: "Hair Salon", icon: "💇", width: 50, height: 50 },
+  grass: { category: "nature", name: "Grass", icon: "🟩", width: 100, height: 100 },
   tree: { category: "nature", name: "Tree", icon: "🌳", width: 30, height: 30 },
   park: { category: "nature", name: "Park", icon: "🌿", width: 60, height: 60 },
   "grass-patch": { category: "nature", name: "Grass Patch", icon: "🌿", width: 40, height: 40 }

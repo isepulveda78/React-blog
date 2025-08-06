@@ -534,7 +534,8 @@ const CityBuilder = ({ user }) => {
               height: `${building.height}px`,
               backgroundColor: 'transparent',
               cursor: 'pointer',
-              fontSize: building.width > 60 ? '24px' : '18px'
+              fontSize: building.width > 60 ? '24px' : '18px',
+              zIndex: building.type === 'grass' ? 1 : 10
             }}
             onMouseDown={(e) => handleItemMouseDown(e, building, true)}
           >
