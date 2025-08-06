@@ -21,10 +21,19 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    console.log('[upload] File received:', {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size
+    });
+    
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    
+    if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed!'), false);
+      console.log('[upload] File rejected - invalid type:', file.mimetype);
+      cb(new Error(`Only image files are allowed! Received: ${file.mimetype}`), false);
     }
   }
 });
@@ -630,8 +639,9 @@ export function registerRoutes(app) {
         ).end(req.file.buffer);
       });
 
+      console.log('[upload] Cloudinary upload successful:', result.secure_url);
       res.json({
-        imageUrl: result.secure_url,
+        url: result.secure_url,
         publicId: result.public_id
       });
     } catch (error) {

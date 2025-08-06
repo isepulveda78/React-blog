@@ -106,10 +106,13 @@ const AdminPosts = ({ user }) => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Upload success:', data);
         setFeaturedImage(data.url);
         alert('Image uploaded successfully!');
       } else {
-        alert('Failed to upload image');
+        const errorData = await response.text();
+        console.error('Upload failed:', response.status, errorData);
+        alert(`Failed to upload image: ${response.status} - ${errorData}`);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
