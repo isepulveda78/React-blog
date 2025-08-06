@@ -274,10 +274,14 @@ const CityBuilder = ({ user }) => {
         setBuildings(prev => prev.map(b => 
           b.id === item.id ? { ...b, width: newWidth, height: newHeight } : b
         ));
+        // Update selectedItem to keep it in sync
+        setSelectedItem(prev => ({ ...prev, width: newWidth, height: newHeight }));
       } else {
         setStreets(prev => prev.map(s => 
           s.id === item.id ? { ...s, width: newWidth, height: newHeight } : s
         ));
+        // Update selectedItem to keep it in sync
+        setSelectedItem(prev => ({ ...prev, width: newWidth, height: newHeight }));
       }
     };
     
@@ -478,7 +482,6 @@ const CityBuilder = ({ user }) => {
             {/* Resize handles for selected street */}
             {selectedItem?.id === street.id && selectedItem && !selectedItem.isBuilding && (
               <>
-                {console.log('Showing resize handles for street:', street.id, 'selectedItem:', selectedItem)}
                 {/* SE corner */}
                 <div
                   className="position-absolute rounded-circle"
