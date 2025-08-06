@@ -8,7 +8,7 @@ import Home from './components/Home.jsx'
 import BlogListing from './components/BlogListing.jsx'
 import BlogPost from './pages/blog-post.jsx'
 import AdminDashboard from './components/AdminDashboard.jsx'
-import SimpleAdminPosts from './components/SimpleAdminPosts.jsx'
+import AdminPosts from './components/AdminPosts.jsx'
 import AdminUsers from './components/AdminUsers.jsx'
 import AdminComments from './components/AdminComments.jsx'
 import AdminPostEditor from './components/AdminPostEditor.jsx'
@@ -165,7 +165,7 @@ const AppRoutes = () => {
           )} />
           <Route path="/admin/posts" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <SimpleAdminPosts user={user} />
+              <AdminPosts user={user} />
             </ProtectedRoute>
           )} />
           <Route path="/admin/posts/new" component={() => (
