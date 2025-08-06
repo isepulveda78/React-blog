@@ -17,7 +17,7 @@ const BUILDING_TYPES = {
     police: { name: "Police", icon: "👮", width: 70, height: 60, color: "#ef4444" }
   },
   nature: {
-    park: { name: "Park", icon: "🌲", width: 80, height: 80, color: "#84cc16" },
+    park: { name: "Park", icon: "🏊", width: 80, height: 80, color: "#84cc16" },
     tree: { name: "Tree", icon: "🌳", width: 30, height: 30, color: "#84cc16" }
   }
 };
