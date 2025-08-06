@@ -478,6 +478,7 @@ const CityBuilder = ({ user }) => {
             {/* Resize handles for selected street */}
             {selectedItem?.id === street.id && selectedItem && !selectedItem.isBuilding && (
               <>
+                {console.log('Showing resize handles for street:', street.id, 'selectedItem:', selectedItem)}
                 {/* SE corner */}
                 <div
                   className="position-absolute rounded-circle"
