@@ -465,7 +465,7 @@ const CityBuilder = ({ user }) => {
       {/* Toast Notification */}
       {toastVisible && (
         <div 
-          className="position-fixed bg-success text-white px-4 py-2 rounded shadow"
+          className="position-fixed bg-danger text-white px-4 py-2 rounded shadow"
           style={{
             top: '80px',
             right: '20px',
