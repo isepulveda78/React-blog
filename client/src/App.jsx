@@ -141,6 +141,33 @@ const AppRoutes = () => {
       <Navigation user={user} />
       <main className="flex-grow-1">
         <Switch>
+          <Route path="/admin/posts" component={() => {
+            console.log('🟢 ROUTE MATCHED: /admin/posts - This should appear in logs');
+            return (
+              <div style={{
+                backgroundColor: '#e6f3ff', 
+                border: '5px solid #007bff', 
+                padding: '20px',
+                margin: '20px',
+                borderRadius: '10px'
+              }}>
+                <h1 style={{ color: '#007bff', fontSize: '48px', textAlign: 'center' }}>
+                  🎯 ROUTE TEST SUCCESS!
+                </h1>
+                <div style={{
+                  backgroundColor: '#d4edda',
+                  border: '2px solid #28a745',
+                  padding: '15px',
+                  borderRadius: '5px',
+                  margin: '10px 0'
+                }}>
+                  <strong>SUCCESS:</strong> The /admin/posts route is working!<br/>
+                  User: {user?.name || 'No user'}<br/>
+                  Admin Status: {user?.isAdmin ? 'Admin' : 'Not Admin'}
+                </div>
+              </div>
+            );
+          }} />
           <Route path="/" component={() => <Home user={user} />} />
           <Route path="/blog" component={() => <BlogListing user={user} />} />
           <Route path="/blog/:slug" component={({ params }) => (
