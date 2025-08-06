@@ -198,7 +198,18 @@ const AppRoutes = () => {
             console.log('Route /admin/posts accessed - user:', user?.name);
             return (
               <ProtectedRoute requireAdmin={true}>
-                <AdminPosts user={user} />
+                <div className="container py-5">
+                  <h1 className="display-4 fw-bold text-success">✅ Direct JSX Working!</h1>
+                  <div className="alert alert-info">
+                    User: {user?.name}, Admin: {user?.isAdmin ? 'Yes' : 'No'}
+                  </div>
+                  <button 
+                    className="btn btn-primary btn-lg"
+                    onClick={() => alert('Direct JSX button works!')}
+                  >
+                    Test Direct JSX
+                  </button>
+                </div>
               </ProtectedRoute>
             );
           }} />
