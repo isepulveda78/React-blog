@@ -9,7 +9,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = parseInt(process.env.PORT || "5000");
+// Handle deployment port configuration
+// Replit deployment forwards internal port to external port 80
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+
+console.log(`[server] starting with PORT=${PORT} (from env: ${process.env.PORT})`);
 
 // Use memory store instead of requiring PostgreSQL
 const MemStore = MemoryStore(session);
@@ -42,6 +46,16 @@ app.use((req, res, next) => {
     res.set('Expires', '0');
   }
   next();
+});
+
+// Health check endpoint for deployment
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Register API routes first
@@ -79,4 +93,9 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`[express] serving on port ${PORT}`);
+  console.log(`[express] environment: ${process.env.NODE_ENV}`);
+  console.log(`[express] binding to: 0.0.0.0:${PORT}`);
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`[express] production server ready for external connections`);
+  }
 });
