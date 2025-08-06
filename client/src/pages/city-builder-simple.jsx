@@ -17,7 +17,6 @@ const BUILDING_TYPES = {
     police: { name: "Police", icon: "👮", width: 70, height: 60, color: "#ef4444" }
   },
   nature: {
-    grass: { name: "Grass", icon: "🟩", width: 100, height: 100, color: "#84cc16" },
     park: { name: "Park", icon: "🌳", width: 80, height: 80, color: "#84cc16" },
     tree: { name: "Tree", icon: "🌳", width: 30, height: 30, color: "#84cc16" }
   }
@@ -25,7 +24,8 @@ const BUILDING_TYPES = {
 
 const STREET_TYPES = {
   road: { name: "Road", icon: "🛣️", width: 20, height: 20, color: "#666" },
-  water: { name: "Water", icon: "💧", width: 40, height: 40, color: "#007bff" }
+  water: { name: "Water", icon: "💧", width: 40, height: 40, color: "#007bff" },
+  grass: { name: "Grass", icon: "🟩", width: 100, height: 100, color: "#22c55e" }
 };
 
 const CityBuilder = ({ user }) => {
@@ -442,7 +442,8 @@ const CityBuilder = ({ user }) => {
               width: `${street.width}px`,
               height: `${street.height}px`,
               backgroundColor: street.color,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              zIndex: street.type === 'grass' ? 1 : 5
             }}
             onMouseDown={(e) => handleItemMouseDown(e, street, false)}
           >
@@ -536,7 +537,7 @@ const CityBuilder = ({ user }) => {
               backgroundColor: 'transparent',
               cursor: 'pointer',
               fontSize: building.width > 60 ? '24px' : '18px',
-              zIndex: building.type === 'grass' ? 1 : 10
+              zIndex: 10
             }}
             onMouseDown={(e) => handleItemMouseDown(e, building, true)}
           >
