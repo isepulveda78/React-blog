@@ -142,9 +142,13 @@ const CityBuilder = ({ user }) => {
     e.stopPropagation();
     const selectedItemData = { ...item, isBuilding };
     setSelectedItem(selectedItemData);
-    setEditingLabel(item.id);
-    setLabelInput(item.label || item.name);
     console.log('Item clicked - selectedItem set to:', selectedItemData);
+  };
+
+  const handleLabelClick = (e, itemId, currentLabel) => {
+    e.stopPropagation();
+    setEditingLabel(itemId);
+    setLabelInput(currentLabel || '');
   };
 
   const handleItemMouseDown = (e, item, isBuilding) => {
@@ -447,7 +451,7 @@ const CityBuilder = ({ user }) => {
             }}
             onMouseDown={(e) => handleItemMouseDown(e, street, false)}
           >
-            {street.label && (
+            {(street.label || selectedItem?.id === street.id) && (
               <div style={{ 
                 position: 'absolute',
                 top: '-20px',
@@ -459,9 +463,12 @@ const CityBuilder = ({ user }) => {
                 borderRadius: '4px',
                 border: '1px solid rgba(0,0,0,0.1)',
                 whiteSpace: 'nowrap',
-                zIndex: 20
-              }}>
-                {street.label}
+                zIndex: 20,
+                cursor: 'pointer'
+              }}
+              onClick={(e) => handleLabelClick(e, street.id, street.label)}
+              >
+                {street.label || 'Click to name'}
               </div>
             )}
             
@@ -545,7 +552,7 @@ const CityBuilder = ({ user }) => {
             onMouseDown={(e) => handleItemMouseDown(e, building, true)}
           >
             <div>{building.icon}</div>
-            {building.label && (
+            {(building.label || selectedItem?.id === building.id) && (
               <div style={{ 
                 position: 'absolute',
                 top: '-20px',
@@ -557,9 +564,12 @@ const CityBuilder = ({ user }) => {
                 borderRadius: '4px',
                 border: '1px solid rgba(0,0,0,0.1)',
                 whiteSpace: 'nowrap',
-                zIndex: 20
-              }}>
-                {building.label}
+                zIndex: 20,
+                cursor: 'pointer'
+              }}
+              onClick={(e) => handleLabelClick(e, building.id, building.label)}
+              >
+                {building.label || 'Click to name'}
               </div>
             )}
             
@@ -634,31 +644,42 @@ const CityBuilder = ({ user }) => {
           </small>
         </div>
 
-        {/* Label Edit Modal */}
+        {/* Inline Label Editor */}
         {editingLabel && (
-          <div className="position-fixed top-50 start-50 translate-middle bg-white p-3 rounded shadow" style={{ zIndex: 1000 }}>
-            <h6>Enter Name:</h6>
+          <div className="position-fixed" style={{ 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1000,
+            backgroundColor: 'rgba(255,255,255,0.95)',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: '2px solid #007bff',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+          }}>
             <input
               type="text"
-              className="form-control mb-2"
               value={labelInput}
               onChange={(e) => setLabelInput(e.target.value)}
               autoFocus
               onKeyPress={(e) => {
                 if (e.key === 'Enter') handleLabelSave();
+                if (e.key === 'Escape') {
+                  setEditingLabel(null);
+                  setLabelInput('');
+                }
               }}
+              onBlur={handleLabelSave}
+              style={{
+                border: 'none',
+                outline: 'none',
+                fontSize: '14px',
+                backgroundColor: 'transparent',
+                minWidth: '120px',
+                textAlign: 'center'
+              }}
+              placeholder="Enter name..."
             />
-            <div className="d-flex gap-2">
-              <button className="btn btn-primary btn-sm" onClick={handleLabelSave}>
-                Save
-              </button>
-              <button className="btn btn-secondary btn-sm" onClick={() => {
-                setEditingLabel(null);
-                setLabelInput('');
-              }}>
-                Cancel
-              </button>
-            </div>
           </div>
         )}
       </div>
