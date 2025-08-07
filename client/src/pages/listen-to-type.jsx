@@ -21,6 +21,12 @@ const ListenToType = ({ user }) => {
     console.log('[ListenToType] Component loaded, toast system ready');
   }, []);
 
+  // Test function to verify toast system
+  const testToast = () => {
+    console.log('[ListenToType] Testing toast system...');
+    showToast('🧪 Test toast notification working!', 'info', 3000);
+  };
+
   // Fetch available chatrooms with retry logic
   const fetchAvailableChatrooms = async (retryCount = 0) => {
     try {
@@ -134,11 +140,20 @@ const ListenToType = ({ user }) => {
         });
       } else if (data.type === 'join_rejected') {
         console.log('[chat] Join rejected - showing toast:', data);
-        showToast(
-          `Name "${data.name}" is already taken! Please choose a different name to join this chatroom.`,
-          'error',
-          6000
-        );
+        console.log('[chat] Toast function available:', typeof showToast);
+        
+        // Show toast notification
+        try {
+          showToast(
+            `❌ Name "${data.name}" is already taken! Please choose a different name to join this chatroom.`,
+            'error',
+            8000
+          );
+          console.log('[chat] Toast notification sent');
+        } catch (error) {
+          console.error('[chat] Error showing toast:', error);
+        }
+        
         // Close the WebSocket and reset state
         newSocket.close();
         setSocket(null);
@@ -207,21 +222,32 @@ const ListenToType = ({ user }) => {
         <div className="col-md-8 mx-auto">
           <div className="card shadow">
             <div className="card-header bg-primary text-white">
-              <h5 className="mb-0">
-                <i className="fas fa-comments me-2"></i>
-                Live Chat Room
-                {selectedChatroom && ` - ${selectedChatroom.name}`}
-                {user?.role && (
-                  <span className="badge bg-light text-dark ms-2">{user.role}</span>
-                )}
-                {isChatJoined && (
+              <h5 className="mb-0 d-flex justify-content-between align-items-center">
+                <span>
+                  <i className="fas fa-comments me-2"></i>
+                  Live Chat Room
+                  {selectedChatroom && ` - ${selectedChatroom.name}`}
+                  {user?.role && (
+                    <span className="badge bg-light text-dark ms-2">{user.role}</span>
+                  )}
+                </span>
+                <div>
                   <button 
-                    className="btn btn-sm btn-outline-light float-end"
-                    onClick={disconnectFromChat}
+                    className="btn btn-sm btn-outline-light me-2" 
+                    onClick={testToast}
+                    title="Test toast notifications"
                   >
-                    <i className="fas fa-sign-out-alt me-1"></i>Leave
+                    Test Toast
                   </button>
-                )}
+                  {isChatJoined && (
+                    <button 
+                      className="btn btn-sm btn-outline-light"
+                      onClick={disconnectFromChat}
+                    >
+                      <i className="fas fa-sign-out-alt me-1"></i>Leave
+                    </button>
+                  )}
+                </div>
               </h5>
             </div>
             <div className="card-body">
