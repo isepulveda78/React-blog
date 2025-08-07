@@ -172,6 +172,15 @@ Cache management: Implemented hot reload system for instant change detection and
 - **User Experience**: Custom typed names (like "Bob" or "Sarah") now display correctly in chat messages instead of defaulting to account name
 - **Access Control**: Educational tools page links to Listen to Type now require user authentication for chat access
 
+### PDF Export Feature for Chatrooms (August 2025)
+- **Teacher PDF Export**: Added PDF export functionality exclusively for teachers and admins in chatrooms
+- **Comprehensive Export**: PDF includes chatroom name, export timestamp, teacher name, and all conversation messages
+- **Professional Format**: Clean, formatted PDF with timestamps, usernames, roles, and message types (joined/left/message)
+- **Access Control**: Export button only visible to users with teacher or admin roles when messages are present
+- **Dependencies Added**: Integrated jsPDF and html2canvas libraries for client-side PDF generation
+- **Toast Notifications**: User feedback for successful exports and error handling
+- **File Naming**: Auto-generated filenames with chatroom name and date for easy organization
+
 ### React Error #130 Resolution (August 2025)
 - **Root Cause**: Vite JSX transformation issue causing "Element type is invalid" errors in development mode due to jsx-runtime conflicts
 - **Solution Applied**: Comprehensive Vite configuration fix with production build approach for stability

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '../components/Toast.jsx';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const ListenToType = ({ user }) => {
   // Chat functionality only
@@ -21,8 +23,107 @@ const ListenToType = ({ user }) => {
     console.log('[ListenToType] Component loaded, toast system ready');
   }, []);
 
-  // Test function to verify toast system
+  // PDF Export function for teachers
+  const exportChatToPDF = async () => {
+    if (!user?.isAdmin && user?.role !== 'teacher') {
+      showToast('Only teachers can export chat conversations', 'error', 3000);
+      return;
+    }
 
+    if (messages.length === 0) {
+      showToast('No messages to export', 'info', 3000);
+      return;
+    }
+
+    try {
+      // Create a temporary container for PDF content
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '0';
+      tempDiv.style.width = '210mm'; // A4 width
+      tempDiv.style.padding = '20px';
+      tempDiv.style.backgroundColor = 'white';
+      tempDiv.style.fontFamily = 'Arial, sans-serif';
+      tempDiv.style.fontSize = '12px';
+      tempDiv.style.lineHeight = '1.4';
+      
+      // Add header
+      const header = `
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
+          <h2 style="margin: 0; color: #333;">Chat Conversation Export</h2>
+          <p style="margin: 5px 0; color: #666;">Chatroom: ${selectedChatroom?.name || 'Unknown'}</p>
+          <p style="margin: 5px 0; color: #666;">Exported on: ${new Date().toLocaleString()}</p>
+          <p style="margin: 5px 0; color: #666;">Exported by: ${user?.name || 'Teacher'}</p>
+        </div>
+      `;
+      
+      // Add messages
+      const messagesHTML = messages.map((message, index) => {
+        const timestamp = new Date(message.timestamp).toLocaleString();
+        const messageType = message.type === 'message' ? 'Message' : 
+                           message.type === 'user_joined' ? 'Joined' : 
+                           message.type === 'user_left' ? 'Left' : message.type;
+        
+        return `
+          <div style="margin-bottom: 15px; padding: 10px; border-left: 3px solid #007bff; background-color: #f8f9fa;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+              <strong style="color: #007bff;">${message.username || message.name || 'Unknown User'}</strong>
+              <span style="font-size: 10px; color: #666;">${timestamp}</span>
+            </div>
+            <div style="margin-bottom: 3px;">
+              <span style="background-color: #007bff; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">
+                ${message.role || 'student'}
+              </span>
+              <span style="background-color: #6c757d; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 5px;">
+                ${messageType}
+              </span>
+            </div>
+            ${message.text ? `<div style="color: #333;">${message.text}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+      
+      tempDiv.innerHTML = header + messagesHTML;
+      document.body.appendChild(tempDiv);
+      
+      // Convert to canvas and then PDF
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      document.body.removeChild(tempDiv);
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 295; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      const fileName = `chat-${selectedChatroom?.name || 'conversation'}-${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      
+      showToast('Chat conversation exported successfully!', 'success', 3000);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      showToast('Failed to export PDF. Please try again.', 'error', 3000);
+    }
+  };
 
   // Fetch available chatrooms with retry logic
   const fetchAvailableChatrooms = async (retryCount = 0) => {
@@ -237,6 +338,15 @@ const ListenToType = ({ user }) => {
                   )}
                 </span>
                 <div>
+                  {(user?.isAdmin || user?.role === 'teacher') && messages.length > 0 && (
+                    <button 
+                      className="btn btn-sm btn-outline-light me-2"
+                      onClick={exportChatToPDF}
+                      title="Export chat to PDF"
+                    >
+                      <i className="fas fa-file-pdf me-1"></i>Export PDF
+                    </button>
+                  )}
                   {isChatJoined && (
                     <button 
                       className="btn btn-sm btn-outline-light"
