@@ -126,6 +126,14 @@ Cache management: Implemented hot reload system for instant change detection and
 - **Admin Chatrooms**: Comprehensive chatroom management system for admins with create/edit/delete functionality
 - **Role-Based Chat Access**: Chat features restricted to students only, with teacher/admin oversight capabilities
 - **Persistent Data**: Sample chatrooms automatically created on first MongoDB initialization
+- **Duplicate Name Prevention**: Backend prevents duplicate usernames per chatroom with toast notifications
+- **Enhanced Username Display**: Chat messages prominently show sender names with role badges
+
+### Development vs Production Issues (August 2025)
+- **Environment Inconsistency**: User reported differences between development and production behavior
+- **Need Investigation**: Chat functionality, authentication, or user display may behave differently when deployed
+- **Build Process**: Uses Vite for frontend building and esbuild for backend compilation
+- **Static File Serving**: Development serves from `client/` while production serves from `dist/public/`
 
 ## Deployment Configuration (Latest)
 
