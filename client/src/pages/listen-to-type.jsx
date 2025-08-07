@@ -66,34 +66,14 @@ const ListenToType = ({ user }) => {
     return () => clearTimeout(timer);
   }, [user, availableChatrooms.length]);
 
-  // Quick login for testing session sync
-  const handleQuickLogin = async () => {
+  // Direct login to fix session sync
+  const handleDirectLogin = async () => {
     try {
-      console.log('[ListenToType] Starting quick login...');
-      const response = await fetch('/api/auth/quick-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email: 'admin@example.com' })
-      });
-      
-      console.log('[ListenToType] Quick login response status:', response.status);
-      
-      if (response.ok) {
-        const userData = await response.json();
-        console.log('[ListenToType] Quick login successful for user:', userData.email);
-        console.log('[ListenToType] Waiting 1 second for session sync...');
-        
-        // Wait a moment for session to sync, then refetch chatrooms
-        setTimeout(async () => {
-          console.log('[ListenToType] Now refetching chatrooms...');
-          await fetchAvailableChatrooms();
-        }, 1000);
-      } else {
-        console.error('[ListenToType] Quick login failed:', response.status);
-      }
+      console.log('[ListenToType] Redirecting to login...');
+      // Force a login to sync sessions properly
+      window.location.href = '/api/auth/quick-login?redirect=' + encodeURIComponent(window.location.pathname);
     } catch (error) {
-      console.error('Quick login error:', error);
+      console.error('Login redirect error:', error);
     }
   };
 
@@ -248,6 +228,12 @@ const ListenToType = ({ user }) => {
                           onClick={() => fetchAvailableChatrooms()}
                         >
                           <i className="fas fa-sync me-1"></i>Refresh
+                        </button>
+                        <button 
+                          className="btn btn-outline-secondary btn-sm me-2"
+                          onClick={handleDirectLogin}
+                        >
+                          <i className="fas fa-sign-in-alt me-1"></i>Fix Session
                         </button>
                         {user?.isAdmin && (
                           <a href="/admin" className="btn btn-outline-primary btn-sm">

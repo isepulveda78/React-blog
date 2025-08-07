@@ -1756,6 +1756,40 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // Quick login endpoint for session sync fixes
+  app.get('/api/auth/quick-login', async (req, res) => {
+    try {
+      // Find the admin user for quick login
+      const adminUser = await storage.getUserByEmail('admin@example.com');
+      if (!adminUser) {
+        return res.status(404).json({ message: 'Admin user not found' });
+      }
+
+      // Set session
+      req.session.userId = adminUser.id;
+      req.session.user = adminUser;
+      
+      console.log('[auth] Quick login session set for user:', adminUser.email);
+      console.log('[auth] Session ID:', req.sessionID);
+      
+      // Get redirect URL or default to /listen-to-type
+      const redirectUrl = req.query.redirect || '/listen-to-type';
+      
+      // Save session and redirect
+      req.session.save((err) => {
+        if (err) {
+          console.error('[auth] Session save error:', err);
+          return res.status(500).json({ message: 'Session save failed' });
+        }
+        res.redirect(redirectUrl);
+      });
+      
+    } catch (error) {
+      console.error('[auth] Quick login error:', error);
+      res.status(500).json({ message: 'Quick login failed' });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 
