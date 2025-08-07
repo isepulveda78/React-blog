@@ -153,14 +153,25 @@ const ListenToType = ({ user }) => {
     try {
       setLoadingChatrooms(true);
       console.log('[ListenToType] Fetching available chatrooms...');
-      const response = await fetch('/api/chatrooms', { credentials: 'include' });
+      console.log('[ListenToType] Current user:', user);
+      
+      const response = await fetch('/api/chatrooms', { 
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('[ListenToType] Response status:', response.status);
+      console.log('[ListenToType] Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (response.ok) {
         const chatrooms = await response.json();
         console.log('[ListenToType] Available chatrooms:', chatrooms);
         setAvailableChatrooms(chatrooms);
       } else {
-        console.error('[ListenToType] Error fetching chatrooms:', response.status);
+        const errorData = await response.text();
+        console.error('[ListenToType] Error fetching chatrooms:', response.status, errorData);
       }
     } catch (error) {
       console.error('Error fetching chatrooms:', error);

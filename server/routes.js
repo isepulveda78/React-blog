@@ -1706,16 +1706,24 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   // Get user chatrooms (for invited users)
   app.get('/api/chatrooms', async (req, res) => {
     try {
+      console.log('[API] /api/chatrooms - Session user:', req.session?.user);
+      console.log('[API] /api/chatrooms - Session ID:', req.sessionID);
+      
       if (!req.session.user) {
+        console.log('[API] /api/chatrooms - No authenticated user');
         return res.status(401).json({ message: "Authentication required" });
       }
 
+      console.log('[API] /api/chatrooms - Fetching all chatrooms...');
       const allChatrooms = await storage.getChatrooms();
+      console.log('[API] /api/chatrooms - All chatrooms:', allChatrooms.length);
+      
       const userChatrooms = allChatrooms.filter(chatroom => 
         chatroom.isActive && 
         (chatroom.invitedUserIds.includes(req.session.user.id) || req.session.user.isAdmin)
       );
-
+      
+      console.log('[API] /api/chatrooms - User chatrooms:', userChatrooms.length);
       res.json(userChatrooms);
     } catch (error) {
       console.error('Error fetching user chatrooms:', error);

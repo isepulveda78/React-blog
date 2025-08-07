@@ -69,7 +69,10 @@ express.static.mime.define({'application/javascript': ['jsx']});
 console.log('[server] serving static files from dist/public');
 app.use(express.static(path.join(__dirname, '../dist/public')));
 
-// Handle client-side routing - serve from built files
+// Use the HTTP server from routes for WebSocket support (MUST come before catch-all route)
+const httpServer = await registerRoutes(app);
+
+// Handle client-side routing - serve from built files (MUST come after API routes)
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ message: 'API endpoint not found' });
@@ -85,9 +88,6 @@ app.get('*', (req, res) => {
   // Always serve built index.html for React routing stability
   res.sendFile(path.join(__dirname, '../dist/public/index.html'));
 });
-
-// Use the HTTP server from routes for WebSocket support
-const httpServer = await registerRoutes(app);
 
 httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`[express] serving on port ${PORT}`);
