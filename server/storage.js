@@ -31,10 +31,17 @@ class MemStorage {
     return user;
   }
 
-  async updateUserRole(userId, isAdmin) {
+  async updateUserRole(userId, role) {
     const index = this.users.findIndex(u => u.id === userId);
     if (index === -1) return null;
-    this.users[index] = { ...this.users[index], isAdmin };
+    this.users[index] = { ...this.users[index], role, updatedAt: new Date().toISOString() };
+    return this.users[index];
+  }
+
+  async updateUserAdminStatus(userId, isAdmin) {
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return null;
+    this.users[index] = { ...this.users[index], isAdmin, updatedAt: new Date().toISOString() };
     return this.users[index];
   }
 
@@ -821,7 +828,30 @@ export class MongoStorage {
     return user;
   }
 
-  async updateUserRole(userId, isAdmin) {
+  async updateUserRole(userId, role) {
+    await this.connect();
+    console.log('[mongodb] Looking for user with id:', userId);
+    
+    // First check if user exists
+    const existingUser = await this.db.collection('users').findOne({ id: userId });
+    if (!existingUser) {
+      console.log('[mongodb] User not found with id:', userId);
+      return null;
+    }
+    
+    console.log('[mongodb] Found user:', existingUser.email, 'updating role to:', role);
+    
+    const result = await this.db.collection('users').findOneAndUpdate(
+      { id: userId },
+      { $set: { role, updatedAt: new Date().toISOString() } },
+      { returnDocument: 'after' }
+    );
+    
+    console.log('[mongodb] Update result:', result);
+    return result || result.value;
+  }
+
+  async updateUserAdminStatus(userId, isAdmin) {
     await this.connect();
     console.log('[mongodb] Looking for user with id:', userId);
     
@@ -836,7 +866,7 @@ export class MongoStorage {
     
     const result = await this.db.collection('users').findOneAndUpdate(
       { id: userId },
-      { $set: { isAdmin } },
+      { $set: { isAdmin, updatedAt: new Date().toISOString() } },
       { returnDocument: 'after' }
     );
     

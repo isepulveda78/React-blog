@@ -78,6 +78,32 @@ const AdminUsers = ({ user }) => {
     }
   };
 
+  const changeUserRole = async (userId, newRole) => {
+    if (userId === user.id) {
+      alert('You cannot change your own role');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/users/${userId}/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ role: newRole })
+      });
+      
+      if (response.ok) {
+        const updatedUser = await response.json();
+        setUsers(users.map(u => u.id === userId ? updatedUser : u));
+      } else {
+        alert('Failed to update user role');
+      }
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      alert('Error updating user role');
+    }
+  };
+
   const deleteUser = async (userId) => {
     if (userId === user.id) {
       alert('You cannot delete your own account');
@@ -205,9 +231,15 @@ const AdminUsers = ({ user }) => {
                 </td>
                 <td>
                   <div className="d-flex flex-column">
-                    <span className={`badge ${userItem.role === 'teacher' ? 'bg-info' : 'bg-primary'} mb-1`}>
-                      {userItem.role === 'teacher' ? 'Teacher' : 'Student'}
-                    </span>
+                    <select 
+                      className="form-select form-select-sm mb-1"
+                      value={userItem.role || 'student'}
+                      onChange={(e) => changeUserRole(userItem.id, e.target.value)}
+                      disabled={userItem.id === user.id}
+                    >
+                      <option value="student">Student</option>
+                      <option value="teacher">Teacher</option>
+                    </select>
                     {userItem.isAdmin && (
                       <span className="badge bg-danger">Admin</span>
                     )}

@@ -709,6 +709,7 @@ export function registerRoutes(app) {
         name: user.name,
         isAdmin: user.isAdmin,
         approved: user.approved,
+        role: user.role || 'student',
         createdAt: user.createdAt
       }));
       res.json(safeUsers);
@@ -720,33 +721,33 @@ export function registerRoutes(app) {
 
   app.patch('/api/users/:userId/role', async (req, res) => {
     try {
-      console.log('[role] Request from:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
-      console.log('[role] Target userId:', req.params.userId);
-      console.log('[role] Request body:', req.body);
+      console.log('[user-role] Request from:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
+      console.log('[user-role] Target userId:', req.params.userId);
+      console.log('[user-role] Request body:', req.body);
       
       // Check if user is admin
       if (!req.session.user?.isAdmin) {
-        console.log('[role] Access denied - user is not admin');
+        console.log('[user-role] Access denied - user is not admin');
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const { userId } = req.params;
-      const { isAdmin } = req.body;
+      const { role } = req.body;
 
-      if (typeof isAdmin !== 'boolean') {
-        console.log('[role] Invalid isAdmin value:', typeof isAdmin, isAdmin);
-        return res.status(400).json({ message: 'isAdmin must be a boolean' });
+      if (!role || !['student', 'teacher'].includes(role)) {
+        console.log('[user-role] Invalid role value:', role);
+        return res.status(400).json({ message: 'Role must be either "student" or "teacher"' });
       }
 
-      console.log('[role] Calling storage.updateUserRole...');
-      const updatedUser = await storage.updateUserRole(userId, isAdmin);
+      console.log('[user-role] Calling storage.updateUserRole...');
+      const updatedUser = await storage.updateUserRole(userId, role);
       
       if (!updatedUser) {
-        console.log('[role] User not found:', userId);
+        console.log('[user-role] User not found:', userId);
         return res.status(404).json({ message: 'User not found' });
       }
 
-      console.log('[role] User role updated successfully:', updatedUser.email, 'isAdmin:', updatedUser.isAdmin);
+      console.log('[user-role] User role updated successfully:', updatedUser.email, 'role:', updatedUser.role);
 
       // Return safe user data
       const safeUser = {
@@ -756,13 +757,63 @@ export function registerRoutes(app) {
         name: updatedUser.name,
         isAdmin: updatedUser.isAdmin,
         approved: updatedUser.approved,
+        role: updatedUser.role,
         createdAt: updatedUser.createdAt
       };
 
       res.json(safeUser);
     } catch (error) {
-      console.error('[role] Error updating user role:', error);
+      console.error('[user-role] Error updating user role:', error);
       res.status(500).json({ message: 'Failed to update user role' });
+    }
+  });
+
+  app.patch('/api/users/:userId/admin', async (req, res) => {
+    try {
+      console.log('[admin-role] Request from:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
+      console.log('[admin-role] Target userId:', req.params.userId);
+      console.log('[admin-role] Request body:', req.body);
+      
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        console.log('[admin-role] Access denied - user is not admin');
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const { isAdmin } = req.body;
+
+      if (typeof isAdmin !== 'boolean') {
+        console.log('[admin-role] Invalid isAdmin value:', typeof isAdmin, isAdmin);
+        return res.status(400).json({ message: 'isAdmin must be a boolean' });
+      }
+
+      console.log('[admin-role] Calling storage.updateUserAdminStatus...');
+      const updatedUser = await storage.updateUserAdminStatus(userId, isAdmin);
+      
+      if (!updatedUser) {
+        console.log('[admin-role] User not found:', userId);
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      console.log('[admin-role] User admin status updated successfully:', updatedUser.email, 'isAdmin:', updatedUser.isAdmin);
+
+      // Return safe user data
+      const safeUser = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        username: updatedUser.username,
+        name: updatedUser.name,
+        isAdmin: updatedUser.isAdmin,
+        approved: updatedUser.approved,
+        role: updatedUser.role,
+        createdAt: updatedUser.createdAt
+      };
+
+      res.json(safeUser);
+    } catch (error) {
+      console.error('[admin-role] Error updating user admin status:', error);
+      res.status(500).json({ message: 'Failed to update user admin status' });
     }
   });
 
