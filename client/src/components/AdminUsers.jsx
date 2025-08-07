@@ -62,6 +62,24 @@ const AdminUsers = ({ user }) => {
     }
   };
 
+  const updateUserRole = async (userId, newRole) => {
+    try {
+      const response = await fetch(`/api/users/${userId}/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ role: newRole })
+      });
+      
+      if (response.ok) {
+        const updatedUser = await response.json();
+        setUsers(users.map(u => u.id === userId ? updatedUser : u));
+      }
+    } catch (error) {
+      console.error('Error updating user role:', error);
+    }
+  };
+
   const toggleUserAdmin = async (userId, currentAdmin) => {
     if (userId === user.id) {
       alert('You cannot change your own admin status');
@@ -241,7 +259,7 @@ const AdminUsers = ({ user }) => {
                     <select 
                       className="form-select form-select-sm mb-1"
                       value={userItem.role || 'student'}
-                      onChange={(e) => changeUserRole(userItem.id, e.target.value)}
+                      onChange={(e) => updateUserRole(userItem.id, e.target.value)}
                       disabled={userItem.id === user.id}
                     >
                       <option value="student">Student</option>

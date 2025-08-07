@@ -850,6 +850,56 @@ export function registerRoutes(app) {
     }
   });
 
+  // Update user role (student/teacher)
+  app.patch('/api/users/:userId/role', async (req, res) => {
+    try {
+      console.log('[user-role] Request from:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
+      console.log('[user-role] Target userId:', req.params.userId);
+      console.log('[user-role] Request body:', req.body);
+      
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        console.log('[user-role] Access denied - user is not admin');
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const { role } = req.body;
+
+      if (!role || !['student', 'teacher'].includes(role)) {
+        console.log('[user-role] Invalid role value:', role);
+        return res.status(400).json({ message: 'Role must be "student" or "teacher"' });
+      }
+
+      console.log('[user-role] Calling storage.updateUserRole...');
+      const updatedUser = await storage.updateUserRole(userId, role);
+      
+      if (!updatedUser) {
+        console.log('[user-role] User not found:', userId);
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      console.log('[user-role] User role updated successfully:', updatedUser.email, 'role:', updatedUser.role);
+
+      // Return safe user data
+      const safeUser = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        username: updatedUser.username,
+        name: updatedUser.name,
+        isAdmin: updatedUser.isAdmin,
+        approved: updatedUser.approved,
+        role: updatedUser.role,
+        createdAt: updatedUser.createdAt
+      };
+
+      res.json(safeUser);
+    } catch (error) {
+      console.error('[user-role] Error updating user role:', error);
+      res.status(500).json({ message: 'Failed to update user role' });
+    }
+  });
+
   app.patch('/api/users/:userId/approval', async (req, res) => {
     try {
       console.log('[approval] Request from:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
@@ -1740,15 +1790,13 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       }
 
       console.log('[API] /api/chatrooms - Fetching all chatrooms...');
-      const allChatrooms = await storage.getChatrooms();
+      const allChatrooms = await storage.getAllChatrooms();
       console.log('[API] /api/chatrooms - All chatrooms:', allChatrooms.length);
       
-      // Allow all authenticated users (students, teachers, admins) to access all active chatrooms
+      // Allow all authenticated users (students, teachers, admins) to access all chatrooms
       // This enables collaborative learning for everyone
-      const userChatrooms = allChatrooms.filter(chatroom => chatroom.isActive);
-      
-      console.log('[API] /api/chatrooms - User chatrooms for', req.session.user.email + ':', userChatrooms.length);
-      res.json(userChatrooms);
+      console.log('[API] /api/chatrooms - User chatrooms for', req.session.user.email + ':', allChatrooms.length);
+      res.json(allChatrooms);
     } catch (error) {
       console.error('Error fetching user chatrooms:', error);
       res.status(500).json({ message: 'Failed to fetch chatrooms' });
