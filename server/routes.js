@@ -7,6 +7,19 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
 import path from "path";
+import { 
+  validateEmail, 
+  validateUsername, 
+  validatePostTitle, 
+  validatePostContent,
+  validateCategoryName,
+  validateCommentContent,
+  validateChatroomName,
+  validatePassword,
+  validateURL,
+  logSecurityEvent,
+  sanitizeInput
+} from "./security.js";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -214,14 +227,37 @@ export function registerRoutes(app) {
     try {
       const { email, username, name, password, role } = req.body;
 
+      // Input validation
+      if (!validateEmail(email)) {
+        logSecurityEvent('INVALID_EMAIL_REGISTRATION', { email: sanitizeInput(email), ip: req.ip });
+        return res.status(400).json({ message: "Please provide a valid email address" });
+      }
+
+      if (!validateUsername(username)) {
+        logSecurityEvent('INVALID_USERNAME_REGISTRATION', { username: sanitizeInput(username), ip: req.ip });
+        return res.status(400).json({ message: "Username must be 3-30 characters, alphanumeric with hyphens/underscores only" });
+      }
+
+      if (!name || name.trim().length < 2 || name.trim().length > 100) {
+        return res.status(400).json({ message: "Name must be between 2-100 characters" });
+      }
+
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.valid) {
+        logSecurityEvent('WEAK_PASSWORD_ATTEMPT', { username: sanitizeInput(username), ip: req.ip });
+        return res.status(400).json({ message: passwordValidation.message });
+      }
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
+        logSecurityEvent('DUPLICATE_EMAIL_REGISTRATION', { email: sanitizeInput(email), ip: req.ip });
         return res.status(400).json({ message: "User already exists with this email" });
       }
 
       const existingUsername = await storage.getUserByUsername(username);
       if (existingUsername) {
+        logSecurityEvent('DUPLICATE_USERNAME_REGISTRATION', { username: sanitizeInput(username), ip: req.ip });
         return res.status(400).json({ message: "Username is already taken" });
       }
 
@@ -235,13 +271,20 @@ export function registerRoutes(app) {
 
       // Create user
       const user = await storage.createUser({
-        email,
-        username,
-        name,
+        email: email.toLowerCase().trim(), // Normalize email
+        username: username.trim(),
+        name: name.trim(),
         password: hashedPassword,
         role: role,
         isAdmin: false,
         approved: true   // New users can read posts immediately
+      });
+
+      logSecurityEvent('USER_REGISTERED', { 
+        email: sanitizeInput(email), 
+        username: sanitizeInput(username), 
+        role: role, 
+        ip: req.ip 
       });
 
       // Remove password from response
@@ -265,15 +308,28 @@ export function registerRoutes(app) {
     try {
       const { email, password } = req.body;
 
+      // Input validation
+      if (!validateEmail(email)) {
+        logSecurityEvent('INVALID_EMAIL_LOGIN', { email: sanitizeInput(email), ip: req.ip });
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      if (!password || typeof password !== 'string') {
+        logSecurityEvent('EMPTY_PASSWORD_LOGIN', { email: sanitizeInput(email), ip: req.ip });
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
       // Find user
       const user = await storage.getUserByEmail(email);
       if (!user) {
+        logSecurityEvent('NONEXISTENT_USER_LOGIN', { email: sanitizeInput(email), ip: req.ip });
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       // Check password
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) {
+        logSecurityEvent('FAILED_PASSWORD_LOGIN', { email: sanitizeInput(email), ip: req.ip });
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
@@ -569,6 +625,29 @@ export function registerRoutes(app) {
 
       const postData = req.body;
       
+      // Input validation for post creation
+      if (!validatePostTitle(postData.title)) {
+        logSecurityEvent('INVALID_POST_TITLE', { title: sanitizeInput(postData.title), user: req.session.user.email });
+        return res.status(400).json({ message: "Title must be between 3-200 characters" });
+      }
+
+      if (!validatePostContent(postData.content)) {
+        logSecurityEvent('INVALID_POST_CONTENT', { contentLength: postData.content?.length, user: req.session.user.email });
+        return res.status(400).json({ message: "Content must be between 10-50000 characters" });
+      }
+
+      if (postData.metaDescription && postData.metaDescription.length > 160) {
+        return res.status(400).json({ message: "Meta description must be 160 characters or less" });
+      }
+
+      if (postData.canonicalUrl && !validateURL(postData.canonicalUrl)) {
+        return res.status(400).json({ message: "Invalid canonical URL format" });
+      }
+
+      if (postData.ogImage && !validateURL(postData.ogImage)) {
+        return res.status(400).json({ message: "Invalid OG image URL format" });
+      }
+      
       // Add category name if categoryId is provided
       if (postData.categoryId) {
         const category = await storage.getCategoryById(postData.categoryId);
@@ -578,6 +657,7 @@ export function registerRoutes(app) {
       }
 
       const post = await storage.createPost(postData);
+      logSecurityEvent('POST_CREATED', { postId: post.id, title: post.title, user: req.session.user.email });
       res.json(post);
     } catch (error) {
       console.error("Error creating post:", error);

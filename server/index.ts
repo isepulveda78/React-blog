@@ -1,6 +1,9 @@
 import express from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import mongoSanitize from "express-mongo-sanitize";
 import path from "path";
 import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes.js";
@@ -15,6 +18,52 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
 console.log(`[server] starting with PORT=${PORT} (from env: ${process.env.PORT})`);
 
+// Configure trust proxy for Replit deployment
+app.set('trust proxy', 1);
+
+// Security middleware - implement first for all requests
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
+      connectSrc: ["'self'", "ws:", "wss:"],
+      fontSrc: ["'self'", "data:", "https:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false
+}));
+
+// Rate limiting for API endpoints
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Stricter rate limiting for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 10 auth attempts per windowMs
+  message: { error: 'Too many authentication attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiting to API routes
+app.use('/api/', apiLimiter);
+app.use('/api/auth/', authLimiter);
+
+// Prevent NoSQL injection attacks
+app.use(mongoSanitize());
+
 // Use memory store instead of requiring PostgreSQL
 const MemStore = MemoryStore(session);
 
@@ -23,7 +72,10 @@ app.use(session({
   store: new MemStore({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
-  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET || (() => {
+    console.warn('[SECURITY WARNING] Using fallback session secret. Set SESSION_SECRET environment variable in production!');
+    return 'dev-fallback-secret-' + Date.now();
+  })(),
   resave: false,
   saveUninitialized: false,
   name: 'blogcraft.sid', // Explicit session name
@@ -39,6 +91,10 @@ app.use(session({
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Apply input sanitization middleware to all requests
+import { sanitizeRequestBody } from './security.js';
+app.use(sanitizeRequestBody);
 
 // Add cache-busting headers for development
 app.use((req, res, next) => {
