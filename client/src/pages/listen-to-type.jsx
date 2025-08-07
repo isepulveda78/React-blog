@@ -126,7 +126,33 @@ const ListenToType = ({ user }) => {
       const data = JSON.parse(event.data);
       console.log('[chat] Received message:', data);
       
-      // Handle different message types
+      // Handle join_rejected first - highest priority
+      if (data.type === 'join_rejected') {
+        console.log('[chat] ⚠️ JOIN REJECTED - Processing rejection:', data);
+        console.log('[chat] Toast function available:', typeof showToast);
+        
+        // Show toast notification with retry
+        setTimeout(() => {
+          try {
+            showToast(
+              `❌ Name "${data.name}" is already taken! Please choose a different name to join this chatroom.`,
+              'error',
+              10000
+            );
+            console.log('[chat] ✅ Toast notification sent successfully');
+          } catch (error) {
+            console.error('[chat] ❌ Error showing toast:', error);
+          }
+        }, 50); // Small delay to ensure DOM is ready
+        
+        // Reset state
+        setSocket(null);
+        setIsChatJoined(false);
+        // Don't add this to messages, just handle the rejection
+        return;
+      }
+      
+      // Handle other message types
       if (data.type === 'user_joined') {
         setConnectedUsers(prev => new Set([...prev, data.name]));
         if (data.name === (user?.name || chatName)) {
@@ -138,30 +164,9 @@ const ListenToType = ({ user }) => {
           newSet.delete(data.name);
           return newSet;
         });
-      } else if (data.type === 'join_rejected') {
-        console.log('[chat] Join rejected - showing toast:', data);
-        console.log('[chat] Toast function available:', typeof showToast);
-        
-        // Show toast notification
-        try {
-          showToast(
-            `❌ Name "${data.name}" is already taken! Please choose a different name to join this chatroom.`,
-            'error',
-            8000
-          );
-          console.log('[chat] Toast notification sent');
-        } catch (error) {
-          console.error('[chat] Error showing toast:', error);
-        }
-        
-        // Close the WebSocket and reset state
-        newSocket.close();
-        setSocket(null);
-        setIsChatJoined(false);
-        // Don't add this to messages, just handle the rejection
-        return;
       }
       
+      // Add to messages for display (except rejections)
       setMessages(prev => [...prev, {
         id: Date.now() + Math.random(),
         ...data,

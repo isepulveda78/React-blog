@@ -1901,12 +1901,20 @@ Sitemap: ${baseUrl}/sitemap.xml`;
               console.log(`[websocket] Duplicate name "${userName}" rejected for chatroom ${chatroomId}`);
               
               // Send rejection message to this user only
-              ws.send(JSON.stringify({
+              const rejectionMessage = {
                 type: 'join_rejected',
                 name: userName,
                 reason: 'Name already taken in this chatroom',
                 timestamp: new Date().toISOString()
-              }));
+              };
+              
+              console.log('[websocket] Sending rejection message:', rejectionMessage);
+              ws.send(JSON.stringify(rejectionMessage));
+              
+              // Close the connection after a brief delay to ensure message is received
+              setTimeout(() => {
+                ws.close();
+              }, 100);
               return;
             }
             
