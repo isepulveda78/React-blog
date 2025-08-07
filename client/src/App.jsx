@@ -25,6 +25,7 @@ import EducationalTools from './pages/educational-tools.jsx'
 import BingoGenerator from './pages/bingo-generator.jsx'
 import SpanishAlphabet from './pages/spanish-alphabet.jsx'
 import WordSorter from './pages/word-sorter.jsx'
+import ListenToType from './pages/listen-to-type.jsx'
 import CityBuilder from './pages/city-builder-simple.jsx'
 import NotFound from './components/NotFound.jsx'
 
@@ -163,6 +164,7 @@ const AppRoutes = () => {
           <Route path="/bingo-generator" component={() => <BingoGenerator user={user} />} />
           <Route path="/spanish-alphabet" component={() => <SpanishAlphabet user={user} />} />
           <Route path="/word-sorter" component={() => <WordSorter user={user} />} />
+          <Route path="/listen-to-type" component={() => <ListenToType user={user} />} />
           <Route path="/city-builder" component={() => <div style={{ height: '100vh', overflow: 'hidden' }}><CityBuilder user={user} /></div>} />
           <Route path="/profile" component={() => (
             <ProtectedRoute>

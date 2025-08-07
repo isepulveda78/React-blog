@@ -94,6 +94,27 @@ const EducationalTools = ({ user }) => {
                 </div>
               </div>
             </div>
+            
+            <div className="col-md-6 col-lg-3 mb-4">
+              <div className="card h-100 shadow-sm">
+                <div className="card-body text-center">
+                  <div className="mb-3">
+                    <i className="fas fa-keyboard fa-3x text-danger"></i>
+                  </div>
+                  <h5 className="card-title">Listen to Type</h5>
+                  <p className="card-text">Practice typing by listening to audio prompts and typing what you hear</p>
+                  <button 
+                    className="btn btn-danger"
+                    onClick={() => {
+                      window.history.pushState({}, '', '/listen-to-type');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }}
+                  >
+                    Launch Tool
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
