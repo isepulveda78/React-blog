@@ -26,10 +26,17 @@ const AdminUsers = ({ user }) => {
 
   const fetchUsers = async () => {
     try {
+      console.log('[AdminUsers] Fetching users...');
       const response = await fetch('/api/users', { credentials: 'include' });
+      console.log('[AdminUsers] Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('[AdminUsers] Users received:', data.length);
         setUsers(data);
+      } else {
+        const errorText = await response.text();
+        console.error('[AdminUsers] Error response:', response.status, errorText);
       }
     } catch (error) {
       console.error('Error fetching users:', error);

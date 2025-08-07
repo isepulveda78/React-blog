@@ -171,6 +171,10 @@ export function registerRoutes(app) {
 
   // Get current user endpoint
   app.get("/api/auth/user", (req, res) => {
+    console.log('[auth] Session check - user exists:', !!req.session.user);
+    console.log('[auth] Full session ID:', req.sessionID);
+    console.log('[auth] Session details:', req.session);
+    
     if (req.session.user) {
       console.log('[auth] User session found:', req.session.user.email, 'isAdmin:', req.session.user.isAdmin);
       res.json(req.session.user);
@@ -695,8 +699,12 @@ export function registerRoutes(app) {
   // User management endpoints (admin only)
   app.get('/api/users', async (req, res) => {
     try {
+      console.log('[users] Session user:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
+      console.log('[users] Full session:', req.session);
+      
       // Check if user is admin
       if (!req.session.user?.isAdmin) {
+        console.log('[users] Access denied - not admin');
         return res.status(403).json({ message: "Admin access required" });
       }
 
