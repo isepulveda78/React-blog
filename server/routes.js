@@ -1879,10 +1879,12 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     ws.on('message', (data) => {
       try {
         const message = JSON.parse(data.toString());
+        console.log('[websocket] Received message:', message);
         
         switch (message.type) {
           case 'join':
             // User joins the chat
+            console.log('[websocket] Join data - name:', message.name, 'role:', message.role);
             chatUsers.set(ws, {
               name: message.name,
               role: message.role,
@@ -1900,12 +1902,13 @@ Sitemap: ${baseUrl}/sitemap.xml`;
             };
             
             broadcast(joinMessage);
-            console.log(`[chat] ${message.name} joined the chat`);
+            console.log(`[chat] ${message.name} (${message.role}) joined the chat`);
             break;
             
           case 'message':
             // User sends a chat message
             const user = chatUsers.get(ws);
+            console.log('[websocket] Message from user:', user);
             if (user) {
               const chatMessage = {
                 type: 'message',
@@ -1918,7 +1921,9 @@ Sitemap: ${baseUrl}/sitemap.xml`;
               };
               
               broadcast(chatMessage);
-              console.log(`[chat] ${user.name}: ${message.text}`);
+              console.log(`[chat] ${user.name} (${user.role}): ${message.text}`);
+            } else {
+              console.log('[websocket] No user found for this connection');
             }
             break;
         }
