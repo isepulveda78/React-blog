@@ -95,6 +95,7 @@ const ListenToType = ({ user }) => {
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     
     console.log('[chat] Connecting to WebSocket:', wsUrl);
+    console.log('[chat] User data for join:', { name: user.name, role: user.role, userId: user.id });
     
     const newSocket = new WebSocket(wsUrl);
     setSocket(newSocket);
@@ -108,7 +109,7 @@ const ListenToType = ({ user }) => {
         userId: user.id,
         chatroom: selectedChatroom.id
       };
-      console.log('[chat] Sending join data with authentication:', joinData);
+      console.log('[chat] NEW AUTH FORMAT - Sending join data:', joinData);
       newSocket.send(JSON.stringify(joinData));
       setIsChatJoined(true);
     };
