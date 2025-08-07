@@ -13,6 +13,7 @@ import AdminUsers from './components/AdminUsers.jsx'
 import AdminComments from './components/AdminComments.jsx'
 import AdminPostEditor from './components/AdminPostEditor.jsx'
 import SEOManagement from './components/SEOManagement.jsx'
+import AdminChatrooms from './components/AdminChatrooms.jsx'
 
 // Debug: Log all imports to find undefined component
 console.log('DEBUG IMPORTS:', {
@@ -169,6 +170,11 @@ const AppRoutes = () => {
           <Route path="/profile" component={() => (
             <ProtectedRoute>
               <UserProfile user={user} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/admin/chatrooms" component={() => (
+            <ProtectedRoute requireAdmin={true}>
+              <AdminChatrooms user={user} />
             </ProtectedRoute>
           )} />
           <Route path="/admin" component={() => (

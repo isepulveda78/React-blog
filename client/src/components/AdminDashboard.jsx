@@ -107,6 +107,22 @@ const AdminDashboard = ({ user }) => {
             </div>
           </div>
         </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm hover-shadow">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">💬</div>
+              <h5 className="card-title">Manage Chatrooms</h5>
+              <p className="card-text">Create and manage private chatrooms for users.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/admin/chatrooms')}
+              >
+                Go to Chatrooms
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

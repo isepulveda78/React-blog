@@ -35,14 +35,16 @@ Cache management: Implemented hot reload system for instant change detection and
 - **Categories**: Blog post categorization.
 - **Blog Posts**: Rich content with metadata, SEO fields, and publishing workflow.
 - **Comments**: Nested commenting system.
+- **Chatrooms**: Admin-created chat spaces with invitation lists and access control.
 
 ### Authentication & Authorization
 - **User Registration/Login**: Email/password and Google OAuth authentication.
 - **Password Security**: bcrypt hashing.
 - **Immediate Blog Access**: Authenticated users can immediately read posts and leave comments without approval.
-- **Role-Based Access**: Admin users have access to management interfaces.
+- **Role-Based Access**: Admin users have access to management interfaces, students have chat access.
 - **Session Management**: Server-side session validation with proper React context integration.
 - **No Approval Required**: Complete removal of approval barriers for authenticated users accessing blog content and commenting.
+- **Chatroom Access Control**: Teachers/admins can create private chatrooms and invite specific users.
 
 ### Rich Text Editing
 - **Custom Editor**: Built-in WYSIWYG editor with formatting controls.
@@ -120,6 +122,8 @@ Cache management: Implemented hot reload system for instant change detection and
 - **Live User Tracking**: Shows when users join/leave the chat with timestamps
 - **Message Broadcasting**: All connected users see messages instantly
 - **Auto-Scroll**: Chat automatically scrolls to show latest messages
+- **Admin Chatrooms**: Comprehensive chatroom management system for admins
+- **Role-Based Chat Access**: Chat features restricted to students only, with teacher/admin oversight capabilities
 
 ## Deployment Configuration (Latest)
 

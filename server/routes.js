@@ -1554,6 +1554,116 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // Chatroom API routes
+  app.get('/api/admin/chatrooms', async (req, res) => {
+    try {
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const chatrooms = await storage.getChatrooms();
+      res.json(chatrooms);
+    } catch (error) {
+      console.error('Error fetching chatrooms:', error);
+      res.status(500).json({ message: 'Failed to fetch chatrooms' });
+    }
+  });
+
+  app.post('/api/admin/chatrooms', async (req, res) => {
+    try {
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { name, description, invitedUserIds } = req.body;
+      
+      if (!name || !name.trim()) {
+        return res.status(400).json({ message: 'Chatroom name is required' });
+      }
+
+      const chatroomData = {
+        name: name.trim(),
+        description: description?.trim() || '',
+        createdBy: req.session.user.id,
+        createdByName: req.session.user.name,
+        invitedUserIds: invitedUserIds || [],
+        isActive: true
+      };
+
+      const chatroom = await storage.createChatroom(chatroomData);
+      res.status(201).json(chatroom);
+    } catch (error) {
+      console.error('Error creating chatroom:', error);
+      res.status(500).json({ message: 'Failed to create chatroom' });
+    }
+  });
+
+  app.put('/api/admin/chatrooms/:id', async (req, res) => {
+    try {
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      const { name, description, invitedUserIds, isActive } = req.body;
+
+      const updateData = {};
+      if (name !== undefined) updateData.name = name.trim();
+      if (description !== undefined) updateData.description = description.trim();
+      if (invitedUserIds !== undefined) updateData.invitedUserIds = invitedUserIds;
+      if (isActive !== undefined) updateData.isActive = isActive;
+
+      const chatroom = await storage.updateChatroom(id, updateData);
+      if (!chatroom) {
+        return res.status(404).json({ message: 'Chatroom not found' });
+      }
+
+      res.json(chatroom);
+    } catch (error) {
+      console.error('Error updating chatroom:', error);
+      res.status(500).json({ message: 'Failed to update chatroom' });
+    }
+  });
+
+  app.delete('/api/admin/chatrooms/:id', async (req, res) => {
+    try {
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      const success = await storage.deleteChatroom(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: 'Chatroom not found' });
+      }
+
+      res.json({ message: 'Chatroom deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting chatroom:', error);
+      res.status(500).json({ message: 'Failed to delete chatroom' });
+    }
+  });
+
+  // Get user chatrooms (for invited users)
+  app.get('/api/chatrooms', async (req, res) => {
+    try {
+      if (!req.session.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const allChatrooms = await storage.getChatrooms();
+      const userChatrooms = allChatrooms.filter(chatroom => 
+        chatroom.isActive && 
+        (chatroom.invitedUserIds.includes(req.session.user.id) || req.session.user.isAdmin)
+      );
+
+      res.json(userChatrooms);
+    } catch (error) {
+      console.error('Error fetching user chatrooms:', error);
+      res.status(500).json({ message: 'Failed to fetch chatrooms' });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 

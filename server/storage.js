@@ -9,6 +9,7 @@ class MemStorage {
     this.posts = [];
     this.categories = [];
     this.comments = [];
+    this.chatrooms = [];
     console.log('[storage] Using in-memory storage');
     this.initializeSampleData();
   }
@@ -147,7 +148,26 @@ class MemStorage {
     return true;
   }
 
-
+  // Chatroom methods
+  async getChatrooms() { return this.chatrooms.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
+  async getChatroomById(id) { return this.chatrooms.find(c => c.id === id); }
+  async createChatroom(chatroomData) {
+    const chatroom = { id: nanoid(), ...chatroomData, createdAt: new Date().toISOString() };
+    this.chatrooms.push(chatroom);
+    return chatroom;
+  }
+  async updateChatroom(id, chatroomData) {
+    const index = this.chatrooms.findIndex(c => c.id === id);
+    if (index === -1) return null;
+    this.chatrooms[index] = { ...this.chatrooms[index], ...chatroomData, updatedAt: new Date().toISOString() };
+    return this.chatrooms[index];
+  }
+  async deleteChatroom(chatroomId) {
+    const index = this.chatrooms.findIndex(c => c.id === chatroomId);
+    if (index === -1) return false;
+    this.chatrooms.splice(index, 1);
+    return true;
+  }
 
   async updateUserApproval(userId, approved) {
     const index = this.users.findIndex(u => u.id === userId);
@@ -174,6 +194,32 @@ class MemStorage {
     const index = this.users.findIndex(u => u.id === userId);
     if (index === -1) return false;
     this.users.splice(index, 1);
+    return true;
+  }
+
+  // Chatroom methods
+  async getChatrooms() { return this.chatrooms.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
+  async getChatroomById(id) { return this.chatrooms.find(c => c.id === id); }
+  async createChatroom(chatroomData) {
+    const chatroom = {
+      id: nanoid(),
+      ...chatroomData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    this.chatrooms.push(chatroom);
+    return chatroom;
+  }
+  async updateChatroom(id, updateData) {
+    const index = this.chatrooms.findIndex(c => c.id === id);
+    if (index === -1) return null;
+    this.chatrooms[index] = { ...this.chatrooms[index], ...updateData, updatedAt: new Date().toISOString() };
+    return this.chatrooms[index];
+  }
+  async deleteChatroom(id) {
+    const index = this.chatrooms.findIndex(c => c.id === id);
+    if (index === -1) return false;
+    this.chatrooms.splice(index, 1);
     return true;
   }
 
@@ -392,6 +438,7 @@ export class MongoStorage {
     await this.db.collection('categories').deleteMany({});
     await this.db.collection('posts').deleteMany({});
     await this.db.collection('comments').deleteMany({});
+    await this.db.collection('chatrooms').deleteMany({});
     
     console.log('[mongodb] All data cleared');
     
@@ -1144,6 +1191,44 @@ export class MongoStorage {
   async deleteComment(id) {
     await this.connect();
     const result = await this.db.collection('comments').deleteOne({ id });
+    return result.deletedCount > 0;
+  }
+
+  // Chatroom methods
+  async getChatrooms() {
+    await this.connect();
+    return await this.db.collection('chatrooms').find({}).sort({ createdAt: -1 }).toArray();
+  }
+
+  async getChatroomById(id) {
+    await this.connect();
+    return await this.db.collection('chatrooms').findOne({ id });
+  }
+
+  async createChatroom(chatroomData) {
+    await this.connect();
+    const chatroom = {
+      id: nanoid(),
+      ...chatroomData,
+      createdAt: new Date().toISOString()
+    };
+    await this.db.collection('chatrooms').insertOne(chatroom);
+    return chatroom;
+  }
+
+  async updateChatroom(id, chatroomData) {
+    await this.connect();
+    const result = await this.db.collection('chatrooms').findOneAndUpdate(
+      { id },
+      { $set: { ...chatroomData, updatedAt: new Date().toISOString() } },
+      { returnDocument: 'after' }
+    );
+    return result.value;
+  }
+
+  async deleteChatroom(chatroomId) {
+    await this.connect();
+    const result = await this.db.collection('chatrooms').deleteOne({ id: chatroomId });
     return result.deletedCount > 0;
   }
 }
