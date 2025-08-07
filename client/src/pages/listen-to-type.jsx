@@ -239,9 +239,16 @@ const ListenToType = ({ user }) => {
                         <a 
                           href="/api/auth/quick-login" 
                           className="btn btn-success btn-sm me-2"
-                          title="Direct login link - use if Fix Session button doesn't work"
+                          title="Login as Admin/Teacher"
                         >
-                          <i className="fas fa-key me-1"></i>Direct Login
+                          <i className="fas fa-key me-1"></i>Teacher Login
+                        </a>
+                        <a 
+                          href="/api/auth/quick-login?type=student" 
+                          className="btn btn-info btn-sm me-2"
+                          title="Login as Student"
+                        >
+                          <i className="fas fa-user me-1"></i>Student Login
                         </a>
                         {user?.isAdmin && (
                           <a href="/admin" className="btn btn-outline-primary btn-sm">
@@ -256,7 +263,8 @@ const ListenToType = ({ user }) => {
                         <div className="mt-2">
                           <div className="alert alert-info alert-sm">
                             <i className="fas fa-info-circle me-1"></i>
-                            <strong>Can't see chatrooms?</strong> Click "Fix Session" or "Direct Login" to authenticate properly.
+                            <strong>Can't see chatrooms?</strong> Click "Direct Login" to authenticate and access chatrooms. 
+                            <br /><small>All students and teachers can access chatrooms for collaborative learning!</small>
                           </div>
                         </div>
                       </div>

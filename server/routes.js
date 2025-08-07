@@ -1728,7 +1728,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
-  // Get user chatrooms (for invited users)
+  // Get user chatrooms - accessible to all authenticated users (students and teachers)
   app.get('/api/chatrooms', async (req, res) => {
     try {
       console.log('[API] /api/chatrooms - Session user:', req.session?.user);
@@ -1743,12 +1743,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const allChatrooms = await storage.getChatrooms();
       console.log('[API] /api/chatrooms - All chatrooms:', allChatrooms.length);
       
-      const userChatrooms = allChatrooms.filter(chatroom => 
-        chatroom.isActive && 
-        (chatroom.invitedUserIds.includes(req.session.user.id) || req.session.user.isAdmin)
-      );
+      // Allow all authenticated users (students, teachers, admins) to access all active chatrooms
+      // This enables collaborative learning for everyone
+      const userChatrooms = allChatrooms.filter(chatroom => chatroom.isActive);
       
-      console.log('[API] /api/chatrooms - User chatrooms:', userChatrooms.length);
+      console.log('[API] /api/chatrooms - User chatrooms for', req.session.user.email + ':', userChatrooms.length);
       res.json(userChatrooms);
     } catch (error) {
       console.error('Error fetching user chatrooms:', error);
@@ -1759,17 +1758,37 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   // Quick login endpoint for session sync fixes
   app.get('/api/auth/quick-login', async (req, res) => {
     try {
-      // Find the admin user for quick login
-      const adminUser = await storage.getUserByEmail('admin@example.com');
-      if (!adminUser) {
-        return res.status(404).json({ message: 'Admin user not found' });
+      const userType = req.query.type || 'admin'; // Default to admin login
+      
+      let user;
+      if (userType === 'student') {
+        // Create or find a student user for testing
+        user = await storage.getUserByEmail('student@example.com');
+        if (!user) {
+          // Create a student user if doesn't exist
+          user = await storage.createUser({
+            email: 'student@example.com',
+            username: 'student',
+            name: 'Test Student',
+            password: 'hashedpassword',
+            role: 'student',
+            isAdmin: false,
+            approved: true
+          });
+        }
+      } else {
+        // Find the admin user for quick login
+        user = await storage.getUserByEmail('admin@example.com');
+        if (!user) {
+          return res.status(404).json({ message: 'Admin user not found' });
+        }
       }
 
       // Set session
-      req.session.userId = adminUser.id;
-      req.session.user = adminUser;
+      req.session.userId = user.id;
+      req.session.user = user;
       
-      console.log('[auth] Quick login session set for user:', adminUser.email);
+      console.log('[auth] Quick login session set for user:', user.email, 'role:', user.role);
       console.log('[auth] Session ID:', req.sessionID);
       
       // Get redirect URL or default to /listen-to-type
