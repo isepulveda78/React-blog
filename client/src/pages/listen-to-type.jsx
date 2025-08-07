@@ -418,7 +418,8 @@ const ListenToType = ({ user }) => {
                                     <div className="d-flex justify-content-between align-items-center mb-1">
                                       <div className="d-flex align-items-center">
                                         <strong className="text-primary me-2">
-                                          {message.username || message.name || 'Unknown User'}
+                                          {message.username || message.name || 'Unknown User'} 
+                                          <span className="text-muted" style={{fontSize: '0.8em'}}>(debug: {JSON.stringify({u: message.username, n: message.name})})</span>
                                         </strong>
                                         <span className={`badge ${message.role === 'teacher' ? 'bg-success' : 'bg-info'} text-white`} style={{ fontSize: '0.65em' }}>
                                           {message.role || 'student'}
