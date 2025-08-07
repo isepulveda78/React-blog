@@ -157,8 +157,9 @@ export function registerRoutes(app) {
   // Authentication status endpoint
   app.get("/api/auth/me", async (req, res) => {
     try {
-      console.log('[auth/me] Session user:', req.session?.user);
+      console.log('[auth/me] Session user:', req.session?.user?.email || 'undefined');
       console.log('[auth/me] Session ID:', req.sessionID);
+      console.log('[auth/me] User-Agent:', req.headers['user-agent']?.substring(0, 50) + '...');
       
       if (req.session?.user) {
         // Return user from session
@@ -180,6 +181,8 @@ export function registerRoutes(app) {
       
       if (user) {
         console.log('[quick-login] Setting session for user:', user.email);
+        console.log('[quick-login] Session ID:', req.sessionID);
+        console.log('[quick-login] User-Agent:', req.headers['user-agent']?.substring(0, 50) + '...');
         req.session.user = user;
         res.json(user);
       } else {
