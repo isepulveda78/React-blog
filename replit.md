@@ -126,6 +126,9 @@ Cache management: Implemented hot reload system for instant change detection and
 - **Admin Chatrooms**: Comprehensive chatroom management system for admins with create/edit/delete functionality
 - **Role-Based Chat Access**: Chat features restricted to students only, with teacher/admin oversight capabilities
 - **Persistent Data**: Sample chatrooms automatically created on first MongoDB initialization
+- **Authentication-Only Chat Access**: Only logged-in users can access chatrooms for security and accountability
+- **User Name Display**: Chat messages show actual user names from session with role badges (teacher/student)
+- **WebSocket Security**: Server validates user authentication data before allowing chat participation
 
 ## Deployment Configuration (Latest)
 
