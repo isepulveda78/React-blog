@@ -413,16 +413,20 @@ const ListenToType = ({ user }) => {
                                   </small>
                                 </div>
                               ) : (
-                                <div className="d-flex justify-content-start">
-                                  <div className="bg-white rounded p-2 shadow-sm" style={{ maxWidth: '70%' }}>
-                                    <div className="d-flex justify-content-between align-items-start">
+                                <div className="d-flex justify-content-start mb-2">
+                                  <div className="bg-white rounded p-3 shadow-sm border" style={{ maxWidth: '75%' }}>
+                                    <div className="d-flex justify-content-between align-items-center mb-1">
                                       <div className="d-flex align-items-center">
-                                        <strong className="text-primary me-2">{message.username}</strong>
-                                        <span className={`badge ${message.role === 'teacher' ? 'bg-success' : 'bg-primary'} text-white me-2`} style={{ fontSize: '0.7em' }}>
-                                          {message.role}
+                                        <strong className="text-primary me-2">
+                                          {message.username || message.name || 'Unknown User'}
+                                        </strong>
+                                        <span className={`badge ${message.role === 'teacher' ? 'bg-success' : 'bg-info'} text-white`} style={{ fontSize: '0.65em' }}>
+                                          {message.role || 'student'}
                                         </span>
                                       </div>
-                                      <small className="text-muted">{formatTime(message.timestamp)}</small>
+                                      <small className="text-muted" style={{ fontSize: '0.75em' }}>
+                                        {formatTime(message.timestamp)}
+                                      </small>
                                     </div>
                                     <p className="mb-0">{message.text}</p>
                                   </div>

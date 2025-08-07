@@ -1950,18 +1950,20 @@ Sitemap: ${baseUrl}/sitemap.xml`;
               const chatMessage = {
                 type: 'message',
                 id: messageId++,
-                username: user.name,
-                name: user.name,
-                role: user.role,
-                text: message.text,
+                username: user.name, // This is the display name
+                name: user.name,     // Alternative name field for compatibility
+                role: user.role,     // User role (student/teacher)
+                text: message.text,  // The actual message content
                 chatroom: user.chatroom,
                 timestamp: new Date().toISOString()
               };
               
+              console.log('[websocket] Broadcasting message:', chatMessage);
               broadcastToChatroom(chatMessage, user.chatroom);
               console.log(`[chat] ${user.name} (${user.role}): ${message.text}`);
             } else {
               console.log('[websocket] No user found for this connection');
+              console.log('[websocket] Available users:', Array.from(chatUsers.values()).map(u => ({ name: u.name, role: u.role, chatroom: u.chatroom })));
             }
             break;
         }
