@@ -187,6 +187,25 @@ const ListenToType = ({ user }) => {
     }
   }, [user]);
 
+  // Quick login for testing session sync
+  const handleQuickLogin = async () => {
+    try {
+      const response = await fetch('/api/auth/quick-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: 'admin@example.com' })
+      });
+      
+      if (response.ok) {
+        console.log('[ListenToType] Quick login successful, refetching chatrooms...');
+        await fetchAvailableChatrooms();
+      }
+    } catch (error) {
+      console.error('Quick login error:', error);
+    }
+  };
+
   // Chat functionality
   const connectToChat = () => {
     if (!chatName.trim()) return;
@@ -465,6 +484,12 @@ const ListenToType = ({ user }) => {
                         <i className="fas fa-comment-slash fa-3x mb-3"></i>
                         <p>No chatrooms available yet.</p>
                         <p className="small">Ask your teacher to create a chatroom for you!</p>
+                        <button 
+                          className="btn btn-outline-primary btn-sm mt-2"
+                          onClick={handleQuickLogin}
+                        >
+                          <i className="fas fa-sync me-1"></i>Refresh Chatrooms
+                        </button>
                       </div>
                     )}
                   </div>

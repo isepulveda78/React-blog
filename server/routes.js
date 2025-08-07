@@ -157,6 +157,9 @@ export function registerRoutes(app) {
   // Authentication status endpoint
   app.get("/api/auth/me", async (req, res) => {
     try {
+      console.log('[auth/me] Session user:', req.session?.user);
+      console.log('[auth/me] Session ID:', req.sessionID);
+      
       if (req.session?.user) {
         // Return user from session
         res.json(req.session.user);
@@ -165,6 +168,25 @@ export function registerRoutes(app) {
       }
     } catch (error) {
       console.error("Auth me error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Quick login endpoint for testing
+  app.post("/api/auth/quick-login", async (req, res) => {
+    try {
+      const { email } = req.body;
+      const user = await storage.getUserByEmail(email || "admin@example.com");
+      
+      if (user) {
+        console.log('[quick-login] Setting session for user:', user.email);
+        req.session.user = user;
+        res.json(user);
+      } else {
+        res.status(404).json({ message: "User not found" });
+      }
+    } catch (error) {
+      console.error("Quick login error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

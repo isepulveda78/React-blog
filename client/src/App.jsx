@@ -47,8 +47,10 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check if user is authenticated with backend session
+    console.log('[AuthProvider] Checking authentication status...')
     fetch('/api/auth/me', { credentials: 'include' })
       .then((res) => {
+        console.log('[AuthProvider] Auth response status:', res.status)
         if (res.ok) {
           return res.json()
         }
