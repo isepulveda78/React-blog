@@ -85,7 +85,8 @@ const ListenToType = ({ user }) => {
   }, [messages]);
 
   const connectToChat = () => {
-    if (!chatName.trim() || !selectedChatroom) return;
+    const displayName = user?.name || chatName;
+    if (!displayName.trim() || !selectedChatroom) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -97,12 +98,14 @@ const ListenToType = ({ user }) => {
 
     newSocket.onopen = () => {
       console.log('[chat] WebSocket connected');
-      newSocket.send(JSON.stringify({
+      const joinData = {
         type: 'join',
-        name: chatName,
+        name: user?.name || chatName,
         role: user?.role || 'student',
         chatroom: selectedChatroom.id
-      }));
+      };
+      console.log('[chat] Sending join data:', joinData);
+      newSocket.send(JSON.stringify(joinData));
       setIsChatJoined(true);
     };
 
@@ -292,7 +295,7 @@ const ListenToType = ({ user }) => {
                         <input
                           type="text"
                           className="form-control"
-                          placeholder="Enter your name"
+                          placeholder={user?.name ? `Default: ${user.name}` : "Enter your name"}
                           value={chatName}
                           onChange={(e) => setChatName(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && connectToChat()}
@@ -300,11 +303,17 @@ const ListenToType = ({ user }) => {
                         <button 
                           className="btn btn-primary"
                           onClick={connectToChat}
-                          disabled={!chatName.trim()}
+                          disabled={!chatName.trim() && !user?.name}
                         >
-                          <i className="fas fa-sign-in-alt me-1"></i>Join Chat
+                          <i className="fas fa-sign-in-alt me-1"></i>Join as {user?.name || chatName || 'User'}
                         </button>
                       </div>
+                      {user?.name && (
+                        <small className="text-muted d-block mb-2">
+                          <i className="fas fa-info-circle me-1"></i>
+                          Using your account name: <strong>{user.name}</strong> ({user.role})
+                        </small>
+                      )}
                     </div>
                   ) : (
                     <div>
