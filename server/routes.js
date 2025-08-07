@@ -1883,11 +1883,14 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         
         switch (message.type) {
           case 'join':
-            // User joins the chat
-            console.log('[websocket] Join data - name:', message.name, 'role:', message.role);
+            // User joins the chat - fallback to username if name not provided (for compatibility)
+            const userName = message.name || message.username || 'Anonymous';
+            const userRole = message.role || 'student';
+            
+            console.log('[websocket] Join data - name:', userName, 'role:', userRole);
             chatUsers.set(ws, {
-              name: message.name,
-              role: message.role,
+              name: userName,
+              role: userRole,
               joinedAt: new Date()
             });
             
@@ -1895,14 +1898,14 @@ Sitemap: ${baseUrl}/sitemap.xml`;
             const joinMessage = {
               type: 'user_joined',
               id: messageId++,
-              username: message.name,
-              name: message.name,
-              role: message.role,
+              username: userName,
+              name: userName,
+              role: userRole,
               timestamp: new Date().toISOString()
             };
             
             broadcast(joinMessage);
-            console.log(`[chat] ${message.name} (${message.role}) joined the chat`);
+            console.log(`[chat] ${userName} (${userRole}) joined the chat`);
             break;
             
           case 'message':
