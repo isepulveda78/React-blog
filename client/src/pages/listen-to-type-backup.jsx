@@ -170,7 +170,7 @@ const ListenToType = ({ user }) => {
   };
 
   // Load chatrooms when component mounts
-  useEffect(() => {
+  React.useEffect(() => {
     if (user) {
       fetchAvailableChatrooms();
     }
@@ -188,8 +188,7 @@ const ListenToType = ({ user }) => {
       console.log('[chat] Connected to chat');
       newSocket.send(JSON.stringify({
         type: 'join',
-        name: chatName.trim(),
-        chatroom: selectedChatroom?.id
+        name: chatName.trim()
       }));
       setIsChatJoined(true);
       setSocket(newSocket);
@@ -223,8 +222,7 @@ const ListenToType = ({ user }) => {
 
     socket.send(JSON.stringify({
       type: 'message',
-      text: newMessage.trim(),
-      chatroom: selectedChatroom?.id
+      text: newMessage.trim()
     }));
 
     setNewMessage('');
@@ -248,149 +246,162 @@ const ListenToType = ({ user }) => {
     setSelectedChatroom(null);
   };
 
+  // Format timestamp for display
   const formatTime = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return new Date(timestamp).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
-    <div className="container py-4">
+    <div className="container py-5">
       <div className="row">
-        <div className="col-12 text-center mb-4">
-          <h1 className="display-4 fw-bold text-primary mb-3">
-            <i className="fas fa-headphones me-3"></i>Listen to Type
-          </h1>
+        <div className="col-12 text-center mb-5">
+          <h1 className="display-4 fw-bold text-danger mb-3">Listen to Type</h1>
           <p className="lead text-muted">
-            Improve your listening and typing skills with interactive audio challenges
+            Practice your typing skills by listening to audio prompts and typing what you hear
           </p>
         </div>
       </div>
 
-      {/* Game Interface */}
-      <div className="row">
+      {/* Score and Controls */}
+      <div className="row mb-4">
         <div className="col-md-8 mx-auto">
-          <div className="card shadow-lg">
-            <div className="card-header bg-primary text-white">
-              <div className="d-flex justify-content-between align-items-center">
-                <h4 className="mb-0">
-                  <i className="fas fa-gamepad me-2"></i>Challenge
-                </h4>
-                <div className="d-flex gap-2">
-                  <span className="badge bg-light text-dark">Score: {score}/{totalAttempts}</span>
-                  {totalAttempts > 0 && (
-                    <span className="badge bg-success">Accuracy: {getAccuracy()}%</span>
-                  )}
-                </div>
-              </div>
-            </div>
-            
+          <div className="card shadow-sm">
             <div className="card-body">
-              {/* Difficulty Selection */}
-              <div className="row mb-4">
-                <div className="col-md-6">
-                  <label className="form-label fw-semibold">Difficulty Level:</label>
+              <div className="row text-center">
+                <div className="col-md-3">
+                  <h5 className="text-success mb-1">{score}</h5>
+                  <small className="text-muted">Correct</small>
+                </div>
+                <div className="col-md-3">
+                  <h5 className="text-info mb-1">{totalAttempts}</h5>
+                  <small className="text-muted">Total</small>
+                </div>
+                <div className="col-md-3">
+                  <h5 className="text-warning mb-1">{getAccuracy()}%</h5>
+                  <small className="text-muted">Accuracy</small>
+                </div>
+                <div className="col-md-3">
                   <select 
-                    className="form-select"
+                    className="form-select form-select-sm"
                     value={difficulty}
                     onChange={(e) => setDifficulty(e.target.value)}
                   >
-                    <option value="easy">🟢 Easy - Simple sentences</option>
-                    <option value="medium">🟡 Medium - Longer phrases</option>
-                    <option value="hard">🔴 Hard - Complex vocabulary</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
                   </select>
-                </div>
-                <div className="col-md-6 d-flex align-items-end">
-                  <button 
-                    className="btn btn-success btn-lg w-100"
-                    onClick={startNewChallenge}
-                    disabled={isPlaying}
-                  >
-                    {isPlaying ? (
-                      <>
-                        <div className="spinner-border spinner-border-sm me-2" role="status"></div>
-                        Playing Audio...
-                      </>
-                    ) : (
-                      <>
-                        <i className="fas fa-play me-2"></i>Start Challenge
-                      </>
-                    )}
-                  </button>
+                  <small className="text-muted">Difficulty</small>
                 </div>
               </div>
-
-              {/* Challenge Area */}
-              {currentText && (
-                <div className="row">
-                  <div className="col-12">
-                    <div className="mb-3">
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <label className="form-label fw-semibold">Type what you hear:</label>
-                        <button 
-                          className="btn btn-outline-primary btn-sm"
-                          onClick={() => speakText(currentText)}
-                          disabled={isPlaying}
-                        >
-                          <i className="fas fa-volume-up me-1"></i>Replay
-                        </button>
-                      </div>
-                      <textarea
-                        className="form-control"
-                        rows="3"
-                        placeholder="Type here..."
-                        value={userInput}
-                        onChange={(e) => setUserInput(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        disabled={showResult}
-                      />
-                    </div>
-                    
-                    {!showResult ? (
-                      <button 
-                        className="btn btn-primary btn-lg w-100"
-                        onClick={checkAnswer}
-                        disabled={!userInput.trim()}
-                      >
-                        <i className="fas fa-check me-2"></i>Check Answer
-                      </button>
-                    ) : (
-                      <div className="text-center">
-                        <div className={`alert ${feedback.includes('Perfect') ? 'alert-success' : 'alert-warning'}`}>
-                          <h5 className="mb-2">{feedback}</h5>
-                        </div>
-                        <div className="d-flex gap-2 justify-content-center">
-                          <button 
-                            className="btn btn-success"
-                            onClick={startNewChallenge}
-                          >
-                            <i className="fas fa-forward me-2"></i>Next Challenge
-                          </button>
-                          <button 
-                            className="btn btn-outline-secondary"
-                            onClick={resetGame}
-                          >
-                            <i className="fas fa-redo me-2"></i>Reset Game
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Chat Toggle Button */}
+      {/* Main Game Area */}
+      <div className="row">
+        <div className="col-md-8 mx-auto">
+          <div className="card shadow">
+            <div className="card-body">
+              
+              {/* Audio Controls */}
+              <div className="text-center mb-4">
+                <button 
+                  className="btn btn-primary btn-lg me-3"
+                  onClick={startNewChallenge}
+                  disabled={isPlaying}
+                >
+                  <i className="fas fa-play me-2"></i>
+                  {currentText ? 'New Challenge' : 'Start Challenge'}
+                </button>
+                
+                {currentText && (
+                  <button 
+                    className="btn btn-outline-secondary btn-lg"
+                    onClick={() => speakText(currentText)}
+                    disabled={isPlaying}
+                  >
+                    <i className="fas fa-volume-up me-2"></i>
+                    {isPlaying ? 'Playing...' : 'Repeat'}
+                  </button>
+                )}
+              </div>
+
+              {/* Typing Input */}
+              {currentText && (
+                <div className="mb-4">
+                  <label className="form-label fw-bold">Type what you heard:</label>
+                  <textarea
+                    className="form-control form-control-lg"
+                    rows="3"
+                    value={userInput}
+                    onChange={(e) => setUserInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Start typing here..."
+                    disabled={showResult}
+                  />
+                </div>
+              )}
+
+              {/* Submit Button */}
+              {currentText && !showResult && (
+                <div className="text-center mb-3">
+                  <button 
+                    className="btn btn-success btn-lg"
+                    onClick={checkAnswer}
+                    disabled={!userInput.trim()}
+                  >
+                    <i className="fas fa-check me-2"></i>
+                    Check Answer
+                  </button>
+                </div>
+              )}
+
+              {/* Feedback */}
+              {feedback && (
+                <div className={`alert ${feedback.includes('Perfect') ? 'alert-success' : 'alert-warning'} text-center`}>
+                  <strong>{feedback}</strong>
+                </div>
+              )}
+
+              {/* Next Challenge Button */}
+              {showResult && (
+                <div className="text-center">
+                  <button 
+                    className="btn btn-primary btn-lg me-3"
+                    onClick={startNewChallenge}
+                  >
+                    <i className="fas fa-arrow-right me-2"></i>
+                    Next Challenge
+                  </button>
+                  <button 
+                    className="btn btn-outline-danger"
+                    onClick={resetGame}
+                  >
+                    <i className="fas fa-redo me-2"></i>
+                    Reset Game
+                  </button>
+                </div>
+              )}
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Chat Toggle Button - Students Only */}
       {user?.role === 'student' && (
         <div className="row mt-4">
           <div className="col-12 text-center">
             <button 
-              className={`btn ${showChat ? 'btn-outline-primary' : 'btn-primary'} btn-lg`}
+              className="btn btn-outline-primary"
               onClick={() => setShowChat(!showChat)}
             >
-              <i className={`fas ${showChat ? 'fa-eye-slash' : 'fa-comments'} me-2`}></i>
-              {showChat ? 'Hide Chat' : 'Show Chat'}
+              <i className="fas fa-comments me-2"></i>
+              {showChat ? 'Hide Chat' : 'Show Live Chat'}
             </button>
           </div>
         </div>
@@ -497,83 +508,81 @@ const ListenToType = ({ user }) => {
                         </div>
                       </div>
                     ) : (
-                      <>
-                        {/* Messages */}
-                        <div 
-                          ref={chatMessagesRef}
-                          className="chat-messages mb-3"
-                          style={{ 
-                            height: '300px', 
-                            overflowY: 'auto', 
-                            border: '1px solid #dee2e6', 
-                            borderRadius: '0.375rem',
-                            padding: '10px',
-                            backgroundColor: '#f8f9fa'
-                          }}
-                        >
-                          {messages.length === 0 ? (
-                            <div className="text-center text-muted">
-                              <i className="fas fa-comments fa-2x mb-2"></i>
-                              <p>No messages yet. Start the conversation!</p>
-                            </div>
-                          ) : (
-                            messages.map((msg) => (
-                              <div key={msg.id} className="mb-2">
-                                {msg.type === 'message' ? (
-                                  <div className="d-flex">
-                                    <div className="flex-grow-1">
-                                      <div className="d-flex align-items-center mb-1">
-                                        <strong className="text-primary me-2">{msg.name}</strong>
-                                        <small className="text-muted">{formatTime(msg.timestamp)}</small>
-                                      </div>
-                                      <div className="bg-white rounded p-2 shadow-sm">
-                                        {msg.text}
-                                      </div>
-                                    </div>
+                  <>
+                    {/* Messages */}
+                    <div 
+                      ref={chatMessagesRef}
+                      className="chat-messages mb-3"
+                      style={{ 
+                        height: '300px', 
+                        overflowY: 'auto', 
+                        border: '1px solid #dee2e6', 
+                        borderRadius: '0.375rem',
+                        padding: '10px',
+                        backgroundColor: '#f8f9fa'
+                      }}
+                    >
+                      {messages.length === 0 ? (
+                        <div className="text-center text-muted">
+                          <i className="fas fa-comments fa-2x mb-2"></i>
+                          <p>No messages yet. Start the conversation!</p>
+                        </div>
+                      ) : (
+                        messages.map((msg) => (
+                          <div key={msg.id} className="mb-2">
+                            {msg.type === 'message' ? (
+                              <div className="d-flex">
+                                <div className="flex-grow-1">
+                                  <div className="d-flex align-items-center mb-1">
+                                    <strong className="text-primary me-2">{msg.name}</strong>
+                                    <small className="text-muted">{formatTime(msg.timestamp)}</small>
                                   </div>
-                                ) : msg.type === 'user_joined' ? (
-                                  <div className="text-center">
-                                    <small className="text-success">
-                                      <i className="fas fa-user-plus me-1"></i>
-                                      {msg.name} joined the chat
-                                    </small>
+                                  <div className="bg-white rounded p-2 shadow-sm">
+                                    {msg.text}
                                   </div>
-                                ) : msg.type === 'user_left' ? (
-                                  <div className="text-center">
-                                    <small className="text-warning">
-                                      <i className="fas fa-user-minus me-1"></i>
-                                      {msg.name} left the chat
-                                    </small>
-                                  </div>
-                                ) : null}
+                                </div>
                               </div>
-                            ))
-                          )}
-                        </div>
-                        
-                        {/* Message Input */}
-                        <div className="input-group">
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Type your message..."
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            onKeyPress={handleChatKeyPress}
-                            maxLength={200}
-                          />
-                          <button 
-                            className="btn btn-primary"
-                            onClick={sendMessage}
-                            disabled={!newMessage.trim()}
-                          >
-                            <i className="fas fa-paper-plane"></i>
-                          </button>
-                        </div>
-                        <small className="text-muted">Press Enter to send, Shift+Enter for new line</small>
-                      </>
-                    )}
-                  </div>
+                            ) : msg.type === 'user_joined' ? (
+                              <div className="text-center">
+                                <small className="text-success">
+                                  <i className="fas fa-user-plus me-1"></i>
+                                  {msg.name} joined the chat
+                                </small>
+                              </div>
+                            ) : msg.type === 'user_left' ? (
+                              <div className="text-center">
+                                <small className="text-warning">
+                                  <i className="fas fa-user-minus me-1"></i>
+                                  {msg.name} left the chat
+                                </small>
+                              </div>
+                            ) : null}
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Message Input */}
+                    <div className="input-group">
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Type your message..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyPress={handleChatKeyPress}
+                        maxLength={200}
+                      />
+                      <button 
+                        className="btn btn-primary"
+                        onClick={sendMessage}
+                        disabled={!newMessage.trim()}
+                      >
+                        <i className="fas fa-paper-plane"></i>
+                      </button>
+                    </div>
+                    <small className="text-muted">Press Enter to send, Shift+Enter for new line</small>
+                  </>
                 )}
               </div>
             </div>
@@ -614,7 +623,7 @@ const ListenToType = ({ user }) => {
                 <div className="col-md-6">
                   <h6 className="text-primary">Chat Features:</h6>
                   <ul className="list-unstyled">
-                    <li><i className="fas fa-comments text-primary me-2"></i>Join chatrooms created by your teacher</li>
+                    <li><i className="fas fa-comments text-primary me-2"></i>Chat with other players in real-time</li>
                     <li><i className="fas fa-user text-secondary me-2"></i>Enter your name to join conversations</li>
                     <li><i className="fas fa-eye text-info me-2"></i>See when users join and leave</li>
                     <li><i className="fas fa-clock text-success me-2"></i>All messages show timestamps</li>
