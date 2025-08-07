@@ -18,10 +18,17 @@ export default function AdminChatrooms({ user }) {
 
   const fetchChatrooms = async () => {
     try {
-      const response = await fetch('/api/admin/chatrooms');
+      console.log('[AdminChatrooms] Fetching chatrooms...');
+      const response = await fetch('/api/admin/chatrooms', { credentials: 'include' });
+      console.log('[AdminChatrooms] Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('[AdminChatrooms] Chatrooms received:', data);
         setChatrooms(data);
+      } else {
+        const errorText = await response.text();
+        console.error('[AdminChatrooms] Error response:', response.status, errorText);
       }
     } catch (error) {
       console.error('Error fetching chatrooms:', error);
@@ -32,10 +39,17 @@ export default function AdminChatrooms({ user }) {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/users');
+      console.log('[AdminChatrooms] Fetching users for invitation list...');
+      const response = await fetch('/api/users', { credentials: 'include' });
+      console.log('[AdminChatrooms] Users response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('[AdminChatrooms] Users received:', data.length);
         setUsers(data.filter(u => !u.isAdmin)); // Don't include admins in invitation list
+      } else {
+        const errorText = await response.text();
+        console.error('[AdminChatrooms] Users error response:', response.status, errorText);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
