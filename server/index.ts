@@ -58,8 +58,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Register API routes first
-registerRoutes(app);
+// Note: Routes will be registered in the main server startup
 
 // Remove hardcoded HTML routes - let React router handle these paths
 
@@ -76,16 +75,25 @@ app.get('*', (req, res) => {
     return res.status(404).json({ message: 'API endpoint not found' });
   }
   
+  // Skip WebSocket upgrade requests
+  if (req.path === '/ws') {
+    return res.status(404).send('WebSocket endpoint');
+  }
+  
   console.log('Serving index.html for path:', req.path);
   
   // Always serve built index.html for React routing stability
   res.sendFile(path.join(__dirname, '../dist/public/index.html'));
 });
 
-app.listen(PORT, "0.0.0.0", () => {
+// Use the HTTP server from routes for WebSocket support
+const httpServer = await registerRoutes(app);
+
+httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`[express] serving on port ${PORT}`);
   console.log(`[express] environment: ${process.env.NODE_ENV}`);
   console.log(`[express] binding to: 0.0.0.0:${PORT}`);
+  console.log(`[websocket] WebSocket server ready on /ws`);
   if (process.env.NODE_ENV === 'production') {
     console.log(`[express] production server ready for external connections`);
   }
