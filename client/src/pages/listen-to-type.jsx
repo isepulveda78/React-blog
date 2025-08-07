@@ -230,11 +230,19 @@ const ListenToType = ({ user }) => {
                           <i className="fas fa-sync me-1"></i>Refresh
                         </button>
                         <button 
-                          className="btn btn-outline-secondary btn-sm me-2"
+                          className="btn btn-warning btn-sm me-2"
                           onClick={handleDirectLogin}
+                          title="Click this to fix authentication and see chatrooms"
                         >
                           <i className="fas fa-sign-in-alt me-1"></i>Fix Session
                         </button>
+                        <a 
+                          href="/api/auth/quick-login" 
+                          className="btn btn-success btn-sm me-2"
+                          title="Direct login link - use if Fix Session button doesn't work"
+                        >
+                          <i className="fas fa-key me-1"></i>Direct Login
+                        </a>
                         {user?.isAdmin && (
                           <a href="/admin" className="btn btn-outline-primary btn-sm">
                             <i className="fas fa-plus me-1"></i>Create
@@ -244,6 +252,12 @@ const ListenToType = ({ user }) => {
                           <small className="text-muted">
                             Debug: User {user?.email || 'not logged in'} ({user?.role || 'no role'})
                           </small>
+                        </div>
+                        <div className="mt-2">
+                          <div className="alert alert-info alert-sm">
+                            <i className="fas fa-info-circle me-1"></i>
+                            <strong>Can't see chatrooms?</strong> Click "Fix Session" or "Direct Login" to authenticate properly.
+                          </div>
                         </div>
                       </div>
                     </div>
