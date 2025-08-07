@@ -1809,23 +1809,6 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
-  // Get online users for all chatrooms
-  app.get('/api/chatrooms/users', requireAuth, (req, res) => {
-    try {
-      const userListByRoom = {};
-      
-      // Build user lists per chatroom from current WebSocket connections
-      for (const [chatroomId, users] of chatroomUsers) {
-        userListByRoom[chatroomId] = Array.from(users);
-      }
-      
-      res.json(userListByRoom);
-    } catch (error) {
-      console.error('[API] Error fetching chatroom users:', error);
-      res.status(500).json({ message: 'Failed to fetch chatroom users' });
-    }
-  });
-
   // Quick login endpoint for session sync fixes
   app.get('/api/auth/quick-login', async (req, res) => {
     try {
@@ -1944,9 +1927,6 @@ Sitemap: ${baseUrl}/sitemap.xml`;
               joinedAt: new Date()
             });
             
-            // Broadcast updated user list to all clients
-            broadcastUserList();
-            
             // Broadcast user joined message to all users in this chatroom
             const joinMessage = {
               type: 'user_joined',
@@ -2014,9 +1994,6 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         broadcastToChatroom(leaveMessage, user.chatroom);
         chatUsers.delete(ws);
         console.log(`[chat] ${user.name} left the chat`);
-        
-        // Broadcast updated user list to all clients
-        broadcastUserList();
       }
     });
   });
@@ -2036,26 +2013,6 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const user = chatUsers.get(client);
       if (client !== excludeWs && client.readyState === 1 && user && user.chatroom === chatroomId) {
         client.send(JSON.stringify(message));
-      }
-    });
-  }
-  
-  // Broadcast current user lists for all chatrooms to all connected clients
-  function broadcastUserList() {
-    const userListUpdate = {
-      type: 'user_list_update',
-      chatroomUsers: {}
-    };
-    
-    // Build user lists per chatroom
-    for (const [chatroomId, users] of chatroomUsers) {
-      userListUpdate.chatroomUsers[chatroomId] = Array.from(users);
-    }
-    
-    // Send to all connected clients
-    wss.clients.forEach((client) => {
-      if (client.readyState === 1) { // WebSocket.OPEN = 1
-        client.send(JSON.stringify(userListUpdate));
       }
     });
   }
