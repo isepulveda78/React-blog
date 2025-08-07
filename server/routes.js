@@ -5,6 +5,7 @@ import multer from 'multer';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { createServer } from "http";
+import { WebSocketServer } from "ws";
 import path from "path";
 
 // Configure Cloudinary
@@ -1553,6 +1554,91 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // Create HTTP server
   const httpServer = createServer(app);
+
+  // Create WebSocket server for chat functionality
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store active chat users (in memory)
+  const chatUsers = new Map();
+  let messageId = 1;
+
+  wss.on('connection', (ws) => {
+    console.log('[websocket] New client connected');
+    
+    ws.on('message', (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+        
+        switch (message.type) {
+          case 'join':
+            // User joins the chat
+            chatUsers.set(ws, {
+              name: message.name,
+              joinedAt: new Date()
+            });
+            
+            // Broadcast user joined message
+            const joinMessage = {
+              type: 'user_joined',
+              id: messageId++,
+              name: message.name,
+              timestamp: new Date().toISOString()
+            };
+            
+            broadcast(joinMessage);
+            console.log(`[chat] ${message.name} joined the chat`);
+            break;
+            
+          case 'message':
+            // User sends a chat message
+            const user = chatUsers.get(ws);
+            if (user) {
+              const chatMessage = {
+                type: 'message',
+                id: messageId++,
+                name: user.name,
+                text: message.text,
+                timestamp: new Date().toISOString()
+              };
+              
+              broadcast(chatMessage);
+              console.log(`[chat] ${user.name}: ${message.text}`);
+            }
+            break;
+        }
+      } catch (error) {
+        console.error('[websocket] Error parsing message:', error);
+      }
+    });
+    
+    ws.on('close', () => {
+      const user = chatUsers.get(ws);
+      if (user) {
+        // Broadcast user left message
+        const leaveMessage = {
+          type: 'user_left',
+          id: messageId++,
+          name: user.name,
+          timestamp: new Date().toISOString()
+        };
+        
+        broadcast(leaveMessage, ws);
+        chatUsers.delete(ws);
+        console.log(`[chat] ${user.name} left the chat`);
+      }
+    });
+  });
+
+  // Broadcast message to all connected clients except sender
+  function broadcast(message, excludeWs = null) {
+    wss.clients.forEach((client) => {
+      if (client !== excludeWs && client.readyState === 1) { // WebSocket.OPEN = 1
+        client.send(JSON.stringify(message));
+      }
+    });
+  }
+
   return httpServer;
 }

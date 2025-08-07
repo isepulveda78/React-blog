@@ -111,8 +111,15 @@ Cache management: Implemented hot reload system for instant change detection and
 - Navigation, Hero, Home, BlogCard, BlogListing
 - AdminDashboard, AdminPosts, AdminUsers, AdminComments, AdminPostEditor
 - SEOManagement, NotFound, BlogPost, UserProfile
-- EducationalTools, BingoGenerator, SpanishAlphabet, WordSorter
+- EducationalTools, BingoGenerator, SpanishAlphabet, WordSorter, ListenToType
 - Simplified CityBuilder (complex version temporarily disabled)
+
+### Real-Time Features (August 2025)
+- **WebSocket Chat System**: Added real-time chatroom functionality to Listen to Type educational tool
+- **No Database Required**: Chat messages stored in memory only, users enter name to participate
+- **Live User Tracking**: Shows when users join/leave the chat with timestamps
+- **Message Broadcasting**: All connected users see messages instantly
+- **Auto-Scroll**: Chat automatically scrolls to show latest messages
 
 ## Deployment Configuration (Latest)
 

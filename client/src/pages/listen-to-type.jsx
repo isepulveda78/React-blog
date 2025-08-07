@@ -10,7 +10,16 @@ const ListenToType = ({ user }) => {
   const [feedback, setFeedback] = useState('');
   const [showResult, setShowResult] = useState(false);
   
+  // Chat functionality
+  const [chatName, setChatName] = useState('');
+  const [isChatJoined, setIsChatJoined] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [socket, setSocket] = useState(null);
+  const [showChat, setShowChat] = useState(false);
+  
   const audioRef = useRef(null);
+  const chatMessagesRef = useRef(null);
   
   // Sample texts for different difficulty levels
   const texts = {
@@ -134,6 +143,83 @@ const ListenToType = ({ user }) => {
     if (e.key === 'Enter' && currentText && userInput.trim()) {
       checkAnswer();
     }
+  };
+
+  // Chat functionality
+  const connectToChat = () => {
+    if (!chatName.trim()) return;
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const newSocket = new WebSocket(wsUrl);
+
+    newSocket.onopen = () => {
+      console.log('[chat] Connected to chat');
+      newSocket.send(JSON.stringify({
+        type: 'join',
+        name: chatName.trim()
+      }));
+      setIsChatJoined(true);
+      setSocket(newSocket);
+    };
+
+    newSocket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      setMessages(prev => [...prev, message]);
+      
+      // Auto-scroll to bottom
+      setTimeout(() => {
+        if (chatMessagesRef.current) {
+          chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+        }
+      }, 100);
+    };
+
+    newSocket.onclose = () => {
+      console.log('[chat] Disconnected from chat');
+      setIsChatJoined(false);
+      setSocket(null);
+    };
+
+    newSocket.onerror = (error) => {
+      console.error('[chat] WebSocket error:', error);
+    };
+  };
+
+  const sendMessage = () => {
+    if (!newMessage.trim() || !socket || !isChatJoined) return;
+
+    socket.send(JSON.stringify({
+      type: 'message',
+      text: newMessage.trim()
+    }));
+
+    setNewMessage('');
+  };
+
+  const handleChatKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const disconnectFromChat = () => {
+    if (socket) {
+      socket.close();
+    }
+    setIsChatJoined(false);
+    setSocket(null);
+    setMessages([]);
+    setChatName('');
+  };
+
+  // Format timestamp for display
+  const formatTime = (timestamp) => {
+    return new Date(timestamp).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -274,17 +360,159 @@ const ListenToType = ({ user }) => {
         </div>
       </div>
 
+      {/* Chat Toggle Button */}
+      <div className="row mt-4">
+        <div className="col-12 text-center">
+          <button 
+            className="btn btn-outline-primary"
+            onClick={() => setShowChat(!showChat)}
+          >
+            <i className="fas fa-comments me-2"></i>
+            {showChat ? 'Hide Chat' : 'Show Live Chat'}
+          </button>
+        </div>
+      </div>
+
+      {/* Chat Section */}
+      {showChat && (
+        <div className="row mt-4">
+          <div className="col-md-8 mx-auto">
+            <div className="card shadow">
+              <div className="card-header bg-primary text-white">
+                <h5 className="mb-0">
+                  <i className="fas fa-comments me-2"></i>
+                  Live Chat Room
+                  {isChatJoined && (
+                    <button 
+                      className="btn btn-sm btn-outline-light float-end"
+                      onClick={disconnectFromChat}
+                    >
+                      <i className="fas fa-sign-out-alt me-1"></i>Leave
+                    </button>
+                  )}
+                </h5>
+              </div>
+              <div className="card-body">
+                {!isChatJoined ? (
+                  <div className="text-center">
+                    <h6 className="mb-3">Enter your name to join the chat:</h6>
+                    <div className="row">
+                      <div className="col-md-8 mx-auto">
+                        <div className="input-group">
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Your name..."
+                            value={chatName}
+                            onChange={(e) => setChatName(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && connectToChat()}
+                            maxLength={20}
+                          />
+                          <button 
+                            className="btn btn-primary"
+                            onClick={connectToChat}
+                            disabled={!chatName.trim()}
+                          >
+                            <i className="fas fa-sign-in-alt me-1"></i>Join Chat
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Messages */}
+                    <div 
+                      ref={chatMessagesRef}
+                      className="chat-messages mb-3"
+                      style={{ 
+                        height: '300px', 
+                        overflowY: 'auto', 
+                        border: '1px solid #dee2e6', 
+                        borderRadius: '0.375rem',
+                        padding: '10px',
+                        backgroundColor: '#f8f9fa'
+                      }}
+                    >
+                      {messages.length === 0 ? (
+                        <div className="text-center text-muted">
+                          <i className="fas fa-comments fa-2x mb-2"></i>
+                          <p>No messages yet. Start the conversation!</p>
+                        </div>
+                      ) : (
+                        messages.map((msg) => (
+                          <div key={msg.id} className="mb-2">
+                            {msg.type === 'message' ? (
+                              <div className="d-flex">
+                                <div className="flex-grow-1">
+                                  <div className="d-flex align-items-center mb-1">
+                                    <strong className="text-primary me-2">{msg.name}</strong>
+                                    <small className="text-muted">{formatTime(msg.timestamp)}</small>
+                                  </div>
+                                  <div className="bg-white rounded p-2 shadow-sm">
+                                    {msg.text}
+                                  </div>
+                                </div>
+                              </div>
+                            ) : msg.type === 'user_joined' ? (
+                              <div className="text-center">
+                                <small className="text-success">
+                                  <i className="fas fa-user-plus me-1"></i>
+                                  {msg.name} joined the chat
+                                </small>
+                              </div>
+                            ) : msg.type === 'user_left' ? (
+                              <div className="text-center">
+                                <small className="text-warning">
+                                  <i className="fas fa-user-minus me-1"></i>
+                                  {msg.name} left the chat
+                                </small>
+                              </div>
+                            ) : null}
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Message Input */}
+                    <div className="input-group">
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Type your message..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyPress={handleChatKeyPress}
+                        maxLength={200}
+                      />
+                      <button 
+                        className="btn btn-primary"
+                        onClick={sendMessage}
+                        disabled={!newMessage.trim()}
+                      >
+                        <i className="fas fa-paper-plane"></i>
+                      </button>
+                    </div>
+                    <small className="text-muted">Press Enter to send, Shift+Enter for new line</small>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Instructions */}
       <div className="row mt-5">
         <div className="col-md-10 mx-auto">
           <div className="card border-info">
             <div className="card-header bg-info text-white">
-              <h5 className="mb-0"><i className="fas fa-info-circle me-2"></i>How to Play</h5>
+              <h5 className="mb-0"><i className="fas fa-info-circle me-2"></i>How to Play & Chat</h5>
             </div>
             <div className="card-body">
               <div className="row">
                 <div className="col-md-6">
-                  <h6 className="text-primary">Instructions:</h6>
+                  <h6 className="text-primary">Game Instructions:</h6>
                   <ul className="list-unstyled">
                     <li><i className="fas fa-play text-success me-2"></i>Click "Start Challenge" to begin</li>
                     <li><i className="fas fa-headphones text-info me-2"></i>Listen carefully to the audio</li>
@@ -293,12 +521,12 @@ const ListenToType = ({ user }) => {
                   </ul>
                 </div>
                 <div className="col-md-6">
-                  <h6 className="text-primary">Tips:</h6>
+                  <h6 className="text-primary">Chat Features:</h6>
                   <ul className="list-unstyled">
-                    <li><i className="fas fa-volume-up text-primary me-2"></i>Use the "Repeat" button if needed</li>
-                    <li><i className="fas fa-cog text-secondary me-2"></i>Adjust difficulty level anytime</li>
-                    <li><i className="fas fa-eye text-info me-2"></i>Pay attention to punctuation</li>
-                    <li><i className="fas fa-chart-line text-success me-2"></i>Track your accuracy over time</li>
+                    <li><i className="fas fa-comments text-primary me-2"></i>Chat with other players in real-time</li>
+                    <li><i className="fas fa-user text-secondary me-2"></i>Enter your name to join conversations</li>
+                    <li><i className="fas fa-eye text-info me-2"></i>See when users join and leave</li>
+                    <li><i className="fas fa-clock text-success me-2"></i>All messages show timestamps</li>
                   </ul>
                 </div>
               </div>
