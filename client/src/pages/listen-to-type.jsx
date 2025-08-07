@@ -108,7 +108,7 @@ const ListenToType = ({ user }) => {
         userId: user.id,
         chatroom: selectedChatroom.id
       };
-      console.log('[chat] Sending join data:', joinData);
+      console.log('[chat] Sending join data with authentication:', joinData);
       newSocket.send(JSON.stringify(joinData));
       setIsChatJoined(true);
     };
