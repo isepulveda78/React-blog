@@ -299,125 +299,29 @@ const ListenToType = ({ user }) => {
       <div className="row">
         <div className="col-12 text-center mb-4">
           <h1 className="display-4 fw-bold text-primary mb-3">
-            <i className="fas fa-headphones me-3"></i>Listen to Type
+            <i className="fas fa-comments me-3"></i>Listen to Type
           </h1>
           <p className="lead text-muted">
-            Improve your listening and typing skills with interactive audio challenges
+            Collaborative learning through real-time chat with your classmates
           </p>
         </div>
       </div>
 
-      {/* Game Interface */}
+      {/* Chat-focused interface */}
       <div className="row">
         <div className="col-md-8 mx-auto">
           <div className="card shadow-lg">
             <div className="card-header bg-primary text-white">
-              <div className="d-flex justify-content-between align-items-center">
-                <h4 className="mb-0">
-                  <i className="fas fa-gamepad me-2"></i>Challenge
-                </h4>
-                <div className="d-flex gap-2">
-                  <span className="badge bg-light text-dark">Score: {score}/{totalAttempts}</span>
-                  {totalAttempts > 0 && (
-                    <span className="badge bg-success">Accuracy: {getAccuracy()}%</span>
-                  )}
-                </div>
-              </div>
+              <h4 className="mb-0">
+                <i className="fas fa-comments me-2"></i>Collaborative Learning
+              </h4>
             </div>
             
             <div className="card-body">
-              {/* Difficulty Selection */}
-              <div className="row mb-4">
-                <div className="col-md-6">
-                  <label className="form-label fw-semibold">Difficulty Level:</label>
-                  <select 
-                    className="form-select"
-                    value={difficulty}
-                    onChange={(e) => setDifficulty(e.target.value)}
-                  >
-                    <option value="easy">🟢 Easy - Simple sentences</option>
-                    <option value="medium">🟡 Medium - Longer phrases</option>
-                    <option value="hard">🔴 Hard - Complex vocabulary</option>
-                  </select>
-                </div>
-                <div className="col-md-6 d-flex align-items-end">
-                  <button 
-                    className="btn btn-success btn-lg w-100"
-                    onClick={startNewChallenge}
-                    disabled={isPlaying}
-                  >
-                    {isPlaying ? (
-                      <>
-                        <div className="spinner-border spinner-border-sm me-2" role="status"></div>
-                        Playing Audio...
-                      </>
-                    ) : (
-                      <>
-                        <i className="fas fa-play me-2"></i>Start Challenge
-                      </>
-                    )}
-                  </button>
-                </div>
+              <div className="text-center py-4">
+                <h5 className="text-muted">Connect with your classmates</h5>
+                <p className="text-muted">Use the chat feature below to practice and learn together</p>
               </div>
-
-              {/* Challenge Area */}
-              {currentText && (
-                <div className="row">
-                  <div className="col-12">
-                    <div className="mb-3">
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <label className="form-label fw-semibold">Type what you hear:</label>
-                        <button 
-                          className="btn btn-outline-primary btn-sm"
-                          onClick={() => speakText(currentText)}
-                          disabled={isPlaying}
-                        >
-                          <i className="fas fa-volume-up me-1"></i>Replay
-                        </button>
-                      </div>
-                      <textarea
-                        className="form-control"
-                        rows="3"
-                        placeholder="Type here..."
-                        value={userInput}
-                        onChange={(e) => setUserInput(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        disabled={showResult}
-                      />
-                    </div>
-                    
-                    {!showResult ? (
-                      <button 
-                        className="btn btn-primary btn-lg w-100"
-                        onClick={checkAnswer}
-                        disabled={!userInput.trim()}
-                      >
-                        <i className="fas fa-check me-2"></i>Check Answer
-                      </button>
-                    ) : (
-                      <div className="text-center">
-                        <div className={`alert ${feedback.includes('Perfect') ? 'alert-success' : 'alert-warning'}`}>
-                          <h5 className="mb-2">{feedback}</h5>
-                        </div>
-                        <div className="d-flex gap-2 justify-content-center">
-                          <button 
-                            className="btn btn-success"
-                            onClick={startNewChallenge}
-                          >
-                            <i className="fas fa-forward me-2"></i>Next Challenge
-                          </button>
-                          <button 
-                            className="btn btn-outline-secondary"
-                            onClick={resetGame}
-                          >
-                            <i className="fas fa-redo me-2"></i>Reset Game
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
