@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const ListenToType = ({ user }) => {
-  // Chat functionality only - removed all challenge/game state
+  // Chat functionality only
   const [chatName, setChatName] = useState('');
   const [isChatJoined, setIsChatJoined] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [socket, setSocket] = useState(null);
-  const [showChat, setShowChat] = useState(true); // Default to showing chat
   const [availableChatrooms, setAvailableChatrooms] = useState([]);
   const [selectedChatroom, setSelectedChatroom] = useState(null);
   const [loadingChatrooms, setLoadingChatrooms] = useState(false);
@@ -167,232 +166,11 @@ const ListenToType = ({ user }) => {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  return (
-    <div className="container py-4">
-      <div className="row">
-        <div className="col-12 text-center mb-4">
-          <h1 className="display-4 fw-bold text-primary mb-3">
-            <i className="fas fa-comments me-3"></i>Listen to Type
-          </h1>
-          <p className="lead text-muted">
-            Collaborative learning through real-time chat with your classmates
-          </p>
-        </div>
-      </div>
-
-      {/* Chat-focused interface */}
-      <div className="row">
-        <div className="col-md-8 mx-auto">
-          <div className="card shadow-lg">
-            <div className="card-header bg-primary text-white">
-              <h4 className="mb-0">
-                <i className="fas fa-comments me-2"></i>Collaborative Learning
-              </h4>
-            </div>
-            
-            <div className="card-body">
-              <div className="text-center py-4">
-                <h5 className="text-muted">Connect with your classmates</h5>
-                <p className="text-muted">Use the chat feature below to practice and learn together</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Chat Toggle Button */}
-      {user?.role === 'student' && (
-        <div className="row mt-4">
-          <div className="col-12 text-center">
-            <button 
-              className={`btn ${showChat ? 'btn-outline-primary' : 'btn-primary'} btn-lg`}
-              onClick={() => setShowChat(!showChat)}
-            >
-              <i className={`fas ${showChat ? 'fa-eye-slash' : 'fa-comments'} me-2`}></i>
-              {showChat ? 'Hide Chat' : 'Show Chat'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Chat Section - Students Only */}
-      {showChat && user?.role === 'student' && (
-        <div className="row mt-4">
-          <div className="col-md-8 mx-auto">
-            <div className="card shadow">
-              <div className="card-header bg-primary text-white">
-                <h5 className="mb-0">
-                  <i className="fas fa-comments me-2"></i>
-                  Live Chat Room
-                  {selectedChatroom && ` - ${selectedChatroom.name}`}
-                  {isChatJoined && (
-                    <button 
-                      className="btn btn-sm btn-outline-light float-end"
-                      onClick={disconnectFromChat}
-                    >
-                      <i className="fas fa-sign-out-alt me-1"></i>Leave
-                    </button>
-                  )}
-                </h5>
-              </div>
-              <div className="card-body">
-                {/* Chatroom Selection */}
-                {!selectedChatroom && (
-                  <div className="mb-4">
-                    <h6 className="mb-3">Select a chatroom to join:</h6>
-                    {loadingChatrooms ? (
-                      <div className="text-center">
-                        <div className="spinner-border text-primary" role="status">
-                          <span className="visually-hidden">Loading chatrooms...</span>
-                        </div>
-                      </div>
-                    ) : availableChatrooms.length > 0 ? (
-                      <div className="row">
-                        {availableChatrooms.map((chatroom) => (
-                          <div key={chatroom.id} className="col-md-6 mb-2">
-                            <div 
-                              className="card border-primary cursor-pointer h-100"
-                              style={{ cursor: 'pointer' }}
-                              onClick={() => setSelectedChatroom(chatroom)}
-                            >
-                              <div className="card-body text-center">
-                                <h6 className="card-title text-primary">{chatroom.name}</h6>
-                                {chatroom.description && (
-                                  <p className="card-text small text-muted">{chatroom.description}</p>
-                                )}
-                                <button className="btn btn-sm btn-primary">
-                                  <i className="fas fa-sign-in-alt me-1"></i>Join
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center text-muted">
-                        <i className="fas fa-comment-slash fa-3x mb-3"></i>
-                        <p>No chatrooms available yet.</p>
-                        <p className="small">Ask your teacher to create a chatroom for you!</p>
-                        <button 
-                          className="btn btn-outline-primary btn-sm mt-2"
-                          onClick={handleQuickLogin}
-                        >
-                          <i className="fas fa-sync me-1"></i>Refresh Chatrooms
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Chat Interface */}
-                {selectedChatroom && (
-                  <div>
-                    {!isChatJoined ? (
-                      <div className="text-center">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <h6 className="mb-0">Enter your name to join {selectedChatroom.name}:</h6>
-                          <button 
-                            className="btn btn-sm btn-outline-secondary"
-                            onClick={() => setSelectedChatroom(null)}
-                          >
-                            <i className="fas fa-arrow-left me-1"></i>Back
-                          </button>
-                        </div>
-                        <div className="input-group mb-3">
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Enter your name"
-                            value={chatName}
-                            onChange={(e) => setChatName(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && connectToChat()}
-                          />
-                          <button 
-                            className="btn btn-primary"
-                            onClick={connectToChat}
-                            disabled={!chatName.trim()}
-                          >
-                            <i className="fas fa-sign-in-alt me-1"></i>Join Chat
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        {/* Chat Messages */}
-                        <div 
-                          ref={chatMessagesRef}
-                          className="border rounded p-3 mb-3"
-                          style={{ height: '300px', overflowY: 'auto', backgroundColor: '#f8f9fa' }}
-                        >
-                          {messages.length === 0 ? (
-                            <div className="text-center text-muted">
-                              <i className="fas fa-comments fa-2x mb-2"></i>
-                              <p>No messages yet. Start the conversation!</p>
-                            </div>
-                          ) : (
-                            messages.map((message) => (
-                              <div key={message.id} className="mb-2">
-                                {message.type === 'join' ? (
-                                  <div className="text-center">
-                                    <small className="text-success">
-                                      <i className="fas fa-user-plus me-1"></i>
-                                      {message.username} joined the chat at {formatTime(message.timestamp)}
-                                    </small>
-                                  </div>
-                                ) : message.type === 'leave' ? (
-                                  <div className="text-center">
-                                    <small className="text-warning">
-                                      <i className="fas fa-user-minus me-1"></i>
-                                      {message.username} left the chat at {formatTime(message.timestamp)}
-                                    </small>
-                                  </div>
-                                ) : (
-                                  <div className="d-flex justify-content-start">
-                                    <div className="bg-white rounded p-2 shadow-sm" style={{ maxWidth: '70%' }}>
-                                      <div className="d-flex justify-content-between align-items-start">
-                                        <strong className="text-primary me-2">{message.username}:</strong>
-                                        <small className="text-muted">{formatTime(message.timestamp)}</small>
-                                      </div>
-                                      <p className="mb-0">{message.text}</p>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            ))
-                          )}
-                        </div>
-
-                        {/* Message Input */}
-                        <div className="input-group">
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Type your message..."
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            onKeyPress={handleChatKeyPress}
-                          />
-                          <button 
-                            className="btn btn-primary"
-                            onClick={sendMessage}
-                            disabled={!newMessage.trim()}
-                          >
-                            <i className="fas fa-paper-plane"></i>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Admin/Teacher View */}
-      {user?.role !== 'student' && (
-        <div className="row mt-4">
+  // Show chatroom interface for students, message for others
+  if (user?.role !== 'student') {
+    return (
+      <div className="container py-4">
+        <div className="row">
           <div className="col-md-8 mx-auto">
             <div className="card shadow">
               <div className="card-body text-center">
@@ -408,7 +186,184 @@ const ListenToType = ({ user }) => {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  // Student chatroom interface - this is the ONLY content for students
+  return (
+    <div className="container py-4">
+      <div className="row">
+        <div className="col-md-8 mx-auto">
+          <div className="card shadow">
+            <div className="card-header bg-primary text-white">
+              <h5 className="mb-0">
+                <i className="fas fa-comments me-2"></i>
+                Live Chat Room
+                {selectedChatroom && ` - ${selectedChatroom.name}`}
+                {isChatJoined && (
+                  <button 
+                    className="btn btn-sm btn-outline-light float-end"
+                    onClick={disconnectFromChat}
+                  >
+                    <i className="fas fa-sign-out-alt me-1"></i>Leave
+                  </button>
+                )}
+              </h5>
+            </div>
+            <div className="card-body">
+              {/* Chatroom Selection */}
+              {!selectedChatroom && (
+                <div className="mb-4">
+                  <h6 className="mb-3">Select a chatroom to join:</h6>
+                  {loadingChatrooms ? (
+                    <div className="text-center">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading chatrooms...</span>
+                      </div>
+                    </div>
+                  ) : availableChatrooms.length > 0 ? (
+                    <div className="row">
+                      {availableChatrooms.map((chatroom) => (
+                        <div key={chatroom.id} className="col-md-6 mb-2">
+                          <div 
+                            className="card border-primary cursor-pointer h-100"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => setSelectedChatroom(chatroom)}
+                          >
+                            <div className="card-body text-center">
+                              <h6 className="card-title text-primary">{chatroom.name}</h6>
+                              {chatroom.description && (
+                                <p className="card-text small text-muted">{chatroom.description}</p>
+                              )}
+                              <button className="btn btn-sm btn-primary">
+                                <i className="fas fa-sign-in-alt me-1"></i>Join
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted">
+                      <i className="fas fa-comment-slash fa-3x mb-3"></i>
+                      <p>No chatrooms available yet.</p>
+                      <p className="small">Ask your teacher to create a chatroom for you!</p>
+                      <button 
+                        className="btn btn-outline-primary btn-sm mt-2"
+                        onClick={handleQuickLogin}
+                      >
+                        <i className="fas fa-sync me-1"></i>Refresh Chatrooms
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Chat Interface */}
+              {selectedChatroom && (
+                <div>
+                  {!isChatJoined ? (
+                    <div className="text-center">
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h6 className="mb-0">Enter your name to join {selectedChatroom.name}:</h6>
+                        <button 
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={() => setSelectedChatroom(null)}
+                        >
+                          <i className="fas fa-arrow-left me-1"></i>Back
+                        </button>
+                      </div>
+                      <div className="input-group mb-3">
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Enter your name"
+                          value={chatName}
+                          onChange={(e) => setChatName(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && connectToChat()}
+                        />
+                        <button 
+                          className="btn btn-primary"
+                          onClick={connectToChat}
+                          disabled={!chatName.trim()}
+                        >
+                          <i className="fas fa-sign-in-alt me-1"></i>Join Chat
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      {/* Chat Messages */}
+                      <div 
+                        ref={chatMessagesRef}
+                        className="border rounded p-3 mb-3"
+                        style={{ height: '300px', overflowY: 'auto', backgroundColor: '#f8f9fa' }}
+                      >
+                        {messages.length === 0 ? (
+                          <div className="text-center text-muted">
+                            <i className="fas fa-comments fa-2x mb-2"></i>
+                            <p>No messages yet. Start the conversation!</p>
+                          </div>
+                        ) : (
+                          messages.map((message) => (
+                            <div key={message.id} className="mb-2">
+                              {message.type === 'join' ? (
+                                <div className="text-center">
+                                  <small className="text-success">
+                                    <i className="fas fa-user-plus me-1"></i>
+                                    {message.username} joined the chat at {formatTime(message.timestamp)}
+                                  </small>
+                                </div>
+                              ) : message.type === 'leave' ? (
+                                <div className="text-center">
+                                  <small className="text-warning">
+                                    <i className="fas fa-user-minus me-1"></i>
+                                    {message.username} left the chat at {formatTime(message.timestamp)}
+                                  </small>
+                                </div>
+                              ) : (
+                                <div className="d-flex justify-content-start">
+                                  <div className="bg-white rounded p-2 shadow-sm" style={{ maxWidth: '70%' }}>
+                                    <div className="d-flex justify-content-between align-items-start">
+                                      <strong className="text-primary me-2">{message.username}:</strong>
+                                      <small className="text-muted">{formatTime(message.timestamp)}</small>
+                                    </div>
+                                    <p className="mb-0">{message.text}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Message Input */}
+                      <div className="input-group">
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Type your message..."
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          onKeyPress={handleChatKeyPress}
+                        />
+                        <button 
+                          className="btn btn-primary"
+                          onClick={sendMessage}
+                          disabled={!newMessage.trim()}
+                        >
+                          <i className="fas fa-paper-plane"></i>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

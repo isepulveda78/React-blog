@@ -256,14 +256,7 @@ const ListenToType = ({ user }) => {
 
   return (
     <div className="container py-5">
-      <div className="row">
-        <div className="col-12 text-center mb-5">
-          <h1 className="display-4 fw-bold text-danger mb-3">Listen to Type</h1>
-          <p className="lead text-muted">
-            Practice your typing skills by listening to audio prompts and typing what you hear
-          </p>
-        </div>
-      </div>
+
 
       {/* Score and Controls */}
       <div className="row mb-4">
