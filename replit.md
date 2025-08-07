@@ -165,6 +165,13 @@ Cache management: Implemented hot reload system for instant change detection and
 - **Routing**: Updated protected routes to allow immediate blog access for authenticated users
 - **User Experience**: Authenticated users can now immediately read posts, view comments, and post comments
 
+### Chat Authentication Enhancement (August 2025)
+- **Listen to Type Protection**: Added authentication requirement to `/listen-to-type` route using ProtectedRoute wrapper
+- **Username Priority Fix**: Corrected username display logic to prioritize typed custom names over authenticated user names
+- **Session Authentication**: Users must be logged in to access chat functionality from educational tools
+- **User Experience**: Custom typed names (like "Bob" or "Sarah") now display correctly in chat messages instead of defaulting to account name
+- **Access Control**: Educational tools page links to Listen to Type now require user authentication for chat access
+
 ### React Error #130 Resolution (August 2025)
 - **Root Cause**: Vite JSX transformation issue causing "Element type is invalid" errors in development mode due to jsx-runtime conflicts
 - **Solution Applied**: Comprehensive Vite configuration fix with production build approach for stability

@@ -193,7 +193,11 @@ const AppRoutes = () => {
           <Route path="/bingo-generator" component={() => <BingoGenerator user={user} />} />
           <Route path="/spanish-alphabet" component={() => <SpanishAlphabet user={user} />} />
           <Route path="/word-sorter" component={() => <WordSorter user={user} />} />
-          <Route path="/listen-to-type" component={() => <ListenToType user={user} />} />
+          <Route path="/listen-to-type" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <ListenToType user={user} />
+            </ProtectedRoute>
+          )} />
           <Route path="/city-builder" component={() => <div style={{ height: '100vh', overflow: 'hidden' }}><CityBuilder user={user} /></div>} />
           <Route path="/profile" component={() => (
             <ProtectedRoute>
