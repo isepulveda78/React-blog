@@ -97,6 +97,13 @@ const AdminUsers = ({ user }) => {
       if (response.ok) {
         const updatedUser = await response.json();
         setUsers(users.map(u => u.id === userId ? updatedUser : u));
+        
+        // Show success message with refresh instruction
+        if (!currentAdmin) {
+          alert(`${updatedUser.name} has been granted admin access! They may need to refresh their browser to see the admin dashboard.`);
+        } else {
+          alert(`${updatedUser.name}'s admin access has been removed.`);
+        }
       }
     } catch (error) {
       console.error('Error updating user admin status:', error);

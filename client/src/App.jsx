@@ -86,6 +86,21 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('user')
   }
 
+  const refreshUser = async () => {
+    try {
+      const res = await fetch('/api/auth/me', { credentials: 'include' })
+      if (res.ok) {
+        const userData = await res.json()
+        setUser(userData)
+        localStorage.setItem('user', JSON.stringify(userData))
+        return userData
+      }
+    } catch (error) {
+      console.error('Error refreshing user:', error)
+    }
+    return null
+  }
+
   if (isLoading) {
     return (
       <div className="d-flex justify-content-center align-items-center min-vh-100">
@@ -97,7 +112,7 @@ const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, setUser }}>
+    <AuthContext.Provider value={{ user, login, logout, setUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )
