@@ -12,6 +12,7 @@ const ListenToType = ({ user }) => {
   const [selectedChatroom, setSelectedChatroom] = useState(null);
   const [loadingChatrooms, setLoadingChatrooms] = useState(false);
   const [connectedUsers, setConnectedUsers] = useState(new Set());
+  const [chatroomUsers, setChatroomUsers] = useState({});
   
   const chatMessagesRef = useRef(null);
   const { showToast, ToastContainer } = useToast();
@@ -20,6 +21,25 @@ const ListenToType = ({ user }) => {
   useEffect(() => {
     console.log('[ListenToType] Component loaded, toast system ready');
   }, []);
+
+  // Fetch online users for all chatrooms
+  const fetchChatroomUsers = async () => {
+    try {
+      const response = await fetch('/api/chatrooms/users', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const users = await response.json();
+        setChatroomUsers(users);
+      }
+    } catch (error) {
+      console.log('[ListenToType] Could not fetch chatroom users:', error);
+    }
+  };
 
   // Test function to verify toast system
 
@@ -43,6 +63,9 @@ const ListenToType = ({ user }) => {
         const chatrooms = await response.json();
         console.log('[ListenToType] Available chatrooms:', chatrooms);
         setAvailableChatrooms(chatrooms);
+        
+        // Also fetch online users for each chatroom
+        fetchChatroomUsers();
       } else if (response.status === 401 && retryCount < 2) {
         // Try again after a short delay for session sync
         console.log('[ListenToType] Auth failed, retrying in 1 second...');
@@ -120,6 +143,9 @@ const ListenToType = ({ user }) => {
       };
       console.log('[chat] Sending join data:', joinData);
       newSocket.send(JSON.stringify(joinData));
+      
+      // Refresh user list on connection
+      setTimeout(() => fetchChatroomUsers(), 500);
     };
 
     newSocket.onmessage = (event) => {
@@ -164,9 +190,15 @@ const ListenToType = ({ user }) => {
           newSet.delete(data.name);
           return newSet;
         });
+      } else if (data.type === 'user_list_update') {
+        // Handle real-time user list updates
+        console.log('[WebSocket] User list update:', data.chatroomUsers);
+        setChatroomUsers(data.chatroomUsers);
+        // Don't add user list updates to chat messages
+        return;
       }
       
-      // Add to messages for display (except rejections)
+      // Add to messages for display (except rejections and user list updates)
       setMessages(prev => [...prev, {
         id: Date.now() + Math.random(),
         ...data,
@@ -268,14 +300,50 @@ const ListenToType = ({ user }) => {
                             style={{ cursor: 'pointer' }}
                             onClick={() => setSelectedChatroom(chatroom)}
                           >
-                            <div className="card-body text-center">
-                              <h6 className="card-title text-primary">{chatroom.name}</h6>
-                              {chatroom.description && (
-                                <p className="card-text small text-muted">{chatroom.description}</p>
-                              )}
-                              <button className="btn btn-sm btn-primary">
-                                <i className="fas fa-sign-in-alt me-1"></i>Join
-                              </button>
+                            <div className="card-body">
+                              <div className="text-center">
+                                <h6 className="card-title text-primary">{chatroom.name}</h6>
+                                {chatroom.description && (
+                                  <p className="card-text small text-muted">{chatroom.description}</p>
+                                )}
+                              </div>
+                              
+                              {/* Online Users Display */}
+                              <div className="mb-3">
+                                <div className="d-flex align-items-center justify-content-between">
+                                  <small className="text-muted">
+                                    <i className="fas fa-users me-1"></i>
+                                    Online: {chatroomUsers[chatroom.id]?.length || 0}
+                                  </small>
+                                  {chatroomUsers[chatroom.id]?.length > 0 && (
+                                    <small className="text-success">
+                                      <i className="fas fa-circle" style={{fontSize: '0.5em'}}></i>
+                                    </small>
+                                  )}
+                                </div>
+                                {chatroomUsers[chatroom.id]?.length > 0 && (
+                                  <div className="mt-1">
+                                    <div className="d-flex flex-wrap gap-1">
+                                      {chatroomUsers[chatroom.id].slice(0, 3).map((userName, index) => (
+                                        <span key={index} className="badge bg-light text-dark" style={{fontSize: '0.7em'}}>
+                                          {userName}
+                                        </span>
+                                      ))}
+                                      {chatroomUsers[chatroom.id].length > 3 && (
+                                        <span className="badge bg-secondary" style={{fontSize: '0.7em'}}>
+                                          +{chatroomUsers[chatroom.id].length - 3} more
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="text-center">
+                                <button className="btn btn-sm btn-primary">
+                                  <i className="fas fa-sign-in-alt me-1"></i>Join
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
