@@ -166,31 +166,7 @@ const ListenToType = ({ user }) => {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Show chatroom interface for students, message for others
-  if (user?.role !== 'student') {
-    return (
-      <div className="container py-4">
-        <div className="row">
-          <div className="col-md-8 mx-auto">
-            <div className="card shadow">
-              <div className="card-body text-center">
-                <h5 className="text-muted">Chat Access</h5>
-                <p className="text-muted">
-                  Chat features are available for students only. 
-                  As an {user?.role || 'admin'}, you can manage chatrooms from the admin dashboard.
-                </p>
-                <a href="/admin" className="btn btn-primary">
-                  <i className="fas fa-cog me-2"></i>Go to Admin Dashboard
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Student chatroom interface - this is the ONLY content for students
+  // Chatroom interface for all users - this is the ONLY content
   return (
     <div className="container py-4">
       <div className="row">
@@ -201,6 +177,9 @@ const ListenToType = ({ user }) => {
                 <i className="fas fa-comments me-2"></i>
                 Live Chat Room
                 {selectedChatroom && ` - ${selectedChatroom.name}`}
+                {user?.role && (
+                  <span className="badge bg-light text-dark ms-2">{user.role}</span>
+                )}
                 {isChatJoined && (
                   <button 
                     className="btn btn-sm btn-outline-light float-end"
