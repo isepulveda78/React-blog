@@ -15,6 +15,11 @@ const ListenToType = ({ user }) => {
   
   const chatMessagesRef = useRef(null);
   const { showToast, ToastContainer } = useToast();
+  
+  // Test toast on component load (for debugging)
+  useEffect(() => {
+    console.log('[ListenToType] Component loaded, toast system ready');
+  }, []);
 
   // Fetch available chatrooms with retry logic
   const fetchAvailableChatrooms = async (retryCount = 0) => {
@@ -91,16 +96,6 @@ const ListenToType = ({ user }) => {
     const displayName = user?.name || chatName;
     if (!displayName.trim() || !selectedChatroom) return;
 
-    // Check if the name is already taken in the current chatroom
-    if (connectedUsers.has(displayName.trim())) {
-      showToast(
-        `The name "${displayName}" is already taken in this chatroom. Please choose a different name.`,
-        'error',
-        4000
-      );
-      return;
-    }
-
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     
@@ -128,8 +123,9 @@ const ListenToType = ({ user }) => {
       // Handle different message types
       if (data.type === 'user_joined') {
         setConnectedUsers(prev => new Set([...prev, data.name]));
-        setIsChatJoined(true); // Confirm successful join
-        showToast(`${data.name} joined the chat`, 'info', 2000);
+        if (data.name === (user?.name || chatName)) {
+          setIsChatJoined(true); // Confirm successful join for this user
+        }
       } else if (data.type === 'user_left') {
         setConnectedUsers(prev => {
           const newSet = new Set(prev);
@@ -137,14 +133,17 @@ const ListenToType = ({ user }) => {
           return newSet;
         });
       } else if (data.type === 'join_rejected') {
+        console.log('[chat] Join rejected - showing toast:', data);
         showToast(
-          `Cannot join: The name "${data.name}" is already taken in this chatroom.`,
+          `Name "${data.name}" is already taken! Please choose a different name to join this chatroom.`,
           'error',
-          4000
+          6000
         );
-        if (socket) {
-          socket.close();
-        }
+        // Close the WebSocket and reset state
+        newSocket.close();
+        setSocket(null);
+        setIsChatJoined(false);
+        // Don't add this to messages, just handle the rejection
         return;
       }
       
