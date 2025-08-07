@@ -85,17 +85,13 @@ const ListenToType = ({ user }) => {
   }, [messages]);
 
   const connectToChat = () => {
-    // Only allow authenticated users to join chat
-    if (!user || !user.name || !selectedChatroom) {
-      console.error('[chat] Authentication required to join chat');
-      return;
-    }
+    const displayName = user?.name || chatName;
+    if (!displayName.trim() || !selectedChatroom) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     
     console.log('[chat] Connecting to WebSocket:', wsUrl);
-    console.log('[chat] User data for join:', { name: user.name, role: user.role, userId: user.id });
     
     const newSocket = new WebSocket(wsUrl);
     setSocket(newSocket);
@@ -104,12 +100,11 @@ const ListenToType = ({ user }) => {
       console.log('[chat] WebSocket connected');
       const joinData = {
         type: 'join',
-        name: user.name,
-        role: user.role,
-        userId: user.id,
+        name: user?.name || chatName,
+        role: user?.role || 'student',
         chatroom: selectedChatroom.id
       };
-      console.log('[chat] NEW AUTH FORMAT - Sending join data:', joinData);
+      console.log('[chat] Sending join data:', joinData);
       newSocket.send(JSON.stringify(joinData));
       setIsChatJoined(true);
     };
@@ -117,14 +112,6 @@ const ListenToType = ({ user }) => {
     newSocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log('[chat] Received message:', data);
-      
-      if (data.type === 'error') {
-        console.error('[chat] WebSocket error:', data.message);
-        alert('Chat Error: ' + data.message);
-        setIsChatJoined(false);
-        newSocket.close();
-        return;
-      }
       
       setMessages(prev => [...prev, {
         id: Date.now() + Math.random(),
@@ -205,86 +192,98 @@ const ListenToType = ({ user }) => {
               {/* Chatroom Selection */}
               {!selectedChatroom && (
                 <div className="mb-4">
-                  {user ? (
-                    <div>
-                      <h6 className="mb-3">Select a chatroom to join:</h6>
-                      {loadingChatrooms ? (
-                        <div className="text-center">
-                          <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Loading chatrooms...</span>
+                  <h6 className="mb-3">Select a chatroom to join:</h6>
+                  {loadingChatrooms ? (
+                    <div className="text-center">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading chatrooms...</span>
+                      </div>
+                    </div>
+                  ) : availableChatrooms.length > 0 ? (
+                    <div className="row">
+                      {availableChatrooms.map((chatroom) => (
+                        <div key={chatroom.id} className="col-md-6 mb-2">
+                          <div 
+                            className="card border-primary cursor-pointer h-100"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => setSelectedChatroom(chatroom)}
+                          >
+                            <div className="card-body text-center">
+                              <h6 className="card-title text-primary">{chatroom.name}</h6>
+                              {chatroom.description && (
+                                <p className="card-text small text-muted">{chatroom.description}</p>
+                              )}
+                              <button className="btn btn-sm btn-primary">
+                                <i className="fas fa-sign-in-alt me-1"></i>Join
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      ) : availableChatrooms.length > 0 ? (
-                        <div className="row">
-                          {availableChatrooms.map((chatroom) => (
-                            <div key={chatroom.id} className="col-md-6 mb-2">
-                              <div 
-                                className="card border-primary cursor-pointer h-100"
-                                style={{ cursor: 'pointer' }}
-                                onClick={() => setSelectedChatroom(chatroom)}
-                              >
-                                <div className="card-body text-center">
-                                  <h6 className="card-title text-primary">{chatroom.name}</h6>
-                                  {chatroom.description && (
-                                    <p className="card-text small text-muted">{chatroom.description}</p>
-                                  )}
-                                  <button className="btn btn-sm btn-primary">
-                                    <i className="fas fa-sign-in-alt me-1"></i>Join
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center text-muted">
-                          <i className="fas fa-comment-slash fa-3x mb-3"></i>
-                          <p>No chatrooms available yet.</p>
-                          <p className="small">Ask your teacher to create a chatroom for you!</p>
-                          {user?.isAdmin && (
-                            <a href="/admin" className="btn btn-outline-primary btn-sm">
-                              <i className="fas fa-plus me-1"></i>Create Chatroom
-                            </a>
-                          )}
-                        </div>
-                      )}
+                      ))}
                     </div>
                   ) : (
-                    <div className="text-center">
-                      <div className="alert alert-warning">
-                        <i className="fas fa-lock fa-2x mb-3"></i>
-                        <h5>Authentication Required</h5>
-                        <p>Please log in to access chatrooms for collaborative learning.</p>
-                      </div>
-                      <div className="d-flex gap-2 justify-content-center flex-wrap">
-                        <a 
-                          href="/api/auth/quick-login?user=teacher&redirect=/listen-to-type" 
-                          className="btn btn-success"
+                    <div className="text-center text-muted">
+                      <i className="fas fa-comment-slash fa-3x mb-3"></i>
+                      <p>No chatrooms available yet.</p>
+                      <p className="small">Ask your teacher to create a chatroom for you!</p>
+                      <div className="mt-3">
+                        <button 
+                          className="btn btn-primary btn-sm me-2"
+                          onClick={() => fetchAvailableChatrooms()}
                         >
-                          <i className="fas fa-chalkboard-teacher me-1"></i>Teacher Login
+                          <i className="fas fa-sync me-1"></i>Refresh
+                        </button>
+                        <button 
+                          className="btn btn-warning btn-sm me-2"
+                          onClick={handleDirectLogin}
+                          title="Click this to fix authentication and see chatrooms"
+                        >
+                          <i className="fas fa-sign-in-alt me-1"></i>Fix Session
+                        </button>
+                        <a 
+                          href="/api/auth/quick-login" 
+                          className="btn btn-success btn-sm me-2"
+                          title="Login as Admin/Teacher"
+                        >
+                          <i className="fas fa-key me-1"></i>Teacher Login
                         </a>
                         <a 
-                          href="/api/auth/quick-login?user=student&redirect=/listen-to-type" 
-                          className="btn btn-primary"
+                          href="/api/auth/quick-login?type=student" 
+                          className="btn btn-info btn-sm me-2"
+                          title="Login as Student"
                         >
                           <i className="fas fa-user me-1"></i>Student Login
                         </a>
+                        {user?.isAdmin && (
+                          <a href="/admin" className="btn btn-outline-primary btn-sm">
+                            <i className="fas fa-plus me-1"></i>Create
+                          </a>
+                        )}
+                        <div className="mt-2">
+                          <small className="text-muted">
+                            Debug: User {user?.email || 'not logged in'} ({user?.role || 'no role'})
+                          </small>
+                        </div>
+                        <div className="mt-2">
+                          <div className="alert alert-info alert-sm">
+                            <i className="fas fa-info-circle me-1"></i>
+                            <strong>Can't see chatrooms?</strong> Click "Direct Login" to authenticate and access chatrooms. 
+                            <br /><small>All students and teachers can access chatrooms for collaborative learning!</small>
+                          </div>
+                        </div>
                       </div>
-                      <p className="mt-3 text-muted small">
-                        Only authenticated users can access the chat system for security and accountability.
-                      </p>
                     </div>
                   )}
                 </div>
               )}
 
               {/* Chat Interface */}
-              {selectedChatroom && user && (
+              {selectedChatroom && (
                 <div>
                   {!isChatJoined ? (
                     <div className="text-center">
                       <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h6 className="mb-0">Join {selectedChatroom.name} as {user.name}:</h6>
+                        <h6 className="mb-0">Enter your name to join {selectedChatroom.name}:</h6>
                         <button 
                           className="btn btn-sm btn-outline-secondary"
                           onClick={() => setSelectedChatroom(null)}
@@ -292,16 +291,29 @@ const ListenToType = ({ user }) => {
                           <i className="fas fa-arrow-left me-1"></i>Back
                         </button>
                       </div>
-                      <div className="alert alert-info">
-                        <i className="fas fa-user me-2"></i>
-                        You will join as: <strong>{user.name}</strong> ({user.role})
+                      <div className="input-group mb-3">
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder={user?.name ? `Default: ${user.name}` : "Enter your name"}
+                          value={chatName}
+                          onChange={(e) => setChatName(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && connectToChat()}
+                        />
+                        <button 
+                          className="btn btn-primary"
+                          onClick={connectToChat}
+                          disabled={!chatName.trim() && !user?.name}
+                        >
+                          <i className="fas fa-sign-in-alt me-1"></i>Join as {user?.name || chatName || 'User'}
+                        </button>
                       </div>
-                      <button 
-                        className="btn btn-primary btn-lg"
-                        onClick={connectToChat}
-                      >
-                        <i className="fas fa-sign-in-alt me-2"></i>Join Chat as {user.name}
-                      </button>
+                      {user?.name && (
+                        <small className="text-muted d-block mb-2">
+                          <i className="fas fa-info-circle me-1"></i>
+                          Using your account name: <strong>{user.name}</strong> ({user.role})
+                        </small>
+                      )}
                     </div>
                   ) : (
                     <div>

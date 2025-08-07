@@ -1883,25 +1883,14 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         
         switch (message.type) {
           case 'join':
-            // Validate that user has proper authentication data
-            if (!message.name || !message.role || !message.userId) {
-              console.error('[websocket] Join rejected - missing authentication data:', message);
-              ws.send(JSON.stringify({
-                type: 'error',
-                message: 'Authentication required. Please log in to join chat.'
-              }));
-              return;
-            }
+            // User joins the chat - fallback to username if name not provided (for compatibility)
+            const userName = message.name || message.username || 'Anonymous';
+            const userRole = message.role || 'student';
             
-            const userName = message.name;
-            const userRole = message.role;
-            const userId = message.userId;
-            
-            console.log('[websocket] Join data - name:', userName, 'role:', userRole, 'userId:', userId);
+            console.log('[websocket] Join data - name:', userName, 'role:', userRole);
             chatUsers.set(ws, {
               name: userName,
               role: userRole,
-              userId: userId,
               joinedAt: new Date()
             });
             
@@ -1912,7 +1901,6 @@ Sitemap: ${baseUrl}/sitemap.xml`;
               username: userName,
               name: userName,
               role: userRole,
-              userId: userId,
               timestamp: new Date().toISOString()
             };
             
