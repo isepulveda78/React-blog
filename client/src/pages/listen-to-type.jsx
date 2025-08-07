@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useToast } from '../components/Toast.jsx';
 
 const ListenToType = ({ user }) => {
   // Chat functionality only
@@ -10,8 +11,10 @@ const ListenToType = ({ user }) => {
   const [availableChatrooms, setAvailableChatrooms] = useState([]);
   const [selectedChatroom, setSelectedChatroom] = useState(null);
   const [loadingChatrooms, setLoadingChatrooms] = useState(false);
+  const [connectedUsers, setConnectedUsers] = useState(new Set());
   
   const chatMessagesRef = useRef(null);
+  const { showToast, ToastContainer } = useToast();
 
   // Fetch available chatrooms with retry logic
   const fetchAvailableChatrooms = async (retryCount = 0) => {
@@ -88,6 +91,16 @@ const ListenToType = ({ user }) => {
     const displayName = user?.name || chatName;
     if (!displayName.trim() || !selectedChatroom) return;
 
+    // Check if the name is already taken in the current chatroom
+    if (connectedUsers.has(displayName.trim())) {
+      showToast(
+        `The name "${displayName}" is already taken in this chatroom. Please choose a different name.`,
+        'error',
+        4000
+      );
+      return;
+    }
+
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     
@@ -106,12 +119,34 @@ const ListenToType = ({ user }) => {
       };
       console.log('[chat] Sending join data:', joinData);
       newSocket.send(JSON.stringify(joinData));
-      setIsChatJoined(true);
     };
 
     newSocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log('[chat] Received message:', data);
+      
+      // Handle different message types
+      if (data.type === 'user_joined') {
+        setConnectedUsers(prev => new Set([...prev, data.name]));
+        setIsChatJoined(true); // Confirm successful join
+        showToast(`${data.name} joined the chat`, 'info', 2000);
+      } else if (data.type === 'user_left') {
+        setConnectedUsers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(data.name);
+          return newSet;
+        });
+      } else if (data.type === 'join_rejected') {
+        showToast(
+          `Cannot join: The name "${data.name}" is already taken in this chatroom.`,
+          'error',
+          4000
+        );
+        if (socket) {
+          socket.close();
+        }
+        return;
+      }
       
       setMessages(prev => [...prev, {
         id: Date.now() + Math.random(),
@@ -156,6 +191,7 @@ const ListenToType = ({ user }) => {
     setIsChatJoined(false);
     setSocket(null);
     setMessages([]);
+    setConnectedUsers(new Set());
     setChatName('');
     setSelectedChatroom(null);
   };
@@ -166,6 +202,7 @@ const ListenToType = ({ user }) => {
 
   // Chatroom interface for all users - this is the ONLY content
   return (
+    <>
     <div className="container py-4">
       <div className="row">
         <div className="col-md-8 mx-auto">
@@ -393,6 +430,8 @@ const ListenToType = ({ user }) => {
         </div>
       </div>
     </div>
+    <ToastContainer />
+    </>
   );
 };
 

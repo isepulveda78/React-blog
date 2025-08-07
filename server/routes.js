@@ -1869,8 +1869,9 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   // Create WebSocket server for chat functionality
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   
-  // Store active chat users (in memory)
+  // Store active chat users by chatroom (in memory)
   const chatUsers = new Map();
+  const chatroomUsers = new Map(); // Map of chatroom ID -> Set of user names
   let messageId = 1;
 
   wss.on('connection', (ws) => {
@@ -1886,26 +1887,51 @@ Sitemap: ${baseUrl}/sitemap.xml`;
             // User joins the chat - fallback to username if name not provided (for compatibility)
             const userName = message.name || message.username || 'Anonymous';
             const userRole = message.role || 'student';
+            const chatroomId = message.chatroom;
             
-            console.log('[websocket] Join data - name:', userName, 'role:', userRole);
+            console.log('[websocket] Join data - name:', userName, 'role:', userRole, 'chatroom:', chatroomId);
+            
+            // Check for duplicate names in the same chatroom
+            if (!chatroomUsers.has(chatroomId)) {
+              chatroomUsers.set(chatroomId, new Set());
+            }
+            
+            const currentChatroomUsers = chatroomUsers.get(chatroomId);
+            if (currentChatroomUsers.has(userName)) {
+              console.log(`[websocket] Duplicate name "${userName}" rejected for chatroom ${chatroomId}`);
+              
+              // Send rejection message to this user only
+              ws.send(JSON.stringify({
+                type: 'join_rejected',
+                name: userName,
+                reason: 'Name already taken in this chatroom',
+                timestamp: new Date().toISOString()
+              }));
+              return;
+            }
+            
+            // Add user to chatroom and global user tracking
+            currentChatroomUsers.add(userName);
             chatUsers.set(ws, {
               name: userName,
               role: userRole,
+              chatroom: chatroomId,
               joinedAt: new Date()
             });
             
-            // Broadcast user joined message
+            // Broadcast user joined message to all users in this chatroom
             const joinMessage = {
               type: 'user_joined',
               id: messageId++,
               username: userName,
               name: userName,
               role: userRole,
+              chatroom: chatroomId,
               timestamp: new Date().toISOString()
             };
             
-            broadcast(joinMessage);
-            console.log(`[chat] ${userName} (${userRole}) joined the chat`);
+            broadcastToChatroom(joinMessage, chatroomId);
+            console.log(`[chat] ${userName} (${userRole}) joined chatroom ${chatroomId}`);
             break;
             
           case 'message':
@@ -1920,10 +1946,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
                 name: user.name,
                 role: user.role,
                 text: message.text,
+                chatroom: user.chatroom,
                 timestamp: new Date().toISOString()
               };
               
-              broadcast(chatMessage);
+              broadcastToChatroom(chatMessage, user.chatroom);
               console.log(`[chat] ${user.name} (${user.role}): ${message.text}`);
             } else {
               console.log('[websocket] No user found for this connection');
@@ -1938,6 +1965,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     ws.on('close', () => {
       const user = chatUsers.get(ws);
       if (user) {
+        // Remove user from chatroom tracking
+        if (chatroomUsers.has(user.chatroom)) {
+          chatroomUsers.get(user.chatroom).delete(user.name);
+        }
+        
         // Broadcast user left message
         const leaveMessage = {
           type: 'user_left',
@@ -1945,10 +1977,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
           username: user.name,
           name: user.name,
           role: user.role,
+          chatroom: user.chatroom,
           timestamp: new Date().toISOString()
         };
         
-        broadcast(leaveMessage, ws);
+        broadcastToChatroom(leaveMessage, user.chatroom);
         chatUsers.delete(ws);
         console.log(`[chat] ${user.name} left the chat`);
       }
@@ -1959,6 +1992,16 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   function broadcast(message, excludeWs = null) {
     wss.clients.forEach((client) => {
       if (client !== excludeWs && client.readyState === 1) { // WebSocket.OPEN = 1
+        client.send(JSON.stringify(message));
+      }
+    });
+  }
+  
+  // Broadcast message to all users in a specific chatroom
+  function broadcastToChatroom(message, chatroomId, excludeWs = null) {
+    wss.clients.forEach((client) => {
+      const user = chatUsers.get(client);
+      if (client !== excludeWs && client.readyState === 1 && user && user.chatroom === chatroomId) {
         client.send(JSON.stringify(message));
       }
     });
