@@ -20,7 +20,12 @@ class MemStorage {
   async getUserByUsername(username) { return this.users.find(u => u.username === username); }
   async getUserByGoogleId(googleId) { return this.users.find(u => u.googleId === googleId); }
   async createUser(userData) {
-    const user = { id: nanoid(), ...userData, createdAt: new Date().toISOString() };
+    const user = { 
+      id: nanoid(), 
+      role: "student", // Default new users to student role
+      ...userData, 
+      createdAt: new Date().toISOString() 
+    };
     this.users.push(user);
     return user;
   }
@@ -184,6 +189,7 @@ class MemStorage {
       password: hashedPassword,
       isAdmin: true,
       approved: true,
+      role: "teacher",
       createdAt: new Date().toISOString()
     };
 
@@ -195,6 +201,7 @@ class MemStorage {
       password: hashedPassword,
       isAdmin: false,
       approved: true,
+      role: "student",
       createdAt: new Date().toISOString()
     };
 
@@ -396,7 +403,7 @@ export class MongoStorage {
     console.log('[mongodb] Fixing admin user permissions...');
     const result = await this.db.collection('users').updateOne(
       { email: "admin@example.com" },
-      { $set: { isAdmin: true } }
+      { $set: { isAdmin: true, role: "teacher" } }
     );
     console.log('[mongodb] Admin user fix result:', result.modifiedCount, 'documents modified');
   }
@@ -759,6 +766,7 @@ export class MongoStorage {
     await this.connect();
     const user = {
       id: nanoid(),
+      role: "student", // Default new users to student role
       ...userData,
       createdAt: new Date().toISOString()
     };

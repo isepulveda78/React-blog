@@ -360,21 +360,23 @@ const ListenToType = ({ user }) => {
         </div>
       </div>
 
-      {/* Chat Toggle Button */}
-      <div className="row mt-4">
-        <div className="col-12 text-center">
-          <button 
-            className="btn btn-outline-primary"
-            onClick={() => setShowChat(!showChat)}
-          >
-            <i className="fas fa-comments me-2"></i>
-            {showChat ? 'Hide Chat' : 'Show Live Chat'}
-          </button>
+      {/* Chat Toggle Button - Students Only */}
+      {user?.role === 'student' && (
+        <div className="row mt-4">
+          <div className="col-12 text-center">
+            <button 
+              className="btn btn-outline-primary"
+              onClick={() => setShowChat(!showChat)}
+            >
+              <i className="fas fa-comments me-2"></i>
+              {showChat ? 'Hide Chat' : 'Show Live Chat'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Chat Section */}
-      {showChat && (
+      {/* Chat Section - Students Only */}
+      {showChat && user?.role === 'student' && (
         <div className="row mt-4">
           <div className="col-md-8 mx-auto">
             <div className="card shadow">
@@ -498,6 +500,18 @@ const ListenToType = ({ user }) => {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Role Information - For Testing */}
+      {user && (
+        <div className="row mt-3">
+          <div className="col-12 text-center">
+            <small className="text-muted">
+              User Role: {user.role || 'Not Set'} | 
+              Chat Access: {user?.role === 'student' ? '✅ Available' : '❌ Teacher/Admin Only'}
+            </small>
           </div>
         </div>
       )}
