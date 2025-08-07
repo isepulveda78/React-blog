@@ -112,9 +112,12 @@ const ListenToType = ({ user }) => {
 
     newSocket.onopen = () => {
       console.log('[chat] WebSocket connected');
+      // PRIORITIZE typed name over authenticated user name
+      const displayName = chatName.trim() || user?.name || 'Anonymous';
+      
       const joinData = {
         type: 'join',
-        name: user?.name || chatName,
+        name: displayName,
         role: user?.role || 'student',
         chatroom: selectedChatroom.id
       };
@@ -155,7 +158,7 @@ const ListenToType = ({ user }) => {
       // Handle other message types
       if (data.type === 'user_joined') {
         setConnectedUsers(prev => new Set([...prev, data.name]));
-        if (data.name === (user?.name || chatName)) {
+        if (data.name === (chatName.trim() || user?.name)) {
           setIsChatJoined(true); // Confirm successful join for this user
         }
       } else if (data.type === 'user_left') {
@@ -418,8 +421,7 @@ const ListenToType = ({ user }) => {
                                     <div className="d-flex justify-content-between align-items-center mb-1">
                                       <div className="d-flex align-items-center">
                                         <strong className="text-primary me-2">
-                                          {message.username || message.name || 'Unknown User'} 
-                                          <span className="text-muted" style={{fontSize: '0.8em'}}>(debug: {JSON.stringify({u: message.username, n: message.name})})</span>
+                                          {message.username || message.name || 'Unknown User'}
                                         </strong>
                                         <span className={`badge ${message.role === 'teacher' ? 'bg-success' : 'bg-info'} text-white`} style={{ fontSize: '0.65em' }}>
                                           {message.role || 'student'}
