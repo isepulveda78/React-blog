@@ -13,12 +13,11 @@ const ListenToType = ({ user }) => {
   
   const chatMessagesRef = useRef(null);
 
-  // Fetch available chatrooms
-  const fetchAvailableChatrooms = async () => {
+  // Fetch available chatrooms with retry logic
+  const fetchAvailableChatrooms = async (retryCount = 0) => {
     try {
       setLoadingChatrooms(true);
-      console.log('[ListenToType] Fetching available chatrooms...');
-      console.log('[ListenToType] Current user:', user);
+      console.log('[ListenToType] Fetching available chatrooms... (attempt', retryCount + 1, ')');
       
       const response = await fetch('/api/chatrooms', { 
         credentials: 'include',
@@ -28,12 +27,16 @@ const ListenToType = ({ user }) => {
       });
       
       console.log('[ListenToType] Response status:', response.status);
-      console.log('[ListenToType] Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (response.ok) {
         const chatrooms = await response.json();
         console.log('[ListenToType] Available chatrooms:', chatrooms);
         setAvailableChatrooms(chatrooms);
+      } else if (response.status === 401 && retryCount < 2) {
+        // Try again after a short delay for session sync
+        console.log('[ListenToType] Auth failed, retrying in 1 second...');
+        setTimeout(() => fetchAvailableChatrooms(retryCount + 1), 1000);
+        return;
       } else {
         const errorData = await response.text();
         console.error('[ListenToType] Error fetching chatrooms:', response.status, errorData);
@@ -45,12 +48,23 @@ const ListenToType = ({ user }) => {
     }
   };
 
-  // Load chatrooms when component mounts
+  // Load chatrooms when component mounts or user changes
   useEffect(() => {
     if (user) {
       fetchAvailableChatrooms();
     }
   }, [user]);
+
+  // Also try to load chatrooms after a delay to handle session sync
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (user && availableChatrooms.length === 0) {
+        console.log('[ListenToType] Delayed chatroom fetch for session sync...');
+        fetchAvailableChatrooms();
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [user, availableChatrooms.length]);
 
   // Quick login for testing session sync
   const handleQuickLogin = async () => {
@@ -228,12 +242,24 @@ const ListenToType = ({ user }) => {
                       <i className="fas fa-comment-slash fa-3x mb-3"></i>
                       <p>No chatrooms available yet.</p>
                       <p className="small">Ask your teacher to create a chatroom for you!</p>
-                      <button 
-                        className="btn btn-outline-primary btn-sm mt-2"
-                        onClick={handleQuickLogin}
-                      >
-                        <i className="fas fa-sync me-1"></i>Refresh Chatrooms
-                      </button>
+                      <div className="mt-3">
+                        <button 
+                          className="btn btn-primary btn-sm me-2"
+                          onClick={() => fetchAvailableChatrooms()}
+                        >
+                          <i className="fas fa-sync me-1"></i>Refresh
+                        </button>
+                        {user?.isAdmin && (
+                          <a href="/admin" className="btn btn-outline-primary btn-sm">
+                            <i className="fas fa-plus me-1"></i>Create
+                          </a>
+                        )}
+                        <div className="mt-2">
+                          <small className="text-muted">
+                            Debug: User {user?.email || 'not logged in'} ({user?.role || 'no role'})
+                          </small>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
