@@ -881,6 +881,12 @@ export function registerRoutes(app) {
 
       console.log('[user-role] User role updated successfully:', updatedUser.email, 'role:', updatedUser.role);
 
+      // If the updated user is currently logged in, update their session
+      if (req.session.user && req.session.user.id === userId) {
+        console.log('[user-role] Updating current user session with new role');
+        req.session.user = { ...req.session.user, role: updatedUser.role };
+      }
+
       // Return safe user data
       const safeUser = {
         id: updatedUser.id,
@@ -1790,7 +1796,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       }
 
       console.log('[API] /api/chatrooms - Fetching all chatrooms...');
-      const allChatrooms = await storage.getAllChatrooms();
+      const allChatrooms = await storage.getChatrooms();
       console.log('[API] /api/chatrooms - All chatrooms:', allChatrooms.length);
       
       // Allow all authenticated users (students, teachers, admins) to access all chatrooms
