@@ -15,7 +15,7 @@ const Footer = () => {
               <a href="/blog" className="text-light text-decoration-none me-3">Blog</a>
               <a href="/educational-tools" className="text-light text-decoration-none">Tools</a>
             </div>
-            <small className="text-muted">
+            <small className="text-muted text-white">
               © {new Date().getFullYear()} Mr. S Teaches. All rights reserved.
             </small>
           </div>
