@@ -788,6 +788,46 @@ export class MongoStorage {
 
     await this.db.collection('comments').insertMany([comment1, comment2, comment3, reply1, reply2]);
     console.log('[mongodb] Sample comments created');
+    
+    // Create sample chatrooms
+    const chatroom1 = {
+      id: nanoid(),
+      name: "General Discussion",
+      description: "Main chatroom for class discussions and questions",
+      createdBy: adminUser.id,
+      createdByName: adminUser.name,
+      invitedUserIds: [adminUser.id, regularUser.id],
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const chatroom2 = {
+      id: nanoid(),
+      name: "Study Group",
+      description: "Collaborative learning and homework help",
+      createdBy: adminUser.id,
+      createdByName: adminUser.name,
+      invitedUserIds: [adminUser.id, regularUser.id],
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const chatroom3 = {
+      id: nanoid(),
+      name: "Typing Practice",
+      description: "Practice typing with friends and get tips",
+      createdBy: adminUser.id,
+      createdByName: adminUser.name,
+      invitedUserIds: [adminUser.id, regularUser.id],
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await this.db.collection('chatrooms').insertMany([chatroom1, chatroom2, chatroom3]);
+    console.log('[mongodb] Sample chatrooms created');
   }
 
   // User methods

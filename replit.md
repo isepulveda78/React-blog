@@ -118,12 +118,14 @@ Cache management: Implemented hot reload system for instant change detection and
 
 ### Real-Time Features (August 2025)
 - **WebSocket Chat System**: Added real-time chatroom functionality to Listen to Type educational tool
-- **No Database Required**: Chat messages stored in memory only, users enter name to participate
+- **Database-Backed Chatrooms**: Chatrooms now stored in MongoDB for persistence across server restarts
+- **Chatroom Integration**: Students can select from admin-created chatrooms in Listen to Type interface
 - **Live User Tracking**: Shows when users join/leave the chat with timestamps
 - **Message Broadcasting**: All connected users see messages instantly
 - **Auto-Scroll**: Chat automatically scrolls to show latest messages
-- **Admin Chatrooms**: Comprehensive chatroom management system for admins
+- **Admin Chatrooms**: Comprehensive chatroom management system for admins with create/edit/delete functionality
 - **Role-Based Chat Access**: Chat features restricted to students only, with teacher/admin oversight capabilities
+- **Persistent Data**: Sample chatrooms automatically created on first MongoDB initialization
 
 ## Deployment Configuration (Latest)
 
