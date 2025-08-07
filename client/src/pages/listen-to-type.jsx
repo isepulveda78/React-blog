@@ -99,7 +99,8 @@ const ListenToType = ({ user }) => {
       console.log('[chat] WebSocket connected');
       newSocket.send(JSON.stringify({
         type: 'join',
-        username: chatName,
+        name: chatName,
+        role: user?.role || 'student',
         chatroom: selectedChatroom.id
       }));
       setIsChatJoined(true);
@@ -321,25 +322,30 @@ const ListenToType = ({ user }) => {
                         ) : (
                           messages.map((message) => (
                             <div key={message.id} className="mb-2">
-                              {message.type === 'join' ? (
+                              {message.type === 'user_joined' ? (
                                 <div className="text-center">
                                   <small className="text-success">
                                     <i className="fas fa-user-plus me-1"></i>
-                                    {message.username} joined the chat at {formatTime(message.timestamp)}
+                                    {message.username} ({message.role}) joined the chat at {formatTime(message.timestamp)}
                                   </small>
                                 </div>
-                              ) : message.type === 'leave' ? (
+                              ) : message.type === 'user_left' ? (
                                 <div className="text-center">
                                   <small className="text-warning">
                                     <i className="fas fa-user-minus me-1"></i>
-                                    {message.username} left the chat at {formatTime(message.timestamp)}
+                                    {message.username} ({message.role}) left the chat at {formatTime(message.timestamp)}
                                   </small>
                                 </div>
                               ) : (
                                 <div className="d-flex justify-content-start">
                                   <div className="bg-white rounded p-2 shadow-sm" style={{ maxWidth: '70%' }}>
                                     <div className="d-flex justify-content-between align-items-start">
-                                      <strong className="text-primary me-2">{message.username}:</strong>
+                                      <div className="d-flex align-items-center">
+                                        <strong className="text-primary me-2">{message.username}</strong>
+                                        <span className={`badge ${message.role === 'teacher' ? 'bg-success' : 'bg-primary'} text-white me-2`} style={{ fontSize: '0.7em' }}>
+                                          {message.role}
+                                        </span>
+                                      </div>
                                       <small className="text-muted">{formatTime(message.timestamp)}</small>
                                     </div>
                                     <p className="mb-0">{message.text}</p>

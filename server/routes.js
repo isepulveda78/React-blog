@@ -1885,6 +1885,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
             // User joins the chat
             chatUsers.set(ws, {
               name: message.name,
+              role: message.role,
               joinedAt: new Date()
             });
             
@@ -1892,7 +1893,9 @@ Sitemap: ${baseUrl}/sitemap.xml`;
             const joinMessage = {
               type: 'user_joined',
               id: messageId++,
+              username: message.name,
               name: message.name,
+              role: message.role,
               timestamp: new Date().toISOString()
             };
             
@@ -1907,7 +1910,9 @@ Sitemap: ${baseUrl}/sitemap.xml`;
               const chatMessage = {
                 type: 'message',
                 id: messageId++,
+                username: user.name,
                 name: user.name,
+                role: user.role,
                 text: message.text,
                 timestamp: new Date().toISOString()
               };
@@ -1929,7 +1934,9 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         const leaveMessage = {
           type: 'user_left',
           id: messageId++,
+          username: user.name,
           name: user.name,
+          role: user.role,
           timestamp: new Date().toISOString()
         };
         
