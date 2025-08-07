@@ -22,10 +22,7 @@ const ListenToType = ({ user }) => {
   }, []);
 
   // Test function to verify toast system
-  const testToast = () => {
-    console.log('[ListenToType] Testing toast system...');
-    showToast('🧪 Test toast notification working!', 'info', 3000);
-  };
+
 
   // Fetch available chatrooms with retry logic
   const fetchAvailableChatrooms = async (retryCount = 0) => {
@@ -240,13 +237,6 @@ const ListenToType = ({ user }) => {
                   )}
                 </span>
                 <div>
-                  <button 
-                    className="btn btn-sm btn-outline-light me-2" 
-                    onClick={testToast}
-                    title="Test toast notifications"
-                  >
-                    Test Toast
-                  </button>
                   {isChatJoined && (
                     <button 
                       className="btn btn-sm btn-outline-light"
