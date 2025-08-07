@@ -1,152 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const ListenToType = ({ user }) => {
-  const [currentText, setCurrentText] = useState('');
-  const [userInput, setUserInput] = useState('');
-  const [score, setScore] = useState(0);
-  const [totalAttempts, setTotalAttempts] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [difficulty, setDifficulty] = useState('easy');
-  const [feedback, setFeedback] = useState('');
-  const [showResult, setShowResult] = useState(false);
-  
-  // Chat functionality
+  // Chat functionality only - removed all challenge/game state
   const [chatName, setChatName] = useState('');
   const [isChatJoined, setIsChatJoined] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [socket, setSocket] = useState(null);
-  const [showChat, setShowChat] = useState(false);
+  const [showChat, setShowChat] = useState(true); // Default to showing chat
   const [availableChatrooms, setAvailableChatrooms] = useState([]);
   const [selectedChatroom, setSelectedChatroom] = useState(null);
   const [loadingChatrooms, setLoadingChatrooms] = useState(false);
   
-  const audioRef = useRef(null);
   const chatMessagesRef = useRef(null);
-  
-  // Sample texts for different difficulty levels
-  const texts = {
-    easy: [
-      'The cat sat on the mat.',
-      'I like to eat pizza.',
-      'The sun is bright today.',
-      'Dogs are good friends.',
-      'We play in the park.',
-      'Books are fun to read.',
-      'I love my family.',
-      'The bird can fly high.'
-    ],
-    medium: [
-      'Learning new skills takes practice and patience.',
-      'Technology helps us connect with people around the world.',
-      'Reading books expands our knowledge and imagination.',
-      'Exercise is important for maintaining good health.',
-      'Music can change our mood and inspire creativity.',
-      'Cooking teaches us about different cultures and flavors.',
-      'Nature provides peace and beauty in our busy lives.',
-      'Education opens doors to new opportunities.'
-    ],
-    hard: [
-      'The quintessential entrepreneur demonstrates remarkable perseverance.',
-      'Sophisticated algorithms revolutionize computational methodologies.',
-      'Unprecedented circumstances require extraordinary collaborative solutions.',
-      'Innovative technologies facilitate unprecedented global communication.',
-      'Comprehensive educational curricula enhance intellectual development significantly.',
-      'Environmental sustainability necessitates immediate comprehensive action.',
-      'Interdisciplinary research approaches yield groundbreaking scientific discoveries.',
-      'Contemporary philosophical debates challenge traditional ethical frameworks.'
-    ]
-  };
-
-  // Generate a random text based on difficulty
-  const generateNewText = () => {
-    const textArray = texts[difficulty];
-    const randomIndex = Math.floor(Math.random() * textArray.length);
-    return textArray[randomIndex];
-  };
-
-  // Text-to-speech function
-  const speakText = (text) => {
-    if ('speechSynthesis' in window) {
-      setIsPlaying(true);
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      // Configure speech settings based on difficulty
-      switch(difficulty) {
-        case 'easy':
-          utterance.rate = 0.7;
-          utterance.pitch = 1.1;
-          break;
-        case 'medium':
-          utterance.rate = 0.9;
-          utterance.pitch = 1.0;
-          break;
-        case 'hard':
-          utterance.rate = 1.0;
-          utterance.pitch = 0.9;
-          break;
-      }
-      
-      utterance.onend = () => {
-        setIsPlaying(false);
-      };
-      
-      speechSynthesis.speak(utterance);
-    } else {
-      setFeedback('Speech synthesis not supported in this browser.');
-    }
-  };
-
-  // Start new challenge
-  const startNewChallenge = () => {
-    const newText = generateNewText();
-    setCurrentText(newText);
-    setUserInput('');
-    setShowResult(false);
-    setFeedback('');
-    
-    // Automatically play the text
-    setTimeout(() => {
-      speakText(newText);
-    }, 500);
-  };
-
-  // Check user's answer
-  const checkAnswer = () => {
-    const isCorrect = userInput.trim().toLowerCase() === currentText.toLowerCase();
-    setTotalAttempts(totalAttempts + 1);
-    
-    if (isCorrect) {
-      setScore(score + 1);
-      setFeedback('Perfect! Well done!');
-    } else {
-      setFeedback(`Close! The correct text was: "${currentText}"`);
-    }
-    
-    setShowResult(true);
-  };
-
-  // Calculate accuracy percentage
-  const getAccuracy = () => {
-    return totalAttempts > 0 ? Math.round((score / totalAttempts) * 100) : 0;
-  };
-
-  // Reset game
-  const resetGame = () => {
-    setScore(0);
-    setTotalAttempts(0);
-    setUserInput('');
-    setCurrentText('');
-    setFeedback('');
-    setShowResult(false);
-  };
-
-  // Handle key press for Enter to submit
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && currentText && userInput.trim()) {
-      checkAnswer();
-    }
-  };
 
   // Fetch available chatrooms
   const fetchAvailableChatrooms = async () => {
@@ -218,41 +84,48 @@ const ListenToType = ({ user }) => {
     }
   };
 
-  // Chat functionality
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   const connectToChat = () => {
-    if (!chatName.trim()) return;
+    if (!chatName.trim() || !selectedChatroom) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
+    
+    console.log('[chat] Connecting to WebSocket:', wsUrl);
+    
     const newSocket = new WebSocket(wsUrl);
+    setSocket(newSocket);
 
     newSocket.onopen = () => {
-      console.log('[chat] Connected to chat');
+      console.log('[chat] WebSocket connected');
       newSocket.send(JSON.stringify({
         type: 'join',
-        name: chatName.trim(),
-        chatroom: selectedChatroom?.id
+        username: chatName,
+        chatroom: selectedChatroom.id
       }));
       setIsChatJoined(true);
-      setSocket(newSocket);
     };
 
     newSocket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      setMessages(prev => [...prev, message]);
+      const data = JSON.parse(event.data);
+      console.log('[chat] Received message:', data);
       
-      // Auto-scroll to bottom
-      setTimeout(() => {
-        if (chatMessagesRef.current) {
-          chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
-        }
-      }, 100);
+      setMessages(prev => [...prev, {
+        id: Date.now() + Math.random(),
+        ...data,
+        timestamp: new Date().toISOString()
+      }]);
     };
 
     newSocket.onclose = () => {
-      console.log('[chat] Disconnected from chat');
+      console.log('[chat] WebSocket disconnected');
       setIsChatJoined(false);
-      setSocket(null);
     };
 
     newSocket.onerror = (error) => {
@@ -425,43 +298,31 @@ const ListenToType = ({ user }) => {
                             <i className="fas fa-arrow-left me-1"></i>Back
                           </button>
                         </div>
-                        <div className="row">
-                          <div className="col-md-8 mx-auto">
-                            <div className="input-group">
-                              <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Your name..."
-                                value={chatName}
-                                onChange={(e) => setChatName(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && connectToChat()}
-                                maxLength={20}
-                              />
-                              <button 
-                                className="btn btn-primary"
-                                onClick={connectToChat}
-                                disabled={!chatName.trim()}
-                              >
-                                <i className="fas fa-sign-in-alt me-1"></i>Join Chat
-                              </button>
-                            </div>
-                          </div>
+                        <div className="input-group mb-3">
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Enter your name"
+                            value={chatName}
+                            onChange={(e) => setChatName(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && connectToChat()}
+                          />
+                          <button 
+                            className="btn btn-primary"
+                            onClick={connectToChat}
+                            disabled={!chatName.trim()}
+                          >
+                            <i className="fas fa-sign-in-alt me-1"></i>Join Chat
+                          </button>
                         </div>
                       </div>
                     ) : (
-                      <>
-                        {/* Messages */}
+                      <div>
+                        {/* Chat Messages */}
                         <div 
                           ref={chatMessagesRef}
-                          className="chat-messages mb-3"
-                          style={{ 
-                            height: '300px', 
-                            overflowY: 'auto', 
-                            border: '1px solid #dee2e6', 
-                            borderRadius: '0.375rem',
-                            padding: '10px',
-                            backgroundColor: '#f8f9fa'
-                          }}
+                          className="border rounded p-3 mb-3"
+                          style={{ height: '300px', overflowY: 'auto', backgroundColor: '#f8f9fa' }}
                         >
                           {messages.length === 0 ? (
                             <div className="text-center text-muted">
@@ -469,40 +330,38 @@ const ListenToType = ({ user }) => {
                               <p>No messages yet. Start the conversation!</p>
                             </div>
                           ) : (
-                            messages.map((msg) => (
-                              <div key={msg.id} className="mb-2">
-                                {msg.type === 'message' ? (
-                                  <div className="d-flex">
-                                    <div className="flex-grow-1">
-                                      <div className="d-flex align-items-center mb-1">
-                                        <strong className="text-primary me-2">{msg.name}</strong>
-                                        <small className="text-muted">{formatTime(msg.timestamp)}</small>
-                                      </div>
-                                      <div className="bg-white rounded p-2 shadow-sm">
-                                        {msg.text}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ) : msg.type === 'user_joined' ? (
+                            messages.map((message) => (
+                              <div key={message.id} className="mb-2">
+                                {message.type === 'join' ? (
                                   <div className="text-center">
                                     <small className="text-success">
                                       <i className="fas fa-user-plus me-1"></i>
-                                      {msg.name} joined the chat
+                                      {message.username} joined the chat at {formatTime(message.timestamp)}
                                     </small>
                                   </div>
-                                ) : msg.type === 'user_left' ? (
+                                ) : message.type === 'leave' ? (
                                   <div className="text-center">
                                     <small className="text-warning">
                                       <i className="fas fa-user-minus me-1"></i>
-                                      {msg.name} left the chat
+                                      {message.username} left the chat at {formatTime(message.timestamp)}
                                     </small>
                                   </div>
-                                ) : null}
+                                ) : (
+                                  <div className="d-flex justify-content-start">
+                                    <div className="bg-white rounded p-2 shadow-sm" style={{ maxWidth: '70%' }}>
+                                      <div className="d-flex justify-content-between align-items-start">
+                                        <strong className="text-primary me-2">{message.username}:</strong>
+                                        <small className="text-muted">{formatTime(message.timestamp)}</small>
+                                      </div>
+                                      <p className="mb-0">{message.text}</p>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             ))
                           )}
                         </div>
-                        
+
                         {/* Message Input */}
                         <div className="input-group">
                           <input
@@ -512,7 +371,6 @@ const ListenToType = ({ user }) => {
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                             onKeyPress={handleChatKeyPress}
-                            maxLength={200}
                           />
                           <button 
                             className="btn btn-primary"
@@ -522,8 +380,7 @@ const ListenToType = ({ user }) => {
                             <i className="fas fa-paper-plane"></i>
                           </button>
                         </div>
-                        <small className="text-muted">Press Enter to send, Shift+Enter for new line</small>
-                      </>
+                      </div>
                     )}
                   </div>
                 )}
@@ -533,50 +390,25 @@ const ListenToType = ({ user }) => {
         </div>
       )}
 
-      {/* Role Information - For Testing */}
-      {user && (
-        <div className="row mt-3">
-          <div className="col-12 text-center">
-            <small className="text-muted">
-              User Role: {user.role || 'Not Set'} | 
-              Chat Access: {user?.role === 'student' ? '✅ Available' : '❌ Teacher/Admin Only'}
-            </small>
-          </div>
-        </div>
-      )}
-
-      {/* Instructions */}
-      <div className="row mt-5">
-        <div className="col-md-10 mx-auto">
-          <div className="card border-info">
-            <div className="card-header bg-info text-white">
-              <h5 className="mb-0"><i className="fas fa-info-circle me-2"></i>How to Play & Chat</h5>
-            </div>
-            <div className="card-body">
-              <div className="row">
-                <div className="col-md-6">
-                  <h6 className="text-primary">Game Instructions:</h6>
-                  <ul className="list-unstyled">
-                    <li><i className="fas fa-play text-success me-2"></i>Click "Start Challenge" to begin</li>
-                    <li><i className="fas fa-headphones text-info me-2"></i>Listen carefully to the audio</li>
-                    <li><i className="fas fa-keyboard text-warning me-2"></i>Type exactly what you hear</li>
-                    <li><i className="fas fa-check text-success me-2"></i>Click "Check Answer" or press Enter</li>
-                  </ul>
-                </div>
-                <div className="col-md-6">
-                  <h6 className="text-primary">Chat Features:</h6>
-                  <ul className="list-unstyled">
-                    <li><i className="fas fa-comments text-primary me-2"></i>Join chatrooms created by your teacher</li>
-                    <li><i className="fas fa-user text-secondary me-2"></i>Enter your name to join conversations</li>
-                    <li><i className="fas fa-eye text-info me-2"></i>See when users join and leave</li>
-                    <li><i className="fas fa-clock text-success me-2"></i>All messages show timestamps</li>
-                  </ul>
-                </div>
+      {/* Admin/Teacher View */}
+      {user?.role !== 'student' && (
+        <div className="row mt-4">
+          <div className="col-md-8 mx-auto">
+            <div className="card shadow">
+              <div className="card-body text-center">
+                <h5 className="text-muted">Chat Access</h5>
+                <p className="text-muted">
+                  Chat features are available for students only. 
+                  As an {user?.role || 'admin'}, you can manage chatrooms from the admin dashboard.
+                </p>
+                <a href="/admin" className="btn btn-primary">
+                  <i className="fas fa-cog me-2"></i>Go to Admin Dashboard
+                </a>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
