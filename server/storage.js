@@ -204,32 +204,6 @@ class MemStorage {
     return true;
   }
 
-  // Chatroom methods
-  async getChatrooms() { return this.chatrooms.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
-  async getChatroomById(id) { return this.chatrooms.find(c => c.id === id); }
-  async createChatroom(chatroomData) {
-    const chatroom = {
-      id: nanoid(),
-      ...chatroomData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    this.chatrooms.push(chatroom);
-    return chatroom;
-  }
-  async updateChatroom(id, updateData) {
-    const index = this.chatrooms.findIndex(c => c.id === id);
-    if (index === -1) return null;
-    this.chatrooms[index] = { ...this.chatrooms[index], ...updateData, updatedAt: new Date().toISOString() };
-    return this.chatrooms[index];
-  }
-  async deleteChatroom(id) {
-    const index = this.chatrooms.findIndex(c => c.id === id);
-    if (index === -1) return false;
-    this.chatrooms.splice(index, 1);
-    return true;
-  }
-
   initializeSampleData() {
     // Same sample data initialization as before but synchronous
     const hashedPassword = bcrypt.hashSync('password', 10);

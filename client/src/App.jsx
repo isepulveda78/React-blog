@@ -48,7 +48,14 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Check if user is authenticated with backend session
     console.log('[AuthProvider] Checking authentication status...')
-    fetch('/api/auth/me', { credentials: 'include' })
+    fetch('/api/auth/me', { 
+      credentials: 'include',
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      }
+    })
       .then((res) => {
         console.log('[AuthProvider] Auth response status:', res.status)
         if (res.ok) {
@@ -62,13 +69,17 @@ const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(userData))
         setIsLoading(false)
       })
-      .catch(() => {
+      .catch((error) => {
+        console.log('[AuthProvider] Auth failed:', error.message)
         // Not authenticated, check localStorage as fallback
         const storedUser = localStorage.getItem('user')
         if (storedUser) {
           try {
-            setUser(JSON.parse(storedUser))
+            const parsedUser = JSON.parse(storedUser)
+            console.log('[AuthProvider] Using localStorage user:', parsedUser.name)
+            setUser(parsedUser)
           } catch (e) {
+            console.log('[AuthProvider] Invalid localStorage user, clearing')
             localStorage.removeItem('user')
           }
         }

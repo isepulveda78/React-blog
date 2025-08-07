@@ -18,7 +18,7 @@ console.log(`[server] starting with PORT=${PORT} (from env: ${process.env.PORT})
 // Use memory store instead of requiring PostgreSQL
 const MemStore = MemoryStore(session);
 
-// Session configuration
+// Session configuration - ensure consistency between dev and production
 app.use(session({
   store: new MemStore({
     checkPeriod: 86400000 // prune expired entries every 24h
@@ -26,11 +26,13 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
+  name: 'blogcraft.sid', // Explicit session name
   cookie: {
-    secure: false, // Set to true in production with HTTPS
-    httpOnly: false, // Allow JavaScript access for debugging
+    secure: false, // Keep false for both dev and production (Replit handles HTTPS)
+    httpOnly: false, // Allow JavaScript access for authentication
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax'
+    sameSite: 'lax',
+    path: '/' // Explicit path
   }
 }));
 
