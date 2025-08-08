@@ -1889,6 +1889,38 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // Quick password reset for development - remove in production
+  app.post('/api/auth/dev-reset-password', async (req, res) => {
+    try {
+      const { email, newPassword } = req.body;
+      
+      if (!email || !newPassword) {
+        return res.status(400).json({ message: "Email and new password required" });
+      }
+      
+      // Only allow in development
+      if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ message: "Not available in production" });
+      }
+      
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update password
+      await storage.updateUserPassword(user.id, hashedPassword);
+      
+      res.json({ message: "Password reset successfully" });
+    } catch (error) {
+      console.error("Dev password reset error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Quick login endpoint for session sync fixes
   app.get('/api/auth/quick-login', async (req, res) => {
     try {
