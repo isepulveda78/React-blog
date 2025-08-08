@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+const { toast } = window;
+
 export default function AdminChatrooms({ user }) {
   const [chatrooms, setChatrooms] = useState([]);
   const [users, setUsers] = useState([]);
@@ -60,7 +62,11 @@ export default function AdminChatrooms({ user }) {
     e.preventDefault();
     
     if (!newChatroom.name.trim()) {
-      alert('Please enter a chatroom name');
+      toast({
+        title: "Validation Error",
+        description: "Please enter a chatroom name",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -77,14 +83,26 @@ export default function AdminChatrooms({ user }) {
         await fetchChatrooms();
         setShowCreateModal(false);
         setNewChatroom({ name: '', description: '', invitedUserIds: [] });
-        alert('Chatroom created successfully!');
+        toast({
+          title: "Success",
+          description: "Chatroom created successfully!",
+          variant: "default"
+        });
       } else {
         const error = await response.json();
-        alert(`Error: ${error.message}`);
+        toast({
+          title: "Error",
+          description: `Error: ${error.message}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error creating chatroom:', error);
-      alert('Failed to create chatroom');
+      toast({
+        title: "Error",
+        description: "Failed to create chatroom",
+        variant: "destructive"
+      });
     }
   };
 
@@ -100,14 +118,26 @@ export default function AdminChatrooms({ user }) {
 
       if (response.ok) {
         await fetchChatrooms();
-        alert('Chatroom deleted successfully!');
+        toast({
+          title: "Success",
+          description: "Chatroom deleted successfully!",
+          variant: "default"
+        });
       } else {
         const error = await response.json();
-        alert(`Error: ${error.message}`);
+        toast({
+          title: "Error",
+          description: `Error: ${error.message}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error deleting chatroom:', error);
-      alert('Failed to delete chatroom');
+      toast({
+        title: "Error",
+        description: "Failed to delete chatroom",
+        variant: "destructive"
+      });
     }
   };
 
@@ -125,11 +155,19 @@ export default function AdminChatrooms({ user }) {
         await fetchChatrooms();
       } else {
         const error = await response.json();
-        alert(`Error: ${error.message}`);
+        toast({
+          title: "Error",
+          description: `Error: ${error.message}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error updating chatroom status:', error);
-      alert('Failed to update chatroom status');
+      toast({
+        title: "Error",
+        description: "Failed to update chatroom status",
+        variant: "destructive"
+      });
     }
   };
 

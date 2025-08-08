@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const { toast } = window;
+
 const SEOManagement = ({ user }) => {
   const [seoSettings, setSeoSettings] = useState({
     siteName: 'Mr. S Teaches',
@@ -63,12 +65,24 @@ const SEOManagement = ({ user }) => {
       });
       
       if (response.ok) {
-        alert('SEO settings saved successfully');
+        toast({
+          title: "Success",
+          description: "SEO settings saved successfully",
+          variant: "default"
+        });
       } else {
-        alert('Failed to save SEO settings');
+        toast({
+          title: "Error",
+          description: "Failed to save SEO settings",
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      alert('Error saving SEO settings');
+      toast({
+        title: "Error",
+        description: "Error saving SEO settings",
+        variant: "destructive"
+      });
     }
   };
 
@@ -80,12 +94,24 @@ const SEOManagement = ({ user }) => {
       });
       
       if (response.ok) {
-        alert('Sitemap generated successfully');
+        toast({
+          title: "Success",
+          description: "Sitemap generated successfully",
+          variant: "default"
+        });
       } else {
-        alert('Failed to generate sitemap');
+        toast({
+          title: "Error",
+          description: "Failed to generate sitemap",
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      alert('Error generating sitemap');
+      toast({
+        title: "Error",
+        description: "Error generating sitemap",
+        variant: "destructive"
+      });
     }
   };
 

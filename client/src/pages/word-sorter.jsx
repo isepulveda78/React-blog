@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+const { toast } = window;
+
 const WordSorter = ({ user }) => {
   const [userName, setUserName] = React.useState('');
   const [newWord, setNewWord] = React.useState('');
@@ -149,11 +151,19 @@ const WordSorter = ({ user }) => {
         'word_sorter.pdf';
       doc.save(fileName);
 
-      alert('PDF exported successfully!');
+      toast({
+        title: "Success",
+        description: "PDF exported successfully!",
+        variant: "default"
+      });
 
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert(`Error generating PDF: ${error.message || 'Unknown error'}. Please refresh the page and try again.`);
+      toast({
+        title: "Error",
+        description: `Error generating PDF: ${error.message || 'Unknown error'}. Please refresh the page and try again.`,
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }

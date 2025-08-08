@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const { toast } = window;
+
 const AdminUsers = ({ user }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +84,11 @@ const AdminUsers = ({ user }) => {
 
   const toggleUserAdmin = async (userId, currentAdmin) => {
     if (userId === user.id) {
-      alert('You cannot change your own admin status');
+      toast({
+        title: "Action Not Allowed",
+        description: "You cannot change your own admin status",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -100,9 +106,17 @@ const AdminUsers = ({ user }) => {
         
         // Show success message with refresh instruction
         if (!currentAdmin) {
-          alert(`${updatedUser.name} has been granted admin access! They may need to refresh their browser to see the admin dashboard.`);
+          toast({
+            title: "Admin Access Granted",
+            description: `${updatedUser.name} has been granted admin access! They may need to refresh their browser to see the admin dashboard.`,
+            variant: "default"
+          });
         } else {
-          alert(`${updatedUser.name}'s admin access has been removed.`);
+          toast({
+            title: "Admin Access Removed",
+            description: `${updatedUser.name}'s admin access has been removed.`,
+            variant: "default"
+          });
         }
       }
     } catch (error) {
@@ -112,7 +126,11 @@ const AdminUsers = ({ user }) => {
 
   const changeUserRole = async (userId, newRole) => {
     if (userId === user.id) {
-      alert('You cannot change your own role');
+      toast({
+        title: "Action Not Allowed",
+        description: "You cannot change your own role",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -128,17 +146,29 @@ const AdminUsers = ({ user }) => {
         const updatedUser = await response.json();
         setUsers(users.map(u => u.id === userId ? updatedUser : u));
       } else {
-        alert('Failed to update user role');
+        toast({
+          title: "Error",
+          description: "Failed to update user role",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error updating user role:', error);
-      alert('Error updating user role');
+      toast({
+        title: "Error",
+        description: "Error updating user role",
+        variant: "destructive"
+      });
     }
   };
 
   const deleteUser = async (userId) => {
     if (userId === user.id) {
-      alert('You cannot delete your own account');
+      toast({
+        title: "Action Not Allowed",
+        description: "You cannot delete your own account",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -152,12 +182,24 @@ const AdminUsers = ({ user }) => {
       
       if (response.ok) {
         setUsers(users.filter(u => u.id !== userId));
-        alert('User deleted successfully');
+        toast({
+          title: "Success",
+          description: "User deleted successfully",
+          variant: "default"
+        });
       } else {
-        alert('Failed to delete user');
+        toast({
+          title: "Error",
+          description: "Failed to delete user",
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      alert('Error deleting user');
+      toast({
+        title: "Error",
+        description: "Error deleting user",
+        variant: "destructive"
+      });
     }
   };
 

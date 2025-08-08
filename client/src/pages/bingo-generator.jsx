@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+const { toast } = window;
+
 const BingoGenerator = () => {
   const [title, setTitle] = useState('');
   const [minNumber, setMinNumber] = useState(1);
@@ -14,7 +16,11 @@ const BingoGenerator = () => {
     const range = maxNumber - minNumber + 1;
     
     if (range < 24) {
-      alert('Number range must be at least 24 numbers for a valid bingo card');
+      toast({
+        title: "Validation Error",
+        description: "Number range must be at least 24 numbers for a valid bingo card",
+        variant: "destructive"
+      });
       return null;
     }
 

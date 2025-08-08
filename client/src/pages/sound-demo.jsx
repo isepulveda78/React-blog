@@ -1,4 +1,5 @@
 const { React, useState } = window;
+const { toast } = window;
 
 const SoundDemo = () => {
   const { sounds, playSound } = window.useSound();
@@ -71,7 +72,11 @@ const SoundDemo = () => {
             {
               className: 'btn-success',
               soundType: 'success',
-              onClick: () => alert('Success action!')
+              onClick: () => toast({
+                title: "Success",
+                description: "Success action!",
+                variant: "default"
+              })
             },
             'Success Button'
           ),
@@ -80,7 +85,11 @@ const SoundDemo = () => {
             {
               className: 'btn-danger',
               soundType: 'error',
-              onClick: () => alert('Error action!')
+              onClick: () => toast({
+                title: "Error",
+                description: "Error action!",
+                variant: "destructive"
+              })
             },
             'Error Button'
           ),
@@ -90,7 +99,11 @@ const SoundDemo = () => {
               className: 'btn-info',
               soundType: 'custom',
               soundOptions: { frequency: 600, duration: 300 },
-              onClick: () => alert('Custom beep!')
+              onClick: () => toast({
+                title: "Custom Beep",
+                description: "Custom beep!",
+                variant: "default"
+              })
             },
             'Custom Beep'
           )

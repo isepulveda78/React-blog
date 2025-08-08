@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const { toast } = window;
+
 const AdminComments = ({ user }) => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,12 +63,24 @@ const AdminComments = ({ user }) => {
       
       if (response.ok) {
         setComments(comments.filter(c => c.id !== commentId));
-        alert('Comment deleted successfully');
+        toast({
+          title: "Success",
+          description: "Comment deleted successfully",
+          variant: "default"
+        });
       } else {
-        alert('Failed to delete comment');
+        toast({
+          title: "Error",
+          description: "Failed to delete comment",
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      alert('Error deleting comment');
+      toast({
+        title: "Error",
+        description: "Error deleting comment",
+        variant: "destructive"
+      });
     }
   };
 
