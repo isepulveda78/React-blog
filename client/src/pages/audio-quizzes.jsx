@@ -11,7 +11,7 @@ const AudioQuizzes = ({ user }) => {
   const [grades, setGrades] = useState([]);
   const [showGrades, setShowGrades] = useState(false);
   const [driveUrl, setDriveUrl] = useState('');
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
+
 
   // Form state for creating/editing quizzes
   const [formData, setFormData] = useState({
@@ -382,28 +382,9 @@ const AudioQuizzes = ({ user }) => {
                       <div key={index} className="mb-4">
                         <div className="mb-3">
                           <div className="audio-player-wrapper mb-3">
-                            {!audioUnlocked && (
-                              <div className="alert alert-warning mb-3">
-                                <div className="d-flex align-items-center">
-                                  <button 
-                                    className="btn btn-warning me-3"
-                                    onClick={() => {
-                                      console.log('🔓 Unlock button clicked!');
-                                      unlockAudio();
-                                    }}
-                                  >
-                                    🔓 Unlock Audio
-                                  </button>
-                                  <small>
-                                    Click to enable audio playback and prevent browser muting issues
-                                  </small>
-                                </div>
-                              </div>
-                            )}
+
                             
-                            <div className="bg-info p-2 mb-2 rounded">
-                              <small className="text-white">🎵 React Audio Player</small>
-                            </div>
+
                             <ReactAudioPlayer
                               src={question.audioUrl}
                               controls
@@ -412,38 +393,25 @@ const AudioQuizzes = ({ user }) => {
                               preload="metadata"
                               style={{ 
                                 width: '100%', 
-                                marginBottom: '10px',
-                                backgroundColor: '#f8f9fa',
-                                border: '2px solid #007bff',
-                                borderRadius: '5px'
+                                marginBottom: '10px'
                               }}
-                              onError={(e) => {
-                                console.error('ReactAudioPlayer error for:', question.audioUrl, e);
-                              }}
-                              onCanPlay={() => {
-                                console.log('ReactAudioPlayer ready to play MP3:', question.audioUrl);
-                              }}
-                              onLoadStart={() => {
-                                console.log('ReactAudioPlayer loading MP3 started:', question.audioUrl);
-                              }}
-                              onPlay={() => {
-                                console.log('ReactAudioPlayer started playing MP3');
-                                // Force unmute on play
-                                const audio = document.querySelector('audio');
-                                if (audio) {
-                                  console.log('Setting audio unmuted and volume to 0.8');
+                              onPlay={async () => {
+                                // Auto-unlock audio on first play attempt
+                                try {
+                                  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                                  if (audioContext.state === 'suspended') {
+                                    await audioContext.resume();
+                                  }
+                                } catch (e) {
+                                  console.log('Audio context unlock failed, but continuing');
+                                }
+                                
+                                // Ensure this audio element stays unmuted
+                                const allAudio = document.querySelectorAll('audio');
+                                allAudio.forEach(audio => {
                                   audio.muted = false;
                                   audio.volume = 0.8;
-                                }
-                              }}
-                              onPause={() => {
-                                console.log('ReactAudioPlayer paused');
-                              }}
-                              onVolumeChange={() => {
-                                const audio = document.querySelector('audio');
-                                if (audio) {
-                                  console.log('Volume changed - muted:', audio.muted, 'volume:', audio.volume);
-                                }
+                                });
                               }}
                             />
                             <div className="audio-error alert alert-warning" style={{display: 'none'}}>
@@ -599,9 +567,7 @@ const AudioQuizzes = ({ user }) => {
                         {question.audioUrl && (
                           <div className="mt-2">
                             <small className="text-muted">Test audio:</small>
-                            <div className="bg-success p-1 mb-1 rounded">
-                              <small className="text-white">🎵 React Audio Preview</small>
-                            </div>
+
                             <ReactAudioPlayer
                               src={question.audioUrl}
                               controls
@@ -611,19 +577,25 @@ const AudioQuizzes = ({ user }) => {
                                 width: '100%', 
                                 height: '40px', 
                                 display: 'block', 
-                                marginTop: '5px',
-                                backgroundColor: '#f8f9fa',
-                                border: '2px solid #28a745',
-                                borderRadius: '5px'
+                                marginTop: '5px'
                               }}
-                              onError={() => {
-                                console.error('ReactAudioPlayer preview error:', question.audioUrl);
-                              }}
-                              onCanPlay={() => {
-                                console.log('ReactAudioPlayer preview loaded');
-                              }}
-                              onLoadStart={() => {
-                                console.log('ReactAudioPlayer preview loading started');
+                              onPlay={async () => {
+                                // Auto-unlock audio on first play attempt
+                                try {
+                                  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                                  if (audioContext.state === 'suspended') {
+                                    await audioContext.resume();
+                                  }
+                                } catch (e) {
+                                  console.log('Audio context unlock failed, but continuing');
+                                }
+                                
+                                // Ensure this audio element stays unmuted
+                                const allAudio = document.querySelectorAll('audio');
+                                allAudio.forEach(audio => {
+                                  audio.muted = false;
+                                  audio.volume = 0.8;
+                                });
                               }}
                             />
                           </div>
