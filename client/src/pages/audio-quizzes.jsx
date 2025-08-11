@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactAudioPlayer from 'react-audio-player';
 
 const AudioQuizzes = ({ user }) => {
   const [quizzes, setQuizzes] = useState([]);
@@ -292,38 +293,19 @@ const AudioQuizzes = ({ user }) => {
                       <div key={index} className="mb-4">
                         <div className="mb-3">
                           <div className="audio-player-wrapper mb-3">
-                            <div className="d-flex align-items-center mb-2">
-                              <button 
-                                className="btn btn-sm btn-outline-primary me-2"
-                                onClick={(e) => {
-                                  const audio = e.target.parentElement.parentElement.querySelector('audio');
-                                  if (audio) {
-                                    audio.muted = false;
-                                    audio.volume = 0.8;
-                                    audio.play().catch(console.error);
-                                  }
-                                }}
-                              >
-                                🔊 Play Audio
-                              </button>
-                              <small className="text-muted">Use this button if audio controls don't work</small>
-                            </div>
-                            <audio 
-                              controls 
-                              className="w-100 mb-2"
-                              preload="metadata"
+                            <ReactAudioPlayer
+                              src={question.audioUrl}
+                              controls
+                              volume={0.8}
                               muted={false}
-                              onError={(e) => {
-                                console.error('Audio error:', e);
-                                e.target.parentElement.querySelector('.audio-error').style.display = 'block';
+                              style={{ width: '100%', marginBottom: '10px' }}
+                              onError={() => {
+                                console.error('Audio error for:', question.audioUrl);
                               }}
-                              {...audioEventHandlers}
-                            >
-                              <source src={question.audioUrl} type="audio/mpeg" />
-                              <source src={question.audioUrl} type="audio/wav" />
-                              <source src={question.audioUrl} type="audio/ogg" />
-                              Your browser does not support the audio element.
-                            </audio>
+                              onCanPlay={() => {
+                                console.log('Audio ready to play');
+                              }}
+                            />
                             <div className="audio-error alert alert-warning" style={{display: 'none'}}>
                               <small>
                                 <strong>Audio Error:</strong> Could not load audio file. 
@@ -477,42 +459,19 @@ const AudioQuizzes = ({ user }) => {
                         {question.audioUrl && (
                           <div className="mt-2">
                             <small className="text-muted">Test audio:</small>
-                            <audio 
-                              controls 
-                              className="d-block mt-1 w-100"
-                              style={{height: '40px'}}
-                              preload="metadata"
+                            <ReactAudioPlayer
+                              src={question.audioUrl}
+                              controls
+                              volume={0.8}
                               muted={false}
-                              onError={(e) => {
-                                console.error('Preview audio error:', e);
-                                e.target.parentElement.querySelector('.preview-error').style.display = 'block';
+                              style={{ width: '100%', height: '40px', display: 'block', marginTop: '5px' }}
+                              onError={() => {
+                                console.error('Preview audio error:', question.audioUrl);
                               }}
-                              onLoadedData={(e) => {
+                              onCanPlay={() => {
                                 console.log('Preview audio loaded');
-                                e.target.muted = false;
-                                e.target.volume = 0.8;
-                                const errorDiv = e.target.parentElement.querySelector('.preview-error');
-                                if (errorDiv) errorDiv.style.display = 'none';
                               }}
-                              onCanPlay={(e) => {
-                                e.target.muted = false;
-                              }}
-                              onClick={(e) => {
-                                e.target.muted = false;
-                                e.target.volume = 0.8;
-                              }}
-                              onPlay={(e) => {
-                                e.target.muted = false;
-                                e.target.volume = 0.8;
-                              }}
-                            >
-                              <source src={question.audioUrl} type="audio/mpeg" />
-                              <source src={question.audioUrl} type="audio/wav" />
-                              <source src={question.audioUrl} type="audio/ogg" />
-                            </audio>
-                            <div className="preview-error text-danger small mt-1" style={{display: 'none'}}>
-                              ⚠️ Audio URL may not be valid or accessible
-                            </div>
+                            />
                           </div>
                         )}
                       </div>
