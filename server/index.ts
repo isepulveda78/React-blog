@@ -153,6 +153,12 @@ app.get('/debug', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/debug.html'));
 });
 
+// Add root route for React app BEFORE Vite middleware
+app.get('/', (req, res) => {
+  console.log('[root] Serving React app from index.html');
+  res.sendFile(path.join(__dirname, '../client/index.html'));
+});
+
 // Use the HTTP server from routes for WebSocket support (MUST come before dev reload)
 const httpServer = await registerRoutes(app);
 
