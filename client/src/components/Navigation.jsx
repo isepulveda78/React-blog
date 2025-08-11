@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 
 const Navigation = ({ user, onLogout }) => {
   console.log("Navigation component - current user:", user);
-  console.log("HOT RELOAD TEST - Navigation updated at 17:50");
+  console.log("🔥 HOT RELOAD TEST - Navbar should turn RED now!");
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -327,7 +327,7 @@ const Navigation = ({ user, onLogout }) => {
       {React.createElement(AuthModalComponent)}
 
       {/* Navigation */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-danger shadow-sm sticky-top">
+      <nav className="navbar navbar-expand-lg navbar-dark bg-warning shadow-sm sticky-top">
         <div className="container">
           <a
             className="navbar-brand fw-bold text-white ama-font shadow-for-ama text-decoration-none fs-1"
@@ -356,18 +356,7 @@ const Navigation = ({ user, onLogout }) => {
             id="navbarNav"
           >
             <ul className="navbar-nav me-auto">
-              <li className="nav-item">
-                <a
-                  className={`nav-link ${isActive("/") ? "active" : ""}`}
-                  href="/"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigateTo("/");
-                  }}
-                >
-                  Home
-                </a>
-              </li>
+
               <li className="nav-item">
                 <a
                   className={`nav-link ${isActive("/blog") ? "active" : ""}`}
@@ -377,7 +366,7 @@ const Navigation = ({ user, onLogout }) => {
                     navigateTo("/blog");
                   }}
                 >
-                  All Posts
+                  Blog Posts
                 </a>
               </li>
 
@@ -390,37 +379,9 @@ const Navigation = ({ user, onLogout }) => {
                     navigateTo("/educational-tools");
                   }}
                 >
-                  Educational Tools
+                  Tools
                 </a>
               </li>
-
-              <li className="nav-item">
-                <a
-                  className={`nav-link ${isActive("/city-builder") ? "active" : ""}`}
-                  href="/city-builder"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigateTo("/city-builder");
-                  }}
-                >
-                  City Builder
-                </a>
-              </li>
-
-              <li className="nav-item">
-                <a
-                  className={`nav-link ${isActive("/code-evolution") ? "active" : ""}`}
-                  href="/code-evolution"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigateTo("/code-evolution");
-                  }}
-                >
-                  Code Evolution
-                </a>
-              </li>
-
-
 
               {user && user.approved && (
                 <li className="nav-item">

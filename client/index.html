@@ -50,6 +50,28 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Force hot reload check every 2 seconds
+      setTimeout(() => {
+        console.log('🔥 Manual hot reload system starting...')
+        let lastCheck = Date.now()
+        
+        setInterval(() => {
+          fetch('/api/dev/check?t=' + Date.now())
+          .then(res => res.json())
+          .then(data => {
+            console.log('Manual check:', data.lastModified, 'vs', lastCheck)
+            if (data.lastModified > lastCheck) {
+              console.log('🔄 MANUAL RELOAD TRIGGERED!')
+              alert('Files changed! Reloading...')
+              lastCheck = Date.now()
+              window.location.reload()
+            }
+          })
+          .catch(err => console.log('Manual check failed:', err))
+        }, 2000)
+      }, 3000)
+    </script>
     <script type="module" src="/src/main.jsx"></script>
     <script type="module">
       // Simple inline hot reload system
