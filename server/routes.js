@@ -2145,6 +2145,21 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   // Broadcast message to all users in a specific chatroom
   function broadcastToChatroom(message, chatroomId, excludeWs = null) {
     console.log(`[websocket] Broadcasting to chatroom ${chatroomId}:`, message.type);
+    console.log(`[websocket] Total connected clients:`, wss.clients.size);
+    
+    // Log all users currently in the chatroom
+    const chatroomUsersInChat = [];
+    chatUsers.forEach((user, client) => {
+      if (user.chatroom === chatroomId) {
+        chatroomUsersInChat.push({
+          name: user.name,
+          role: user.role,
+          readyState: client.readyState
+        });
+      }
+    });
+    console.log(`[websocket] Users in chatroom ${chatroomId}:`, chatroomUsersInChat);
+    
     let broadcastCount = 0;
     wss.clients.forEach((client) => {
       const user = chatUsers.get(client);
@@ -2152,6 +2167,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         try {
           client.send(JSON.stringify(message));
           broadcastCount++;
+          console.log(`[websocket] Sent message to: ${user.name} (${user.role})`);
         } catch (error) {
           console.error('[websocket] Error sending message to client:', error);
         }
