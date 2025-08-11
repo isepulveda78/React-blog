@@ -1,4 +1,5 @@
 import React from 'react';
+import HotReloadDemo from './HotReloadDemo.jsx';
 
 const Hero = ({ user }) => {
   console.log('Hero component - current user:', user);
@@ -30,6 +31,9 @@ const Hero = ({ user }) => {
                   </button>
                 </div>
               )}
+              
+              {/* Hot Reload Demo - only in development */}
+              {import.meta.env.DEV && <HotReloadDemo />}
             </div>
           </div>
           <div className="col-lg-6 text-center">

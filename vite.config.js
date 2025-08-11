@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [react({
       jsxRuntime: 'automatic',
+      fastRefresh: true,
       babel: {
         plugins: [
           ['@babel/plugin-transform-react-jsx', { 

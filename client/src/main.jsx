@@ -4,16 +4,22 @@ import App from './App.jsx'
 import './index.css'
 import './custom.css'
 
-// Import simple hot reload
-import './hot-reload-simple.js'
+// Enhanced Hot Reload System
+import './hot-reload-enhanced.js'
 
-// Enable Hot Module Replacement in development
+// Enable Vite's Hot Module Replacement
 if (import.meta.hot) {
   import.meta.hot.accept()
-  console.log('🔥 Vite HMR enabled for instant updates test')
+  
+  // Accept updates to this module and its dependencies
+  import.meta.hot.accept('./App.jsx', () => {
+    console.log('🔄 App component updated via HMR')
+  })
+  
+  console.log('⚡ Vite HMR + Fast Refresh enabled')
 }
 
-// 🎉 SUCCESS! Hot reload is now fully functional - page refreshes on file save!
+// ⚡ REACT HOT RELOAD TEST - Look for orange "FAST REFRESH" indicator and demo component!
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
