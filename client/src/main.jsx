@@ -4,8 +4,7 @@ import App from './App.jsx'
 import './index.css'
 import './custom.css'
 
-// Main React entry point
-console.log('✅ React app loading...', new Date().toLocaleTimeString())
+// BlogCraft - Modern Blog Platform
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

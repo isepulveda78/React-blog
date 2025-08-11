@@ -9,8 +9,8 @@ const Hero = ({ user }) => {
         <div className="row align-items-center min-vh-50">
           <div className="col-lg-6">
             <div className="hero-content">
-              <h1 className="display-4 fw-bold text-black mb-4" style={{fontSize: '64px', background: 'yellow', padding: '30px', border: '8px solid red'}}>
-                ⚡ HOT RELOAD WORKING! - {user ? `Welcome back, ${user.username}!` : "Welcome to Mr. S Teaches!"}
+              <h1 className="display-4 fw-bold text-primary mb-4">
+                🎉 {user ? `Welcome back, ${user.username}!` : "Welcome to Mr. S Teaches!"} 
               </h1>
               <p className="lead text-muted mb-4">
                 Discover amazing content, share your thoughts, and connect with a community of learners and educators.

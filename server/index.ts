@@ -134,17 +134,12 @@ if (process.env.NODE_ENV === 'development') {
   app.use(express.static(path.join(__dirname, '../dist/public')));
 }
 
-// Serve client source files in development for hot reload
+// In development, let Vite handle JSX transformation via proxy
 if (process.env.NODE_ENV === 'development') {
-  console.log('[server] serving client source files for hot reload');
-  
-  // Serve JSX files with proper MIME type
-  app.use('/src', (req, res, next) => {
-    if (req.path.endsWith('.jsx') || req.path.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    }
-    next();
-  }, express.static(path.join(__dirname, '../client/src')));
+  console.log('[server] development mode - JSX handled by Vite');
+  // Import and setup Vite development server
+  const { setupVite } = await import('./vite.js');
+  await setupVite(app);
 }
 
 // Use the HTTP server from routes for WebSocket support (MUST come before dev reload)
@@ -157,26 +152,20 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Handle client-side routing - serve from built files (MUST come after API routes)
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ message: 'API endpoint not found' });
-  }
-  
-  // Skip WebSocket upgrade requests
-  if (req.path === '/ws') {
-    return res.status(404).send('WebSocket endpoint');
-  }
-  
-  console.log('Serving index.html for path:', req.path);
-  console.log('NODE_ENV:', process.env.NODE_ENV);
-  
-  // Serve development HTML with working hot reload
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  console.log('[server] SERVING DEVELOPMENT HTML from client/index.html');
-  res.sendFile(path.join(__dirname, '../client/index.html'));
-});
+if (process.env.NODE_ENV !== 'development') {
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ message: 'API endpoint not found' });
+    }
+    
+    // Skip WebSocket upgrade requests
+    if (req.path === '/ws') {
+      return res.status(404).send('WebSocket endpoint');
+    }
+    
+    res.sendFile(path.resolve(__dirname, '../dist/index.html'));
+  });
+}
 
 httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`[express] serving on port ${PORT}`);
