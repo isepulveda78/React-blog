@@ -21,6 +21,16 @@ import {
   sanitizeInput
 } from "./security.js";
 
+// Helper function to generate slug from name
+const generateSlug = (name) => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim('-');
+};
+
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -1200,7 +1210,28 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const category = await storage.createCategory(req.body);
+      const { name, slug, description } = req.body;
+
+      // Validate category name
+      if (!validateCategoryName(name)) {
+        return res.status(400).json({ 
+          message: "Category name must be between 1-100 characters and contain only letters, numbers, spaces, and basic punctuation" 
+        });
+      }
+
+      // Check if category name already exists
+      const existingCategory = await storage.getCategoryBySlug(slug || generateSlug(name));
+      if (existingCategory) {
+        return res.status(400).json({ message: "Category with this name/slug already exists" });
+      }
+
+      const categoryData = {
+        name: sanitizeInput(name),
+        slug: slug || generateSlug(name),
+        description: description ? sanitizeInput(description) : ''
+      };
+
+      const category = await storage.createCategory(categoryData);
       res.json(category);
     } catch (error) {
       console.error("Error creating category:", error);
@@ -1216,7 +1247,29 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       }
 
       const { id } = req.params;
-      const category = await storage.updateCategory(id, req.body);
+      const { name, slug, description } = req.body;
+
+      // Validate category name if provided
+      if (name && !validateCategoryName(name)) {
+        return res.status(400).json({ 
+          message: "Category name must be between 1-100 characters and contain only letters, numbers, spaces, and basic punctuation" 
+        });
+      }
+
+      // Check if another category with the same slug exists (exclude current category)
+      if (slug) {
+        const existingCategory = await storage.getCategoryBySlug(slug);
+        if (existingCategory && existingCategory.id !== id) {
+          return res.status(400).json({ message: "Category with this slug already exists" });
+        }
+      }
+
+      const updateData = {};
+      if (name) updateData.name = sanitizeInput(name);
+      if (slug) updateData.slug = sanitizeInput(slug);
+      if (description !== undefined) updateData.description = sanitizeInput(description);
+
+      const category = await storage.updateCategory(id, updateData);
       
       if (!category) {
         return res.status(404).json({ message: "Category not found" });

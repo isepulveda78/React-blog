@@ -11,6 +11,7 @@ import AdminDashboard from './components/AdminDashboard.jsx'
 import AdminPosts from './components/AdminPosts.jsx'
 import AdminUsers from './components/AdminUsers.jsx'
 import AdminComments from './components/AdminComments.jsx'
+import AdminCategories from './components/AdminCategories.jsx'
 import AdminPostEditor from './components/AdminPostEditor.jsx'
 import SEOManagement from './components/SEOManagement.jsx'
 import AdminChatrooms from './components/AdminChatrooms.jsx'
@@ -247,6 +248,11 @@ const AppRoutes = () => {
           <Route path="/admin/comments" component={() => (
             <ProtectedRoute requireAdmin={true}>
               <AdminComments user={user} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/admin/categories" component={() => (
+            <ProtectedRoute requireAdmin={true}>
+              <AdminCategories user={user} />
             </ProtectedRoute>
           )} />
           <Route path="/admin/seo" component={() => (
