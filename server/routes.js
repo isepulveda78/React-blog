@@ -1989,6 +1989,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   wss.on('connection', (ws) => {
     console.log('[websocket] New client connected');
     
+    // Add error handler for the WebSocket connection
+    ws.on('error', (error) => {
+      console.error('[websocket] WebSocket connection error:', error);
+    });
+    
     ws.on('message', (data) => {
       try {
         const message = JSON.parse(data.toString());
@@ -2084,7 +2089,8 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       }
     });
     
-    ws.on('close', () => {
+    ws.on('close', (code, reason) => {
+      console.log(`[websocket] Client disconnected - code: ${code}, reason: ${reason}`);
       const user = chatUsers.get(ws);
       if (user) {
         // Remove user from chatroom tracking
@@ -2121,12 +2127,20 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   
   // Broadcast message to all users in a specific chatroom
   function broadcastToChatroom(message, chatroomId, excludeWs = null) {
+    console.log(`[websocket] Broadcasting to chatroom ${chatroomId}:`, message.type);
+    let broadcastCount = 0;
     wss.clients.forEach((client) => {
       const user = chatUsers.get(client);
       if (client !== excludeWs && client.readyState === 1 && user && user.chatroom === chatroomId) {
-        client.send(JSON.stringify(message));
+        try {
+          client.send(JSON.stringify(message));
+          broadcastCount++;
+        } catch (error) {
+          console.error('[websocket] Error sending message to client:', error);
+        }
       }
     });
+    console.log(`[websocket] Message broadcasted to ${broadcastCount} clients`);
   }
 
   return httpServer;
