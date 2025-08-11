@@ -83,32 +83,49 @@ const AdminPosts = ({ user }) => {
   const fetchPosts = async () => {
     try {
       console.log('AdminPosts: Fetching posts...');
-      const response = await fetch('/api/posts', { credentials: 'include' });
-      console.log('AdminPosts: Response status:', response.status);
+      // Use the same API endpoint as BlogListing
+      const response = await fetch('/api/posts', {
+        credentials: 'include'
+      });
       
       if (response.ok) {
         const data = await response.json();
-        console.log('AdminPosts: Posts received:', data.length);
-        setPosts(data);
+        setPosts(Array.isArray(data) ? data : []);
       } else {
-        console.error('AdminPosts: Failed to fetch posts:', response.status);
+        console.error('Failed to fetch posts:', response.status);
+        setPosts([]);
       }
     } catch (error) {
-      console.error('AdminPosts: Error fetching posts:', error);
+      console.error('Error fetching posts:', error);
+      setPosts([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories', { credentials: 'include' });
+      // Use the same API endpoint as BlogListing
+      const response = await fetch('/api/categories', {
+        credentials: 'include'
+      });
+      
       if (response.ok) {
         const data = await response.json();
-        setCategories(data);
+        setCategories(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategories([]);
     }
+  };
+
+  // Add HTML entity decoding utility (same as BlogCard)
+  const decodeHTMLEntities = (text) => {
+    if (!text) return text;
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
   };
 
   const handleImageUpload = async (file) => {
@@ -128,7 +145,9 @@ const AdminPosts = ({ user }) => {
       if (response.ok) {
         const data = await response.json();
         console.log('Upload success:', data);
-        setFeaturedImage(data.url);
+        // Apply HTML entity decoding to the uploaded image URL (same as BlogCard)
+        const cleanUrl = decodeHTMLEntities(data.url);
+        setFeaturedImage(cleanUrl);
         toast({
           title: "Success",
           description: "Image uploaded successfully!",
@@ -368,7 +387,7 @@ const AdminPosts = ({ user }) => {
               <div className="mb-2">
                 <div className="position-relative d-inline-block">
                   <img 
-                    src={featuredImage} 
+                    src={decodeHTMLEntities(featuredImage)} 
                     alt="Current featured image" 
                     style={{ maxWidth: '200px', height: 'auto' }}
                     className="img-thumbnail"
@@ -468,6 +487,14 @@ const AdminPosts = ({ user }) => {
           {posts.map(post => (
             <div key={post.id} className="col-md-6 col-lg-4 mb-4">
               <div className="card h-100">
+                {post.featuredImage && (
+                  <img
+                    src={decodeHTMLEntities(post.featuredImage)}
+                    className="card-img-top"
+                    alt={post.title}
+                    style={{ height: "200px", objectFit: "cover" }}
+                  />
+                )}
                 <div className="card-body d-flex flex-column">
                   <h5 className="card-title">{post.title}</h5>
                   <p className="card-text flex-grow-1">
