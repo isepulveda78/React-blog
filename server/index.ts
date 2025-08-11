@@ -133,6 +133,12 @@ app.use(express.static(path.join(__dirname, '../dist/public')));
 if (process.env.NODE_ENV === 'development') {
   console.log('[server] serving client source files for hot reload');
   app.use('/src', express.static(path.join(__dirname, '../client/src')));
+  
+  // Serve hot reload script
+  app.get('/hot-reload-working.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.sendFile(path.join(__dirname, '../hot-reload-working.js'));
+  });
 }
 
 // Use the HTTP server from routes for WebSocket support (MUST come before catch-all route)
@@ -153,7 +159,7 @@ app.get('*', (req, res) => {
   
   // Serve development HTML with hot reload in development mode
   if (process.env.NODE_ENV === 'development') {
-    res.sendFile(path.join(__dirname, '../client/index.html'));
+    res.sendFile(path.join(__dirname, '../client/index-dev.html'));
   } else {
     // Serve built index.html for production
     res.sendFile(path.join(__dirname, '../dist/public/index.html'));
