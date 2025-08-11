@@ -147,16 +147,22 @@ if (process.env.NODE_ENV === 'development') {
   app.use(express.static(path.join(__dirname, '../dist/public')));
 }
 
-// In development, setup Vite for React with JSX transformation
+// Add debug route BEFORE Vite middleware
+app.get('/debug', (req, res) => {
+  console.log('[debug] Debug route accessed');
+  res.sendFile(path.join(__dirname, '../client/debug.html'));
+});
+
+// Use the HTTP server from routes for WebSocket support (MUST come before dev reload)
+const httpServer = await registerRoutes(app);
+
+// In development, setup Vite for React with JSX transformation (AFTER routes)
 if (process.env.NODE_ENV === 'development') {
   console.log('[server] development mode - setting up Vite for React');
   // Import and setup Vite development server
   const { setupVite } = await import('./vite.js');
   await setupVite(app);
 }
-
-// Use the HTTP server from routes for WebSocket support (MUST come before dev reload)
-const httpServer = await registerRoutes(app);
 
 // Setup development reload system with WebSocket
 if (process.env.NODE_ENV === 'development') {
