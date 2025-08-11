@@ -293,17 +293,29 @@ const AudioQuizzes = ({ user }) => {
                       <div key={index} className="mb-4">
                         <div className="mb-3">
                           <div className="audio-player-wrapper mb-3">
+                            <div className="bg-info p-2 mb-2 rounded">
+                              <small className="text-white">🎵 React Audio Player</small>
+                            </div>
                             <ReactAudioPlayer
                               src={question.audioUrl}
                               controls
                               volume={0.8}
                               muted={false}
-                              style={{ width: '100%', marginBottom: '10px' }}
+                              style={{ 
+                                width: '100%', 
+                                marginBottom: '10px',
+                                backgroundColor: '#f8f9fa',
+                                border: '2px solid #007bff',
+                                borderRadius: '5px'
+                              }}
                               onError={() => {
-                                console.error('Audio error for:', question.audioUrl);
+                                console.error('ReactAudioPlayer error for:', question.audioUrl);
                               }}
                               onCanPlay={() => {
-                                console.log('Audio ready to play');
+                                console.log('ReactAudioPlayer ready to play');
+                              }}
+                              onLoadStart={() => {
+                                console.log('ReactAudioPlayer loading started');
                               }}
                             />
                             <div className="audio-error alert alert-warning" style={{display: 'none'}}>
@@ -459,17 +471,31 @@ const AudioQuizzes = ({ user }) => {
                         {question.audioUrl && (
                           <div className="mt-2">
                             <small className="text-muted">Test audio:</small>
+                            <div className="bg-success p-1 mb-1 rounded">
+                              <small className="text-white">🎵 React Audio Preview</small>
+                            </div>
                             <ReactAudioPlayer
                               src={question.audioUrl}
                               controls
                               volume={0.8}
                               muted={false}
-                              style={{ width: '100%', height: '40px', display: 'block', marginTop: '5px' }}
+                              style={{ 
+                                width: '100%', 
+                                height: '40px', 
+                                display: 'block', 
+                                marginTop: '5px',
+                                backgroundColor: '#f8f9fa',
+                                border: '2px solid #28a745',
+                                borderRadius: '5px'
+                              }}
                               onError={() => {
-                                console.error('Preview audio error:', question.audioUrl);
+                                console.error('ReactAudioPlayer preview error:', question.audioUrl);
                               }}
                               onCanPlay={() => {
-                                console.log('Preview audio loaded');
+                                console.log('ReactAudioPlayer preview loaded');
+                              }}
+                              onLoadStart={() => {
+                                console.log('ReactAudioPlayer preview loading started');
                               }}
                             />
                           </div>
