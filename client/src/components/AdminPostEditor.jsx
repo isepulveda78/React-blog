@@ -24,7 +24,6 @@ const AdminPostEditor = ({ user, postId }) => {
 
   const fetchPost = async () => {
     try {
-      // Use the same API endpoint structure as BlogListing
       const response = await fetch(`/api/posts/${postId}`, {
         credentials: 'include'
       });
