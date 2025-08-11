@@ -6,6 +6,13 @@ const AdminQuizGrades = ({ user }) => {
   const [error, setError] = useState('');
   const [selectedQuiz, setSelectedQuiz] = useState('all');
   const [quizzes, setQuizzes] = useState([]);
+  const [editingQuiz, setEditingQuiz] = useState(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    description: '',
+    questions: []
+  });
 
   // Check admin access
   if (!user || (!user.isAdmin && user.role !== 'teacher')) {
@@ -88,6 +95,113 @@ const AdminQuizGrades = ({ user }) => {
       highestScore: Math.max(...scores),
       lowestScore: Math.min(...scores)
     };
+  };
+
+  const handleEditQuiz = (quiz) => {
+    setEditingQuiz(quiz);
+    setEditFormData({
+      title: quiz.title,
+      description: quiz.description,
+      questions: quiz.questions.map(q => ({
+        audioUrl: q.audioUrl,
+        question: q.question,
+        options: [...q.options],
+        correctAnswer: q.correctAnswer
+      }))
+    });
+    setShowEditForm(true);
+  };
+
+  const handleDeleteQuiz = async (quizId) => {
+    if (!confirm('Are you sure you want to delete this quiz? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/audio-quizzes/${quizId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        setQuizzes(quizzes.filter(q => q.id !== quizId));
+        // Also refresh grades to remove deleted quiz entries
+        fetchGrades();
+        alert('Quiz deleted successfully!');
+      } else {
+        const errorData = await response.json();
+        alert('Error deleting quiz: ' + (errorData.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Error deleting quiz:', err);
+      alert('Network error occurred while deleting quiz');
+    }
+  };
+
+  const handleUpdateQuiz = async () => {
+    try {
+      const response = await fetch(`/api/audio-quizzes/${editingQuiz.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(editFormData)
+      });
+
+      if (response.ok) {
+        const updatedQuiz = await response.json();
+        setQuizzes(quizzes.map(q => q.id === editingQuiz.id ? updatedQuiz : q));
+        setShowEditForm(false);
+        setEditingQuiz(null);
+        alert('Quiz updated successfully!');
+      } else {
+        const errorData = await response.json();
+        alert('Error updating quiz: ' + (errorData.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Error updating quiz:', err);
+      alert('Network error occurred while updating quiz');
+    }
+  };
+
+  const addQuestion = () => {
+    setEditFormData({
+      ...editFormData,
+      questions: [...editFormData.questions, {
+        audioUrl: '',
+        question: '',
+        options: ['', '', '', ''],
+        correctAnswer: 0
+      }]
+    });
+  };
+
+  const removeQuestion = (index) => {
+    setEditFormData({
+      ...editFormData,
+      questions: editFormData.questions.filter((_, i) => i !== index)
+    });
+  };
+
+  const updateQuestion = (index, field, value) => {
+    const updatedQuestions = [...editFormData.questions];
+    if (field === 'options') {
+      updatedQuestions[index][field] = value;
+    } else {
+      updatedQuestions[index][field] = value;
+    }
+    setEditFormData({
+      ...editFormData,
+      questions: updatedQuestions
+    });
+  };
+
+  const updateOption = (questionIndex, optionIndex, value) => {
+    const updatedQuestions = [...editFormData.questions];
+    updatedQuestions[questionIndex].options[optionIndex] = value;
+    setEditFormData({
+      ...editFormData,
+      questions: updatedQuestions
+    });
   };
 
   const navigateBack = () => {
@@ -216,6 +330,82 @@ const AdminQuizGrades = ({ user }) => {
             </div>
           )}
 
+          {/* Quiz Management Section */}
+          <div className="card mb-4">
+            <div className="card-header">
+              <h5 className="mb-0">
+                <i className="fas fa-cog me-2"></i>
+                Quiz Management
+              </h5>
+            </div>
+            <div className="card-body">
+              {quizzes.length === 0 ? (
+                <div className="text-center py-3">
+                  <p className="text-muted">No quizzes created yet.</p>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => {
+                      window.history.pushState({}, '', '/audio-quizzes');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }}
+                  >
+                    Create First Quiz
+                  </button>
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table table-striped">
+                    <thead className="table-dark">
+                      <tr>
+                        <th>Quiz Title</th>
+                        <th>Questions</th>
+                        <th>Created By</th>
+                        <th>Submissions</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {quizzes.map((quiz) => {
+                        const quizGrades = grades.filter(g => g.quizId === quiz.id);
+                        return (
+                          <tr key={quiz.id}>
+                            <td>
+                              <div className="fw-semibold">{quiz.title}</div>
+                              <div className="text-muted small">{quiz.description}</div>
+                            </td>
+                            <td>{quiz.questions?.length || 0}</td>
+                            <td>{quiz.createdByName || 'Unknown'}</td>
+                            <td>
+                              <span className="badge bg-info">{quizGrades.length}</span>
+                            </td>
+                            <td>
+                              <div className="btn-group btn-group-sm">
+                                <button 
+                                  className="btn btn-outline-primary"
+                                  onClick={() => handleEditQuiz(quiz)}
+                                  title="Edit Quiz"
+                                >
+                                  <i className="fas fa-edit"></i>
+                                </button>
+                                <button 
+                                  className="btn btn-outline-danger"
+                                  onClick={() => handleDeleteQuiz(quiz.id)}
+                                  title="Delete Quiz"
+                                >
+                                  <i className="fas fa-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Grades Table */}
           <div className="card">
             <div className="card-header">
@@ -305,6 +495,143 @@ const AdminQuizGrades = ({ user }) => {
           </div>
         </div>
       </div>
+
+      {/* Edit Quiz Modal */}
+      {showEditForm && editingQuiz && (
+        <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Quiz: {editingQuiz.title}</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setShowEditForm(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <form>
+                  <div className="mb-3">
+                    <label className="form-label">Quiz Title</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editFormData.title}
+                      onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
+                      placeholder="Enter quiz title"
+                    />
+                  </div>
+                  
+                  <div className="mb-3">
+                    <label className="form-label">Description</label>
+                    <textarea
+                      className="form-control"
+                      rows="3"
+                      value={editFormData.description}
+                      onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                      placeholder="Enter quiz description"
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <label className="form-label mb-0">Questions</label>
+                      <button 
+                        type="button" 
+                        className="btn btn-sm btn-success"
+                        onClick={addQuestion}
+                      >
+                        <i className="fas fa-plus me-1"></i>Add Question
+                      </button>
+                    </div>
+                    
+                    {editFormData.questions.map((question, qIndex) => (
+                      <div key={qIndex} className="card mb-3">
+                        <div className="card-header d-flex justify-content-between align-items-center">
+                          <span>Question {qIndex + 1}</span>
+                          {editFormData.questions.length > 1 && (
+                            <button 
+                              type="button" 
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => removeQuestion(qIndex)}
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          )}
+                        </div>
+                        <div className="card-body">
+                          <div className="mb-3">
+                            <label className="form-label">Audio URL</label>
+                            <input
+                              type="url"
+                              className="form-control"
+                              value={question.audioUrl}
+                              onChange={(e) => updateQuestion(qIndex, 'audioUrl', e.target.value)}
+                              placeholder="https://example.com/audio.mp3"
+                            />
+                          </div>
+                          
+                          <div className="mb-3">
+                            <label className="form-label">Question Text</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={question.question}
+                              onChange={(e) => updateQuestion(qIndex, 'question', e.target.value)}
+                              placeholder="Enter question text"
+                            />
+                          </div>
+                          
+                          <div className="mb-3">
+                            <label className="form-label">Answer Options</label>
+                            {question.options.map((option, oIndex) => (
+                              <div key={oIndex} className="input-group mb-2">
+                                <span className="input-group-text">
+                                  <input
+                                    type="radio"
+                                    name={`correct-${qIndex}`}
+                                    checked={question.correctAnswer === oIndex}
+                                    onChange={() => updateQuestion(qIndex, 'correctAnswer', oIndex)}
+                                  />
+                                </span>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  value={option}
+                                  onChange={(e) => updateOption(qIndex, oIndex, e.target.value)}
+                                  placeholder={`Option ${oIndex + 1}`}
+                                />
+                              </div>
+                            ))}
+                            <small className="text-muted">Select the radio button for the correct answer</small>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </form>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => setShowEditForm(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-primary"
+                  onClick={handleUpdateQuiz}
+                  disabled={!editFormData.title || editFormData.questions.length === 0}
+                >
+                  Update Quiz
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
