@@ -1,5 +1,5 @@
 import React from 'react';
-import TestHotReload from './TestHotReload.jsx';
+// Removed TestHotReload import for simple inline test
 
 const Hero = ({ user }) => {
   console.log('Hero component - current user:', user);
@@ -9,8 +9,8 @@ const Hero = ({ user }) => {
         <div className="row align-items-center min-vh-50">
           <div className="col-lg-6">
             <div className="hero-content">
-              <h1 className="display-4 fw-bold text-primary mb-4">
-                {user ? `Welcome back, ${user.username}!` : "Welcome to Mr. S Teaches - HOT RELOAD WORKING!"}
+              <h1 className="display-4 fw-bold text-danger mb-4">
+                🔥 HOT RELOAD TEST - {user ? `Welcome back, ${user.username}!` : "Welcome to Mr. S Teaches!"}
               </h1>
               <p className="lead text-muted mb-4">
                 Discover amazing content, share your thoughts, and connect with a community of learners and educators.
@@ -33,7 +33,13 @@ const Hero = ({ user }) => {
               )}
               
               {/* Hot Reload Demo - always show for testing */}
-              <TestHotReload />
+              <div className="alert alert-danger mt-4">
+                <h4>🔥 SIMPLE HOT RELOAD TEST</h4>
+                <p>Change this text color from "text-primary" to "text-success" and save to test hot reload!</p>
+                <button className="btn btn-primary">
+                  This button is BLUE - change it to GREEN in the code
+                </button>
+              </div>
             </div>
           </div>
           <div className="col-lg-6 text-center">
