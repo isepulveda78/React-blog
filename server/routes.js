@@ -2024,6 +2024,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
             const chatroomId = message.chatroom;
             
             console.log('[websocket] Join data - name:', userName, 'role:', userRole, 'chatroom:', chatroomId);
+          console.log('[websocket] 🔍 IMPORTANT: To test multi-user chat, open this same URL in a different browser (Chrome + Firefox) or incognito window');
             
             // Check for duplicate names in the same chatroom
             if (!chatroomUsers.has(chatroomId)) {
