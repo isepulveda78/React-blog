@@ -137,13 +137,14 @@ if (process.env.NODE_ENV === 'development') {
 // Serve client source files in development for hot reload
 if (process.env.NODE_ENV === 'development') {
   console.log('[server] serving client source files for hot reload');
-  app.use('/src', express.static(path.join(__dirname, '../client/src')));
   
-  // Serve hot reload script
-  app.get('/hot-reload-working.js', (req, res) => {
-    res.setHeader('Content-Type', 'application/javascript');
-    res.sendFile(path.join(__dirname, '../hot-reload-working.js'));
-  });
+  // Serve JSX files with proper MIME type
+  app.use('/src', (req, res, next) => {
+    if (req.path.endsWith('.jsx') || req.path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+    next();
+  }, express.static(path.join(__dirname, '../client/src')));
 }
 
 // Use the HTTP server from routes for WebSocket support (MUST come before dev reload)

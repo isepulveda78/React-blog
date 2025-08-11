@@ -7,7 +7,7 @@ BlogCraft is a full-stack blog platform providing a complete content management 
 Preferred communication style: Simple, everyday language.
 Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framework instead of shadcn/ui.
 Development preference: Fast iteration with immediate visual feedback - expects changes to be visible immediately after making edits.
-Cache management: Successfully implemented WebSocket-based hot reload system for instant change detection and automatic page refresh. System now working reliably with file watcher and WebSocket communication.
+Cache management: Successfully implemented polling-based hot reload system for instant change detection and automatic page refresh. System detects file changes every 2 seconds and triggers automatic browser refreshes. Working reliably with proper development file serving and cache control headers.
 
 ## System Architecture
 

@@ -327,7 +327,7 @@ const Navigation = ({ user, onLogout }) => {
       {React.createElement(AuthModalComponent)}
 
       {/* Navigation */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-warning shadow-sm sticky-top" style={{fontSize: '32px', border: '10px solid red', background: 'orange'}}>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-info shadow-sm sticky-top" style={{fontSize: '28px', border: '3px solid black'}}>
         <div className="container">
           <a
             className="navbar-brand fw-bold text-white ama-font shadow-for-ama text-decoration-none fs-1"
