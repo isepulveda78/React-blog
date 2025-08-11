@@ -1,6 +1,6 @@
-// Hot reload COMPLETELY DISABLED - DO NOT ENABLE
-console.log("Hot reload permanently disabled for CityBuilder");
-if (false) {
+// Enhanced Hot Reload System - ENABLED
+console.log("Hot reload system enabled for fast development");
+if (true) {
   let lastCheck = Date.now();
   let checkCount = 0;
   
@@ -64,9 +64,9 @@ if (false) {
       });
   }
   
-  // DISABLED during drag/resize debugging - was every 300ms
-  // const reloadInterval = setInterval(checkForChanges, 300);
-  console.log('Hot reload DISABLED for CityBuilder drag/resize debugging');
+  // Check for changes every 500ms for optimal performance
+  const reloadInterval = setInterval(checkForChanges, 500);
+  console.log('Hot reload ENABLED - checking for changes every 500ms');
   
   // Also check when window gains focus
   window.addEventListener('focus', checkForChanges);
@@ -81,6 +81,7 @@ if (false) {
     }
   });
   
-  console.log('Enhanced hot reload enabled - changes will auto-refresh every 300ms');
+  console.log('Enhanced hot reload enabled - changes will auto-refresh every 500ms');
   console.log('Manual reload: Ctrl+Shift+R (or Cmd+Shift+R on Mac)');
+  console.log('Hot reload system ready for fast development iteration');
 }

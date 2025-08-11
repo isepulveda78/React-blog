@@ -51,5 +51,22 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script src="/hot-reload.js"></script>
+    <!-- Hot reload indicator -->
+    <div id="hot-reload-indicator" style="position: fixed; top: 10px; right: 10px; background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; z-index: 9999; display: none;">
+      🔥 Hot Reload Active
+    </div>
+    <script>
+      // Show hot reload indicator
+      document.addEventListener('DOMContentLoaded', () => {
+        const indicator = document.getElementById('hot-reload-indicator');
+        if (indicator) {
+          indicator.style.display = 'block';
+          setTimeout(() => {
+            indicator.style.opacity = '0.7';
+          }, 2000);
+        }
+      });
+    </script>
   </body>
 </html>
