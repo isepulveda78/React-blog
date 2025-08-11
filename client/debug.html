@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+</head>
+<body>
+    <div id="root" style="padding: 20px; border: 2px solid red;">
+        <h1>Static HTML Test</h1>
+        <p>This should display immediately without any JavaScript.</p>
+    </div>
+    
+    <script>
+        console.log('=== DEBUG TEST STARTING ===')
+        console.log('Root element:', document.getElementById('root'))
+        
+        // Simple DOM test
+        const root = document.getElementById('root')
+        if (root) {
+            const testDiv = document.createElement('div')
+            testDiv.style.cssText = 'background: lightblue; padding: 20px; margin: 10px; border-radius: 5px;'
+            testDiv.textContent = '✅ JavaScript and DOM working!'
+            root.appendChild(testDiv)
+            console.log('✅ Test div added to DOM')
+        } else {
+            console.error('❌ Root element not found')
+        }
+        
+        console.log('=== DEBUG TEST COMPLETE ===')
+    </script>
+</body>
+</html>

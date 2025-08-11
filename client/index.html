@@ -15,6 +15,24 @@
     <div id="root"></div>
     
     <script>
+      console.log('🔧 Page loading, checking for root element...')
+      
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('📄 DOM loaded')
+        const root = document.getElementById('root')
+        console.log('📦 Root element found:', !!root)
+        if (root) {
+          console.log('✅ Root element exists, waiting for React...')
+        } else {
+          console.error('❌ Root element missing!')
+        }
+      })
+      
+      // Error handling
+      window.addEventListener('error', function(e) {
+        console.error('❌ JavaScript Error:', e.error)
+      })
+      
       // Simple hot reload system
       let lastCheck = Date.now()
       
