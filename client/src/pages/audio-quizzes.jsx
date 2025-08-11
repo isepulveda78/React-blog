@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import ReactAudioPlayer from 'react-audio-player';
 
 const AudioQuizzes = ({ user }) => {
   const [quizzes, setQuizzes] = useState([]);
@@ -11,9 +10,6 @@ const AudioQuizzes = ({ user }) => {
   const [grades, setGrades] = useState([]);
   const [showGrades, setShowGrades] = useState(false);
   const [driveUrl, setDriveUrl] = useState('');
-  const [audioFiles, setAudioFiles] = useState([]);
-  const [showAudioManager, setShowAudioManager] = useState(false);
-
 
   // Form state for creating/editing quizzes
   const [formData, setFormData] = useState({
@@ -36,95 +32,7 @@ const AudioQuizzes = ({ user }) => {
     return url; // Return original if not a Google Drive URL
   };
 
-
-
   // Advanced audio interaction system to prevent browser muting
-  const unlockAudio = async () => {
-    console.log('🔓 unlockAudio function called!');
-    
-    try {
-      console.log('🔓 Starting audio unlock process...');
-      
-      // Simple immediate unlock first
-      setAudioUnlocked(true);
-      console.log('✅ Audio state marked as unlocked');
-      
-      // Method 1: Create audio context and play silent tone
-      if (window.AudioContext || window.webkitAudioContext) {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        console.log('Audio context created, state:', audioContext.state);
-        
-        if (audioContext.state === 'suspended') {
-          await audioContext.resume();
-          console.log('Audio context resumed');
-        }
-        
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        gainNode.gain.value = 0; // Silent
-        oscillator.frequency.value = 440;
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.1);
-        console.log('Silent oscillator played');
-      }
-      
-      // Method 2: Create and play a silent audio element
-      const audio = new Audio();
-      audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IAAAAAEAAQAAEAAAAgACABAAGQAAAWEBAAABAAATAAAKAAIAmZmZAAABAAA=';
-      audio.volume = 0.01;
-      audio.muted = false;
-      
-      try {
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          await playPromise;
-          console.log('Silent audio played successfully');
-          audio.pause();
-        }
-      } catch (e) {
-        console.log('Silent audio play failed:', e.message);
-      }
-      
-      // Method 3: Force all audio elements to unmute with a delay
-      setTimeout(() => {
-        const audioElements = document.querySelectorAll('audio');
-        console.log('Found', audioElements.length, 'audio elements to unlock');
-        
-        audioElements.forEach((audioEl, index) => {
-          console.log(`Unlocking audio element ${index + 1}`);
-          audioEl.muted = false;
-          audioEl.volume = 0.8;
-          
-          // Force properties
-          Object.defineProperty(audioEl, 'muted', {
-            value: false,
-            writable: true
-          });
-          
-          // Add persistent event listeners
-          const forceUnmute = () => {
-            audioEl.muted = false;
-            audioEl.volume = 0.8;
-          };
-          
-          ['loadstart', 'canplay', 'play', 'mouseenter', 'mouseover', 'focus', 'click'].forEach(eventType => {
-            audioEl.addEventListener(eventType, forceUnmute, { passive: true });
-          });
-        });
-      }, 100);
-      
-      console.log('✅ Audio unlocked successfully!');
-      alert('Audio unlocked! Try playing audio now.');
-      
-    } catch (error) {
-      console.error('❌ Audio unlock failed:', error);
-      alert('Audio unlock attempt completed (some features may be limited by browser)');
-    }
-  };
-
   const initializeAudio = (audioElement) => {
     if (!audioElement) return;
     
@@ -192,23 +100,10 @@ const AudioQuizzes = ({ user }) => {
 
   useEffect(() => {
     fetchQuizzes();
-    fetchAudioFiles();
     if (user?.isAdmin || user?.role === 'teacher') {
       fetchGrades();
     }
   }, [user]);
-
-  const fetchAudioFiles = async () => {
-    try {
-      const response = await fetch('/api/audio-files', { credentials: 'include' });
-      if (response.ok) {
-        const files = await response.json();
-        setAudioFiles(files);
-      }
-    } catch (error) {
-      console.error('Error fetching audio files:', error);
-    }
-  };
 
   const fetchQuizzes = async () => {
     try {
@@ -397,53 +292,38 @@ const AudioQuizzes = ({ user }) => {
                       <div key={index} className="mb-4">
                         <div className="mb-3">
                           <div className="audio-player-wrapper mb-3">
-
-                            
-
-                            <ReactAudioPlayer
-                              src={question.audioUrl}
-                              controls
-                              volume={0.8}
-                              muted={false}
-                              preload="metadata"
-                              style={{ 
-                                width: '100%', 
-                                marginBottom: '10px'
-                              }}
-                              onError={(e) => {
-                                console.error('Audio loading failed for URL:', question.audioUrl);
-                                console.error('Error details:', e);
-                              }}
-                              onCanPlay={() => {
-                                console.log('Audio loaded successfully:', question.audioUrl);
-                              }}
-                              onPlay={async () => {
-                                console.log('Playing audio from:', question.audioUrl);
-                                // Auto-unlock audio on first play attempt
-                                try {
-                                  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                                  if (audioContext.state === 'suspended') {
-                                    await audioContext.resume();
+                            <div className="d-flex align-items-center mb-2">
+                              <button 
+                                className="btn btn-sm btn-outline-primary me-2"
+                                onClick={(e) => {
+                                  const audio = e.target.parentElement.parentElement.querySelector('audio');
+                                  if (audio) {
+                                    audio.muted = false;
+                                    audio.volume = 0.8;
+                                    audio.play().catch(console.error);
                                   }
-                                } catch (e) {
-                                  console.log('Audio context unlock failed, but continuing');
-                                }
-                                
-                                // Ensure this audio element stays unmuted
-                                const allAudio = document.querySelectorAll('audio');
-                                allAudio.forEach(audio => {
-                                  audio.muted = false;
-                                  audio.volume = 0.8;
-                                });
+                                }}
+                              >
+                                🔊 Play Audio
+                              </button>
+                              <small className="text-muted">Use this button if audio controls don't work</small>
+                            </div>
+                            <audio 
+                              controls 
+                              className="w-100 mb-2"
+                              preload="metadata"
+                              muted={false}
+                              onError={(e) => {
+                                console.error('Audio error:', e);
+                                e.target.parentElement.querySelector('.audio-error').style.display = 'block';
                               }}
-                            />
-                            {question.audioUrl && (
-                              <div className="mt-2">
-                                <small className="text-muted">
-                                  Audio URL: <a href={question.audioUrl} target="_blank" rel="noopener noreferrer">{question.audioUrl}</a>
-                                </small>
-                              </div>
-                            )}
+                              {...audioEventHandlers}
+                            >
+                              <source src={question.audioUrl} type="audio/mpeg" />
+                              <source src={question.audioUrl} type="audio/wav" />
+                              <source src={question.audioUrl} type="audio/ogg" />
+                              Your browser does not support the audio element.
+                            </audio>
                             <div className="audio-error alert alert-warning" style={{display: 'none'}}>
                               <small>
                                 <strong>Audio Error:</strong> Could not load audio file. 
@@ -490,136 +370,6 @@ const AudioQuizzes = ({ user }) => {
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Audio File Manager Modal
-  if (showAudioManager) {
-    return (
-      <div className="container py-5">
-        <div className="row">
-          <div className="col-12">
-            <button 
-              className="btn btn-outline-secondary mb-4"
-              onClick={() => setShowAudioManager(false)}
-            >
-              ← Back to Quiz Creator
-            </button>
-            
-            <div className="card">
-              <div className="card-header">
-                <h3 className="mb-0">Audio File Manager</h3>
-              </div>
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-md-6">
-                    <h5>Upload New Audio File</h5>
-                    <form onSubmit={async (e) => {
-                      e.preventDefault();
-                      const formData = new FormData(e.target);
-                      
-                      try {
-                        const response = await fetch('/api/audio-files', {
-                          method: 'POST',
-                          body: formData,
-                          credentials: 'include'
-                        });
-                        
-                        if (response.ok) {
-                          await fetchAudioFiles();
-                          e.target.reset();
-                          alert('Audio file uploaded successfully!');
-                        } else {
-                          const error = await response.json();
-                          alert(`Upload failed: ${error.error}`);
-                        }
-                      } catch (error) {
-                        console.error('Upload error:', error);
-                        alert('Upload failed. Please try again.');
-                      }
-                    }}>
-                      <div className="mb-3">
-                        <label className="form-label">Display Name</label>
-                        <input 
-                          type="text" 
-                          name="name"
-                          className="form-control"
-                          placeholder="e.g., Spanish Letter A"
-                          required
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">MP3 Audio File</label>
-                        <input 
-                          type="file" 
-                          name="audioFile"
-                          className="form-control"
-                          accept=".mp3,.wav,.m4a,.ogg"
-                          required
-                        />
-                        <small className="text-muted">Supported: MP3, WAV, M4A, OGG</small>
-                      </div>
-                      <button type="submit" className="btn btn-primary">
-                        Upload Audio File
-                      </button>
-                    </form>
-                  </div>
-                  
-                  <div className="col-md-6">
-                    <h5>Uploaded Audio Files ({audioFiles.length})</h5>
-                    <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                      {audioFiles.length === 0 ? (
-                        <p className="text-muted">No audio files uploaded yet.</p>
-                      ) : (
-                        audioFiles.map((file) => (
-                          <div key={file.id} className="card mb-2">
-                            <div className="card-body py-2">
-                              <div className="d-flex justify-content-between align-items-center">
-                                <div>
-                                  <strong>{file.name}</strong>
-                                  <br />
-                                  <small className="text-muted">
-                                    {file.originalName} • {Math.round(file.size / 1024)}KB
-                                  </small>
-                                </div>
-                                <div>
-                                  <audio controls style={{ width: '150px', height: '30px' }}>
-                                    <source src={file.path} type={file.mimeType} />
-                                  </audio>
-                                  <button 
-                                    className="btn btn-sm btn-outline-danger ms-2"
-                                    onClick={async () => {
-                                      if (confirm(`Delete "${file.name}"?`)) {
-                                        try {
-                                          const response = await fetch(`/api/audio-files/${file.id}`, {
-                                            method: 'DELETE',
-                                            credentials: 'include'
-                                          });
-                                          if (response.ok) {
-                                            await fetchAudioFiles();
-                                          }
-                                        } catch (error) {
-                                          console.error('Delete error:', error);
-                                        }
-                                      }
-                                    }}
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -704,21 +454,9 @@ const AudioQuizzes = ({ user }) => {
                   
                   <p className="mb-2"><strong>Working test examples:</strong></p>
                   <ul className="mb-2">
-                    <li><code>/sounds/success.mp3</code> (local file - works)</li>
-                    <li><code>/sounds/button-click.mp3</code> (local file - works)</li>
                     <li><code>https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3</code></li>
                     <li><code>https://file-examples.com/storage/fe68c9fa4c07bb91554745a/2017/11/file_example_MP3_700KB.mp3</code></li>
                   </ul>
-                  
-                  <div className="alert alert-info">
-                    <strong>URL Issues:</strong> Common problems with external audio URLs:
-                    <ul className="mb-0 mt-2">
-                      <li>CORS (Cross-Origin) restrictions from the hosting site</li>
-                      <li>Hotlinking protection blocking direct access</li>
-                      <li>HTTPS vs HTTP protocol mismatches</li>
-                      <li>File not actually accessible at the URL</li>
-                    </ul>
-                  </div>
                 </div>
 
                 <h5>Questions</h5>
@@ -728,78 +466,53 @@ const AudioQuizzes = ({ user }) => {
                       <h6>Question {index + 1}</h6>
                       
                       <div className="mb-3">
-                        <label className="form-label">Audio Source</label>
-                        <div className="row">
-                          <div className="col-md-8">
-                            <select 
-                              className="form-control"
-                              value={question.audioUrl}
-                              onChange={(e) => updateQuestion(index, 'audioUrl', e.target.value)}
-                            >
-                              <option value="">Choose an uploaded audio file...</option>
-                              {audioFiles.map((file) => (
-                                <option key={file.id} value={file.path}>
-                                  {file.name} ({file.originalName})
-                                </option>
-                              ))}
-                              <option value="custom">Enter custom URL...</option>
-                            </select>
-                          </div>
-                          <div className="col-md-4">
-                            <button 
-                              type="button" 
-                              className="btn btn-outline-primary"
-                              onClick={() => setShowAudioManager(true)}
-                            >
-                              Manage Audio Files
-                            </button>
-                          </div>
-                        </div>
-                        
-                        {question.audioUrl === 'custom' && (
-                          <div className="mt-2">
-                            <input 
-                              type="url" 
-                              className="form-control"
-                              placeholder="https://example.com/audio.mp3"
-                              onChange={(e) => updateQuestion(index, 'audioUrl', e.target.value)}
-                            />
-                          </div>
-                        )}
+                        <label className="form-label">Audio URL</label>
+                        <input 
+                          type="url" 
+                          className="form-control"
+                          value={question.audioUrl}
+                          onChange={(e) => updateQuestion(index, 'audioUrl', e.target.value)}
+                          placeholder="https://example.com/audio.mp3"
+                        />
                         {question.audioUrl && (
                           <div className="mt-2">
                             <small className="text-muted">Test audio:</small>
-
-                            <ReactAudioPlayer
-                              src={question.audioUrl}
-                              controls
-                              volume={0.8}
+                            <audio 
+                              controls 
+                              className="d-block mt-1 w-100"
+                              style={{height: '40px'}}
+                              preload="metadata"
                               muted={false}
-                              style={{ 
-                                width: '100%', 
-                                height: '40px', 
-                                display: 'block', 
-                                marginTop: '5px'
+                              onError={(e) => {
+                                console.error('Preview audio error:', e);
+                                e.target.parentElement.querySelector('.preview-error').style.display = 'block';
                               }}
-                              onPlay={async () => {
-                                // Auto-unlock audio on first play attempt
-                                try {
-                                  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                                  if (audioContext.state === 'suspended') {
-                                    await audioContext.resume();
-                                  }
-                                } catch (e) {
-                                  console.log('Audio context unlock failed, but continuing');
-                                }
-                                
-                                // Ensure this audio element stays unmuted
-                                const allAudio = document.querySelectorAll('audio');
-                                allAudio.forEach(audio => {
-                                  audio.muted = false;
-                                  audio.volume = 0.8;
-                                });
+                              onLoadedData={(e) => {
+                                console.log('Preview audio loaded');
+                                e.target.muted = false;
+                                e.target.volume = 0.8;
+                                const errorDiv = e.target.parentElement.querySelector('.preview-error');
+                                if (errorDiv) errorDiv.style.display = 'none';
                               }}
-                            />
+                              onCanPlay={(e) => {
+                                e.target.muted = false;
+                              }}
+                              onClick={(e) => {
+                                e.target.muted = false;
+                                e.target.volume = 0.8;
+                              }}
+                              onPlay={(e) => {
+                                e.target.muted = false;
+                                e.target.volume = 0.8;
+                              }}
+                            >
+                              <source src={question.audioUrl} type="audio/mpeg" />
+                              <source src={question.audioUrl} type="audio/wav" />
+                              <source src={question.audioUrl} type="audio/ogg" />
+                            </audio>
+                            <div className="preview-error text-danger small mt-1" style={{display: 'none'}}>
+                              ⚠️ Audio URL may not be valid or accessible
+                            </div>
                           </div>
                         )}
                       </div>

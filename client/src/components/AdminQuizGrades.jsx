@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import ReactAudioPlayer from 'react-audio-player';
 
 const AdminQuizGrades = ({ user }) => {
   const [grades, setGrades] = useState([]);
@@ -620,19 +619,40 @@ const AdminQuizGrades = ({ user }) => {
                             {question.audioUrl && (
                               <div className="mt-2">
                                 <small className="text-muted">Preview audio:</small>
-                                <ReactAudioPlayer
-                                  src={question.audioUrl}
-                                  controls
-                                  volume={0.8}
+                                <audio 
+                                  controls 
+                                  className="d-block mt-1 w-100"
+                                  style={{height: '35px'}}
+                                  preload="metadata"
                                   muted={false}
-                                  style={{ width: '100%', height: '35px', display: 'block', marginTop: '5px' }}
-                                  onError={() => {
-                                    console.error('Edit preview audio error:', question.audioUrl);
+                                  onError={(e) => {
+                                    console.error('Edit preview audio error:', e);
+                                    const errorDiv = e.target.parentElement.querySelector('.edit-preview-error');
+                                    if (errorDiv) errorDiv.style.display = 'block';
                                   }}
-                                  onCanPlay={() => {
+                                  onLoadedData={(e) => {
                                     console.log('Edit preview audio loaded');
+                                    e.target.muted = false;
+                                    e.target.volume = 0.8;
+                                    const errorDiv = e.target.parentElement.querySelector('.edit-preview-error');
+                                    if (errorDiv) errorDiv.style.display = 'none';
                                   }}
-                                />
+                                  onCanPlay={(e) => {
+                                    e.target.muted = false;
+                                  }}
+                                  onClick={(e) => {
+                                    e.target.muted = false;
+                                    e.target.volume = 0.8;
+                                  }}
+                                  onPlay={(e) => {
+                                    e.target.muted = false;
+                                    e.target.volume = 0.8;
+                                  }}
+                                >
+                                  <source src={question.audioUrl} type="audio/mpeg" />
+                                  <source src={question.audioUrl} type="audio/wav" />
+                                  <source src={question.audioUrl} type="audio/ogg" />
+                                </audio>
                                 <div className="edit-preview-error text-danger small mt-1" style={{display: 'none'}}>
                                   ⚠️ Audio URL may not be accessible
                                 </div>

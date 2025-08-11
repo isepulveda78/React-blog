@@ -10,7 +10,6 @@ class MemStorage {
     this.categories = [];
     this.comments = [];
     this.chatrooms = [];
-    this.audioFiles = [];
     this.audioQuizzes = [];
     this.quizGrades = [];
     console.log('[storage] Using in-memory storage');
@@ -202,26 +201,6 @@ class MemStorage {
   }
 
   // Audio Quiz Methods
-  // Audio Files methods
-  async getAudioFiles() { 
-    return this.audioFiles.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); 
-  }
-  async getAudioFile(id) { 
-    return this.audioFiles.find(f => f.id === id); 
-  }
-  async createAudioFile(fileData) {
-    const audioFile = { id: nanoid(), ...fileData, createdAt: new Date().toISOString() };
-    this.audioFiles.push(audioFile);
-    return audioFile;
-  }
-  async deleteAudioFile(id) {
-    const index = this.audioFiles.findIndex(f => f.id === id);
-    if (index === -1) return null;
-    const deleted = this.audioFiles[index];
-    this.audioFiles.splice(index, 1);
-    return deleted;
-  }
-
   async getAudioQuizzes() {
     return this.audioQuizzes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }
@@ -1379,31 +1358,6 @@ export class MongoStorage {
   }
 
   // Audio Quiz Methods
-  // Audio Files methods for MongoDB
-  async getAudioFiles() {
-    await this.connect();
-    return await this.db.collection('audioFiles').find({}).sort({ createdAt: -1 }).toArray();
-  }
-  async getAudioFile(id) {
-    await this.connect();
-    return await this.db.collection('audioFiles').findOne({ id });
-  }
-  async createAudioFile(fileData) {
-    await this.connect();
-    const audioFile = {
-      id: nanoid(),
-      ...fileData,
-      createdAt: new Date().toISOString()
-    };
-    await this.db.collection('audioFiles').insertOne(audioFile);
-    return audioFile;
-  }
-  async deleteAudioFile(id) {
-    await this.connect();
-    const result = await this.db.collection('audioFiles').deleteOne({ id });
-    return result.deletedCount > 0;
-  }
-
   async getAudioQuizzes() {
     await this.connect();
     return await this.db.collection('audioQuizzes').find({}).sort({ createdAt: -1 }).toArray();
