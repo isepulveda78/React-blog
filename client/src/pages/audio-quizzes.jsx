@@ -11,6 +11,7 @@ const AudioQuizzes = ({ user }) => {
   const [grades, setGrades] = useState([]);
   const [showGrades, setShowGrades] = useState(false);
   const [driveUrl, setDriveUrl] = useState('');
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   // Form state for creating/editing quizzes
   const [formData, setFormData] = useState({
@@ -31,6 +32,36 @@ const AudioQuizzes = ({ user }) => {
     }
     
     return url; // Return original if not a Google Drive URL
+  };
+
+  // Audio unlock system to bypass browser restrictions
+  const unlockAudio = async () => {
+    try {
+      // Create a silent audio context and play to unlock audio
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      gainNode.gain.value = 0; // Silent
+      oscillator.frequency.value = 440;
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.1);
+      
+      setAudioUnlocked(true);
+      console.log('Audio unlocked successfully');
+      
+      // Also unlock all existing audio elements
+      const audioElements = document.querySelectorAll('audio');
+      audioElements.forEach(audio => {
+        audio.muted = false;
+        audio.volume = 0.8;
+      });
+      
+    } catch (error) {
+      console.error('Audio unlock failed:', error);
+    }
   };
 
   // Advanced audio interaction system to prevent browser muting
@@ -293,6 +324,22 @@ const AudioQuizzes = ({ user }) => {
                       <div key={index} className="mb-4">
                         <div className="mb-3">
                           <div className="audio-player-wrapper mb-3">
+                            {!audioUnlocked && (
+                              <div className="alert alert-warning mb-3">
+                                <div className="d-flex align-items-center">
+                                  <button 
+                                    className="btn btn-warning me-3"
+                                    onClick={unlockAudio}
+                                  >
+                                    🔓 Unlock Audio
+                                  </button>
+                                  <small>
+                                    Click to enable audio playback and prevent browser muting issues
+                                  </small>
+                                </div>
+                              </div>
+                            )}
+                            
                             <div className="bg-info p-2 mb-2 rounded">
                               <small className="text-white">🎵 React Audio Player</small>
                             </div>
@@ -316,6 +363,14 @@ const AudioQuizzes = ({ user }) => {
                               }}
                               onLoadStart={() => {
                                 console.log('ReactAudioPlayer loading started');
+                              }}
+                              onPlay={() => {
+                                // Force unmute on play
+                                const audio = document.querySelector('audio');
+                                if (audio) {
+                                  audio.muted = false;
+                                  audio.volume = 0.8;
+                                }
                               }}
                             />
                             <div className="audio-error alert alert-warning" style={{display: 'none'}}>
