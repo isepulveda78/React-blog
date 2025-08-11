@@ -4,8 +4,8 @@ import App from './App.jsx'
 import './index.css'
 import './custom.css'
 
-// Import hot reload utilities
-import './utils/hot-reload-utils.js'
+// Import simple hot reload
+import './hot-reload-simple.js'
 
 // Enable Hot Module Replacement in development
 if (import.meta.hot) {
