@@ -97,7 +97,19 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
       if (response.ok) {
         const data = await response.json();
-        handleChange('featuredImage', data.url);
+        console.log('Upload successful, setting featuredImage to:', data.url);
+        
+        // Ensure the URL is properly formatted and not HTML encoded
+        const cleanUrl = data.url
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#x2F;/g, '/')
+          .replace(/&#x27;/g, "'");
+        
+        console.log('Cleaned URL:', cleanUrl);
+        handleChange('featuredImage', cleanUrl);
         alert('Image uploaded successfully!');
       } else {
         const error = await response.json();

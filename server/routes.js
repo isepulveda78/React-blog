@@ -637,6 +637,18 @@ export function registerRoutes(app) {
       console.log('[server] POST /api/posts - Received data:', JSON.stringify(postData, null, 2));
       console.log('[server] Featured image in create:', postData.featuredImage);
       
+      // Decode HTML entities in featuredImage URL
+      if (postData.featuredImage) {
+        postData.featuredImage = postData.featuredImage
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#x2F;/g, '/')
+          .replace(/&#x27;/g, "'");
+        console.log('[server] Decoded image URL:', postData.featuredImage);
+      }
+      
       // Input validation for post creation
       if (!validatePostTitle(postData.title)) {
         logSecurityEvent('INVALID_POST_TITLE', { title: sanitizeInput(postData.title), user: req.session.user.email });
@@ -694,6 +706,18 @@ export function registerRoutes(app) {
       const existingPost = await storage.getPostById(id);
       if (!existingPost) {
         return res.status(404).json({ message: "Post not found" });
+      }
+      
+      // Decode HTML entities in featuredImage URL
+      if (postData.featuredImage) {
+        postData.featuredImage = postData.featuredImage
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#x2F;/g, '/')
+          .replace(/&#x27;/g, "'");
+        console.log('[server] Decoded image URL:', postData.featuredImage);
       }
       
       // If no featuredImage provided, preserve the existing one
