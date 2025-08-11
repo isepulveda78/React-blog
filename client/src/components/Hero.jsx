@@ -4,42 +4,18 @@ import React from 'react';
 const Hero = ({ user }) => {
   console.log('Hero component - current user:', user);
   return (
-    <section className="py-5 mb-5" style={{backgroundColor: 'red', color: 'white', fontSize: '30px'}}>
+    <section className="py-5 mb-5 bg-light">
       <div className="container">
         <div className="row align-items-center min-vh-50">
           <div className="col-lg-6">
             <div className="hero-content">
               <h1 className="display-4 fw-bold text-primary mb-4">
-                🎉 {user ? `Welcome back, ${user.username}!` : "Welcome to Mr. S Teaches!"} 
+                Welcome to Mr. S Teaches!
               </h1>
               <p className="lead text-muted mb-4">
                 Discover amazing content, share your thoughts, and connect with a community of learners and educators.
               </p>
-              {!user && (
-                <div className="d-flex gap-3">
-                  <a
-                    href="/api/auth/google"
-                    className="btn btn-primary btn-lg px-4 py-2"
-                  >
-                    Sign In with Google
-                  </a>
-                  <button
-                    className="btn btn-outline-primary btn-lg px-4 py-2"
-                    onClick={() => window.showLoginModal && window.showLoginModal()}
-                  >
-                    Email Login
-                  </button>
-                </div>
-              )}
-              
-              {/* Hot Reload Demo - always show for testing */}
-              <div className="alert alert-danger mt-4">
-                <h4>🔥 SIMPLE HOT RELOAD TEST</h4>
-                <p>Change this text color from "text-primary" to "text-success" and save to test hot reload!</p>
-                <button className="btn btn-success">
-                  ✅ HOT RELOAD IS WORKING! Edit this file and watch me change!
-                </button>
-              </div>
+
             </div>
           </div>
           <div className="col-lg-6 text-center">
