@@ -1,28 +1,18 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import './index.css'
-import './custom.css'
+// Direct JavaScript test without imports first
+console.log('✅ JavaScript is loading!')
 
-// Simple test to see if React is loading
-console.log('🚀 React main.jsx loading...')
-
-// Test simple component first
-function TestApp() {
-  return React.createElement('div', { 
-    style: { 
-      padding: '20px', 
-      background: 'lightblue', 
-      textAlign: 'center',
-      fontSize: '24px'
-    }
-  }, '🎉 React is working! BlogCraft loading...')
-}
-
+// Test if we can find the root element
 const rootElement = document.getElementById('root')
-console.log('📦 Root element found:', rootElement)
+console.log('📦 Root element:', rootElement)
 
-ReactDOM.createRoot(rootElement).render(
-  React.createElement(React.StrictMode, null, 
-    React.createElement(TestApp)
-  )
-)
+if (rootElement) {
+  rootElement.innerHTML = `
+    <div style="padding: 20px; background: lightgreen; text-align: center; font-size: 24px; margin: 20px;">
+      ✅ Basic JavaScript Working!<br>
+      Root element found and content inserted.
+    </div>
+  `
+  console.log('✅ Content inserted into root')
+} else {
+  console.error('❌ Root element not found!')
+}

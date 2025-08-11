@@ -147,12 +147,24 @@ if (process.env.NODE_ENV === 'development') {
   app.use(express.static(path.join(__dirname, '../dist/public')));
 }
 
-// In development, let Vite handle JSX transformation via proxy
+// Development mode - serve HTML and static files
 if (process.env.NODE_ENV === 'development') {
-  console.log('[server] development mode - JSX handled by Vite');
-  // Import and setup Vite development server
-  const { setupVite } = await import('./vite.js');
-  await setupVite(app);
+  console.log('[server] development mode - serving HTML and static files');
+  
+  // Serve the HTML file at root
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/index.html'));
+  });
+  
+  // Serve source files directly with proper headers
+  app.use('/src', (req, res, next) => {
+    res.setHeader('Content-Type', 'text/javascript');
+    res.setHeader('Cache-Control', 'no-cache');
+    next();
+  }, express.static(path.join(__dirname, '../client/src')));
+  
+  // Serve CSS files
+  app.use('/src', express.static(path.join(__dirname, '../client/src')));
 }
 
 // Use the HTTP server from routes for WebSocket support (MUST come before dev reload)
