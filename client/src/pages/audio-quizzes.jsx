@@ -34,11 +34,17 @@ const AudioQuizzes = ({ user }) => {
     return url; // Return original if not a Google Drive URL
   };
 
-  // Audio unlock system to bypass browser restrictions
+
+
+  // Advanced audio interaction system to prevent browser muting
   const unlockAudio = async () => {
     try {
-      // Create a silent audio context and play to unlock audio
+      console.log('🔓 Starting audio unlock process...');
+      
+      // Method 1: Create audio context and play silent tone
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      await audioContext.resume();
+      
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
@@ -49,22 +55,62 @@ const AudioQuizzes = ({ user }) => {
       oscillator.start();
       oscillator.stop(audioContext.currentTime + 0.1);
       
-      setAudioUnlocked(true);
-      console.log('Audio unlocked successfully');
+      // Method 2: Create and play a silent audio element
+      const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IAAAAAEAAQAAEAAAAgACABAAGQAAAWEBAAABAAATAAAKAAIAmZmZAAABAAA=');
+      audio.volume = 0.01;
+      try {
+        await audio.play();
+        audio.pause();
+      } catch (e) {
+        console.log('Silent audio play failed, but continuing...');
+      }
       
-      // Also unlock all existing audio elements
+      // Method 3: Force all audio elements to unmute
       const audioElements = document.querySelectorAll('audio');
-      audioElements.forEach(audio => {
-        audio.muted = false;
-        audio.volume = 0.8;
+      console.log('Found', audioElements.length, 'audio elements to unlock');
+      
+      audioElements.forEach((audioEl, index) => {
+        console.log(`Unlocking audio element ${index + 1}`);
+        audioEl.muted = false;
+        audioEl.volume = 0.8;
+        
+        // Add event listeners to prevent muting
+        audioEl.addEventListener('loadstart', () => {
+          audioEl.muted = false;
+          audioEl.volume = 0.8;
+        });
+        
+        audioEl.addEventListener('canplay', () => {
+          audioEl.muted = false;
+          audioEl.volume = 0.8;
+        });
+        
+        audioEl.addEventListener('play', () => {
+          audioEl.muted = false;
+          audioEl.volume = 0.8;
+        });
+        
+        // Prevent muting on hover and interaction events
+        ['mouseenter', 'mouseover', 'focus', 'click'].forEach(eventType => {
+          audioEl.addEventListener(eventType, () => {
+            audioEl.muted = false;
+            audioEl.volume = 0.8;
+          });
+        });
       });
       
+      setAudioUnlocked(true);
+      console.log('✅ Audio unlocked successfully!');
+      
+      // Show success feedback
+      alert('Audio unlocked! You can now play audio without muting issues.');
+      
     } catch (error) {
-      console.error('Audio unlock failed:', error);
+      console.error('❌ Audio unlock failed:', error);
+      setAudioUnlocked(true); // Still mark as unlocked to hide the button
     }
   };
 
-  // Advanced audio interaction system to prevent browser muting
   const initializeAudio = (audioElement) => {
     if (!audioElement) return;
     
