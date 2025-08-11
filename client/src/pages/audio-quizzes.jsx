@@ -11,6 +11,8 @@ const AudioQuizzes = ({ user }) => {
   const [grades, setGrades] = useState([]);
   const [showGrades, setShowGrades] = useState(false);
   const [driveUrl, setDriveUrl] = useState('');
+  const [audioFiles, setAudioFiles] = useState([]);
+  const [showAudioManager, setShowAudioManager] = useState(false);
 
 
   // Form state for creating/editing quizzes
@@ -190,10 +192,23 @@ const AudioQuizzes = ({ user }) => {
 
   useEffect(() => {
     fetchQuizzes();
+    fetchAudioFiles();
     if (user?.isAdmin || user?.role === 'teacher') {
       fetchGrades();
     }
   }, [user]);
+
+  const fetchAudioFiles = async () => {
+    try {
+      const response = await fetch('/api/audio-files', { credentials: 'include' });
+      if (response.ok) {
+        const files = await response.json();
+        setAudioFiles(files);
+      }
+    } catch (error) {
+      console.error('Error fetching audio files:', error);
+    }
+  };
 
   const fetchQuizzes = async () => {
     try {
@@ -483,6 +498,136 @@ const AudioQuizzes = ({ user }) => {
     );
   }
 
+  // Audio File Manager Modal
+  if (showAudioManager) {
+    return (
+      <div className="container py-5">
+        <div className="row">
+          <div className="col-12">
+            <button 
+              className="btn btn-outline-secondary mb-4"
+              onClick={() => setShowAudioManager(false)}
+            >
+              ← Back to Quiz Creator
+            </button>
+            
+            <div className="card">
+              <div className="card-header">
+                <h3 className="mb-0">Audio File Manager</h3>
+              </div>
+              <div className="card-body">
+                <div className="row">
+                  <div className="col-md-6">
+                    <h5>Upload New Audio File</h5>
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.target);
+                      
+                      try {
+                        const response = await fetch('/api/audio-files', {
+                          method: 'POST',
+                          body: formData,
+                          credentials: 'include'
+                        });
+                        
+                        if (response.ok) {
+                          await fetchAudioFiles();
+                          e.target.reset();
+                          alert('Audio file uploaded successfully!');
+                        } else {
+                          const error = await response.json();
+                          alert(`Upload failed: ${error.error}`);
+                        }
+                      } catch (error) {
+                        console.error('Upload error:', error);
+                        alert('Upload failed. Please try again.');
+                      }
+                    }}>
+                      <div className="mb-3">
+                        <label className="form-label">Display Name</label>
+                        <input 
+                          type="text" 
+                          name="name"
+                          className="form-control"
+                          placeholder="e.g., Spanish Letter A"
+                          required
+                        />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">MP3 Audio File</label>
+                        <input 
+                          type="file" 
+                          name="audioFile"
+                          className="form-control"
+                          accept=".mp3,.wav,.m4a,.ogg"
+                          required
+                        />
+                        <small className="text-muted">Supported: MP3, WAV, M4A, OGG</small>
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Upload Audio File
+                      </button>
+                    </form>
+                  </div>
+                  
+                  <div className="col-md-6">
+                    <h5>Uploaded Audio Files ({audioFiles.length})</h5>
+                    <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                      {audioFiles.length === 0 ? (
+                        <p className="text-muted">No audio files uploaded yet.</p>
+                      ) : (
+                        audioFiles.map((file) => (
+                          <div key={file.id} className="card mb-2">
+                            <div className="card-body py-2">
+                              <div className="d-flex justify-content-between align-items-center">
+                                <div>
+                                  <strong>{file.name}</strong>
+                                  <br />
+                                  <small className="text-muted">
+                                    {file.originalName} • {Math.round(file.size / 1024)}KB
+                                  </small>
+                                </div>
+                                <div>
+                                  <audio controls style={{ width: '150px', height: '30px' }}>
+                                    <source src={file.path} type={file.mimeType} />
+                                  </audio>
+                                  <button 
+                                    className="btn btn-sm btn-outline-danger ms-2"
+                                    onClick={async () => {
+                                      if (confirm(`Delete "${file.name}"?`)) {
+                                        try {
+                                          const response = await fetch(`/api/audio-files/${file.id}`, {
+                                            method: 'DELETE',
+                                            credentials: 'include'
+                                          });
+                                          if (response.ok) {
+                                            await fetchAudioFiles();
+                                          }
+                                        } catch (error) {
+                                          console.error('Delete error:', error);
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Create Quiz Form
   if (showCreateForm) {
     return (
@@ -583,14 +728,44 @@ const AudioQuizzes = ({ user }) => {
                       <h6>Question {index + 1}</h6>
                       
                       <div className="mb-3">
-                        <label className="form-label">Audio URL</label>
-                        <input 
-                          type="url" 
-                          className="form-control"
-                          value={question.audioUrl}
-                          onChange={(e) => updateQuestion(index, 'audioUrl', e.target.value)}
-                          placeholder="https://example.com/audio.mp3"
-                        />
+                        <label className="form-label">Audio Source</label>
+                        <div className="row">
+                          <div className="col-md-8">
+                            <select 
+                              className="form-control"
+                              value={question.audioUrl}
+                              onChange={(e) => updateQuestion(index, 'audioUrl', e.target.value)}
+                            >
+                              <option value="">Choose an uploaded audio file...</option>
+                              {audioFiles.map((file) => (
+                                <option key={file.id} value={file.path}>
+                                  {file.name} ({file.originalName})
+                                </option>
+                              ))}
+                              <option value="custom">Enter custom URL...</option>
+                            </select>
+                          </div>
+                          <div className="col-md-4">
+                            <button 
+                              type="button" 
+                              className="btn btn-outline-primary"
+                              onClick={() => setShowAudioManager(true)}
+                            >
+                              Manage Audio Files
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {question.audioUrl === 'custom' && (
+                          <div className="mt-2">
+                            <input 
+                              type="url" 
+                              className="form-control"
+                              placeholder="https://example.com/audio.mp3"
+                              onChange={(e) => updateQuestion(index, 'audioUrl', e.target.value)}
+                            />
+                          </div>
+                        )}
                         {question.audioUrl && (
                           <div className="mt-2">
                             <small className="text-muted">Test audio:</small>
