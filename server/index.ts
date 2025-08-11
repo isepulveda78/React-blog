@@ -151,8 +151,13 @@ app.get('*', (req, res) => {
   
   console.log('Serving index.html for path:', req.path);
   
-  // Always serve built index.html for React routing stability
-  res.sendFile(path.join(__dirname, '../dist/public/index.html'));
+  // Serve development HTML with hot reload in development mode
+  if (process.env.NODE_ENV === 'development') {
+    res.sendFile(path.join(__dirname, '../client/index.html'));
+  } else {
+    // Serve built index.html for production
+    res.sendFile(path.join(__dirname, '../dist/public/index.html'));
+  }
 });
 
 httpServer.listen(PORT, "0.0.0.0", () => {
