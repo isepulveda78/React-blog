@@ -87,7 +87,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('/api/upload/image', {
+      const response = await fetch('/api/upload-image', {
         method: 'POST',
         credentials: 'include',
         body: formData
@@ -131,7 +131,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('/api/upload/image', {
+      const response = await fetch('/api/upload-image', {
         method: 'POST',
         credentials: 'include',
         body: formData
@@ -139,8 +139,20 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
       if (response.ok) {
         const data = await response.json();
-        const imageHtml = `\n<img src="${data.url}" alt="Uploaded image" class="img-fluid my-3" />\n`;
-        setFormData(prev => ({ ...prev, content: prev.content + imageHtml }));
+        const imageHtml = `<img src="${data.url}" alt="Uploaded image" class="img-fluid my-3" />`;
+        
+        // Insert into rich text editor if it's active
+        if (editorMode === 'rich') {
+          const editor = document.getElementById('richTextEditor');
+          if (editor) {
+            editor.focus();
+            document.execCommand('insertHTML', false, imageHtml);
+            setFormData(prev => ({ ...prev, content: editor.innerHTML }));
+          }
+        } else {
+          // Insert into HTML editor
+          setFormData(prev => ({ ...prev, content: prev.content + imageHtml }));
+        }
         alert('Image inserted into content!');
       } else {
         const error = await response.json();
@@ -600,6 +612,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                   />
                 )}
                 <div 
+                  className="post-content"
                   dangerouslySetInnerHTML={{ __html: formData.content || 'No content yet...' }}
                 />
                 {formData.tags.length > 0 && (
