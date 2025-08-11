@@ -2,49 +2,14 @@ import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 
 const CrosswordGenerator = ({ user }) => {
-  const [acrossWords, setAcrossWords] = useState(['']);
-  const [downWords, setDownWords] = useState(['']);
+  const [acrossWords, setAcrossWords] = useState('');
+  const [downWords, setDownWords] = useState('');
   const [title, setTitle] = useState('My Crossword Puzzle');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Add new input field for across words
-  const addAcrossWord = () => {
-    setAcrossWords([...acrossWords, '']);
-  };
-
-  // Add new input field for down words  
-  const addDownWord = () => {
-    setDownWords([...downWords, '']);
-  };
-
-  // Update across word at index
-  const updateAcrossWord = (index, value) => {
-    const newWords = [...acrossWords];
-    newWords[index] = value;
-    setAcrossWords(newWords);
-  };
-
-  // Update down word at index
-  const updateDownWord = (index, value) => {
-    const newWords = [...downWords];
-    newWords[index] = value;
-    setDownWords(newWords);
-  };
-
-  // Remove across word at index
-  const removeAcrossWord = (index) => {
-    if (acrossWords.length > 1) {
-      const newWords = acrossWords.filter((_, i) => i !== index);
-      setAcrossWords(newWords);
-    }
-  };
-
-  // Remove down word at index
-  const removeDownWord = (index) => {
-    if (downWords.length > 1) {
-      const newWords = downWords.filter((_, i) => i !== index);
-      setDownWords(newWords);
-    }
+  // Parse comma-separated words from input strings
+  const parseWords = (input) => {
+    return input.split(',').map(word => word.trim()).filter(word => word.length > 0);
   };
 
   // Generate a simple crossword grid layout
@@ -191,9 +156,9 @@ const CrosswordGenerator = ({ user }) => {
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
       
-      // Filter out empty words
-      const validAcross = acrossWords.filter(word => word.trim());
-      const validDown = downWords.filter(word => word.trim());
+      // Parse comma-separated words
+      const validAcross = parseWords(acrossWords);
+      const validDown = parseWords(downWords);
       
       if (validAcross.length === 0 && validDown.length === 0) {
         alert('Please add at least one word to generate a crossword puzzle.');
@@ -298,48 +263,42 @@ const CrosswordGenerator = ({ user }) => {
         {/* Across Words */}
         <div className="col-md-6">
           <div className="card h-100">
-            <div className="card-header d-flex justify-content-between align-items-center">
+            <div className="card-header">
               <h5 className="mb-0">
                 <i className="fas fa-arrow-right me-2"></i>
                 Across Words
               </h5>
-              <button
-                className="btn btn-outline-primary btn-sm"
-                onClick={addAcrossWord}
-              >
-                <i className="fas fa-plus me-1"></i>
-                Add Word
-              </button>
             </div>
             <div className="card-body">
               <div className="mb-3">
                 <small className="text-muted">
-                  Enter words or phrases that will go horizontally across the puzzle
+                  Enter words or phrases separated by commas (e.g., cat, dog, house, tree)
                 </small>
               </div>
-              {acrossWords.map((word, index) => (
-                <div key={index} className="mb-3">
-                  <div className="input-group">
-                    <span className="input-group-text">{index + 1}</span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={word}
-                      onChange={(e) => updateAcrossWord(index, e.target.value)}
-                      placeholder="Enter across word/phrase"
-                    />
-                    {acrossWords.length > 1 && (
-                      <button
-                        className="btn btn-outline-danger"
-                        onClick={() => removeAcrossWord(index)}
-                        type="button"
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
-                    )}
-                  </div>
+              <textarea
+                className="form-control"
+                rows="6"
+                value={acrossWords}
+                onChange={(e) => setAcrossWords(e.target.value)}
+                placeholder="Enter across words separated by commas..."
+                style={{ resize: 'vertical' }}
+              />
+              {acrossWords && (
+                <div className="mt-2">
+                  <small className="text-muted">
+                    Words: {parseWords(acrossWords).length}
+                  </small>
+                  {parseWords(acrossWords).length > 0 && (
+                    <div className="mt-1">
+                      {parseWords(acrossWords).map((word, index) => (
+                        <span key={index} className="badge bg-primary me-1 mb-1">
+                          {index + 1}. {word}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
@@ -347,48 +306,42 @@ const CrosswordGenerator = ({ user }) => {
         {/* Down Words */}
         <div className="col-md-6">
           <div className="card h-100">
-            <div className="card-header d-flex justify-content-between align-items-center">
+            <div className="card-header">
               <h5 className="mb-0">
                 <i className="fas fa-arrow-down me-2"></i>
                 Down Words
               </h5>
-              <button
-                className="btn btn-outline-success btn-sm"
-                onClick={addDownWord}
-              >
-                <i className="fas fa-plus me-1"></i>
-                Add Word
-              </button>
             </div>
             <div className="card-body">
               <div className="mb-3">
                 <small className="text-muted">
-                  Enter words or phrases that will go vertically down the puzzle
+                  Enter words or phrases separated by commas (e.g., apple, banana, orange, grape)
                 </small>
               </div>
-              {downWords.map((word, index) => (
-                <div key={index} className="mb-3">
-                  <div className="input-group">
-                    <span className="input-group-text">{index + 1}</span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={word}
-                      onChange={(e) => updateDownWord(index, e.target.value)}
-                      placeholder="Enter down word/phrase"
-                    />
-                    {downWords.length > 1 && (
-                      <button
-                        className="btn btn-outline-danger"
-                        onClick={() => removeDownWord(index)}
-                        type="button"
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
-                    )}
-                  </div>
+              <textarea
+                className="form-control"
+                rows="6"
+                value={downWords}
+                onChange={(e) => setDownWords(e.target.value)}
+                placeholder="Enter down words separated by commas..."
+                style={{ resize: 'vertical' }}
+              />
+              {downWords && (
+                <div className="mt-2">
+                  <small className="text-muted">
+                    Words: {parseWords(downWords).length}
+                  </small>
+                  {parseWords(downWords).length > 0 && (
+                    <div className="mt-1">
+                      {parseWords(downWords).map((word, index) => (
+                        <span key={index} className="badge bg-success me-1 mb-1">
+                          {index + 1}. {word}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
@@ -435,8 +388,8 @@ const CrosswordGenerator = ({ user }) => {
             <div className="card-body">
               <ol>
                 <li><strong>Enter a title</strong> for your crossword puzzle</li>
-                <li><strong>Add across words</strong> - these will be placed horizontally in the grid</li>
-                <li><strong>Add down words</strong> - these will be placed vertically in the grid</li>
+                <li><strong>Add across words</strong> - enter words separated by commas for horizontal placement</li>
+                <li><strong>Add down words</strong> - enter words separated by commas for vertical placement</li>
                 <li><strong>Click "Generate Crossword PDF"</strong> to create and download your puzzle</li>
                 <li><strong>Print and enjoy!</strong> The PDF includes the grid and numbered clues</li>
               </ol>
