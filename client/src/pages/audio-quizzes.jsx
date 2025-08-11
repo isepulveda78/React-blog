@@ -32,26 +32,70 @@ const AudioQuizzes = ({ user }) => {
     return url; // Return original if not a Google Drive URL
   };
 
-  // Enhanced audio event handlers to prevent muting
-  const handleAudioInteraction = (audioElement) => {
+  // Advanced audio interaction system to prevent browser muting
+  const initializeAudio = (audioElement) => {
+    if (!audioElement) return;
+    
+    // Remove all existing event listeners to start fresh
+    const newAudio = audioElement.cloneNode(true);
+    audioElement.parentNode.replaceChild(newAudio, audioElement);
+    
+    // Force initial settings
+    setTimeout(() => {
+      newAudio.muted = false;
+      newAudio.volume = 0.8;
+      newAudio.setAttribute('muted', 'false');
+    }, 100);
+    
+    return newAudio;
+  };
+
+  const forceUnmute = (audioElement) => {
     if (audioElement) {
       audioElement.muted = false;
       audioElement.volume = 0.8;
-      console.log('Audio interaction - muted:', audioElement.muted, 'volume:', audioElement.volume);
+      audioElement.removeAttribute('muted');
+      audioElement.setAttribute('volume', '0.8');
+      console.log('Force unmute applied - muted:', audioElement.muted, 'volume:', audioElement.volume);
     }
   };
 
+  // Comprehensive event handlers that aggressively prevent muting
   const audioEventHandlers = {
-    onLoadedData: (e) => handleAudioInteraction(e.target),
-    onCanPlay: (e) => handleAudioInteraction(e.target),
-    onClick: (e) => handleAudioInteraction(e.target),
-    onPlay: (e) => handleAudioInteraction(e.target),
+    onLoadedData: (e) => {
+      forceUnmute(e.target);
+      // Set up continuous monitoring
+      const intervalId = setInterval(() => {
+        if (e.target.muted) {
+          e.target.muted = false;
+          e.target.volume = 0.8;
+        }
+      }, 50);
+      e.target.setAttribute('data-interval', intervalId);
+    },
+    onCanPlay: (e) => forceUnmute(e.target),
+    onClick: (e) => {
+      e.preventDefault();
+      forceUnmute(e.target);
+      if (e.target.paused) {
+        e.target.play().catch(console.error);
+      } else {
+        e.target.pause();
+      }
+    },
+    onPlay: (e) => forceUnmute(e.target),
+    onPause: (e) => forceUnmute(e.target),
     onVolumeChange: (e) => {
       if (e.target.muted) {
-        e.target.muted = false;
-        console.log('Volume change detected - forcing unmute');
+        setTimeout(() => {
+          e.target.muted = false;
+          e.target.volume = 0.8;
+        }, 1);
       }
-    }
+    },
+    onMouseEnter: (e) => forceUnmute(e.target),
+    onMouseOver: (e) => forceUnmute(e.target),
+    onFocus: (e) => forceUnmute(e.target)
   };
 
   useEffect(() => {
@@ -248,6 +292,22 @@ const AudioQuizzes = ({ user }) => {
                       <div key={index} className="mb-4">
                         <div className="mb-3">
                           <div className="audio-player-wrapper mb-3">
+                            <div className="d-flex align-items-center mb-2">
+                              <button 
+                                className="btn btn-sm btn-outline-primary me-2"
+                                onClick={(e) => {
+                                  const audio = e.target.parentElement.parentElement.querySelector('audio');
+                                  if (audio) {
+                                    audio.muted = false;
+                                    audio.volume = 0.8;
+                                    audio.play().catch(console.error);
+                                  }
+                                }}
+                              >
+                                🔊 Play Audio
+                              </button>
+                              <small className="text-muted">Use this button if audio controls don't work</small>
+                            </div>
                             <audio 
                               controls 
                               className="w-100 mb-2"
