@@ -577,15 +577,21 @@ const AdminQuizGrades = ({ user }) => {
                                   className="d-block mt-1 w-100"
                                   style={{height: '35px'}}
                                   preload="metadata"
+                                  muted={false}
                                   onError={(e) => {
                                     console.error('Edit preview audio error:', e);
                                     const errorDiv = e.target.parentElement.querySelector('.edit-preview-error');
                                     if (errorDiv) errorDiv.style.display = 'block';
                                   }}
-                                  onLoadedData={() => {
+                                  onLoadedData={(e) => {
                                     console.log('Edit preview audio loaded');
+                                    e.target.muted = false;
+                                    e.target.volume = 0.8;
                                     const errorDiv = e.target.parentElement.querySelector('.edit-preview-error');
                                     if (errorDiv) errorDiv.style.display = 'none';
+                                  }}
+                                  onCanPlay={(e) => {
+                                    e.target.muted = false;
                                   }}
                                 >
                                   <source src={question.audioUrl} type="audio/mpeg" />

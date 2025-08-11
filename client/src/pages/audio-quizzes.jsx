@@ -215,12 +215,21 @@ const AudioQuizzes = ({ user }) => {
                               controls 
                               className="w-100 mb-2"
                               preload="metadata"
+                              muted={false}
                               onError={(e) => {
                                 console.error('Audio error:', e);
                                 e.target.parentElement.querySelector('.audio-error').style.display = 'block';
                               }}
-                              onLoadedData={() => {
+                              onLoadedData={(e) => {
                                 console.log('Audio loaded successfully');
+                                // Ensure audio is not muted when loaded
+                                e.target.muted = false;
+                                e.target.volume = 0.8;
+                              }}
+                              onCanPlay={(e) => {
+                                // Ensure audio is ready and unmuted
+                                e.target.muted = false;
+                                console.log('Audio can play, unmuted:', !e.target.muted);
                               }}
                             >
                               <source src={question.audioUrl} type="audio/mpeg" />
@@ -356,14 +365,20 @@ const AudioQuizzes = ({ user }) => {
                               className="d-block mt-1 w-100"
                               style={{height: '40px'}}
                               preload="metadata"
+                              muted={false}
                               onError={(e) => {
                                 console.error('Preview audio error:', e);
                                 e.target.parentElement.querySelector('.preview-error').style.display = 'block';
                               }}
-                              onLoadedData={() => {
+                              onLoadedData={(e) => {
                                 console.log('Preview audio loaded');
-                                const errorDiv = document.querySelector('.preview-error');
+                                e.target.muted = false;
+                                e.target.volume = 0.8;
+                                const errorDiv = e.target.parentElement.querySelector('.preview-error');
                                 if (errorDiv) errorDiv.style.display = 'none';
+                              }}
+                              onCanPlay={(e) => {
+                                e.target.muted = false;
                               }}
                             >
                               <source src={question.audioUrl} type="audio/mpeg" />
@@ -515,6 +530,34 @@ const AudioQuizzes = ({ user }) => {
           <p className="lead text-muted">
             Test your listening skills with interactive audio-based quizzes
           </p>
+        </div>
+      </div>
+
+      {/* Audio Test Section */}
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="alert alert-info">
+            <h6><i className="fas fa-volume-up me-2"></i>Audio Test</h6>
+            <p className="mb-2">Test your audio before taking quizzes:</p>
+            <audio 
+              controls 
+              className="w-100"
+              style={{height: '40px'}}
+              muted={false}
+              onLoadedData={(e) => {
+                e.target.muted = false;
+                e.target.volume = 0.8;
+              }}
+              onCanPlay={(e) => {
+                e.target.muted = false;
+              }}
+            >
+              <source src="https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3" type="audio/mpeg" />
+              <source src="https://file-examples.com/storage/fe68c9fa4c07bb91554745a/2017/11/file_example_MP3_700KB.mp3" type="audio/mpeg" />
+              Your browser does not support audio playback.
+            </audio>
+            <small className="text-muted">If you can hear the test audio, your browser supports audio playback for quizzes.</small>
+          </div>
         </div>
       </div>
 
