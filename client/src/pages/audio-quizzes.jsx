@@ -394,6 +394,7 @@ const AudioQuizzes = ({ user }) => {
                               controls
                               volume={0.8}
                               muted={false}
+                              preload="metadata"
                               style={{ 
                                 width: '100%', 
                                 marginBottom: '10px',
@@ -401,21 +402,32 @@ const AudioQuizzes = ({ user }) => {
                                 border: '2px solid #007bff',
                                 borderRadius: '5px'
                               }}
-                              onError={() => {
-                                console.error('ReactAudioPlayer error for:', question.audioUrl);
+                              onError={(e) => {
+                                console.error('ReactAudioPlayer error for:', question.audioUrl, e);
                               }}
                               onCanPlay={() => {
-                                console.log('ReactAudioPlayer ready to play');
+                                console.log('ReactAudioPlayer ready to play MP3:', question.audioUrl);
                               }}
                               onLoadStart={() => {
-                                console.log('ReactAudioPlayer loading started');
+                                console.log('ReactAudioPlayer loading MP3 started:', question.audioUrl);
                               }}
                               onPlay={() => {
+                                console.log('ReactAudioPlayer started playing MP3');
                                 // Force unmute on play
                                 const audio = document.querySelector('audio');
                                 if (audio) {
+                                  console.log('Setting audio unmuted and volume to 0.8');
                                   audio.muted = false;
                                   audio.volume = 0.8;
+                                }
+                              }}
+                              onPause={() => {
+                                console.log('ReactAudioPlayer paused');
+                              }}
+                              onVolumeChange={() => {
+                                const audio = document.querySelector('audio');
+                                if (audio) {
+                                  console.log('Volume changed - muted:', audio.muted, 'volume:', audio.volume);
                                 }
                               }}
                             />
