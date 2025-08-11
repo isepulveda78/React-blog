@@ -53,10 +53,18 @@ const AuthProvider = ({ children }) => {
         'Cache-Control': 'no-cache'
       }
     })
-      .then((res) => {
+      .then(async (res) => {
         console.log('[AuthProvider] Auth response status:', res.status)
         if (res.ok) {
-          return res.json()
+          const text = await res.text();
+          console.log('[AuthProvider] Raw response:', text.substring(0, 200));
+          try {
+            return JSON.parse(text);
+          } catch (parseError) {
+            console.error('[AuthProvider] JSON parse error:', parseError.message);
+            console.error('[AuthProvider] Response was:', text);
+            throw new Error('Invalid JSON response from server');
+          }
         }
         throw new Error('Not authenticated')
       })
@@ -98,10 +106,16 @@ const AuthProvider = ({ children }) => {
     try {
       const res = await fetch('/api/auth/me', { credentials: 'include' })
       if (res.ok) {
-        const userData = await res.json()
-        setUser(userData)
-        localStorage.setItem('user', JSON.stringify(userData))
-        return userData
+        const text = await res.text();
+        try {
+          const userData = JSON.parse(text);
+          setUser(userData)
+          localStorage.setItem('user', JSON.stringify(userData))
+          return userData
+        } catch (parseError) {
+          console.error('Error parsing refresh response:', parseError.message);
+          console.error('Response was:', text);
+        }
       }
     } catch (error) {
       console.error('Error refreshing user:', error)
