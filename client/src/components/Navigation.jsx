@@ -325,7 +325,7 @@ const Navigation = ({ user, onLogout }) => {
       {React.createElement(AuthModalComponent)}
 
       {/* Navigation */}
-      <nav className="navbar navbar-expand-lg by-primary shadow-sm sticky-top">
+      <nav className="navbar navbar-expand-lg bg-danger shadow-sm sticky-top">
         <div className="container">
           <a
             className="navbar-brand fw-bold text-white ama-font shadow-for-ama text-decoration-none fs-1"
@@ -392,6 +392,21 @@ const Navigation = ({ user, onLogout }) => {
                     }}
                   >
                     My Profile
+                  </a>
+                </li>
+              )}
+
+              {user && user.approved && (
+                <li className="nav-item">
+                  <a
+                    className={`nav-link ${isActive("/listen-to-type") ? "active" : ""}`}
+                    href="/listen-to-type"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateTo("/listen-to-type");
+                    }}
+                  >
+                    Chatroom
                   </a>
                 </li>
               )}
