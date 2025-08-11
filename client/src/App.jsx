@@ -15,11 +15,7 @@ import AdminPostEditor from './components/AdminPostEditor.jsx'
 import SEOManagement from './components/SEOManagement.jsx'
 import AdminChatrooms from './components/AdminChatrooms.jsx'
 
-// Debug: Log all imports to find undefined component
-console.log('DEBUG IMPORTS:', {
-  Navigation, Hero, Home, BlogListing, BlogPost, AdminDashboard, 
-  AdminPosts, AdminUsers, AdminComments, AdminPostEditor, SEOManagement
-})
+// Clean imports without debug logs
 import Footer from './components/Footer.jsx'
 import UserProfile from './pages/user-profile.jsx'
 import EducationalTools from './pages/educational-tools.jsx'
