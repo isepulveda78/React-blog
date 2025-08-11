@@ -1,5 +1,13 @@
 import React from 'react';
 
+// Utility function to decode HTML entities
+const decodeHTMLEntities = (text) => {
+  if (!text) return text;
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+};
+
 const BlogCard = ({ post, onReadMore }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'Unknown date';
@@ -24,7 +32,8 @@ const BlogCard = ({ post, onReadMore }) => {
 
   const getExcerpt = (content, maxLength = 150) => {
     if (!content) return '';
-    const text = content.replace(/<[^>]*>/g, ''); // Remove HTML tags
+    const decodedContent = decodeHTMLEntities(content);
+    const text = decodedContent.replace(/<[^>]*>/g, ''); // Remove HTML tags
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
@@ -33,7 +42,7 @@ const BlogCard = ({ post, onReadMore }) => {
       <div className="card h-100 shadow-sm hover-shadow-lg transition-all">
         {post.featuredImage && (
           <img
-            src={post.featuredImage}
+            src={decodeHTMLEntities(post.featuredImage)}
             className="card-img-top"
             alt={post.title}
             style={{ height: "200px", objectFit: "cover" }}

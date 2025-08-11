@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
+// Utility function to decode HTML entities
+const decodeHTMLEntities = (text) => {
+  if (!text) return text;
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+};
+
 // Helper function to format dates nicely
 const formatCommentDate = (dateString) => {
   if (!dateString) return 'Unknown date';
@@ -419,7 +427,7 @@ function BlogPost({ user, slug }) {
               React.createElement("span", null, Math.ceil(post.content.replace(/<[^>]*>/g, '').length / 200), " min read")
             ),
             post.featuredImage && React.createElement("img", {
-              src: post.featuredImage,
+              src: decodeHTMLEntities(post.featuredImage),
               alt: post.title,
               className: "img-fluid rounded shadow-sm mb-4",
               style: { maxHeight: "400px", width: "100%", objectFit: "cover" }
@@ -428,7 +436,7 @@ function BlogPost({ user, slug }) {
           // Post Content
           React.createElement("div", {
             className: "post-content mb-5",
-            dangerouslySetInnerHTML: { __html: post.content },
+            dangerouslySetInnerHTML: { __html: decodeHTMLEntities(post.content) },
             style: { lineHeight: "1.7", fontSize: "1.1rem" }
           }),
           // Tags
