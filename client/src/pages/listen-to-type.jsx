@@ -229,17 +229,29 @@ const ListenToType = ({ user }) => {
 
     newSocket.onopen = () => {
       console.log("[chat] WebSocket connected");
-      // PRIORITIZE typed name over authenticated user name
-      const displayName = chatName.trim() || user?.name || "Anonymous";
+      
+      // Small delay to ensure connection is fully established
+      setTimeout(() => {
+        // PRIORITIZE typed name over authenticated user name
+        const displayName = chatName.trim() || user?.name || "Anonymous";
 
-      const joinData = {
-        type: "join",
-        name: displayName,
-        role: user?.role || "student",
-        chatroom: selectedChatroom.id,
-      };
-      console.log("[chat] Sending join data:", joinData);
-      newSocket.send(JSON.stringify(joinData));
+        const joinData = {
+          type: "join",
+          name: displayName,
+          role: user?.role || "student",
+          chatroom: selectedChatroom.id,
+        };
+        console.log("[chat] Sending join data:", joinData);
+        
+        try {
+          newSocket.send(JSON.stringify(joinData));
+          console.log("[chat] Join data sent successfully");
+        } catch (error) {
+          console.error("[chat] Error sending join data:", error);
+          setSocket(null);
+          setIsChatJoined(false);
+        }
+      }, 100); // 100ms delay to ensure connection is ready
     };
 
     newSocket.onmessage = (event) => {
