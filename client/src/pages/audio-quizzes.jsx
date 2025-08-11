@@ -9,6 +9,7 @@ const AudioQuizzes = ({ user }) => {
   const [quizResult, setQuizResult] = useState(null);
   const [grades, setGrades] = useState([]);
   const [showGrades, setShowGrades] = useState(false);
+  const [driveUrl, setDriveUrl] = useState('');
 
   // Form state for creating/editing quizzes
   const [formData, setFormData] = useState({
@@ -16,6 +17,20 @@ const AudioQuizzes = ({ user }) => {
     description: '',
     questions: [{ audioUrl: '', question: '', options: ['', '', '', ''], correctAnswer: 0 }]
   });
+
+  // Convert Google Drive sharing URL to direct download URL
+  const convertGoogleDriveUrl = (url) => {
+    if (!url) return '';
+    
+    // Extract file ID from Google Drive URL
+    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      const fileId = match[1];
+      return `https://drive.google.com/uc?export=download&id=${fileId}`;
+    }
+    
+    return url; // Return original if not a Google Drive URL
+  };
 
   useEffect(() => {
     fetchQuizzes();
@@ -333,13 +348,43 @@ const AudioQuizzes = ({ user }) => {
 
                 <div className="alert alert-info mb-4">
                   <h6><i className="fas fa-info-circle me-2"></i>Audio URL Help</h6>
-                  <p className="mb-2">Use direct links to audio files. Working examples:</p>
+                  <p className="mb-2"><strong>For Google Drive files:</strong></p>
+                  <ol className="mb-3">
+                    <li>Share your file and get the sharing link</li>
+                    <li>Convert the Google Drive link using the converter below</li>
+                    <li>Use the converted direct download link</li>
+                  </ol>
+                  
+                  <div className="bg-light p-3 rounded mb-3">
+                    <h6>Google Drive Link Converter</h6>
+                    <div className="mb-2">
+                      <label className="form-label small">Google Drive sharing link:</label>
+                      <input 
+                        type="url" 
+                        className="form-control form-control-sm"
+                        placeholder="https://drive.google.com/file/d/YOUR_FILE_ID/view?usp=sharing"
+                        value={driveUrl}
+                        onChange={(e) => setDriveUrl(e.target.value)}
+                      />
+                    </div>
+                    <div className="mb-2">
+                      <label className="form-label small">Direct download link:</label>
+                      <input 
+                        type="text" 
+                        className="form-control form-control-sm"
+                        readOnly
+                        value={convertGoogleDriveUrl(driveUrl)}
+                        onClick={(e) => e.target.select()}
+                      />
+                    </div>
+                    <small className="text-muted">Copy the direct download link and paste it in your quiz questions.</small>
+                  </div>
+                  
+                  <p className="mb-2"><strong>Working test examples:</strong></p>
                   <ul className="mb-2">
-                    <li><code>https://www.soundjay.com/misc/sounds/beep-07a.mp3</code></li>
-                    <li><code>https://file-examples.com/storage/fe68c9fa4c07bb91554745a/2017/11/file_example_MP3_700KB.mp3</code></li>
                     <li><code>https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3</code></li>
+                    <li><code>https://file-examples.com/storage/fe68c9fa4c07bb91554745a/2017/11/file_example_MP3_700KB.mp3</code></li>
                   </ul>
-                  <small>💡 Tip: Upload your audio to Google Drive, Dropbox, or use free audio hosting services, then get the direct download link.</small>
                 </div>
 
                 <h5>Questions</h5>
