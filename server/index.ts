@@ -141,6 +141,12 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
+// Setup hot reload endpoint in development
+if (process.env.NODE_ENV === 'development') {
+  const { setupHotReload } = await import('./hot-reload-endpoint.js');
+  setupHotReload(app);
+}
+
 // Use the HTTP server from routes for WebSocket support (MUST come before catch-all route)
 const httpServer = await registerRoutes(app);
 

@@ -51,47 +51,95 @@
   <body>
     <div id="root"></div>
     
-    <!-- Inline hot reload system for guaranteed execution -->
+    <!-- Enhanced Hot Reload System -->
     <script>
-      console.log('🔥 Starting inline hot reload system...');
+      console.log('🔥 Enhanced hot reload system starting...');
       
-      // Show immediate visual feedback
+      // Create visual indicator
       const indicator = document.createElement('div');
       indicator.innerHTML = '🔥 HOT RELOAD ACTIVE';
-      indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 9999; font-family: Arial, sans-serif;';
+      indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 10000; font-family: Arial, sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
       document.body.appendChild(indicator);
       
       let lastModified = null;
+      let lastEtag = null;
       let checkCount = 0;
+      let isReloading = false;
       
-      function checkChanges() {
-        checkCount++;
-        console.log('Hot reload check #' + checkCount);
+      function showReloadNotification(message, color) {
+        indicator.innerHTML = message;
+        indicator.style.background = color;
+      }
+      
+      function checkForChanges() {
+        if (isReloading) return;
         
-        fetch('/src/main.jsx?' + Date.now(), { method: 'HEAD' })
+        checkCount++;
+        console.log('🔍 Hot reload check #' + checkCount);
+        
+        const timestamp = Date.now();
+        
+        fetch('/api/hot-reload/check?bust=' + timestamp, { 
+          method: 'GET',
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        })
           .then(function(response) {
-            const modified = response.headers.get('last-modified');
-            console.log('File modified:', modified);
+            return response.json();
+          })
+          .then(function(data) {
+            console.log('Hot reload check result:', data);
             
-            if (lastModified && modified !== lastModified) {
-              console.log('🔄 CHANGE DETECTED! Reloading...');
-              indicator.innerHTML = '🔄 RELOADING...';
-              indicator.style.background = '#007bff';
-              setTimeout(function() { location.reload(); }, 300);
+            // Initialize on first check
+            if (data.initialized) {
+              console.log('✅ Hot reload initialized');
+              return;
             }
             
-            lastModified = modified;
+            // Check for changes
+            if (data.changed) {
+              console.log('🔄 CHANGE DETECTED! Reloading page...');
+              console.log('Change count:', data.changeCount);
+              
+              isReloading = true;
+              showReloadNotification('🔄 RELOADING...', '#007bff');
+              
+              setTimeout(function() {
+                window.location.reload(true);
+              }, 500);
+            }
           })
-          .catch(function(err) { 
-            console.log('Check failed:', err); 
+          .catch(function(error) {
+            console.log('Hot reload check failed:', error);
           });
       }
       
-      // Check every 2 seconds
-      setInterval(checkChanges, 2000);
-      checkChanges(); // Initial check
+      // Start checking for changes
+      const interval = setInterval(checkForChanges, 1000);
       
-      console.log('✅ Hot reload system is running');
+      // Initial check after DOM loads
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', checkForChanges);
+      } else {
+        checkForChanges();
+      }
+      
+      // Manual reload shortcut
+      document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+          e.preventDefault();
+          console.log('🔄 Manual reload triggered');
+          showReloadNotification('🔄 MANUAL RELOAD', '#dc3545');
+          clearInterval(interval);
+          setTimeout(function() { window.location.reload(true); }, 300);
+        }
+      });
+      
+      console.log('✅ Enhanced hot reload system ready');
+      console.log('📝 Manual reload: Ctrl+Shift+R (or Cmd+Shift+R on Mac)');
     </script>
     
     <script type="module" src="/src/main.jsx"></script>

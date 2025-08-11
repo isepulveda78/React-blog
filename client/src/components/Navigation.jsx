@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 
 const Navigation = ({ user, onLogout }) => {
   console.log("Navigation component - current user:", user);
+  console.log("HOT RELOAD TEST - Navigation updated at 17:50");
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);

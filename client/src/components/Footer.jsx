@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="container">
         <div className="row">
           <div className="col-md-6">
-            <h5 className="text-white ama-font shadow-for-ama">Mr. S Teaches</h5>
+            <h5 className="text-light ama-font shadow-for-ama">Mr. S Teaches</h5>
             <p className="mb-0 text-white">Educational tools and interactive learning experiences.</p>
           </div>
           <div className="col-md-6 text-md-end">
@@ -15,7 +15,7 @@ const Footer = () => {
               <a href="/blog" className="text-light text-decoration-none me-3">Blog</a>
               <a href="/educational-tools" className="text-light text-decoration-none">Tools</a>
             </div>
-            <small className="text-muted text-white">
+            <small className="text-muted text-light">
               © {new Date().getFullYear()} Mr. S Teaches. All rights reserved.
             </small>
           </div>
