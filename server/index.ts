@@ -129,6 +129,12 @@ express.static.mime.define({'application/javascript': ['jsx']});
 console.log('[server] serving static files from dist/public');
 app.use(express.static(path.join(__dirname, '../dist/public')));
 
+// Serve client source files in development for hot reload
+if (process.env.NODE_ENV === 'development') {
+  console.log('[server] serving client source files for hot reload');
+  app.use('/src', express.static(path.join(__dirname, '../client/src')));
+}
+
 // Use the HTTP server from routes for WebSocket support (MUST come before catch-all route)
 const httpServer = await registerRoutes(app);
 

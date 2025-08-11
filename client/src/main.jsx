@@ -13,6 +13,8 @@ if (import.meta.hot) {
   console.log('🔥 Vite HMR enabled for instant updates')
 }
 
+// Test comment for hot reload verification
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
