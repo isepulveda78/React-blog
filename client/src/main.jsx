@@ -4,26 +4,27 @@ import App from './App.jsx'
 import './index.css'
 import './custom.css'
 
-// Development Hot Reload
-if (import.meta.env.DEV) {
-  console.log('🔥 Development mode - Hot reload enabled')
-  
-  // Simple hot reload check
-  let lastModified = localStorage.getItem('lastReload') || Date.now()
-  
-  setInterval(() => {
-    fetch('/api/dev/check', { cache: 'no-cache' })
-      .then(res => res.json())
-      .then(data => {
-        if (data.lastModified && data.lastModified > lastModified) {
-          console.log('🔄 Files changed - reloading...')
-          localStorage.setItem('lastReload', data.lastModified)
-          window.location.reload()
-        }
-      })
-      .catch(() => {}) // Ignore errors
-  }, 1000)
-}
+// Working Hot Reload System
+console.log('🔥 Hot reload system active')
+
+let lastReloadCheck = Date.now()
+
+// Fast hot reload with immediate feedback
+setInterval(() => {
+  fetch('/api/dev/check?t=' + Date.now(), { 
+    cache: 'no-cache',
+    method: 'GET'
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.lastModified > lastReloadCheck) {
+      console.log('🔄 Hot reload: Files changed, reloading page...')
+      lastReloadCheck = Date.now()
+      window.location.reload()
+    }
+  })
+  .catch(() => {}) // Ignore network errors
+}, 500) // Check every 500ms for immediate response
 
 // 🔥 HOT RELOAD TEST CHANGE - If you see this comment change, it's working!
 

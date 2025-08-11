@@ -164,12 +164,11 @@ app.get('*', (req, res) => {
   console.log('Serving index.html for path:', req.path);
   console.log('NODE_ENV:', process.env.NODE_ENV);
   
-  // FORCE serve development HTML with hot reload (temporarily)
-  console.log('FORCING development HTML with hot reload');
+  // Serve development HTML with working hot reload
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  res.sendFile(path.join(__dirname, '../client/index-dev.html'));
+  res.sendFile(path.join(__dirname, '../client/index.html'));
 });
 
 httpServer.listen(PORT, "0.0.0.0", () => {
