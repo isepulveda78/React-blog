@@ -569,6 +569,34 @@ const AdminQuizGrades = ({ user }) => {
                               onChange={(e) => updateQuestion(qIndex, 'audioUrl', e.target.value)}
                               placeholder="https://example.com/audio.mp3"
                             />
+                            {question.audioUrl && (
+                              <div className="mt-2">
+                                <small className="text-muted">Preview audio:</small>
+                                <audio 
+                                  controls 
+                                  className="d-block mt-1 w-100"
+                                  style={{height: '35px'}}
+                                  preload="metadata"
+                                  onError={(e) => {
+                                    console.error('Edit preview audio error:', e);
+                                    const errorDiv = e.target.parentElement.querySelector('.edit-preview-error');
+                                    if (errorDiv) errorDiv.style.display = 'block';
+                                  }}
+                                  onLoadedData={() => {
+                                    console.log('Edit preview audio loaded');
+                                    const errorDiv = e.target.parentElement.querySelector('.edit-preview-error');
+                                    if (errorDiv) errorDiv.style.display = 'none';
+                                  }}
+                                >
+                                  <source src={question.audioUrl} type="audio/mpeg" />
+                                  <source src={question.audioUrl} type="audio/wav" />
+                                  <source src={question.audioUrl} type="audio/ogg" />
+                                </audio>
+                                <div className="edit-preview-error text-danger small mt-1" style={{display: 'none'}}>
+                                  ⚠️ Audio URL may not be accessible
+                                </div>
+                              </div>
+                            )}
                           </div>
                           
                           <div className="mb-3">

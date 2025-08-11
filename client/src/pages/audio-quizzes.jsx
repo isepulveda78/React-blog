@@ -210,10 +210,34 @@ const AudioQuizzes = ({ user }) => {
                     {selectedQuiz.questions.map((question, index) => (
                       <div key={index} className="mb-4">
                         <div className="mb-3">
-                          <audio controls className="w-100 mb-2">
-                            <source src={question.audioUrl} type="audio/mpeg" />
-                            Your browser does not support the audio element.
-                          </audio>
+                          <div className="audio-player-wrapper mb-3">
+                            <audio 
+                              controls 
+                              className="w-100 mb-2"
+                              preload="metadata"
+                              onError={(e) => {
+                                console.error('Audio error:', e);
+                                e.target.parentElement.querySelector('.audio-error').style.display = 'block';
+                              }}
+                              onLoadedData={() => {
+                                console.log('Audio loaded successfully');
+                              }}
+                            >
+                              <source src={question.audioUrl} type="audio/mpeg" />
+                              <source src={question.audioUrl} type="audio/wav" />
+                              <source src={question.audioUrl} type="audio/ogg" />
+                              Your browser does not support the audio element.
+                            </audio>
+                            <div className="audio-error alert alert-warning" style={{display: 'none'}}>
+                              <small>
+                                <strong>Audio Error:</strong> Could not load audio file. 
+                                Please check if the URL is valid: <br/>
+                                <a href={question.audioUrl} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
+                                  {question.audioUrl}
+                                </a>
+                              </small>
+                            </div>
+                          </div>
                           <h5>{question.question}</h5>
                         </div>
                         
@@ -298,6 +322,17 @@ const AudioQuizzes = ({ user }) => {
                   />
                 </div>
 
+                <div className="alert alert-info mb-4">
+                  <h6><i className="fas fa-info-circle me-2"></i>Audio URL Help</h6>
+                  <p className="mb-2">Use direct links to audio files. Working examples:</p>
+                  <ul className="mb-2">
+                    <li><code>https://www.soundjay.com/misc/sounds/beep-07a.mp3</code></li>
+                    <li><code>https://file-examples.com/storage/fe68c9fa4c07bb91554745a/2017/11/file_example_MP3_700KB.mp3</code></li>
+                    <li><code>https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3</code></li>
+                  </ul>
+                  <small>💡 Tip: Upload your audio to Google Drive, Dropbox, or use free audio hosting services, then get the direct download link.</small>
+                </div>
+
                 <h5>Questions</h5>
                 {formData.questions.map((question, index) => (
                   <div key={index} className="card mb-3">
@@ -311,8 +346,35 @@ const AudioQuizzes = ({ user }) => {
                           className="form-control"
                           value={question.audioUrl}
                           onChange={(e) => updateQuestion(index, 'audioUrl', e.target.value)}
-                          placeholder="Enter audio file URL"
+                          placeholder="https://example.com/audio.mp3"
                         />
+                        {question.audioUrl && (
+                          <div className="mt-2">
+                            <small className="text-muted">Test audio:</small>
+                            <audio 
+                              controls 
+                              className="d-block mt-1 w-100"
+                              style={{height: '40px'}}
+                              preload="metadata"
+                              onError={(e) => {
+                                console.error('Preview audio error:', e);
+                                e.target.parentElement.querySelector('.preview-error').style.display = 'block';
+                              }}
+                              onLoadedData={() => {
+                                console.log('Preview audio loaded');
+                                const errorDiv = document.querySelector('.preview-error');
+                                if (errorDiv) errorDiv.style.display = 'none';
+                              }}
+                            >
+                              <source src={question.audioUrl} type="audio/mpeg" />
+                              <source src={question.audioUrl} type="audio/wav" />
+                              <source src={question.audioUrl} type="audio/ogg" />
+                            </audio>
+                            <div className="preview-error text-danger small mt-1" style={{display: 'none'}}>
+                              ⚠️ Audio URL may not be valid or accessible
+                            </div>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="mb-3">
