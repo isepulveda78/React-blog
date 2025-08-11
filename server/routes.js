@@ -1979,15 +1979,31 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   const httpServer = createServer(app);
 
   // Create WebSocket server for chat functionality
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws',
+    verifyClient: (info) => {
+      console.log('[websocket] Verifying client connection:', {
+        origin: info.origin,
+        host: info.req.headers.host,
+        url: info.req.url
+      });
+      return true; // Accept all connections for now
+    }
+  });
   
   // Store active chat users by chatroom (in memory)
   const chatUsers = new Map();
   const chatroomUsers = new Map(); // Map of chatroom ID -> Set of user names
   let messageId = 1;
 
-  wss.on('connection', (ws) => {
-    console.log('[websocket] New client connected');
+  wss.on('connection', (ws, req) => {
+    console.log('[websocket] New client connected from:', req.socket.remoteAddress);
+    console.log('[websocket] Connection headers:', {
+      upgrade: req.headers.upgrade,
+      connection: req.headers.connection,
+      'sec-websocket-version': req.headers['sec-websocket-version']
+    });
     
     // Add error handler for the WebSocket connection
     ws.on('error', (error) => {
@@ -1995,9 +2011,10 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     });
     
     ws.on('message', (data) => {
+      console.log('[websocket] Raw message received:', data.toString());
       try {
         const message = JSON.parse(data.toString());
-        console.log('[websocket] Received message:', message);
+        console.log('[websocket] Parsed message:', message);
         
         switch (message.type) {
           case 'join':
