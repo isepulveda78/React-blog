@@ -28,7 +28,8 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       hmr: {
         overlay: true,
-        port: 3001
+        port: 3001,
+        host: '0.0.0.0'
       },
       proxy: {
         '/api': 'http://localhost:5000'

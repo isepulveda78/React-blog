@@ -15,7 +15,7 @@ export async function setupVite(app) {
         middlewareMode: true,
         hmr: {
           port: 3001,
-          host: 'localhost'
+          host: '0.0.0.0'
         },
         host: true,
         cors: {
