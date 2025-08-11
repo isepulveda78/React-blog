@@ -1,13 +1,28 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
 import './index.css'
 import './custom.css'
 
-// BlogCraft - Modern Blog Platform
+// Simple test to see if React is loading
+console.log('🚀 React main.jsx loading...')
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+// Test simple component first
+function TestApp() {
+  return React.createElement('div', { 
+    style: { 
+      padding: '20px', 
+      background: 'lightblue', 
+      textAlign: 'center',
+      fontSize: '24px'
+    }
+  }, '🎉 React is working! BlogCraft loading...')
+}
+
+const rootElement = document.getElementById('root')
+console.log('📦 Root element found:', rootElement)
+
+ReactDOM.createRoot(rootElement).render(
+  React.createElement(React.StrictMode, null, 
+    React.createElement(TestApp)
+  )
 )
