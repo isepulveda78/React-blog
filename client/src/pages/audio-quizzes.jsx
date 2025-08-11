@@ -38,76 +38,88 @@ const AudioQuizzes = ({ user }) => {
 
   // Advanced audio interaction system to prevent browser muting
   const unlockAudio = async () => {
+    console.log('🔓 unlockAudio function called!');
+    
     try {
       console.log('🔓 Starting audio unlock process...');
       
+      // Simple immediate unlock first
+      setAudioUnlocked(true);
+      console.log('✅ Audio state marked as unlocked');
+      
       // Method 1: Create audio context and play silent tone
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      await audioContext.resume();
-      
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      gainNode.gain.value = 0; // Silent
-      oscillator.frequency.value = 440;
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 0.1);
-      
-      // Method 2: Create and play a silent audio element
-      const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IAAAAAEAAQAAEAAAAgACABAAGQAAAWEBAAABAAATAAAKAAIAmZmZAAABAAA=');
-      audio.volume = 0.01;
-      try {
-        await audio.play();
-        audio.pause();
-      } catch (e) {
-        console.log('Silent audio play failed, but continuing...');
+      if (window.AudioContext || window.webkitAudioContext) {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('Audio context created, state:', audioContext.state);
+        
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume();
+          console.log('Audio context resumed');
+        }
+        
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        gainNode.gain.value = 0; // Silent
+        oscillator.frequency.value = 440;
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.1);
+        console.log('Silent oscillator played');
       }
       
-      // Method 3: Force all audio elements to unmute
-      const audioElements = document.querySelectorAll('audio');
-      console.log('Found', audioElements.length, 'audio elements to unlock');
+      // Method 2: Create and play a silent audio element
+      const audio = new Audio();
+      audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IAAAAAEAAQAAEAAAAgACABAAGQAAAWEBAAABAAATAAAKAAIAmZmZAAABAAA=';
+      audio.volume = 0.01;
+      audio.muted = false;
       
-      audioElements.forEach((audioEl, index) => {
-        console.log(`Unlocking audio element ${index + 1}`);
-        audioEl.muted = false;
-        audioEl.volume = 0.8;
+      try {
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          await playPromise;
+          console.log('Silent audio played successfully');
+          audio.pause();
+        }
+      } catch (e) {
+        console.log('Silent audio play failed:', e.message);
+      }
+      
+      // Method 3: Force all audio elements to unmute with a delay
+      setTimeout(() => {
+        const audioElements = document.querySelectorAll('audio');
+        console.log('Found', audioElements.length, 'audio elements to unlock');
         
-        // Add event listeners to prevent muting
-        audioEl.addEventListener('loadstart', () => {
+        audioElements.forEach((audioEl, index) => {
+          console.log(`Unlocking audio element ${index + 1}`);
           audioEl.muted = false;
           audioEl.volume = 0.8;
-        });
-        
-        audioEl.addEventListener('canplay', () => {
-          audioEl.muted = false;
-          audioEl.volume = 0.8;
-        });
-        
-        audioEl.addEventListener('play', () => {
-          audioEl.muted = false;
-          audioEl.volume = 0.8;
-        });
-        
-        // Prevent muting on hover and interaction events
-        ['mouseenter', 'mouseover', 'focus', 'click'].forEach(eventType => {
-          audioEl.addEventListener(eventType, () => {
+          
+          // Force properties
+          Object.defineProperty(audioEl, 'muted', {
+            value: false,
+            writable: true
+          });
+          
+          // Add persistent event listeners
+          const forceUnmute = () => {
             audioEl.muted = false;
             audioEl.volume = 0.8;
+          };
+          
+          ['loadstart', 'canplay', 'play', 'mouseenter', 'mouseover', 'focus', 'click'].forEach(eventType => {
+            audioEl.addEventListener(eventType, forceUnmute, { passive: true });
           });
         });
-      });
+      }, 100);
       
-      setAudioUnlocked(true);
       console.log('✅ Audio unlocked successfully!');
-      
-      // Show success feedback
-      alert('Audio unlocked! You can now play audio without muting issues.');
+      alert('Audio unlocked! Try playing audio now.');
       
     } catch (error) {
       console.error('❌ Audio unlock failed:', error);
-      setAudioUnlocked(true); // Still mark as unlocked to hide the button
+      alert('Audio unlock attempt completed (some features may be limited by browser)');
     }
   };
 
@@ -375,7 +387,10 @@ const AudioQuizzes = ({ user }) => {
                                 <div className="d-flex align-items-center">
                                   <button 
                                     className="btn btn-warning me-3"
-                                    onClick={unlockAudio}
+                                    onClick={() => {
+                                      console.log('🔓 Unlock button clicked!');
+                                      unlockAudio();
+                                    }}
                                   >
                                     🔓 Unlock Audio
                                   </button>
