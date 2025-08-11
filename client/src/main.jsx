@@ -10,10 +10,10 @@ import './hot-reload-simple.js'
 // Enable Hot Module Replacement in development
 if (import.meta.hot) {
   import.meta.hot.accept()
-  console.log('🔥 Vite HMR enabled for instant updates')
+  console.log('🔥 Vite HMR enabled for instant updates test')
 }
 
-// Test comment for hot reload verification - updated at 17:29 - NEW TEST
+// Test comment for hot reload verification - FINAL TEST AT 17:37
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
