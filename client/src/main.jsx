@@ -13,7 +13,7 @@ if (import.meta.hot) {
   console.log('🔥 Vite HMR enabled for instant updates test')
 }
 
-// 🎉 FINAL HOT RELOAD TEST - This change should trigger an immediate page refresh!
+// 🚨 WATCH THE PAGE - This change should reload automatically in 1-2 seconds!
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
