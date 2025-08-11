@@ -147,22 +147,7 @@ if (process.env.NODE_ENV === 'development') {
   app.use(express.static(path.join(__dirname, '../dist/public')));
 }
 
-// Add debug route BEFORE Vite middleware
-app.get('/debug', (req, res) => {
-  console.log('[debug] Debug route accessed');
-  res.sendFile(path.join(__dirname, '../client/debug.html'));
-});
-
-// Add root route for React app BEFORE Vite middleware
-app.get('/', (req, res) => {
-  console.log('[root] Serving React app from index.html');
-  res.sendFile(path.join(__dirname, '../client/index.html'));
-});
-
-// Use the HTTP server from routes for WebSocket support (MUST come before dev reload)
-const httpServer = await registerRoutes(app);
-
-// In development, setup Vite for React with JSX transformation (AFTER routes)
+// In development, setup Vite for React with JSX transformation (MUST come first)
 if (process.env.NODE_ENV === 'development') {
   console.log('[server] development mode - setting up Vite for React');
   // Import and setup Vite development server
@@ -170,27 +155,46 @@ if (process.env.NODE_ENV === 'development') {
   await setupVite(app);
 }
 
+// Add debug route AFTER Vite middleware but before API routes
+app.get('/debug', (req, res) => {
+  console.log('[debug] Debug route accessed');
+  res.sendFile(path.join(__dirname, '../client/debug.html'));
+});
+
+// Use the HTTP server from routes for WebSocket support (AFTER Vite)
+const httpServer = await registerRoutes(app);
+
 // Setup development reload system with WebSocket
 if (process.env.NODE_ENV === 'development') {
   const { setupDevReload } = await import('./dev-reload.js');
   setupDevReload(app, httpServer);
 }
 
-// Handle client-side routing - serve from built files (MUST come after API routes)
-if (process.env.NODE_ENV !== 'development') {
-  app.get('*', (req, res) => {
-    if (req.path.startsWith('/api')) {
-      return res.status(404).json({ message: 'API endpoint not found' });
-    }
-    
-    // Skip WebSocket upgrade requests
-    if (req.path === '/ws') {
-      return res.status(404).send('WebSocket endpoint');
-    }
-    
+// Handle client-side routing - serve HTML for development and production
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ message: 'API endpoint not found' });
+  }
+  
+  // Skip WebSocket upgrade requests
+  if (req.path === '/ws') {
+    return res.status(404).send('WebSocket endpoint');
+  }
+  
+  // Skip debug route
+  if (req.path === '/debug') {
+    return; // Already handled above
+  }
+  
+  console.log('[root] Serving React app from index.html for path:', req.path);
+  
+  if (process.env.NODE_ENV === 'development') {
+    res.sendFile(path.join(__dirname, '../client/index.html'));
+  } else {
     res.sendFile(path.resolve(__dirname, '../dist/index.html'));
-  });
-}
+  }
+});
 
 httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`[express] serving on port ${PORT}`);

@@ -30,8 +30,8 @@ export async function setupVite(app) {
       },
     });
 
-    // Use vite's connect instance as middleware only for development files
-    app.use('/', viteServer.middlewares);
+    // Use vite's connect instance as middleware for all requests
+    app.use(viteServer.middlewares);
     
     console.log('[vite] Development server middleware enabled');
   } catch (error) {
