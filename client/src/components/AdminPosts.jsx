@@ -14,10 +14,14 @@ const AdminPosts = ({ user }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [excerpt, setExcerpt] = useState('');
+  const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState('draft');
   const [featuredImage, setFeaturedImage] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  // Categories state
+  const [categories, setCategories] = useState([]);
 
   // ReactQuill configuration
   const modules = {
@@ -55,6 +59,7 @@ const AdminPosts = ({ user }) => {
 
   useEffect(() => {
     fetchPosts();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -62,12 +67,14 @@ const AdminPosts = ({ user }) => {
       setTitle(editingPost.title || '');
       setContent(editingPost.content || '');
       setExcerpt(editingPost.excerpt || '');
+      setCategoryId(editingPost.categoryId || '');
       setStatus(editingPost.status || 'draft');
       setFeaturedImage(editingPost.featuredImage || '');
     } else {
       setTitle('');
       setContent('');
       setExcerpt('');
+      setCategoryId('');
       setStatus('draft');
       setFeaturedImage('');
     }
@@ -90,6 +97,18 @@ const AdminPosts = ({ user }) => {
       console.error('AdminPosts: Error fetching posts:', error);
     }
     setLoading(false);
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
   };
 
   const handleImageUpload = async (file) => {
@@ -175,6 +194,7 @@ const AdminPosts = ({ user }) => {
           title,
           content,
           excerpt,
+          categoryId,
           status,
           featuredImage,
           authorId: user.id,
@@ -322,6 +342,22 @@ const AdminPosts = ({ user }) => {
               onChange={(e) => setExcerpt(e.target.value)}
               placeholder="Brief description of the post..."
             />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Category</label>
+            <select
+              className="form-select"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              <option value="">Select Category (Optional)</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </div>
           
           <div className="mb-3">

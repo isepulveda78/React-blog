@@ -1,6 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import PostEditor from './PostEditor.jsx';
 
 const AdminPostEditor = ({ user, postId }) => {
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(!!postId);
+  const [error, setError] = useState('');
+
   if (!user || !user.isAdmin) {
     return (
       <div className="container py-5">
@@ -11,16 +16,91 @@ const AdminPostEditor = ({ user, postId }) => {
     );
   }
 
-  return (
-    <div className="container py-5">
-      <h1 className="display-4 fw-bold text-primary mb-4">
-        {postId ? 'Edit Post' : 'Create New Post'}
-      </h1>
-      <div className="alert alert-info">
-        <h4>Post Editor</h4>
-        <p>This section is under development. Full post editing features coming soon!</p>
+  useEffect(() => {
+    if (postId) {
+      fetchPost();
+    }
+  }, [postId]);
+
+  const fetchPost = async () => {
+    try {
+      const response = await fetch(`/api/posts/${postId}`, {
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPost(data);
+      } else {
+        setError('Failed to load post');
+      }
+    } catch (error) {
+      console.error('Error fetching post:', error);
+      setError('Error loading post');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async (postData) => {
+    try {
+      const url = postId ? `/api/posts/${postId}` : '/api/posts';
+      const method = postId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(postData)
+      });
+
+      if (response.ok) {
+        // Redirect to admin posts list
+        window.location.href = '/admin/posts';
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Failed to save post');
+      }
+    } catch (error) {
+      console.error('Error saving post:', error);
+      alert('Error saving post');
+    }
+  };
+
+  const handleCancel = () => {
+    window.location.href = '/admin/posts';
+  };
+
+  if (loading) {
+    return (
+      <div className="container py-5">
+        <div className="text-center">
+          <div className="spinner-border text-primary"></div>
+          <p className="mt-2">Loading post...</p>
+        </div>
       </div>
-    </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container py-5">
+        <div className="alert alert-danger">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <PostEditor
+      user={user}
+      post={post}
+      onSave={handleSave}
+      onCancel={handleCancel}
+    />
   );
 };
 
