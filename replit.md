@@ -38,6 +38,14 @@ Cache management: Implemented hot reload system for instant change detection and
 - **Comments**: Nested commenting system.
 - **Chatrooms**: Admin-created chat spaces with invitation lists and access control.
 
+### Educational Tools & Features
+- **Code Evolution Visualization**: Real-time code evolution visualization with engaging transitions, interactive timeline, play/pause controls, and statistics tracking.
+- **City Builder**: Interactive city planning and building tool.
+- **Bingo Generator**: Custom bingo card creation for educational activities.
+- **Spanish Alphabet**: Interactive soundboard for learning Spanish letters.
+- **Word Sorter**: Drag-and-drop word sorting activities.
+- **Listen to Type**: Audio-based typing practice tool with chatroom integration.
+
 ### Authentication & Authorization
 - **User Registration/Login**: Email/password and Google OAuth authentication.
 - **Password Security**: bcrypt hashing.
@@ -78,6 +86,7 @@ Cache management: Implemented hot reload system for instant change detection and
 
 ### Development Tools
 - **Vite**: Build tool and development server.
+- **Hot Reload System**: Custom inline hot reload implementation for instant development feedback with visual indicators and console logging.
 - **Express.js**: Backend framework.
 
 ### Cloud Services

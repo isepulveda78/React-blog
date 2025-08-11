@@ -28,6 +28,7 @@ import SpanishAlphabet from './pages/spanish-alphabet.jsx'
 import WordSorter from './pages/word-sorter.jsx'
 import ListenToType from './pages/listen-to-type.jsx'
 import CityBuilder from './pages/city-builder-simple.jsx'
+import CodeEvolutionVisualization from './pages/code-evolution.jsx'
 import NotFound from './components/NotFound.jsx'
 
 // Auth Context
@@ -199,6 +200,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           )} />
           <Route path="/city-builder" component={() => <div style={{ height: '100vh', overflow: 'hidden' }}><CityBuilder user={user} /></div>} />
+          <Route path="/code-evolution" component={() => <CodeEvolutionVisualization user={user} />} />
           <Route path="/profile" component={() => (
             <ProtectedRoute>
               <UserProfile user={user} />
