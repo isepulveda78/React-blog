@@ -32,6 +32,28 @@ const AudioQuizzes = ({ user }) => {
     return url; // Return original if not a Google Drive URL
   };
 
+  // Enhanced audio event handlers to prevent muting
+  const handleAudioInteraction = (audioElement) => {
+    if (audioElement) {
+      audioElement.muted = false;
+      audioElement.volume = 0.8;
+      console.log('Audio interaction - muted:', audioElement.muted, 'volume:', audioElement.volume);
+    }
+  };
+
+  const audioEventHandlers = {
+    onLoadedData: (e) => handleAudioInteraction(e.target),
+    onCanPlay: (e) => handleAudioInteraction(e.target),
+    onClick: (e) => handleAudioInteraction(e.target),
+    onPlay: (e) => handleAudioInteraction(e.target),
+    onVolumeChange: (e) => {
+      if (e.target.muted) {
+        e.target.muted = false;
+        console.log('Volume change detected - forcing unmute');
+      }
+    }
+  };
+
   useEffect(() => {
     fetchQuizzes();
     if (user?.isAdmin || user?.role === 'teacher') {
@@ -235,17 +257,7 @@ const AudioQuizzes = ({ user }) => {
                                 console.error('Audio error:', e);
                                 e.target.parentElement.querySelector('.audio-error').style.display = 'block';
                               }}
-                              onLoadedData={(e) => {
-                                console.log('Audio loaded successfully');
-                                // Ensure audio is not muted when loaded
-                                e.target.muted = false;
-                                e.target.volume = 0.8;
-                              }}
-                              onCanPlay={(e) => {
-                                // Ensure audio is ready and unmuted
-                                e.target.muted = false;
-                                console.log('Audio can play, unmuted:', !e.target.muted);
-                              }}
+                              {...audioEventHandlers}
                             >
                               <source src={question.audioUrl} type="audio/mpeg" />
                               <source src={question.audioUrl} type="audio/wav" />
@@ -425,6 +437,14 @@ const AudioQuizzes = ({ user }) => {
                               onCanPlay={(e) => {
                                 e.target.muted = false;
                               }}
+                              onClick={(e) => {
+                                e.target.muted = false;
+                                e.target.volume = 0.8;
+                              }}
+                              onPlay={(e) => {
+                                e.target.muted = false;
+                                e.target.volume = 0.8;
+                              }}
                             >
                               <source src={question.audioUrl} type="audio/mpeg" />
                               <source src={question.audioUrl} type="audio/wav" />
@@ -595,6 +615,14 @@ const AudioQuizzes = ({ user }) => {
               }}
               onCanPlay={(e) => {
                 e.target.muted = false;
+              }}
+              onClick={(e) => {
+                e.target.muted = false;
+                e.target.volume = 0.8;
+              }}
+              onPlay={(e) => {
+                e.target.muted = false;
+                e.target.volume = 0.8;
               }}
             >
               <source src="https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3" type="audio/mpeg" />

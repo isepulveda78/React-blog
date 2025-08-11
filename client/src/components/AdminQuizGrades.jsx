@@ -640,6 +640,14 @@ const AdminQuizGrades = ({ user }) => {
                                   onCanPlay={(e) => {
                                     e.target.muted = false;
                                   }}
+                                  onClick={(e) => {
+                                    e.target.muted = false;
+                                    e.target.volume = 0.8;
+                                  }}
+                                  onPlay={(e) => {
+                                    e.target.muted = false;
+                                    e.target.volume = 0.8;
+                                  }}
                                 >
                                   <source src={question.audioUrl} type="audio/mpeg" />
                                   <source src={question.audioUrl} type="audio/wav" />
