@@ -21,7 +21,14 @@ export async function setupVite(app) {
         cors: {
           origin: true,
           credentials: true
-        }
+        },
+        allowedHosts: [
+          ".replit.dev",
+          ".repl.co", 
+          "localhost",
+          "127.0.0.1",
+          "0.0.0.0"
+        ]
       },
       appType: 'spa',
       root: path.resolve(__dirname, '../client'),

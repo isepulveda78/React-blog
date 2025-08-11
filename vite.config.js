@@ -36,7 +36,14 @@ export default defineConfig(({ mode }) => {
       watch: {
         usePolling: true,
         interval: 300
-      }
+      },
+      allowedHosts: [
+        ".replit.dev",
+        ".repl.co", 
+        "localhost",
+        "127.0.0.1",
+        "0.0.0.0"
+      ]
     }
   }
 })
