@@ -306,14 +306,16 @@ const ListenToType = ({ user }) => {
       }
 
       // Add to messages for display (except rejections)
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + Math.random(),
-          ...data,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
+      if (data.type === "message" || data.type === "user_joined" || data.type === "user_left") {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: data.id || Date.now() + Math.random(),
+            ...data,
+            timestamp: data.timestamp || new Date().toISOString(),
+          },
+        ]);
+      }
     };
 
     newSocket.onclose = (event) => {
@@ -667,6 +669,21 @@ const ListenToType = ({ user }) => {
                           >
                             <i className="fas fa-paper-plane"></i>
                           </button>
+                        </div>
+                        
+                        {/* Multi-user Testing Info */}
+                        <div className="mt-3">
+                          <div className="alert alert-info py-2">
+                            <small>
+                              <strong><i className="fas fa-info-circle me-1"></i>Testing Multi-User Chat:</strong>
+                              <br/>
+                              • Open another browser (Chrome + Firefox) or incognito window
+                              <br/>
+                              • Join the same chatroom with a different name
+                              <br/>
+                              • Messages will appear on both screens in real-time
+                            </small>
+                          </div>
                         </div>
                       </div>
                     )}
