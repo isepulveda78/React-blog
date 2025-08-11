@@ -2273,5 +2273,144 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     console.log(`[websocket] Message broadcasted to ${broadcastCount} clients`);
   }
 
+  // Audio Quiz Routes
+  app.get("/api/audio-quizzes", async (req, res) => {
+    try {
+      const quizzes = await storage.getAudioQuizzes();
+      res.json(quizzes);
+    } catch (error) {
+      console.error('Error fetching audio quizzes:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/audio-quizzes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const quiz = await storage.getAudioQuizById(id);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      res.json(quiz);
+    } catch (error) {
+      console.error('Error fetching audio quiz:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/audio-quizzes", async (req, res) => {
+    try {
+      // Check if user is admin or teacher
+      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Admin or teacher access required" });
+      }
+
+      const quizData = {
+        ...req.body,
+        createdBy: req.session.user.id,
+        createdByName: req.session.user.name || req.session.user.username
+      };
+
+      const quiz = await storage.createAudioQuiz(quizData);
+      res.status(201).json(quiz);
+    } catch (error) {
+      console.error('Error creating audio quiz:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/audio-quizzes/:id", async (req, res) => {
+    try {
+      // Check if user is admin or teacher
+      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Admin or teacher access required" });
+      }
+
+      const { id } = req.params;
+      const quiz = await storage.updateAudioQuiz(id, req.body);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      res.json(quiz);
+    } catch (error) {
+      console.error('Error updating audio quiz:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/audio-quizzes/:id", async (req, res) => {
+    try {
+      // Check if user is admin or teacher
+      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Admin or teacher access required" });
+      }
+
+      const { id } = req.params;
+      const deleted = await storage.deleteAudioQuiz(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting audio quiz:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Quiz Grade Routes
+  app.get("/api/quiz-grades", async (req, res) => {
+    try {
+      // Check if user is admin or teacher
+      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Admin or teacher access required" });
+      }
+
+      const { quizId, userId } = req.query;
+      let grades;
+      
+      if (quizId) {
+        grades = await storage.getQuizGradesByQuizId(quizId);
+      } else if (userId) {
+        grades = await storage.getQuizGradesByUserId(userId);
+      } else {
+        grades = await storage.getQuizGrades();
+      }
+
+      // Add user names to grades
+      const gradesWithNames = await Promise.all(
+        grades.map(async (grade) => {
+          const user = await storage.getUserById(grade.userId);
+          const quiz = await storage.getAudioQuizById(grade.quizId);
+          return {
+            ...grade,
+            userName: user?.name || user?.username || 'Unknown User',
+            quizTitle: quiz?.title || 'Unknown Quiz'
+          };
+        })
+      );
+
+      res.json(gradesWithNames);
+    } catch (error) {
+      console.error('Error fetching quiz grades:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/quiz-grades", async (req, res) => {
+    try {
+      const gradeData = {
+        ...req.body,
+        userId: req.session.user.id,
+        userName: req.session.user.name || req.session.user.username
+      };
+
+      const grade = await storage.createQuizGrade(gradeData);
+      res.status(201).json(grade);
+    } catch (error) {
+      console.error('Error creating quiz grade:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   return httpServer;
 }

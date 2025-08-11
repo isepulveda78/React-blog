@@ -27,6 +27,7 @@ import ListenToType from './pages/listen-to-type.jsx'
 import CityBuilder from './pages/city-builder.jsx'
 import CodeEvolutionVisualization from './pages/code-evolution.jsx'
 import CrosswordGenerator from './pages/crossword-generator.jsx'
+import AudioQuizzes from './pages/audio-quizzes.jsx'
 import NotFound from './components/NotFound.jsx'
 
 // Auth Context
@@ -214,6 +215,7 @@ const AppRoutes = () => {
           <Route path="/city-builder" component={() => <div style={{ height: '100vh', overflow: 'hidden' }}><CityBuilder user={user} /></div>} />
           <Route path="/code-evolution" component={() => <CodeEvolutionVisualization user={user} />} />
           <Route path="/crossword-generator" component={() => <CrosswordGenerator user={user} />} />
+          <Route path="/audio-quizzes" component={() => <AudioQuizzes user={user} />} />
           <Route path="/profile" component={() => (
             <ProtectedRoute>
               <UserProfile user={user} />

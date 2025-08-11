@@ -1,0 +1,533 @@
+import React, { useState, useEffect } from 'react';
+
+const AudioQuizzes = ({ user }) => {
+  const [quizzes, setQuizzes] = useState([]);
+  const [selectedQuiz, setSelectedQuiz] = useState(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [quizResult, setQuizResult] = useState(null);
+  const [grades, setGrades] = useState([]);
+  const [showGrades, setShowGrades] = useState(false);
+
+  // Form state for creating/editing quizzes
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    questions: [{ audioUrl: '', question: '', options: ['', '', '', ''], correctAnswer: 0 }]
+  });
+
+  useEffect(() => {
+    fetchQuizzes();
+    if (user?.isAdmin || user?.role === 'teacher') {
+      fetchGrades();
+    }
+  }, [user]);
+
+  const fetchQuizzes = async () => {
+    try {
+      const response = await fetch('/api/audio-quizzes', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setQuizzes(data);
+      }
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchGrades = async () => {
+    try {
+      const response = await fetch('/api/quiz-grades', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setGrades(data);
+      }
+    } catch (error) {
+      console.error('Error fetching grades:', error);
+    }
+  };
+
+  const handleCreateQuiz = async () => {
+    try {
+      const response = await fetch('/api/audio-quizzes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        const newQuiz = await response.json();
+        setQuizzes([newQuiz, ...quizzes]);
+        setShowCreateForm(false);
+        setFormData({
+          title: '',
+          description: '',
+          questions: [{ audioUrl: '', question: '', options: ['', '', '', ''], correctAnswer: 0 }]
+        });
+        alert('Quiz created successfully!');
+      } else {
+        const error = await response.json();
+        alert('Error creating quiz: ' + (error.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error creating quiz:', error);
+      alert('Error creating quiz');
+    }
+  };
+
+  const handleTakeQuiz = (quiz) => {
+    setSelectedQuiz(quiz);
+    setQuizAnswers({});
+    setQuizResult(null);
+  };
+
+  const handleAnswerChange = (questionIndex, answerIndex) => {
+    setQuizAnswers(prev => ({
+      ...prev,
+      [questionIndex]: answerIndex
+    }));
+  };
+
+  const handleSubmitQuiz = async () => {
+    const questions = selectedQuiz.questions;
+    let correctCount = 0;
+
+    questions.forEach((question, index) => {
+      if (quizAnswers[index] === question.correctAnswer) {
+        correctCount++;
+      }
+    });
+
+    const score = Math.round((correctCount / questions.length) * 100);
+    const result = {
+      score,
+      correctCount,
+      totalQuestions: questions.length,
+      answers: quizAnswers
+    };
+
+    setQuizResult(result);
+
+    // Save grade to database
+    try {
+      await fetch('/api/quiz-grades', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          quizId: selectedQuiz.id,
+          quizTitle: selectedQuiz.title,
+          score,
+          correctAnswers: correctCount,
+          totalQuestions: questions.length
+        })
+      });
+    } catch (error) {
+      console.error('Error saving grade:', error);
+    }
+  };
+
+  const addQuestion = () => {
+    setFormData(prev => ({
+      ...prev,
+      questions: [...prev.questions, { audioUrl: '', question: '', options: ['', '', '', ''], correctAnswer: 0 }]
+    }));
+  };
+
+  const updateQuestion = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      questions: prev.questions.map((q, i) => 
+        i === index ? { ...q, [field]: value } : q
+      )
+    }));
+  };
+
+  const updateOption = (questionIndex, optionIndex, value) => {
+    setFormData(prev => ({
+      ...prev,
+      questions: prev.questions.map((q, i) => 
+        i === questionIndex 
+          ? { ...q, options: q.options.map((opt, oi) => oi === optionIndex ? value : opt) }
+          : q
+      )
+    }));
+  };
+
+  const canCreateQuiz = user?.isAdmin || user?.role === 'teacher';
+
+  if (loading) {
+    return (
+      <div className="container py-5 text-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Quiz Taking View
+  if (selectedQuiz) {
+    return (
+      <div className="container py-5">
+        <div className="row">
+          <div className="col-12">
+            <button 
+              className="btn btn-outline-secondary mb-4"
+              onClick={() => setSelectedQuiz(null)}
+            >
+              ← Back to Quizzes
+            </button>
+            
+            <div className="card">
+              <div className="card-header">
+                <h3 className="mb-0">{selectedQuiz.title}</h3>
+                <p className="text-muted mb-0">{selectedQuiz.description}</p>
+              </div>
+              <div className="card-body">
+                {quizResult ? (
+                  <div className="text-center">
+                    <div className={`alert ${quizResult.score >= 70 ? 'alert-success' : 'alert-warning'}`}>
+                      <h4>Quiz Complete!</h4>
+                      <p className="mb-2">Score: {quizResult.score}%</p>
+                      <p className="mb-0">
+                        You got {quizResult.correctCount} out of {quizResult.totalQuestions} questions correct
+                      </p>
+                    </div>
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => setSelectedQuiz(null)}
+                    >
+                      Back to Quizzes
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    {selectedQuiz.questions.map((question, index) => (
+                      <div key={index} className="mb-4">
+                        <div className="mb-3">
+                          <audio controls className="w-100 mb-2">
+                            <source src={question.audioUrl} type="audio/mpeg" />
+                            Your browser does not support the audio element.
+                          </audio>
+                          <h5>{question.question}</h5>
+                        </div>
+                        
+                        <div className="row">
+                          {question.options.map((option, optionIndex) => (
+                            <div key={optionIndex} className="col-md-6 mb-2">
+                              <div className="form-check">
+                                <input 
+                                  className="form-check-input" 
+                                  type="radio" 
+                                  name={`question-${index}`}
+                                  id={`q${index}-opt${optionIndex}`}
+                                  checked={quizAnswers[index] === optionIndex}
+                                  onChange={() => handleAnswerChange(index, optionIndex)}
+                                />
+                                <label className="form-check-label" htmlFor={`q${index}-opt${optionIndex}`}>
+                                  {option}
+                                </label>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div className="text-center mt-4">
+                      <button 
+                        className="btn btn-success btn-lg"
+                        onClick={handleSubmitQuiz}
+                        disabled={Object.keys(quizAnswers).length < selectedQuiz.questions.length}
+                      >
+                        Submit Quiz
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Create Quiz Form
+  if (showCreateForm) {
+    return (
+      <div className="container py-5">
+        <div className="row">
+          <div className="col-12">
+            <button 
+              className="btn btn-outline-secondary mb-4"
+              onClick={() => setShowCreateForm(false)}
+            >
+              ← Back to Quizzes
+            </button>
+            
+            <div className="card">
+              <div className="card-header">
+                <h3 className="mb-0">Create New Audio Quiz</h3>
+              </div>
+              <div className="card-body">
+                <div className="mb-3">
+                  <label className="form-label">Quiz Title</label>
+                  <input 
+                    type="text" 
+                    className="form-control"
+                    value={formData.title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Enter quiz title"
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="form-label">Description</label>
+                  <textarea 
+                    className="form-control"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Enter quiz description"
+                    rows="3"
+                  />
+                </div>
+
+                <h5>Questions</h5>
+                {formData.questions.map((question, index) => (
+                  <div key={index} className="card mb-3">
+                    <div className="card-body">
+                      <h6>Question {index + 1}</h6>
+                      
+                      <div className="mb-3">
+                        <label className="form-label">Audio URL</label>
+                        <input 
+                          type="url" 
+                          className="form-control"
+                          value={question.audioUrl}
+                          onChange={(e) => updateQuestion(index, 'audioUrl', e.target.value)}
+                          placeholder="Enter audio file URL"
+                        />
+                      </div>
+                      
+                      <div className="mb-3">
+                        <label className="form-label">Question Text</label>
+                        <input 
+                          type="text" 
+                          className="form-control"
+                          value={question.question}
+                          onChange={(e) => updateQuestion(index, 'question', e.target.value)}
+                          placeholder="Enter the question"
+                        />
+                      </div>
+
+                      <div className="mb-3">
+                        <label className="form-label">Answer Options</label>
+                        {question.options.map((option, optionIndex) => (
+                          <div key={optionIndex} className="input-group mb-2">
+                            <span className="input-group-text">
+                              <input 
+                                type="radio"
+                                name={`correct-${index}`}
+                                checked={question.correctAnswer === optionIndex}
+                                onChange={() => updateQuestion(index, 'correctAnswer', optionIndex)}
+                                title="Mark as correct answer"
+                              />
+                            </span>
+                            <input 
+                              type="text"
+                              className="form-control"
+                              value={option}
+                              onChange={(e) => updateOption(index, optionIndex, e.target.value)}
+                              placeholder={`Option ${optionIndex + 1}`}
+                            />
+                          </div>
+                        ))}
+                        <small className="text-muted">Select the radio button next to the correct answer</small>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="text-center mb-4">
+                  <button 
+                    className="btn btn-outline-primary"
+                    onClick={addQuestion}
+                  >
+                    + Add Question
+                  </button>
+                </div>
+
+                <div className="text-center">
+                  <button 
+                    className="btn btn-success btn-lg me-3"
+                    onClick={handleCreateQuiz}
+                    disabled={!formData.title || formData.questions.some(q => !q.audioUrl || !q.question)}
+                  >
+                    Create Quiz
+                  </button>
+                  <button 
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowCreateForm(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Grades View for Teachers/Admins
+  if (showGrades && canCreateQuiz) {
+    return (
+      <div className="container py-5">
+        <div className="row">
+          <div className="col-12">
+            <button 
+              className="btn btn-outline-secondary mb-4"
+              onClick={() => setShowGrades(false)}
+            >
+              ← Back to Quizzes
+            </button>
+            
+            <div className="card">
+              <div className="card-header">
+                <h3 className="mb-0">Student Grades</h3>
+              </div>
+              <div className="card-body">
+                {grades.length === 0 ? (
+                  <p className="text-center text-muted">No quiz submissions yet.</p>
+                ) : (
+                  <div className="table-responsive">
+                    <table className="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>Student</th>
+                          <th>Quiz</th>
+                          <th>Score</th>
+                          <th>Correct/Total</th>
+                          <th>Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {grades.map((grade) => (
+                          <tr key={grade.id}>
+                            <td>{grade.userName}</td>
+                            <td>{grade.quizTitle}</td>
+                            <td>
+                              <span className={`badge ${grade.score >= 70 ? 'bg-success' : 'bg-warning'}`}>
+                                {grade.score}%
+                              </span>
+                            </td>
+                            <td>{grade.correctAnswers}/{grade.totalQuestions}</td>
+                            <td>{new Date(grade.createdAt).toLocaleDateString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main Quiz List View
+  return (
+    <div className="container py-5">
+      <div className="row">
+        <div className="col-12 text-center mb-5">
+          <h1 className="display-4 fw-bold text-primary mb-3">Audio Quizzes</h1>
+          <p className="lead text-muted">
+            Test your listening skills with interactive audio-based quizzes
+          </p>
+        </div>
+      </div>
+
+      {canCreateQuiz && (
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="card border-primary">
+              <div className="card-body text-center">
+                <h5 className="card-title">Teacher Tools</h5>
+                <div className="btn-group" role="group">
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => setShowCreateForm(true)}
+                  >
+                    Create New Quiz
+                  </button>
+                  <button 
+                    className="btn btn-outline-primary"
+                    onClick={() => setShowGrades(true)}
+                  >
+                    View Student Grades
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="row">
+        {quizzes.length === 0 ? (
+          <div className="col-12 text-center">
+            <div className="card">
+              <div className="card-body py-5">
+                <i className="fas fa-headphones fa-3x text-muted mb-3"></i>
+                <h4 className="text-muted">No Audio Quizzes Available</h4>
+                <p className="text-muted">
+                  {canCreateQuiz 
+                    ? "Create your first audio quiz to get started!"
+                    : "Check back later for new quizzes from your teachers."
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          quizzes.map((quiz) => (
+            <div key={quiz.id} className="col-md-6 col-lg-4 mb-4">
+              <div className="card h-100 shadow-sm">
+                <div className="card-body">
+                  <h5 className="card-title">{quiz.title}</h5>
+                  <p className="card-text">{quiz.description}</p>
+                  <p className="text-muted small mb-3">
+                    <i className="fas fa-question-circle me-1"></i>
+                    {quiz.questions?.length || 0} questions
+                  </p>
+                  <p className="text-muted small">
+                    Created by: {quiz.createdByName}
+                  </p>
+                </div>
+                <div className="card-footer bg-transparent">
+                  <button 
+                    className="btn btn-primary w-100"
+                    onClick={() => handleTakeQuiz(quiz)}
+                  >
+                    Take Quiz
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AudioQuizzes;

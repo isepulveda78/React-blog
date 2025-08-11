@@ -10,6 +10,8 @@ class MemStorage {
     this.categories = [];
     this.comments = [];
     this.chatrooms = [];
+    this.audioQuizzes = [];
+    this.quizGrades = [];
     console.log('[storage] Using in-memory storage');
     this.initializeSampleData();
   }
@@ -196,6 +198,63 @@ class MemStorage {
     if (index === -1) return false;
     this.chatrooms.splice(index, 1);
     return true;
+  }
+
+  // Audio Quiz Methods
+  async getAudioQuizzes() {
+    return this.audioQuizzes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  async getAudioQuizById(id) {
+    return this.audioQuizzes.find(q => q.id === id);
+  }
+
+  async createAudioQuiz(quizData) {
+    const quiz = {
+      id: nanoid(),
+      ...quizData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    this.audioQuizzes.push(quiz);
+    return quiz;
+  }
+
+  async updateAudioQuiz(id, quizData) {
+    const index = this.audioQuizzes.findIndex(q => q.id === id);
+    if (index === -1) return null;
+    this.audioQuizzes[index] = { ...this.audioQuizzes[index], ...quizData, updatedAt: new Date().toISOString() };
+    return this.audioQuizzes[index];
+  }
+
+  async deleteAudioQuiz(id) {
+    const index = this.audioQuizzes.findIndex(q => q.id === id);
+    if (index === -1) return false;
+    this.audioQuizzes.splice(index, 1);
+    return true;
+  }
+
+  // Quiz Grade Methods
+  async getQuizGrades() {
+    return this.quizGrades.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  async getQuizGradesByQuizId(quizId) {
+    return this.quizGrades.filter(g => g.quizId === quizId);
+  }
+
+  async getQuizGradesByUserId(userId) {
+    return this.quizGrades.filter(g => g.userId === userId);
+  }
+
+  async createQuizGrade(gradeData) {
+    const grade = {
+      id: nanoid(),
+      ...gradeData,
+      createdAt: new Date().toISOString()
+    };
+    this.quizGrades.push(grade);
+    return grade;
   }
 
   async updateUserApproval(userId, approved) {
@@ -1296,6 +1355,77 @@ export class MongoStorage {
     await this.connect();
     const result = await this.db.collection('chatrooms').deleteOne({ id: chatroomId });
     return result.deletedCount > 0;
+  }
+
+  // Audio Quiz Methods
+  async getAudioQuizzes() {
+    await this.connect();
+    return await this.db.collection('audioQuizzes').find({}).sort({ createdAt: -1 }).toArray();
+  }
+
+  async getAudioQuizById(id) {
+    await this.connect();
+    return await this.db.collection('audioQuizzes').findOne({ id });
+  }
+
+  async createAudioQuiz(quizData) {
+    await this.connect();
+    const quiz = {
+      id: nanoid(),
+      ...quizData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    await this.db.collection('audioQuizzes').insertOne(quiz);
+    return quiz;
+  }
+
+  async updateAudioQuiz(id, quizData) {
+    await this.connect();
+    const existingQuiz = await this.db.collection('audioQuizzes').findOne({ id });
+    if (!existingQuiz) return null;
+    
+    const updatedQuiz = {
+      ...existingQuiz,
+      ...quizData,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await this.db.collection('audioQuizzes').updateOne({ id }, { $set: updatedQuiz });
+    return updatedQuiz;
+  }
+
+  async deleteAudioQuiz(id) {
+    await this.connect();
+    const result = await this.db.collection('audioQuizzes').deleteOne({ id });
+    return result.deletedCount > 0;
+  }
+
+  // Quiz Grade Methods
+  async getQuizGrades() {
+    await this.connect();
+    return await this.db.collection('quizGrades').find({}).sort({ createdAt: -1 }).toArray();
+  }
+
+  async getQuizGradesByQuizId(quizId) {
+    await this.connect();
+    return await this.db.collection('quizGrades').find({ quizId }).sort({ createdAt: -1 }).toArray();
+  }
+
+  async getQuizGradesByUserId(userId) {
+    await this.connect();
+    return await this.db.collection('quizGrades').find({ userId }).sort({ createdAt: -1 }).toArray();
+  }
+
+  async createQuizGrade(gradeData) {
+    await this.connect();
+    const grade = {
+      id: nanoid(),
+      ...gradeData,
+      createdAt: new Date().toISOString()
+    };
+    await this.db.collection('quizGrades').insertOne(grade);
+    return grade;
   }
 }
 

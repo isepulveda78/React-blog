@@ -414,9 +414,6 @@ function BlogPost({ user, slug }) {
               className: "badge bg-primary mb-3" 
             }, post.categoryName),
             React.createElement("h1", { className: "display-5 fw-bold mb-3" }, post.title),
-            post.excerpt && React.createElement("p", { 
-              className: "lead text-muted mb-4" 
-            }, post.excerpt),
             React.createElement("div", { 
               className: "d-flex justify-content-center align-items-center text-muted mb-4" 
             },
@@ -426,12 +423,6 @@ function BlogPost({ user, slug }) {
               React.createElement("span", { className: "mx-2" }, "•"),
               React.createElement("span", null, Math.ceil(post.content.replace(/<[^>]*>/g, '').length / 200), " min read")
             ),
-            post.featuredImage && React.createElement("img", {
-              src: decodeHTMLEntities(post.featuredImage),
-              alt: post.title,
-              className: "img-fluid rounded shadow-sm mb-4",
-              style: { maxHeight: "400px", width: "100%", objectFit: "cover" }
-            })
           ),
           // Post Content
           React.createElement("div", {
