@@ -1,5 +1,5 @@
 import React from 'react';
-import HotReloadDemo from './HotReloadDemo.jsx';
+import TestHotReload from './TestHotReload.jsx';
 
 const Hero = ({ user }) => {
   console.log('Hero component - current user:', user);
@@ -10,7 +10,7 @@ const Hero = ({ user }) => {
           <div className="col-lg-6">
             <div className="hero-content">
               <h1 className="display-4 fw-bold text-primary mb-4">
-                {user ? `Welcome back, ${user.username}!` : "Welcome to Mr. S Teaches"}
+                {user ? `Welcome back, ${user.username}!` : "Welcome to Mr. S Teaches - HOT RELOAD WORKING!"}
               </h1>
               <p className="lead text-muted mb-4">
                 Discover amazing content, share your thoughts, and connect with a community of learners and educators.
@@ -32,8 +32,8 @@ const Hero = ({ user }) => {
                 </div>
               )}
               
-              {/* Hot Reload Demo - only in development */}
-              {import.meta.env.DEV && <HotReloadDemo />}
+              {/* Hot Reload Demo - always show for testing */}
+              <TestHotReload />
             </div>
           </div>
           <div className="col-lg-6 text-center">

@@ -19,7 +19,7 @@ if (import.meta.hot) {
   console.log('⚡ Vite HMR + Fast Refresh enabled')
 }
 
-// ⚡ REACT HOT RELOAD TEST - Look for orange "FAST REFRESH" indicator and demo component!
+// 🔥 HOT RELOAD TEST CHANGE - If you see this comment change, it's working!
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

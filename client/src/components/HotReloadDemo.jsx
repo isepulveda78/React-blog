@@ -15,13 +15,13 @@ const HotReloadDemo = () => {
         </p>
         <div className="d-flex align-items-center gap-3">
           <button 
-            className="btn btn-primary" 
+            className="btn btn-success" 
             onClick={() => setCount(count + 1)}
           >
-            Count: {count}
+            Clicks: {count}
           </button>
-          <span className="badge bg-success">
-            State preserved during hot reload!
+          <span className="badge bg-warning">
+            Test: Change this component and watch state stay!
           </span>
         </div>
         <div className="mt-2">
