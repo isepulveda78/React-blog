@@ -634,6 +634,8 @@ export function registerRoutes(app) {
       }
 
       const postData = req.body;
+      console.log('[server] POST /api/posts - Received data:', JSON.stringify(postData, null, 2));
+      console.log('[server] Featured image in create:', postData.featuredImage);
       
       // Input validation for post creation
       if (!validatePostTitle(postData.title)) {
@@ -685,6 +687,21 @@ export function registerRoutes(app) {
       const { id } = req.params;
       const postData = req.body;
       
+      console.log('[server] PUT /api/posts/:id - Received data:', JSON.stringify(postData, null, 2));
+      console.log('[server] Featured image in update:', postData.featuredImage);
+      
+      // Get existing post to preserve image if not provided
+      const existingPost = await storage.getPostById(id);
+      if (!existingPost) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+      
+      // If no featuredImage provided, preserve the existing one
+      if (!postData.featuredImage && existingPost.featuredImage) {
+        postData.featuredImage = existingPost.featuredImage;
+        console.log('[server] Preserving existing image:', existingPost.featuredImage);
+      }
+      
       // Add category name if categoryId is provided
       if (postData.categoryId) {
         const category = await storage.getCategoryById(postData.categoryId);
@@ -697,6 +714,8 @@ export function registerRoutes(app) {
       if (!post) {
         return res.status(404).json({ message: "Post not found" });
       }
+      
+      console.log('[server] Updated post with featuredImage:', post.featuredImage);
 
       res.json(post);
     } catch (error) {
