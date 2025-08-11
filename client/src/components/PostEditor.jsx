@@ -23,6 +23,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   useEffect(() => {
     fetchCategories();
     if (post) {
+      console.log('PostEditor: Loading post data:', post);
       setFormData({
         title: post.title || '',
         content: post.content || '',
@@ -36,6 +37,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
         seoTitle: post.seoTitle || '',
         focusKeyword: post.focusKeyword || ''
       });
+      console.log('PostEditor: Featured image from post:', post.featuredImage);
     }
   }, [post]);
 
@@ -197,25 +199,33 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       return;
     }
 
+    console.log('PostEditor: Saving post with data:', formData);
+    console.log('PostEditor: Featured image being saved:', formData.featuredImage);
+
     setLoading(true);
     
     try {
       const url = post ? `/api/posts/${post.id}` : '/api/posts';
       const method = post ? 'PUT' : 'POST';
       
+      const saveData = {
+        ...formData,
+        authorId: user.id,
+        authorName: user.name || user.username
+      };
+      
+      console.log('PostEditor: Full save data:', saveData);
+      
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          ...formData,
-          authorId: user.id,
-          authorName: user.name || user.username
-        })
+        body: JSON.stringify(saveData)
       });
 
       if (response.ok) {
         const savedPost = await response.json();
+        console.log('PostEditor: Post saved successfully:', savedPost);
         onSave(savedPost);
       } else {
         const error = await response.json();
