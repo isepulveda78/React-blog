@@ -4,7 +4,21 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mr. S Teaches</title>
+    <title>🚨 HOT RELOAD TEST - Mr. S Teaches - TIME: {new Date().toLocaleTimeString()}</title>
+    <style>
+      body { background: linear-gradient(45deg, red, blue, green) !important; }
+      .hot-reload-indicator {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: lime;
+        color: black;
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 9999;
+        font-weight: bold;
+      }
+    </style>
 
     <!-- Bootstrap CSS -->
     <link
@@ -49,46 +63,45 @@
     </style>
   </head>
   <body>
+    <div class="hot-reload-indicator">🔥 HOT RELOAD ACTIVE</div>
     <div id="root"></div>
     <script>
-      // WebSocket hot reload - instant and reliable
-      console.log('🔥 Starting WebSocket hot reload...')
+      // Force immediate cache clear and connection check
+      console.log('🚀 CLEARING CACHE AND TESTING CONNECTION...')
       
-      function connectHotReload() {
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
-        const wsUrl = `${protocol}//${window.location.host}/hot-reload`
-        
-        try {
-          const ws = new WebSocket(wsUrl)
-          
-          ws.onopen = () => {
-            console.log('🔌 Hot reload WebSocket connected')
-          }
-          
-          ws.onmessage = (event) => {
-            const data = JSON.parse(event.data)
-            if (data.type === 'reload') {
-              console.log('🔄 Hot reload triggered via WebSocket!')
-              window.location.reload()
-            }
-          }
-          
-          ws.onclose = () => {
-            console.log('🔌 Hot reload WebSocket disconnected, reconnecting...')
-            setTimeout(connectHotReload, 2000)
-          }
-          
-          ws.onerror = (error) => {
-            console.log('🔌 Hot reload WebSocket error:', error)
-          }
-        } catch (error) {
-          console.log('Hot reload WebSocket failed to connect:', error)
-          setTimeout(connectHotReload, 2000)
-        }
+      // Clear all caches immediately
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          names.forEach(name => caches.delete(name))
+        })
       }
       
-      // Start WebSocket connection after page loads
-      setTimeout(connectHotReload, 1000)
+      // Simple polling-based hot reload (reliable fallback)
+      console.log('🔥 Starting polling hot reload...')
+      let lastCheck = Date.now()
+      
+      function checkForUpdates() {
+        fetch('/api/dev/check?t=' + Date.now(), { 
+          cache: 'no-cache',
+          credentials: 'same-origin'
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.lastModified > lastCheck) {
+            console.log('🔄 Files changed! Reloading...')
+            window.location.reload()
+          }
+        })
+        .catch(err => {
+          console.log('Hot reload check failed:', err)
+        })
+      }
+      
+      // Check every 2 seconds
+      setInterval(checkForUpdates, 2000)
+      
+      // Also check on focus (when user comes back to tab)
+      window.addEventListener('focus', checkForUpdates)
     </script>
     <script type="module" src="/src/main.jsx"></script>
     <script type="module">

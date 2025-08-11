@@ -125,9 +125,14 @@ app.get('/health', (req, res) => {
 // Configure Express to serve JSX files with JavaScript MIME type
 express.static.mime.define({'application/javascript': ['jsx']});
 
-// Serve static files from built assets (using production build for stability)
-console.log('[server] serving static files from dist/public');
-app.use(express.static(path.join(__dirname, '../dist/public')));
+// In development, serve from client folder, not dist
+if (process.env.NODE_ENV === 'development') {
+  console.log('[server] DEVELOPMENT MODE: serving static files from client/public');
+  app.use(express.static(path.join(__dirname, '../client/public')));
+} else {
+  console.log('[server] serving static files from dist/public');
+  app.use(express.static(path.join(__dirname, '../dist/public')));
+}
 
 // Serve client source files in development for hot reload
 if (process.env.NODE_ENV === 'development') {
@@ -168,6 +173,7 @@ app.get('*', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
+  console.log('[server] SERVING DEVELOPMENT HTML from client/index.html');
   res.sendFile(path.join(__dirname, '../client/index.html'));
 });
 

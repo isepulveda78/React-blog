@@ -4,13 +4,13 @@ import React from 'react';
 const Hero = ({ user }) => {
   console.log('Hero component - current user:', user);
   return (
-    <section className="bg-gradient-to-br from-blue-50 to-purple-50 py-5 mb-5">
+    <section className="py-5 mb-5" style={{backgroundColor: 'red', color: 'white', fontSize: '30px'}}>
       <div className="container">
         <div className="row align-items-center min-vh-50">
           <div className="col-lg-6">
             <div className="hero-content">
-              <h1 className="display-4 fw-bold text-primary mb-4">
-                🎉 HOT RELOAD NOW WORKING! - {user ? `Welcome back, ${user.username}!` : "Welcome to Mr. S Teaches!"}
+              <h1 className="display-4 fw-bold text-success mb-4" style={{fontSize: '48px', background: 'yellow', padding: '20px'}}>
+                ✅ HOT RELOAD FIXED! - {user ? `Welcome back, ${user.username}!` : "Welcome to Mr. S Teaches!"} - {new Date().toLocaleTimeString()}
               </h1>
               <p className="lead text-muted mb-4">
                 Discover amazing content, share your thoughts, and connect with a community of learners and educators.
