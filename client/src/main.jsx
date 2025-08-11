@@ -4,19 +4,25 @@ import App from './App.jsx'
 import './index.css'
 import './custom.css'
 
-// Enhanced Hot Reload System
-import './hot-reload-enhanced.js'
-
-// Enable Vite's Hot Module Replacement
-if (import.meta.hot) {
-  import.meta.hot.accept()
+// Development Hot Reload
+if (import.meta.env.DEV) {
+  console.log('🔥 Development mode - Hot reload enabled')
   
-  // Accept updates to this module and its dependencies
-  import.meta.hot.accept('./App.jsx', () => {
-    console.log('🔄 App component updated via HMR')
-  })
+  // Simple hot reload check
+  let lastModified = localStorage.getItem('lastReload') || Date.now()
   
-  console.log('⚡ Vite HMR + Fast Refresh enabled')
+  setInterval(() => {
+    fetch('/api/dev/check', { cache: 'no-cache' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.lastModified && data.lastModified > lastModified) {
+          console.log('🔄 Files changed - reloading...')
+          localStorage.setItem('lastReload', data.lastModified)
+          window.location.reload()
+        }
+      })
+      .catch(() => {}) // Ignore errors
+  }, 1000)
 }
 
 // 🔥 HOT RELOAD TEST CHANGE - If you see this comment change, it's working!
