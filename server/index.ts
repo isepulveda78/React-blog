@@ -141,14 +141,14 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Setup development reload system
+// Use the HTTP server from routes for WebSocket support (MUST come before dev reload)
+const httpServer = await registerRoutes(app);
+
+// Setup development reload system with WebSocket
 if (process.env.NODE_ENV === 'development') {
   const { setupDevReload } = await import('./dev-reload.js');
-  setupDevReload(app);
+  setupDevReload(app, httpServer);
 }
-
-// Use the HTTP server from routes for WebSocket support (MUST come before catch-all route)
-const httpServer = await registerRoutes(app);
 
 // Handle client-side routing - serve from built files (MUST come after API routes)
 app.get('*', (req, res) => {

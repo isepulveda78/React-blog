@@ -51,26 +51,44 @@
   <body>
     <div id="root"></div>
     <script>
-      // Force hot reload check every 2 seconds
-      setTimeout(() => {
-        console.log('🔥 Manual hot reload system starting...')
-        let lastCheck = Date.now()
+      // WebSocket hot reload - instant and reliable
+      console.log('🔥 Starting WebSocket hot reload...')
+      
+      function connectHotReload() {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
+        const wsUrl = `${protocol}//${window.location.host}/hot-reload`
         
-        setInterval(() => {
-          fetch('/api/dev/check?t=' + Date.now())
-          .then(res => res.json())
-          .then(data => {
-            console.log('Manual check:', data.lastModified, 'vs', lastCheck)
-            if (data.lastModified > lastCheck) {
-              console.log('🔄 MANUAL RELOAD TRIGGERED!')
-              alert('Files changed! Reloading...')
-              lastCheck = Date.now()
+        try {
+          const ws = new WebSocket(wsUrl)
+          
+          ws.onopen = () => {
+            console.log('🔌 Hot reload WebSocket connected')
+          }
+          
+          ws.onmessage = (event) => {
+            const data = JSON.parse(event.data)
+            if (data.type === 'reload') {
+              console.log('🔄 Hot reload triggered via WebSocket!')
               window.location.reload()
             }
-          })
-          .catch(err => console.log('Manual check failed:', err))
-        }, 2000)
-      }, 3000)
+          }
+          
+          ws.onclose = () => {
+            console.log('🔌 Hot reload WebSocket disconnected, reconnecting...')
+            setTimeout(connectHotReload, 2000)
+          }
+          
+          ws.onerror = (error) => {
+            console.log('🔌 Hot reload WebSocket error:', error)
+          }
+        } catch (error) {
+          console.log('Hot reload WebSocket failed to connect:', error)
+          setTimeout(connectHotReload, 2000)
+        }
+      }
+      
+      // Start WebSocket connection after page loads
+      setTimeout(connectHotReload, 1000)
     </script>
     <script type="module" src="/src/main.jsx"></script>
     <script type="module">
