@@ -136,6 +136,27 @@ const EducationalTools = ({ user }) => {
                 </div>
               </div>
             </div>
+
+            <div className="col-md-6 col-lg-3 mb-4">
+              <div className="card h-100 shadow-sm">
+                <div className="card-body text-center">
+                  <div className="mb-3">
+                    <i className="fas fa-puzzle-piece fa-3x text-secondary"></i>
+                  </div>
+                  <h5 className="card-title">Crossword Generator</h5>
+                  <p className="card-text">Create custom crossword puzzles with across and down clues, then export as PDF</p>
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      window.history.pushState({}, '', '/crossword-generator');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }}
+                  >
+                    Launch Tool
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
