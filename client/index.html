@@ -54,6 +54,19 @@
       setInterval(checkForUpdates, 2000)
     </script>
     
-    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      console.log('🔧 About to load React module...')
+    </script>
+    <script type="module" src="/src/main.jsx" onerror="console.error('❌ Failed to load main.jsx')"></script>
+    <script>
+      // Fallback test if module fails
+      setTimeout(() => {
+        const root = document.getElementById('root')
+        if (!root.innerHTML.trim()) {
+          console.error('❌ React did not mount - trying direct render')
+          root.innerHTML = '<div style="padding:40px;background:#dc3545;color:white;text-align:center;font-size:24px;margin:20px;border-radius:10px;"><h1>⚠️ React Loading Failed</h1><p>Direct HTML fallback active</p></div>'
+        }
+      }, 3000)
+    </script>
   </body>
 </html>
