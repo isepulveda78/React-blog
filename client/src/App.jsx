@@ -23,7 +23,7 @@ import BingoGenerator from './pages/bingo-generator.jsx'
 import SpanishAlphabet from './pages/spanish-alphabet.jsx'
 import WordSorter from './pages/word-sorter.jsx'
 import ListenToType from './pages/listen-to-type.jsx'
-import CityBuilder from './pages/city-builder-simple.jsx'
+import CityBuilder from './pages/city-builder.jsx'
 import CodeEvolutionVisualization from './pages/code-evolution.jsx'
 import NotFound from './components/NotFound.jsx'
 
