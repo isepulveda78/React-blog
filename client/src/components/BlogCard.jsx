@@ -50,9 +50,11 @@ const BlogCard = ({ post, onReadMore }) => {
         )}
         <div className="card-body d-flex flex-column">
           <div className="mb-2">
-            <span className="badge bg-primary me-2">
-              {post.category || "General"}
-            </span>
+            {(post.categoryName || post.category) && (
+              <span className="badge bg-primary me-2">
+                {post.categoryName || post.category}
+              </span>
+            )}
             <small className="text-muted">
               {formatDate(post.publishedAt || post.createdAt)}
             </small>

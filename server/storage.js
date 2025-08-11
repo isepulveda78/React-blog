@@ -52,9 +52,31 @@ class MemStorage {
     return this.users[index];
   }
 
-  async getPosts() { return this.posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
-  async getPostById(id) { return this.posts.find(p => p.id === id); }
-  async getPostBySlug(slug) { return this.posts.find(p => p.slug === slug); }
+  async getPosts() { 
+    return this.posts.map(post => {
+      if (post.categoryId) {
+        const category = this.categories.find(cat => cat.id === post.categoryId);
+        return { ...post, categoryName: category?.name };
+      }
+      return post;
+    }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); 
+  }
+  async getPostById(id) { 
+    const post = this.posts.find(p => p.id === id);
+    if (post && post.categoryId) {
+      const category = this.categories.find(cat => cat.id === post.categoryId);
+      return { ...post, categoryName: category?.name };
+    }
+    return post;
+  }
+  async getPostBySlug(slug) { 
+    const post = this.posts.find(p => p.slug === slug);
+    if (post && post.categoryId) {
+      const category = this.categories.find(cat => cat.id === post.categoryId);
+      return { ...post, categoryName: category?.name };
+    }
+    return post;
+  }
   async createPost(postData) {
     const post = {
       id: nanoid(),
