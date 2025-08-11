@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import AudioPlayer from 'react-h5-audio-player';
+import 'react-h5-audio-player/lib/styles.css';
 
 const AdminQuizGrades = ({ user }) => {
   const [grades, setGrades] = useState([]);
@@ -619,43 +621,31 @@ const AdminQuizGrades = ({ user }) => {
                             {question.audioUrl && (
                               <div className="mt-2">
                                 <small className="text-muted">Preview audio:</small>
-                                <audio 
-                                  controls 
-                                  className="d-block mt-1 w-100"
-                                  style={{height: '35px'}}
-                                  preload="metadata"
+                                <AudioPlayer
+                                  src={question.audioUrl}
+                                  onPlay={() => console.log("Edit preview audio playing")}
+                                  volume={0.8}
                                   muted={false}
-                                  onError={(e) => {
-                                    console.error('Edit preview audio error:', e);
-                                    const errorDiv = e.target.parentElement.querySelector('.edit-preview-error');
-                                    if (errorDiv) errorDiv.style.display = 'block';
+                                  autoPlayAfterSrcChange={false}
+                                  showJumpControls={false}
+                                  showFilledVolume={false}
+                                  customProgressBarSection={[
+                                    'CURRENT_TIME',
+                                    'PROGRESS_BAR',
+                                    'DURATION',
+                                  ]}
+                                  customControlsSection={[
+                                    'MAIN_CONTROLS',
+                                  ]}
+                                  onLoadedData={() => console.log("Edit preview audio loaded")}
+                                  onError={(e) => console.error('Edit preview audio error:', e)}
+                                  className="mt-1"
+                                  style={{
+                                    height: '50px',
+                                    borderRadius: '4px',
+                                    backgroundColor: '#f8f9fa'
                                   }}
-                                  onLoadedData={(e) => {
-                                    console.log('Edit preview audio loaded');
-                                    e.target.muted = false;
-                                    e.target.volume = 0.8;
-                                    const errorDiv = e.target.parentElement.querySelector('.edit-preview-error');
-                                    if (errorDiv) errorDiv.style.display = 'none';
-                                  }}
-                                  onCanPlay={(e) => {
-                                    e.target.muted = false;
-                                  }}
-                                  onClick={(e) => {
-                                    e.target.muted = false;
-                                    e.target.volume = 0.8;
-                                  }}
-                                  onPlay={(e) => {
-                                    e.target.muted = false;
-                                    e.target.volume = 0.8;
-                                  }}
-                                >
-                                  <source src={question.audioUrl} type="audio/mpeg" />
-                                  <source src={question.audioUrl} type="audio/wav" />
-                                  <source src={question.audioUrl} type="audio/ogg" />
-                                </audio>
-                                <div className="edit-preview-error text-danger small mt-1" style={{display: 'none'}}>
-                                  ⚠️ Audio URL may not be accessible
-                                </div>
+                                />
                               </div>
                             )}
                           </div>

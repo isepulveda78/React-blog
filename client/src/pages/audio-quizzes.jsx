@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import AudioPlayer from 'react-h5-audio-player';
+import 'react-h5-audio-player/lib/styles.css';
 
 const AudioQuizzes = ({ user }) => {
   const [quizzes, setQuizzes] = useState([]);
@@ -32,71 +34,7 @@ const AudioQuizzes = ({ user }) => {
     return url; // Return original if not a Google Drive URL
   };
 
-  // Advanced audio interaction system to prevent browser muting
-  const initializeAudio = (audioElement) => {
-    if (!audioElement) return;
-    
-    // Remove all existing event listeners to start fresh
-    const newAudio = audioElement.cloneNode(true);
-    audioElement.parentNode.replaceChild(newAudio, audioElement);
-    
-    // Force initial settings
-    setTimeout(() => {
-      newAudio.muted = false;
-      newAudio.volume = 0.8;
-      newAudio.setAttribute('muted', 'false');
-    }, 100);
-    
-    return newAudio;
-  };
 
-  const forceUnmute = (audioElement) => {
-    if (audioElement) {
-      audioElement.muted = false;
-      audioElement.volume = 0.8;
-      audioElement.removeAttribute('muted');
-      audioElement.setAttribute('volume', '0.8');
-      console.log('Force unmute applied - muted:', audioElement.muted, 'volume:', audioElement.volume);
-    }
-  };
-
-  // Comprehensive event handlers that aggressively prevent muting
-  const audioEventHandlers = {
-    onLoadedData: (e) => {
-      forceUnmute(e.target);
-      // Set up continuous monitoring
-      const intervalId = setInterval(() => {
-        if (e.target.muted) {
-          e.target.muted = false;
-          e.target.volume = 0.8;
-        }
-      }, 50);
-      e.target.setAttribute('data-interval', intervalId);
-    },
-    onCanPlay: (e) => forceUnmute(e.target),
-    onClick: (e) => {
-      e.preventDefault();
-      forceUnmute(e.target);
-      if (e.target.paused) {
-        e.target.play().catch(console.error);
-      } else {
-        e.target.pause();
-      }
-    },
-    onPlay: (e) => forceUnmute(e.target),
-    onPause: (e) => forceUnmute(e.target),
-    onVolumeChange: (e) => {
-      if (e.target.muted) {
-        setTimeout(() => {
-          e.target.muted = false;
-          e.target.volume = 0.8;
-        }, 1);
-      }
-    },
-    onMouseEnter: (e) => forceUnmute(e.target),
-    onMouseOver: (e) => forceUnmute(e.target),
-    onFocus: (e) => forceUnmute(e.target)
-  };
 
   useEffect(() => {
     fetchQuizzes();
@@ -292,47 +230,31 @@ const AudioQuizzes = ({ user }) => {
                       <div key={index} className="mb-4">
                         <div className="mb-3">
                           <div className="audio-player-wrapper mb-3">
-                            <div className="d-flex align-items-center mb-2">
-                              <button 
-                                className="btn btn-sm btn-outline-primary me-2"
-                                onClick={(e) => {
-                                  const audio = e.target.parentElement.parentElement.querySelector('audio');
-                                  if (audio) {
-                                    audio.muted = false;
-                                    audio.volume = 0.8;
-                                    audio.play().catch(console.error);
-                                  }
-                                }}
-                              >
-                                🔊 Play Audio
-                              </button>
-                              <small className="text-muted">Use this button if audio controls don't work</small>
-                            </div>
-                            <audio 
-                              controls 
-                              className="w-100 mb-2"
-                              preload="metadata"
+                            <AudioPlayer
+                              src={question.audioUrl}
+                              onPlay={() => console.log("Audio playing")}
+                              volume={0.8}
                               muted={false}
-                              onError={(e) => {
-                                console.error('Audio error:', e);
-                                e.target.parentElement.querySelector('.audio-error').style.display = 'block';
+                              autoPlayAfterSrcChange={false}
+                              showJumpControls={false}
+                              showFilledVolume={true}
+                              customProgressBarSection={[
+                                'CURRENT_TIME',
+                                'PROGRESS_BAR',
+                                'DURATION',
+                              ]}
+                              customControlsSection={[
+                                'MAIN_CONTROLS',
+                                'VOLUME_CONTROLS',
+                              ]}
+                              onLoadedData={() => console.log("Audio loaded successfully")}
+                              onError={(e) => console.error('Audio loading error:', e)}
+                              className="mb-2"
+                              style={{
+                                borderRadius: '8px',
+                                backgroundColor: '#f8f9fa'
                               }}
-                              {...audioEventHandlers}
-                            >
-                              <source src={question.audioUrl} type="audio/mpeg" />
-                              <source src={question.audioUrl} type="audio/wav" />
-                              <source src={question.audioUrl} type="audio/ogg" />
-                              Your browser does not support the audio element.
-                            </audio>
-                            <div className="audio-error alert alert-warning" style={{display: 'none'}}>
-                              <small>
-                                <strong>Audio Error:</strong> Could not load audio file. 
-                                Please check if the URL is valid: <br/>
-                                <a href={question.audioUrl} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
-                                  {question.audioUrl}
-                                </a>
-                              </small>
-                            </div>
+                            />
                           </div>
                           <h5>{question.question}</h5>
                         </div>
@@ -477,42 +399,31 @@ const AudioQuizzes = ({ user }) => {
                         {question.audioUrl && (
                           <div className="mt-2">
                             <small className="text-muted">Test audio:</small>
-                            <audio 
-                              controls 
-                              className="d-block mt-1 w-100"
-                              style={{height: '40px'}}
-                              preload="metadata"
+                            <AudioPlayer
+                              src={question.audioUrl}
+                              onPlay={() => console.log("Test audio playing")}
+                              volume={0.8}
                               muted={false}
-                              onError={(e) => {
-                                console.error('Preview audio error:', e);
-                                e.target.parentElement.querySelector('.preview-error').style.display = 'block';
+                              autoPlayAfterSrcChange={false}
+                              showJumpControls={false}
+                              showFilledVolume={false}
+                              customProgressBarSection={[
+                                'CURRENT_TIME',
+                                'PROGRESS_BAR',
+                                'DURATION',
+                              ]}
+                              customControlsSection={[
+                                'MAIN_CONTROLS',
+                              ]}
+                              onLoadedData={() => console.log("Test audio loaded")}
+                              onError={(e) => console.error('Test audio error:', e)}
+                              className="mt-1"
+                              style={{
+                                height: '50px',
+                                borderRadius: '4px',
+                                backgroundColor: '#f8f9fa'
                               }}
-                              onLoadedData={(e) => {
-                                console.log('Preview audio loaded');
-                                e.target.muted = false;
-                                e.target.volume = 0.8;
-                                const errorDiv = e.target.parentElement.querySelector('.preview-error');
-                                if (errorDiv) errorDiv.style.display = 'none';
-                              }}
-                              onCanPlay={(e) => {
-                                e.target.muted = false;
-                              }}
-                              onClick={(e) => {
-                                e.target.muted = false;
-                                e.target.volume = 0.8;
-                              }}
-                              onPlay={(e) => {
-                                e.target.muted = false;
-                                e.target.volume = 0.8;
-                              }}
-                            >
-                              <source src={question.audioUrl} type="audio/mpeg" />
-                              <source src={question.audioUrl} type="audio/wav" />
-                              <source src={question.audioUrl} type="audio/ogg" />
-                            </audio>
-                            <div className="preview-error text-danger small mt-1" style={{display: 'none'}}>
-                              ⚠️ Audio URL may not be valid or accessible
-                            </div>
+                            />
                           </div>
                         )}
                       </div>
