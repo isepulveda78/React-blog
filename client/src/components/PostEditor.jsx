@@ -478,7 +478,30 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                     <div className="mb-3">
                       <label className="form-label">Featured Image</label>
                       
-                      {/* Image upload button */}
+                      {/* Current image display */}
+                      {formData.featuredImage && (
+                        <div className="mb-2">
+                          <div className="position-relative">
+                            <img
+                              src={formData.featuredImage}
+                              alt="Current featured image"
+                              className="img-fluid rounded"
+                              style={{ maxHeight: '200px', objectFit: 'cover' }}
+                            />
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
+                              onClick={() => handleChange('featuredImage', '')}
+                              title="Remove image"
+                            >
+                              <i className="fas fa-times"></i>
+                            </button>
+                          </div>
+                          <small className="text-muted">Current featured image</small>
+                        </div>
+                      )}
+                      
+                      {/* Image upload/change button */}
                       <div className="mb-2">
                         <input
                           type="file"
@@ -490,7 +513,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                         />
                         <button
                           type="button"
-                          className="btn btn-primary btn-sm w-100"
+                          className="btn btn-outline-primary btn-sm w-100"
                           onClick={() => document.getElementById('featuredImageUpload').click()}
                           disabled={imageUploading}
                         >
@@ -502,7 +525,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                           ) : (
                             <>
                               <i className="fas fa-cloud-upload-alt me-2"></i>
-                              Upload Featured Image
+                              {formData.featuredImage ? 'Change Featured Image' : 'Upload Featured Image'}
                             </>
                           )}
                         </button>
@@ -516,18 +539,12 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                         onChange={(e) => handleChange('featuredImage', e.target.value)}
                         placeholder="Or paste image URL"
                       />
-                      
-                      {/* Image preview */}
-                      {formData.featuredImage && (
-                        <div className="mt-2">
-                          <img
-                            src={formData.featuredImage}
-                            alt="Featured image preview"
-                            className="img-fluid rounded"
-                            style={{ maxHeight: '200px', objectFit: 'cover' }}
-                          />
-                        </div>
-                      )}
+                      <small className="text-muted">
+                        {formData.featuredImage ? 
+                          'You can change the image URL above or upload a new file' : 
+                          'Upload a file or paste an image URL'
+                        }
+                      </small>
                     </div>
 
                     <div className="mb-3">

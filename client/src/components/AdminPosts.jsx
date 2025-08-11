@@ -362,6 +362,31 @@ const AdminPosts = ({ user }) => {
           
           <div className="mb-3">
             <label className="form-label">Featured Image</label>
+            
+            {/* Show current image if exists */}
+            {featuredImage && (
+              <div className="mb-2">
+                <div className="position-relative d-inline-block">
+                  <img 
+                    src={featuredImage} 
+                    alt="Current featured image" 
+                    style={{ maxWidth: '200px', height: 'auto' }}
+                    className="img-thumbnail"
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
+                    onClick={() => setFeaturedImage('')}
+                    title="Remove image"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+                <p className="small text-muted mt-1">Current featured image</p>
+              </div>
+            )}
+            
+            {/* Image upload controls */}
             <div className="input-group">
               <input
                 type="file"
@@ -369,26 +394,22 @@ const AdminPosts = ({ user }) => {
                 accept="image/*"
                 onChange={(e) => e.target.files[0] && handleImageUpload(e.target.files[0])}
                 disabled={uploadingImage}
+                key={featuredImage} // Reset file input when image changes
               />
               <button 
                 className="btn btn-outline-secondary" 
                 type="button"
                 disabled={uploadingImage}
               >
-                {uploadingImage ? 'Uploading...' : 'Upload'}
+                {uploadingImage ? 'Uploading...' : (featuredImage ? 'Change' : 'Upload')}
               </button>
             </div>
-            {featuredImage && (
-              <div className="mt-2">
-                <img 
-                  src={featuredImage} 
-                  alt="Featured preview" 
-                  style={{ maxWidth: '200px', height: 'auto' }}
-                  className="img-thumbnail"
-                />
-                <p className="small text-muted mt-1">Featured image preview</p>
-              </div>
-            )}
+            <small className="text-muted">
+              {featuredImage ? 
+                'Upload a new file only if you want to change the current image' : 
+                'Upload an image file for the featured image'
+              }
+            </small>
           </div>
 
           <div className="mb-3">
