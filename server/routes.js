@@ -749,9 +749,9 @@ export function registerRoutes(app) {
   // Image upload endpoint
   app.post('/api/upload-image', upload.single('image'), async (req, res) => {
     try {
-      // Check if user is authenticated and admin
-      if (!req.session.user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
+      // Check if user is authenticated (removed admin requirement for image uploads)
+      if (!req.session.user) {
+        return res.status(403).json({ message: "Authentication required" });
       }
 
       if (!req.file) {
@@ -1617,9 +1617,9 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   // Image upload endpoint
   app.post('/api/upload/image', upload.single('image'), async (req, res) => {
     try {
-      // Check if user is admin
-      if (!req.session.user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
+      // Check if user is authenticated (removed admin requirement for image uploads)
+      if (!req.session.user) {
+        return res.status(403).json({ message: "Authentication required" });
       }
 
       if (!req.file) {
