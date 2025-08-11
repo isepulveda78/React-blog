@@ -15,21 +15,7 @@ const AdminQuizGrades = ({ user }) => {
     description: '',
     questions: []
   });
-  const [editDriveUrl, setEditDriveUrl] = useState('');
 
-  // Convert Google Drive sharing URL to direct download URL
-  const convertGoogleDriveUrl = (url) => {
-    if (!url) return '';
-    
-    // Extract file ID from Google Drive URL
-    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-    if (match && match[1]) {
-      const fileId = match[1];
-      return `https://drive.google.com/uc?export=download&id=${fileId}`;
-    }
-    
-    return url; // Return original if not a Google Drive URL
-  };
 
   // Check admin access
   if (!user || (!user.isAdmin && user.role !== 'teacher')) {
@@ -586,38 +572,7 @@ const AdminQuizGrades = ({ user }) => {
                               onChange={(e) => updateQuestion(qIndex, 'audioUrl', e.target.value)}
                               placeholder="https://example.com/audio.mp3"
                             />
-                            <div className="mt-2 bg-light p-2 rounded">
-                              <small className="text-muted fw-bold">Google Drive Link Converter:</small>
-                              <div className="mb-1">
-                                <input 
-                                  type="url" 
-                                  className="form-control form-control-sm"
-                                  placeholder="Paste Google Drive sharing link here"
-                                  value={editDriveUrl}
-                                  onChange={(e) => setEditDriveUrl(e.target.value)}
-                                />
-                              </div>
-                              <div className="mb-1">
-                                <input 
-                                  type="text" 
-                                  className="form-control form-control-sm"
-                                  readOnly
-                                  value={convertGoogleDriveUrl(editDriveUrl)}
-                                  onClick={(e) => e.target.select()}
-                                  placeholder="Direct download link will appear here"
-                                />
-                              </div>
-                              {convertGoogleDriveUrl(editDriveUrl) && editDriveUrl && (
-                                <button 
-                                  type="button" 
-                                  className="btn btn-sm btn-outline-primary"
-                                  onClick={() => updateQuestion(qIndex, 'audioUrl', convertGoogleDriveUrl(editDriveUrl))}
-                                >
-                                  Use This Link
-                                </button>
-                              )}
-                            </div>
-                            
+
                             {question.audioUrl && (
                               <div className="mt-2">
                                 <small className="text-muted">Preview audio:</small>
