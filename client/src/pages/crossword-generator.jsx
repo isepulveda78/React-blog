@@ -2,18 +2,53 @@ import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 
 const CrosswordGenerator = ({ user }) => {
-  const [acrossWords, setAcrossWords] = useState('');
-  const [downWords, setDownWords] = useState('');
+  const [acrossEntries, setAcrossEntries] = useState([{ clue: '', answer: '' }]);
+  const [downEntries, setDownEntries] = useState([{ clue: '', answer: '' }]);
   const [title, setTitle] = useState('My Crossword Puzzle');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Parse comma-separated words from input strings
-  const parseWords = (input) => {
-    return input.split(',').map(word => word.trim()).filter(word => word.length > 0);
+  // Add new entry for across words
+  const addAcrossEntry = () => {
+    setAcrossEntries([...acrossEntries, { clue: '', answer: '' }]);
+  };
+
+  // Add new entry for down words
+  const addDownEntry = () => {
+    setDownEntries([...downEntries, { clue: '', answer: '' }]);
+  };
+
+  // Update across entry
+  const updateAcrossEntry = (index, field, value) => {
+    const newEntries = [...acrossEntries];
+    newEntries[index][field] = value;
+    setAcrossEntries(newEntries);
+  };
+
+  // Update down entry
+  const updateDownEntry = (index, field, value) => {
+    const newEntries = [...downEntries];
+    newEntries[index][field] = value;
+    setDownEntries(newEntries);
+  };
+
+  // Remove across entry
+  const removeAcrossEntry = (index) => {
+    if (acrossEntries.length > 1) {
+      const newEntries = acrossEntries.filter((_, i) => i !== index);
+      setAcrossEntries(newEntries);
+    }
+  };
+
+  // Remove down entry
+  const removeDownEntry = (index) => {
+    if (downEntries.length > 1) {
+      const newEntries = downEntries.filter((_, i) => i !== index);
+      setDownEntries(newEntries);
+    }
   };
 
   // Generate a simple crossword grid layout
-  const generateCrosswordLayout = (across, down) => {
+  const generateCrosswordLayout = (acrossEntries, downEntries) => {
     // Simple layout algorithm - create a basic crossword structure
     const gridSize = 15; // 15x15 grid
     const grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
@@ -21,8 +56,9 @@ const CrosswordGenerator = ({ user }) => {
     let clueNumber = 1;
 
     // Place across words
-    across.forEach((word, index) => {
-      if (word.trim()) {
+    acrossEntries.forEach((entry, index) => {
+      if (entry.answer.trim()) {
+        const word = entry.answer.trim();
         const row = 2 + index * 2; // Space out the words
         const col = 1;
         if (row < gridSize && col + word.length < gridSize) {
@@ -31,14 +67,21 @@ const CrosswordGenerator = ({ user }) => {
               grid[row][col + i] = word[i].toUpperCase();
             }
           }
-          clues.across.push({ number: clueNumber + index, clue: word, row, col });
+          clues.across.push({ 
+            number: clueNumber + index, 
+            clue: entry.clue || entry.answer, 
+            answer: entry.answer,
+            row, 
+            col 
+          });
         }
       }
     });
 
     // Place down words (intersecting with across words when possible)
-    down.forEach((word, index) => {
-      if (word.trim()) {
+    downEntries.forEach((entry, index) => {
+      if (entry.answer.trim()) {
+        const word = entry.answer.trim();
         const col = 3 + index * 2; // Space out the words
         const row = 1;
         if (col < gridSize && row + word.length < gridSize) {
@@ -47,7 +90,13 @@ const CrosswordGenerator = ({ user }) => {
               grid[row + i][col] = word[i].toUpperCase();
             }
           }
-          clues.down.push({ number: clueNumber + across.length + index, clue: word, row, col });
+          clues.down.push({ 
+            number: clueNumber + acrossEntries.length + index, 
+            clue: entry.clue || entry.answer, 
+            answer: entry.answer,
+            row, 
+            col 
+          });
         }
       }
     });
@@ -156,12 +205,12 @@ const CrosswordGenerator = ({ user }) => {
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
       
-      // Parse comma-separated words
-      const validAcross = parseWords(acrossWords);
-      const validDown = parseWords(downWords);
+      // Filter entries that have answers
+      const validAcross = acrossEntries.filter(entry => entry.answer.trim());
+      const validDown = downEntries.filter(entry => entry.answer.trim());
       
       if (validAcross.length === 0 && validDown.length === 0) {
-        alert('Please add at least one word to generate a crossword puzzle.');
+        alert('Please add at least one word with an answer to generate a crossword puzzle.');
         setIsGenerating(false);
         return;
       }
@@ -260,88 +309,136 @@ const CrosswordGenerator = ({ user }) => {
           </div>
         </div>
 
-        {/* Across Words */}
-        <div className="col-md-6">
-          <div className="card h-100">
-            <div className="card-header">
+        {/* Across Clues */}
+        <div className="col-12">
+          <div className="card mb-4">
+            <div className="card-header d-flex justify-content-between align-items-center">
               <h5 className="mb-0">
                 <i className="fas fa-arrow-right me-2"></i>
-                Across Words
+                Across Clues & Answers
               </h5>
+              <button
+                className="btn btn-outline-primary btn-sm"
+                onClick={addAcrossEntry}
+              >
+                <i className="fas fa-plus me-1"></i>
+                Add Entry
+              </button>
             </div>
             <div className="card-body">
               <div className="mb-3">
                 <small className="text-muted">
-                  Enter words or phrases separated by commas (e.g., cat, dog, house, tree)
+                  Enter English clues and their Spanish translations for horizontal words
                 </small>
               </div>
-              <textarea
-                className="form-control"
-                rows="6"
-                value={acrossWords}
-                onChange={(e) => setAcrossWords(e.target.value)}
-                placeholder="Enter across words separated by commas..."
-                style={{ resize: 'vertical' }}
-              />
-              {acrossWords && (
-                <div className="mt-2">
-                  <small className="text-muted">
-                    Words: {parseWords(acrossWords).length}
-                  </small>
-                  {parseWords(acrossWords).length > 0 && (
-                    <div className="mt-1">
-                      {parseWords(acrossWords).map((word, index) => (
-                        <span key={index} className="badge bg-primary me-1 mb-1">
-                          {index + 1}. {word}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+              <div className="row">
+                <div className="col-md-6">
+                  <strong>English Clue</strong>
                 </div>
-              )}
+                <div className="col-md-6">
+                  <strong>Spanish Answer</strong>
+                </div>
+              </div>
+              {acrossEntries.map((entry, index) => (
+                <div key={index} className="row mb-2 align-items-center">
+                  <div className="col-md-6">
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={entry.clue}
+                      onChange={(e) => updateAcrossEntry(index, 'clue', e.target.value)}
+                      placeholder={`English clue ${index + 1} (e.g., "House")`}
+                    />
+                  </div>
+                  <div className="col-md-5">
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={entry.answer}
+                      onChange={(e) => updateAcrossEntry(index, 'answer', e.target.value)}
+                      placeholder={`Spanish answer ${index + 1} (e.g., "casa")`}
+                    />
+                  </div>
+                  <div className="col-md-1">
+                    {acrossEntries.length > 1 && (
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => removeAcrossEntry(index)}
+                        type="button"
+                      >
+                        <i className="fas fa-trash"></i>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Down Words */}
-        <div className="col-md-6">
-          <div className="card h-100">
-            <div className="card-header">
+        {/* Down Clues */}
+        <div className="col-12">
+          <div className="card mb-4">
+            <div className="card-header d-flex justify-content-between align-items-center">
               <h5 className="mb-0">
                 <i className="fas fa-arrow-down me-2"></i>
-                Down Words
+                Down Clues & Answers
               </h5>
+              <button
+                className="btn btn-outline-success btn-sm"
+                onClick={addDownEntry}
+              >
+                <i className="fas fa-plus me-1"></i>
+                Add Entry
+              </button>
             </div>
             <div className="card-body">
               <div className="mb-3">
                 <small className="text-muted">
-                  Enter words or phrases separated by commas (e.g., apple, banana, orange, grape)
+                  Enter English clues and their Spanish translations for vertical words
                 </small>
               </div>
-              <textarea
-                className="form-control"
-                rows="6"
-                value={downWords}
-                onChange={(e) => setDownWords(e.target.value)}
-                placeholder="Enter down words separated by commas..."
-                style={{ resize: 'vertical' }}
-              />
-              {downWords && (
-                <div className="mt-2">
-                  <small className="text-muted">
-                    Words: {parseWords(downWords).length}
-                  </small>
-                  {parseWords(downWords).length > 0 && (
-                    <div className="mt-1">
-                      {parseWords(downWords).map((word, index) => (
-                        <span key={index} className="badge bg-success me-1 mb-1">
-                          {index + 1}. {word}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+              <div className="row">
+                <div className="col-md-6">
+                  <strong>English Clue</strong>
                 </div>
-              )}
+                <div className="col-md-6">
+                  <strong>Spanish Answer</strong>
+                </div>
+              </div>
+              {downEntries.map((entry, index) => (
+                <div key={index} className="row mb-2 align-items-center">
+                  <div className="col-md-6">
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={entry.clue}
+                      onChange={(e) => updateDownEntry(index, 'clue', e.target.value)}
+                      placeholder={`English clue ${index + 1} (e.g., "Cat")`}
+                    />
+                  </div>
+                  <div className="col-md-5">
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={entry.answer}
+                      onChange={(e) => updateDownEntry(index, 'answer', e.target.value)}
+                      placeholder={`Spanish answer ${index + 1} (e.g., "gato")`}
+                    />
+                  </div>
+                  <div className="col-md-1">
+                    {downEntries.length > 1 && (
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => removeDownEntry(index)}
+                        type="button"
+                      >
+                        <i className="fas fa-trash"></i>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -388,13 +485,13 @@ const CrosswordGenerator = ({ user }) => {
             <div className="card-body">
               <ol>
                 <li><strong>Enter a title</strong> for your crossword puzzle</li>
-                <li><strong>Add across words</strong> - enter words separated by commas for horizontal placement</li>
-                <li><strong>Add down words</strong> - enter words separated by commas for vertical placement</li>
+                <li><strong>Add across clues</strong> - enter English clues with Spanish answers for horizontal words</li>
+                <li><strong>Add down clues</strong> - enter English clues with Spanish answers for vertical words</li>
                 <li><strong>Click "Generate Crossword PDF"</strong> to create and download your puzzle</li>
-                <li><strong>Print and enjoy!</strong> The PDF includes the grid and numbered clues</li>
+                <li><strong>Print and enjoy!</strong> Students will translate English clues to fill Spanish answers</li>
               </ol>
               <div className="alert alert-info mt-3">
-                <strong>Tip:</strong> The crossword generator creates two pages - the first page shows the answer key for teachers, and the second page has empty boxes for students to fill in.
+                <strong>Perfect for Language Learning:</strong> Students read the English clues and write the Spanish translations in the crossword grid. The first PDF page shows the answer key for teachers, and the second page has empty boxes for students.
               </div>
             </div>
           </div>
