@@ -166,8 +166,8 @@ if (process.env.NODE_ENV === 'development') {
 
 // Setup development reload system with WebSocket
 if (process.env.NODE_ENV === 'development') {
-  const { setupDevReload } = await import('./dev-reload.js');
-  setupDevReload(app, httpServer);
+  // const { setupDevReload } = await import('./dev-reload.js');
+  // setupDevReload(app, httpServer);
 }
 
 // Handle client-side routing - serve HTML for development and production

@@ -13,9 +13,7 @@ export async function setupVite(app) {
     viteServer = await createViteServer({
       server: { 
         middlewareMode: true,
-        hmr: {
-          port: 3001
-        },
+        hmr: false,
         host: true,
         cors: {
           origin: true,
