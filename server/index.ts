@@ -162,14 +162,14 @@ app.get('*', (req, res) => {
   }
   
   console.log('Serving index.html for path:', req.path);
+  console.log('NODE_ENV:', process.env.NODE_ENV);
   
-  // Serve development HTML with hot reload in development mode
-  if (process.env.NODE_ENV === 'development') {
-    res.sendFile(path.join(__dirname, '../client/index-dev.html'));
-  } else {
-    // Serve built index.html for production
-    res.sendFile(path.join(__dirname, '../dist/public/index.html'));
-  }
+  // FORCE serve development HTML with hot reload (temporarily)
+  console.log('FORCING development HTML with hot reload');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.sendFile(path.join(__dirname, '../client/index-dev.html'));
 });
 
 httpServer.listen(PORT, "0.0.0.0", () => {

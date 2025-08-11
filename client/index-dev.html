@@ -55,11 +55,14 @@
     <script>
       console.log('🔥 Enhanced hot reload system starting...');
       
-      // Create visual indicator
+      // Create visual indicator - ENHANCED VERSION
       const indicator = document.createElement('div');
-      indicator.innerHTML = '🔥 HOT RELOAD ACTIVE';
-      indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #28a745; color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 10000; font-family: Arial, sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
+      indicator.innerHTML = '🔥 DEV MODE - HOT RELOAD ACTIVE';
+      indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #28a745; color: white; padding: 10px 15px; border-radius: 6px; font-size: 14px; font-weight: bold; z-index: 10000; font-family: Arial, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 2px solid #fff;';
       document.body.appendChild(indicator);
+      
+      // Also add title indicator
+      document.title = '🔥 DEV MODE - ' + document.title;
       
       let lastModified = null;
       let lastEtag = null;
