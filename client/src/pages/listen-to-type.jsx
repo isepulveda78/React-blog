@@ -274,9 +274,14 @@ const ListenToType = ({ user }) => {
 
       // Handle other message types
       if (data.type === "user_joined") {
+        console.log("[chat] User joined event:", data.name);
         setConnectedUsers((prev) => new Set([...prev, data.name]));
-        if (data.name === (chatName.trim() || user?.name)) {
-          setIsChatJoined(true); // Confirm successful join for this user
+        
+        // Check if this is our own join confirmation
+        const ourName = chatName.trim() || user?.name;
+        if (data.name === ourName) {
+          console.log("[chat] ✅ Successfully joined chatroom as:", ourName);
+          setIsChatJoined(true);
         }
       } else if (data.type === "user_left") {
         setConnectedUsers((prev) => {
@@ -284,6 +289,8 @@ const ListenToType = ({ user }) => {
           newSet.delete(data.name);
           return newSet;
         });
+      } else if (data.type === "message") {
+        console.log("[chat] Received chat message:", data);
       }
 
       // Add to messages for display (except rejections)
@@ -297,13 +304,22 @@ const ListenToType = ({ user }) => {
       ]);
     };
 
-    newSocket.onclose = () => {
-      console.log("[chat] WebSocket disconnected");
+    newSocket.onclose = (event) => {
+      console.log("[chat] WebSocket disconnected - code:", event.code, "reason:", event.reason);
+      if (isChatJoined) {
+        showToast("Chat connection lost. Please rejoin.", "warning", 3000);
+      }
+      setSocket(null);
       setIsChatJoined(false);
     };
 
     newSocket.onerror = (error) => {
       console.error("[chat] WebSocket error:", error);
+      if (!isChatJoined) {
+        setTimeout(() => {
+          showToast("Connection failed. Please try again.", "error", 3000);
+        }, 500);
+      }
     };
   };
 
