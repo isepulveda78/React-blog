@@ -395,7 +395,15 @@ const AudioQuizzes = ({ user }) => {
                                 width: '100%', 
                                 marginBottom: '10px'
                               }}
+                              onError={(e) => {
+                                console.error('Audio loading failed for URL:', question.audioUrl);
+                                console.error('Error details:', e);
+                              }}
+                              onCanPlay={() => {
+                                console.log('Audio loaded successfully:', question.audioUrl);
+                              }}
                               onPlay={async () => {
+                                console.log('Playing audio from:', question.audioUrl);
                                 // Auto-unlock audio on first play attempt
                                 try {
                                   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -414,6 +422,13 @@ const AudioQuizzes = ({ user }) => {
                                 });
                               }}
                             />
+                            {question.audioUrl && (
+                              <div className="mt-2">
+                                <small className="text-muted">
+                                  Audio URL: <a href={question.audioUrl} target="_blank" rel="noopener noreferrer">{question.audioUrl}</a>
+                                </small>
+                              </div>
+                            )}
                             <div className="audio-error alert alert-warning" style={{display: 'none'}}>
                               <small>
                                 <strong>Audio Error:</strong> Could not load audio file. 
@@ -544,9 +559,21 @@ const AudioQuizzes = ({ user }) => {
                   
                   <p className="mb-2"><strong>Working test examples:</strong></p>
                   <ul className="mb-2">
+                    <li><code>/sounds/success.mp3</code> (local file - works)</li>
+                    <li><code>/sounds/button-click.mp3</code> (local file - works)</li>
                     <li><code>https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3</code></li>
                     <li><code>https://file-examples.com/storage/fe68c9fa4c07bb91554745a/2017/11/file_example_MP3_700KB.mp3</code></li>
                   </ul>
+                  
+                  <div className="alert alert-info">
+                    <strong>URL Issues:</strong> Common problems with external audio URLs:
+                    <ul className="mb-0 mt-2">
+                      <li>CORS (Cross-Origin) restrictions from the hosting site</li>
+                      <li>Hotlinking protection blocking direct access</li>
+                      <li>HTTPS vs HTTP protocol mismatches</li>
+                      <li>File not actually accessible at the URL</li>
+                    </ul>
+                  </div>
                 </div>
 
                 <h5>Questions</h5>
