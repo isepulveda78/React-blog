@@ -7,6 +7,17 @@ import './custom.css'
 console.log('🚀 BlogCraft starting...')
 console.log('📦 React version:', React.version)
 
+// Global error handlers for unhandled promise rejections
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+  // Prevent the error from appearing in the console as an uncaught exception
+  event.preventDefault();
+});
+
+window.addEventListener('error', (event) => {
+  console.error('Global error:', event.error);
+});
+
 const rootElement = document.getElementById('root')
 console.log('📦 Root element:', rootElement)
 

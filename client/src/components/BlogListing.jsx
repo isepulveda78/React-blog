@@ -26,30 +26,85 @@ const formatDate = (dateString) => {
 const BlogListing = ({ user }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [categories, setCategories] = useState([]);
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
 
-  useEffect(() => {
-    // Fetch all posts and categories
-    Promise.all([
-      fetch('/api/posts/public'),
-      fetch('/api/categories')
-    ])
-    .then(([postsRes, categoriesRes]) => 
-      Promise.all([postsRes.json(), categoriesRes.json()])
-    )
-    .then(([postsData, categoriesData]) => {
+  const fetchData = async (showRefreshLoader = false) => {
+    if (showRefreshLoader) setRefreshing(true);
+    
+    try {
+      console.log('BlogListing: Fetching latest data...');
+      const [postsRes, categoriesRes] = await Promise.all([
+        fetch('/api/posts/public', { 
+          credentials: 'include',
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        }),
+        fetch('/api/categories', { 
+          credentials: 'include',
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        })
+      ]);
+
+      const [postsData, categoriesData] = await Promise.all([
+        postsRes.json(),
+        categoriesRes.json()
+      ]);
+
+      console.log('BlogListing: Posts loaded:', postsData.length);
       setPosts(Array.isArray(postsData) ? postsData : []);
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-      setLoading(false);
-    })
-    .catch(err => {
+      setLastRefresh(Date.now());
+      
+    } catch (err) {
       console.error('Error loading data:', err);
       setPosts([]);
       setCategories([]);
+    } finally {
       setLoading(false);
-    });
+      if (showRefreshLoader) setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    fetchData(true);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Auto-refresh every 30 seconds when user is on the page
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        console.log('BlogListing: Auto-refreshing data...');
+        fetchData();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Listen for custom refresh events (triggered from admin)
+  useEffect(() => {
+    const handleCustomRefresh = () => {
+      console.log('BlogListing: Custom refresh triggered');
+      fetchData(true);
+    };
+
+    window.addEventListener('blogDataUpdated', handleCustomRefresh);
+    return () => window.removeEventListener('blogDataUpdated', handleCustomRefresh);
   }, []);
 
   const handleReadMore = (post) => {
@@ -82,7 +137,7 @@ const BlogListing = ({ user }) => {
 
       {/* Search and Filter */}
       <div className="row mb-4">
-        <div className="col-md-8">
+        <div className="col-md-6">
           <input
             type="text"
             className="form-control form-control-lg"
@@ -104,6 +159,34 @@ const BlogListing = ({ user }) => {
               </option>
             ))}
           </select>
+        </div>
+        <div className="col-md-2">
+          <button
+            className="btn btn-outline-primary btn-lg w-100"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Refreshing...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-arrow-clockwise me-2"></i>
+                Refresh
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Last refresh indicator */}
+      <div className="row mb-2">
+        <div className="col-12">
+          <small className="text-muted">
+            Last updated: {new Date(lastRefresh).toLocaleTimeString()}
+          </small>
         </div>
       </div>
 

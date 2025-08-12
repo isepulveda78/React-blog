@@ -211,6 +211,10 @@ const AdminPosts = ({ user }) => {
         }
         setShowCreateForm(false);
         setEditingPost(null);
+        
+        // Trigger refresh event for BlogListing
+        window.dispatchEvent(new CustomEvent('blogDataUpdated', { detail: { action: 'saved', post: savedPost } }));
+        
         toast({
           title: "Success",
           description: "Post saved successfully!",
@@ -247,6 +251,10 @@ const AdminPosts = ({ user }) => {
       
       if (response.ok) {
         setPosts(posts.filter(p => p.id !== postId));
+        
+        // Trigger refresh event for BlogListing
+        window.dispatchEvent(new CustomEvent('blogDataUpdated', { detail: { action: 'deleted', postId } }));
+        
         toast({
           title: "Success",
           description: "Post deleted successfully",
@@ -282,6 +290,9 @@ const AdminPosts = ({ user }) => {
       if (response.ok) {
         const updatedPost = await response.json();
         setPosts(posts.map(p => p.id === postId ? { ...p, status: newStatus } : p));
+        
+        // Trigger refresh event for BlogListing
+        window.dispatchEvent(new CustomEvent('blogDataUpdated', { detail: { action: 'statusChanged', postId, newStatus } }));
       } else {
         console.error('Failed to update post status');
       }

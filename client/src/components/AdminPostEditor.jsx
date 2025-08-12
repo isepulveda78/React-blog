@@ -59,8 +59,14 @@ const AdminPostEditor = ({ user, postId }) => {
       });
 
       if (response.ok) {
-        // Redirect to admin posts list
-        window.location.href = '/admin/posts';
+        const savedPost = await response.json();
+        
+        // Trigger refresh event for BlogListing
+        window.dispatchEvent(new CustomEvent('blogDataUpdated', { detail: { action: 'saved', post: savedPost } }));
+        
+        // Navigate back to admin posts list
+        window.history.pushState({}, '', '/admin/posts');
+        window.dispatchEvent(new PopStateEvent('popstate'));
       } else {
         const errorData = await response.json();
         toast({
