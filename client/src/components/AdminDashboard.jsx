@@ -140,6 +140,21 @@ const AdminDashboard = ({ user }) => {
           </div>
         </div>
 
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm hover-shadow">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">🎧</div>
+              <h5 className="card-title">Quiz Grades Dashboard</h5>
+              <p className="card-text">View all student quiz scores and performance data.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigateTo('/admin/quiz-grades-dashboard')}
+              >
+                View All Grades
+              </button>
+            </div>
+          </div>
+        </div>
 
       </div>
     </div>
