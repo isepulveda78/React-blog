@@ -208,6 +208,25 @@ const AudioQuizzes = ({ user }) => {
                 <p className="text-muted mb-0">{selectedQuiz.description}</p>
               </div>
               <div className="card-body">
+                {/* Audio Test Section */}
+                <div className="alert alert-info mb-4">
+                  <h6>Audio Player Test</h6>
+                  <p className="mb-2">Test the audio player with a sample file:</p>
+                  <AudioPlayer
+                    src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"
+                    onPlay={() => console.log("Test audio playing")}
+                    onError={(e) => console.error('Test audio error:', e)}
+                    volume={0.8}
+                    className="mb-2"
+                    style={{
+                      height: '50px',
+                      borderRadius: '4px',
+                      backgroundColor: 'white'
+                    }}
+                  />
+                  <small className="text-muted">If this test audio works but your quiz audio doesn't, the issue is with your audio URLs.</small>
+                </div>
+
                 {quizResult ? (
                   <div className="text-center">
                     <div className={`alert ${quizResult.score >= 70 ? 'alert-success' : 'alert-warning'}`}>
@@ -230,31 +249,60 @@ const AudioQuizzes = ({ user }) => {
                       <div key={index} className="mb-4">
                         <div className="mb-3">
                           <div className="audio-player-wrapper mb-3">
-                            <AudioPlayer
-                              src={question.audioUrl}
-                              onPlay={() => console.log("Audio playing")}
-                              volume={0.8}
-                              muted={false}
-                              autoPlayAfterSrcChange={false}
-                              showJumpControls={false}
-                              showFilledVolume={true}
-                              customProgressBarSection={[
-                                'CURRENT_TIME',
-                                'PROGRESS_BAR',
-                                'DURATION',
-                              ]}
-                              customControlsSection={[
-                                'MAIN_CONTROLS',
-                                'VOLUME_CONTROLS',
-                              ]}
-                              onLoadedData={() => console.log("Audio loaded successfully")}
-                              onError={(e) => console.error('Audio loading error:', e)}
-                              className="mb-2"
-                              style={{
-                                borderRadius: '8px',
-                                backgroundColor: '#f8f9fa'
-                              }}
-                            />
+                            <div className="mb-2">
+                              <div className="d-flex align-items-center justify-content-between mb-2">
+                                <small className="text-muted">Audio URL: {question.audioUrl}</small>
+                                <button 
+                                  className="btn btn-sm btn-outline-info"
+                                  onClick={() => {
+                                    const audio = new Audio(question.audioUrl);
+                                    audio.volume = 0.8;
+                                    audio.play().then(() => {
+                                      console.log('Direct audio test: SUCCESS');
+                                    }).catch((error) => {
+                                      console.error('Direct audio test: FAILED', error);
+                                      alert('Audio URL may be invalid or blocked by CORS policy');
+                                    });
+                                  }}
+                                >
+                                  Test Audio
+                                </button>
+                              </div>
+                              <AudioPlayer
+                                src={question.audioUrl}
+                                onPlay={(e) => {
+                                  console.log("Audio playing, src:", question.audioUrl);
+                                  console.log("Audio element:", e?.target);
+                                }}
+                                onLoadStart={() => console.log("Audio load started")}
+                                onCanPlay={() => console.log("Audio can play")}
+                                onLoadedData={() => console.log("Audio loaded successfully")}
+                                onError={(e) => {
+                                  console.error('Audio loading error:', e);
+                                  console.error('Audio src:', question.audioUrl);
+                                }}
+                                onListen={(currentTime) => console.log("Audio playing at:", currentTime)}
+                                volume={0.8}
+                                muted={false}
+                                autoPlayAfterSrcChange={false}
+                                showJumpControls={false}
+                                showFilledVolume={true}
+                                customProgressBarSection={[
+                                  'CURRENT_TIME',
+                                  'PROGRESS_BAR',
+                                  'DURATION',
+                                ]}
+                                customControlsSection={[
+                                  'MAIN_CONTROLS',
+                                  'VOLUME_CONTROLS',
+                                ]}
+                                className="mb-2"
+                                style={{
+                                  borderRadius: '8px',
+                                  backgroundColor: '#f8f9fa'
+                                }}
+                              />
+                            </div>
                           </div>
                           <h5>{question.question}</h5>
                         </div>
