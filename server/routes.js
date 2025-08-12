@@ -2470,30 +2470,44 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   // Quiz Grade Routes
   app.get("/api/quiz-grades", async (req, res) => {
     try {
-      // Check if user is admin or teacher
-      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
-        return res.status(403).json({ message: "Admin or teacher access required" });
+      // Check authentication
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Authentication required" });
       }
 
       const { quizId, userId } = req.query;
+      const user = req.session.user;
+      const canViewAll = user.isAdmin || user.role === 'teacher';
+      
+      // If user is not admin/teacher and trying to view other user's grades, deny access
+      if (!canViewAll && userId && userId !== user.id) {
+        return res.status(403).json({ message: "Can only view your own grades" });
+      }
+
       let grades;
       
-      if (quizId) {
-        grades = await storage.getQuizGradesByQuizId(quizId);
-      } else if (userId) {
-        grades = await storage.getQuizGradesByUserId(userId);
+      if (canViewAll) {
+        // Admin/Teacher can view all grades
+        if (quizId) {
+          grades = await storage.getQuizGradesByQuizId(quizId);
+        } else if (userId) {
+          grades = await storage.getQuizGradesByUserId(userId);
+        } else {
+          grades = await storage.getQuizGrades();
+        }
       } else {
-        grades = await storage.getQuizGrades();
+        // Regular users can only view their own grades
+        grades = await storage.getQuizGradesByUserId(user.id);
       }
 
       // Add user names to grades
       const gradesWithNames = await Promise.all(
         grades.map(async (grade) => {
-          const user = await storage.getUserById(grade.userId);
+          const gradeUser = await storage.getUserById(grade.userId);
           const quiz = await storage.getAudioQuizById(grade.quizId);
           return {
             ...grade,
-            userName: user?.name || user?.username || 'Unknown User',
+            userName: gradeUser?.name || gradeUser?.username || 'Unknown User',
             quizTitle: quiz?.title || 'Unknown Quiz'
           };
         })
@@ -2508,6 +2522,12 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
   app.post("/api/quiz-grades", async (req, res) => {
     try {
+      // Check if user is authenticated
+      if (!req.session || !req.session.user) {
+        console.error('Quiz grade save failed: No authenticated user');
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
       const gradeData = {
         ...req.body,
         userId: req.session.user.id,

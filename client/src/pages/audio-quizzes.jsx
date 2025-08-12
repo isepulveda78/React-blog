@@ -255,48 +255,7 @@ const AudioQuizzes = ({ user }) => {
                         <div className="mb-3">
                           <div className="audio-player-wrapper mb-3">
                             <div className="mb-2">
-                              <div className="d-flex align-items-center justify-content-between mb-2">
-                                <small className="text-muted">Audio URL: {question.audioUrl}</small>
-                                <button 
-                                  className="btn btn-sm btn-outline-info"
-                                  onClick={() => {
-                                    console.log('Testing audio URL:', question.audioUrl);
-                                    
-                                    // Check if URL needs proxy (Google Drive, Dropbox, etc.)
-                                    const needsProxy = question.audioUrl.includes('drive.google.com') || 
-                                                      question.audioUrl.includes('dropbox.com') ||
-                                                      question.audioUrl.includes('onedrive.live.com') ||
-                                                      question.audioUrl.includes('icloud.com');
-                                    
-                                    const audioUrl = needsProxy 
-                                      ? `/api/audio-proxy?url=${encodeURIComponent(question.audioUrl)}`
-                                      : question.audioUrl;
-                                    
-                                    console.log('[Audio Test] Using', needsProxy ? 'PROXY' : 'DIRECT', 'for:', question.audioUrl);
-                                    
-                                    const audio = new Audio(audioUrl);
-                                    audio.volume = 0.8;
-                                    
-                                    // Add event listeners for debugging
-                                    audio.addEventListener('loadstart', () => console.log('Direct test: Load started'));
-                                    audio.addEventListener('loadeddata', () => console.log('Direct test: Data loaded'));
-                                    audio.addEventListener('canplay', () => console.log('Direct test: Can play'));
-                                    audio.addEventListener('error', (e) => console.error('Direct test: Error event', e));
-                                    
-                                    audio.play().then(() => {
-                                      console.log('Direct audio test: SUCCESS - Audio is playing');
-                                      alert('✅ Audio URL works! The issue might be with the React player.');
-                                    }).catch((error) => {
-                                      console.error('Direct audio test: FAILED', error);
-                                      console.error('Error name:', error.name);
-                                      console.error('Error message:', error.message);
-                                      alert(`❌ Audio URL failed: ${error.message}\n\nThis could be:\n- Invalid URL\n- CORS policy blocking\n- Network timeout\n- File not found`);
-                                    });
-                                  }}
-                                >
-                                  Test URL
-                                </button>
-                              </div>
+                      
                               <div style={{
                                 width: '100%',
                                 padding: '10px',
@@ -389,13 +348,7 @@ const AudioQuizzes = ({ user }) => {
                                     >
                                       ▶ Play
                                     </button>
-                                    
-                                    <div className="flex-grow-1">
-                                      <div className="text-muted small mb-1">Audio Question</div>
-                                      <div className="text-truncate small" title={question.audioUrl}>
-                                        {question.audioUrl.split('/').pop() || 'Audio file'}
-                                      </div>
-                                    </div>
+                           
                                   </div>
                                   <small className="text-muted d-block mt-1">
                                     Custom audio player - Click "Play" to hear the question

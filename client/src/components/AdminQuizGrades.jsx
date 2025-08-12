@@ -16,17 +16,9 @@ const AdminQuizGrades = ({ user }) => {
   });
 
 
-  // Check admin access
-  if (!user || (!user.isAdmin && user.role !== 'teacher')) {
-    return (
-      <div className="container py-5">
-        <div className="alert alert-danger">
-          <h4>Access Denied</h4>
-          <p>You need admin or teacher privileges to view quiz grades.</p>
-        </div>
-      </div>
-    );
-  }
+  // Show grades for regular users (their own grades) or admin/teacher (all grades)
+  const canViewAllGrades = user && (user.isAdmin || user.role === 'teacher');
+  const isRegularUser = user && !canViewAllGrades;
 
   useEffect(() => {
     fetchGrades();
@@ -36,7 +28,13 @@ const AdminQuizGrades = ({ user }) => {
   const fetchGrades = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/quiz-grades', { 
+      
+      // For regular users, fetch only their grades
+      const url = isRegularUser 
+        ? `/api/quiz-grades?userId=${user.id}`
+        : '/api/quiz-grades';
+        
+      const response = await fetch(url, { 
         credentials: 'include',
         method: 'GET',
         headers: {
@@ -48,6 +46,10 @@ const AdminQuizGrades = ({ user }) => {
         const data = await response.json();
         setGrades(data);
         setError('');
+      } else if (response.status === 401) {
+        setError('Please log in to view your quiz results.');
+      } else if (response.status === 403) {
+        setError('Access denied. Admin or teacher privileges required.');
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Failed to fetch grades');
@@ -231,11 +233,15 @@ const AdminQuizGrades = ({ user }) => {
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h1 className="display-5 fw-bold text-primary mb-2">Quiz Grades Dashboard</h1>
-              <p className="text-muted">Monitor student performance and quiz statistics</p>
+              <h1 className="display-5 fw-bold text-primary mb-2">
+                {canViewAllGrades ? 'Quiz Grades Dashboard' : 'My Quiz Results'}
+              </h1>
+              <p className="text-muted">
+                {canViewAllGrades ? 'Monitor student performance and quiz statistics' : 'View your quiz scores and progress'}
+              </p>
             </div>
             <button className="btn btn-outline-secondary" onClick={navigateBack}>
-              ← Back to Admin
+              ← Back to {canViewAllGrades ? 'Admin' : 'Tools'}
             </button>
           </div>
 
