@@ -27,7 +27,7 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **RESOLVED: Blog update visibility issue** - Fixed blog refresh system with aggressive cache-busting, enhanced debugging tools, and proper Wouter router navigation. Blog data updates now appear immediately with working "Read More" functionality.
 - **RESOLVED: HTML encoding display issue** - Applied comprehensive HTML entity decoding to all blog API endpoints (public posts, individual posts, admin routes). Blog post updates now display correctly without HTML entity artifacts, with proper cache-busting for immediate visibility.
 - **RESOLVED: WebSocket server conflicts** - Fixed persistent WebSocket port conflicts that were preventing server restarts. Server now starts reliably without port blocking issues.
-- **REVERTED: Switched Back to ReactQuill** - Due to TinyMCE compatibility issues, reverted all editor components back to ReactQuill for better stability and reliability. ReactQuill provides consistent rich text editing capabilities without API key dependencies or compatibility problems.
+- **REMOVED: Rich Text Editor Dependencies** - Removed both TinyMCE and ReactQuill due to compatibility and sizing issues. Replaced with simple textarea elements that support HTML formatting. Users can now write HTML directly for content formatting.
 - **COMPLETED: Production Code Cleanup** - Removed all debugging console.log statements from blog components, admin interfaces, and editor components for cleaner production-ready code.
 
 ## System Architecture
@@ -79,11 +79,11 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **Chatroom Access Control**: Teachers/admins can create private chatrooms and invite specific users.
 - **Security Enhancements**: Helmet.js for security headers, rate limiting, comprehensive input validation (email, username, passwords, content), express-mongo-sanitize for NoSQL injection prevention, security event logging, secure cookies, strong password requirements, XSS protection, restricted file uploads, and HTTPS configuration.
 
-### Rich Text Editing
-- **Custom Editor**: Built-in WYSIWYG editor with formatting controls using ReactQuill.
+### Content Editing
+- **Simple HTML Editor**: Direct HTML textarea editing with helpful formatting hints.
 - **Content Storage**: HTML content stored in database with proper entity encoding/decoding.
 - **Media Support**: Image upload and embedding via Cloudinary.
-- **Editor Features**: Headers, bold, italic, underline, strike, colors, lists, alignment, links, and images.
+- **HTML Support**: Users can write HTML directly for formatting (headers, bold, italic, lists, links, etc.).
 
 ### SEO Implementation
 - **SEO Management Dashboard**: Dedicated admin interface for SEO analysis, settings, and optimization.

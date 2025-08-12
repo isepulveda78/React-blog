@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactQuill from 'react-quill';
+
 
 const { toast } = window;
 
@@ -22,24 +22,7 @@ const AdminPosts = ({ user }) => {
   // Categories state
   const [categories, setCategories] = useState([]);
 
-  // React Quill configuration for AdminPosts
-  const quillModules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'align': [] }],
-      ['link', 'image'],
-      ['clean']
-    ],
-  };
 
-  const quillFormats = [
-    'header', 'bold', 'italic', 'underline', 'strike',
-    'color', 'background', 'list', 'bullet', 'align',
-    'link', 'image'
-  ];
 
 
   
@@ -328,12 +311,13 @@ const AdminPosts = ({ user }) => {
           
           <div className="mb-3">
             <label className="form-label">Content *</label>
-            <ReactQuill
+            <textarea
+              className="form-control"
+              rows="12"
               value={content}
-              onChange={setContent}
-              modules={quillModules}
-              formats={quillFormats}
-              style={{ height: '250px' }}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write your post content here. You can use HTML tags for formatting..."
+              style={{ fontFamily: 'inherit', fontSize: '14px' }}
             />
           </div>
           

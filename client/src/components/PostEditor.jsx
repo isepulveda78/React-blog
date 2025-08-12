@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactQuill from 'react-quill';
+
 
 const { toast } = window;
 
@@ -275,26 +275,13 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                       </div>
 
                       {editorMode === 'rich' ? (
-                        <ReactQuill
+                        <textarea
+                          className="form-control"
+                          rows="15"
                           value={formData.content}
-                          onChange={(content) => handleChange('content', content)}
-                          modules={{
-                            toolbar: [
-                              [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                              ['bold', 'italic', 'underline', 'strike'],
-                              [{ 'color': [] }, { 'background': [] }],
-                              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                              [{ 'align': [] }],
-                              ['link', 'image'],
-                              ['clean']
-                            ],
-                          }}
-                          formats={[
-                            'header', 'bold', 'italic', 'underline', 'strike',
-                            'color', 'background', 'list', 'bullet', 'align',
-                            'link', 'image'
-                          ]}
-                          style={{ height: '300px' }}
+                          onChange={(e) => handleChange('content', e.target.value)}
+                          placeholder="Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
+                          style={{ fontFamily: 'inherit', fontSize: '14px' }}
                         />
                       ) : (
                         /* HTML Editor */
