@@ -11,6 +11,7 @@ const AdminQuizGrades = ({ user }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [editingQuiz, setEditingQuiz] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [editFormData, setEditFormData] = useState({
     title: '',
     description: '',
@@ -156,11 +157,28 @@ const AdminQuizGrades = ({ user }) => {
     }
   };
 
-  const handleDeleteGrade = async (gradeId) => {
-    if (!confirm('Are you sure you want to delete this quiz result? This action cannot be undone.')) {
-      return;
+  const handleDeleteGrade = (gradeId) => {
+    if (pendingDeleteId === gradeId) {
+      // Second click - proceed with deletion
+      performDeleteGrade(gradeId);
+    } else {
+      // First click - show confirmation
+      setPendingDeleteId(gradeId);
+      toast({
+        title: "Confirm Deletion",
+        description: "Click the delete button again to confirm. This action cannot be undone.",
+        variant: "destructive",
+        duration: 4000
+      });
+      
+      // Clear pending delete after 5 seconds
+      setTimeout(() => {
+        setPendingDeleteId(null);
+      }, 5000);
     }
+  };
 
+  const performDeleteGrade = async (gradeId) => {
     try {
       const response = await fetch(`/api/quiz-grades/${gradeId}`, {
         method: 'DELETE',
@@ -169,6 +187,7 @@ const AdminQuizGrades = ({ user }) => {
 
       if (response.ok) {
         setGrades(grades.filter(grade => grade.id !== gradeId));
+        setPendingDeleteId(null);
         toast({
           title: "Success",
           description: "Quiz result deleted successfully!",
@@ -559,11 +578,29 @@ const AdminQuizGrades = ({ user }) => {
                           {canViewAllGrades && (
                             <td>
                               <button
-                                className="btn btn-outline-danger btn-sm"
+                                className={`btn btn-sm ${
+                                  pendingDeleteId === grade.id 
+                                    ? 'btn-danger' 
+                                    : 'btn-outline-danger'
+                                }`}
                                 onClick={() => handleDeleteGrade(grade.id)}
-                                title="Delete this quiz result"
+                                title={
+                                  pendingDeleteId === grade.id 
+                                    ? "Click again to confirm deletion" 
+                                    : "Delete this quiz result"
+                                }
                               >
-                                🗑️ Delete
+                                {pendingDeleteId === grade.id ? (
+                                  <>
+                                    <i className="fas fa-exclamation-triangle me-1"></i>
+                                    Confirm Delete
+                                  </>
+                                ) : (
+                                  <>
+                                    <i className="fas fa-trash me-1"></i>
+                                    Delete
+                                  </>
+                                )}
                               </button>
                             </td>
                           )}
