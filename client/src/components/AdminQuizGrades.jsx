@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AudioPlayer from 'react-h5-audio-player';
-import 'react-h5-audio-player/lib/styles.css';
+// Removed React audio player - using iframe approach instead
 
 const AdminQuizGrades = ({ user }) => {
   const [grades, setGrades] = useState([]);
@@ -576,30 +575,17 @@ const AdminQuizGrades = ({ user }) => {
                             {question.audioUrl && (
                               <div className="mt-2">
                                 <small className="text-muted">Preview audio:</small>
-                                <AudioPlayer
-                                  src={question.audioUrl}
-                                  onPlay={() => console.log("Edit preview audio playing")}
-                                  volume={0.8}
-                                  muted={false}
-                                  autoPlayAfterSrcChange={false}
-                                  showJumpControls={false}
-                                  showFilledVolume={false}
-                                  customProgressBarSection={[
-                                    'CURRENT_TIME',
-                                    'PROGRESS_BAR',
-                                    'DURATION',
-                                  ]}
-                                  customControlsSection={[
-                                    'MAIN_CONTROLS',
-                                  ]}
-                                  onLoadedData={() => console.log("Edit preview audio loaded")}
-                                  onError={(e) => console.error('Edit preview audio error:', e)}
-                                  className="mt-1"
+                                <iframe
+                                  src={`data:text/html,<html><body style="margin:0;padding:5px;font-family:Arial,sans-serif;background:#f8f9fa;"><audio controls style="width:100%;height:35px;"><source src="${question.audioUrl}" type="audio/mpeg"><source src="${question.audioUrl}" type="audio/wav"><source src="${question.audioUrl}" type="audio/ogg">Audio preview</audio></body></html>`}
                                   style={{
+                                    width: '100%',
                                     height: '50px',
+                                    border: '1px solid #dee2e6',
                                     borderRadius: '4px',
                                     backgroundColor: '#f8f9fa'
                                   }}
+                                  title="Audio Preview"
+                                  className="mt-1"
                                 />
                               </div>
                             )}
