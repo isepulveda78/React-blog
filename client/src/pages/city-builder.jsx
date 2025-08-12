@@ -737,13 +737,13 @@ const CityBuilder = () => {
                     top: `${street.y * (zoomLevel / 100) + canvasOffset.y}px`,
                     width: `${street.width * (zoomLevel / 100)}px`,
                     height: `${street.height * (zoomLevel / 100)}px`,
-                    backgroundColor: street.color,
-                    border: selectedStreet?.id === street.id ? '2px solid #007bff' : '1px solid #ccc',
+                    backgroundColor: 'transparent',
+                    border: selectedStreet?.id === street.id ? '2px solid #007bff' : 'none',
                     borderRadius: '2px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: `${16 * (zoomLevel / 100)}px`,
+                    fontSize: `${32 * (zoomLevel / 100)}px`,
                     cursor: 'pointer',
                     zIndex: 1
                   }}
@@ -770,13 +770,13 @@ const CityBuilder = () => {
                     top: `${building.y * (zoomLevel / 100) + canvasOffset.y}px`,
                     width: `${building.width * (zoomLevel / 100)}px`,
                     height: `${building.height * (zoomLevel / 100)}px`,
-                    backgroundColor: building.color,
-                    border: selectedBuilding?.id === building.id ? '2px solid #007bff' : '1px solid #333',
+                    backgroundColor: 'transparent',
+                    border: selectedBuilding?.id === building.id ? '2px solid #007bff' : 'none',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: `${20 * (zoomLevel / 100)}px`,
+                    fontSize: `${40 * (zoomLevel / 100)}px`,
                     cursor: 'pointer',
                     zIndex: 2
                   }}
