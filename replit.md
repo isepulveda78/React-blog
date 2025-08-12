@@ -22,6 +22,8 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **Enhanced Word Sorter with clickable list title editing** - Implemented inline editing functionality allowing users to click on list titles to rename them, removed separate input fields for cleaner UI
 - **Restored City Builder to working version** - Reverted from broken modular architecture back to fully functional single-file implementation with resizable roads and water, drag-and-drop building placement, comprehensive resize handles, and PNG export functionality
 - **COMPLETED: Comprehensive Text Quiz System** - Built complete text-based quiz system with same functionality as audio quizzes: create/edit/delete quizzes (teacher/admin), take quizzes (students), grade tracking in admin dashboard, and integrated results display in user profiles with tabbed interface
+- **COMPLETED: Attempt Limits Feature** - Added configurable attempt limits (1, 2, 3, 5, 10, unlimited) to both audio and text quizzes with real-time tracking and enforcement
+- **Updated Educational Tools Access** - Modified educational tools page so students see only quizzes and Spanish Alphabet, while teachers/admins retain access to all tools
 
 ## System Architecture
 

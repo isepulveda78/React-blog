@@ -40,7 +40,7 @@ const EducationalTools = ({ user }) => {
       icon: 'fas fa-volume-up fa-3x text-warning',
       buttonClass: 'btn btn-warning',
       route: '/spanish-alphabet',
-      visibleToStudents: false
+      visibleToStudents: true
     },
     {
       id: 'code-evolution',
@@ -65,7 +65,7 @@ const EducationalTools = ({ user }) => {
       title: 'Listen to Type',
       description: 'Practice typing by listening to audio prompts and typing what you hear',
       icon: 'fas fa-keyboard fa-3x text-danger',
-      buttonClass: 'btn btn-danger',
+      buttonClass: 'btn btn-info',
       route: '/listen-to-type',
       visibleToStudents: false
     },
@@ -74,7 +74,7 @@ const EducationalTools = ({ user }) => {
       title: 'Crossword Generator',
       description: 'Create custom crossword puzzles with across and down clues, then export as PDF',
       icon: 'fas fa-puzzle-piece fa-3x text-secondary',
-      buttonClass: 'btn btn-secondary',
+      buttonClass: 'btn btn-info',
       route: '/crossword-generator',
       visibleToStudents: false
     }
