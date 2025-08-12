@@ -80,17 +80,27 @@ const WordSorter = ({ user }) => {
   const exportToPDF = async () => {
     setIsLoading(true);
     try {
-      // Check for jsPDF in global scope
-      if (typeof window.jspdf === 'undefined' && typeof window.jsPDF === 'undefined') {
-        throw new Error('jsPDF library not loaded');
-      }
-
-      // Get jsPDF constructor
-      const { jsPDF } = window.jspdf || window;
+      console.log('Starting PDF export...');
+      console.log('List 1:', list1);
+      console.log('List 2:', list2);
+      console.log('List 1 Title:', list1Title);
+      console.log('List 2 Title:', list2Title);
+      console.log('User Name:', userName);
       
-      if (!jsPDF) {
-        throw new Error('jsPDF constructor not found');
+      // Check for jsPDF in global scope
+      console.log('Checking for jsPDF...', typeof window.jspdf, typeof window.jsPDF);
+      
+      // Try different ways to access jsPDF
+      let jsPDF;
+      if (window.jspdf && window.jspdf.jsPDF) {
+        jsPDF = window.jspdf.jsPDF;
+      } else if (window.jsPDF) {
+        jsPDF = window.jsPDF;
+      } else {
+        throw new Error('jsPDF library not loaded - please refresh the page');
       }
+      
+      console.log('jsPDF constructor found:', jsPDF);
       
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
