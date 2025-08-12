@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Editor } from '@tinymce/tinymce-react';
 
 const { toast } = window;
 
@@ -147,105 +148,10 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     event.target.value = '';
   };
 
-  const insertImageInContent = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  // Image insertion is now handled by TinyMCE's built-in image upload handler
 
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Error",
-        description: "Please select an image file",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "Error",
-        description: "Image size must be less than 5MB",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setImageUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const imageHtml = `<img src="${data.url}" alt="Uploaded image" class="img-fluid my-3" />`;
-        
-        // Insert into rich text editor if it's active
-        if (editorMode === 'rich') {
-          const editor = document.getElementById('richTextEditor');
-          if (editor) {
-            editor.focus();
-            document.execCommand('insertHTML', false, imageHtml);
-            setFormData(prev => ({ ...prev, content: editor.innerHTML }));
-          }
-        } else {
-          // Insert into HTML editor
-          setFormData(prev => ({ ...prev, content: prev.content + imageHtml }));
-        }
-        toast({
-          title: "Success",
-          description: "Image inserted into content!",
-          variant: "default"
-        });
-      } else {
-        const error = await response.json();
-        toast({
-          title: "Error",
-          description: `Upload failed: ${error.message || 'Unknown error'}`,
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast({
-        title: "Error",
-        description: `Upload failed: ${error.message}`,
-        variant: "destructive"
-      });
-    }
-
-    setImageUploading(false);
-    event.target.value = '';
-  };
-
-  const formatText = (command, value = null) => {
-    document.execCommand(command, false, value);
-    const editor = document.getElementById('richTextEditor');
-    if (editor) {
-      setFormData(prev => ({ ...prev, content: editor.innerHTML }));
-    }
-  };
-
-  const insertLink = () => {
-    const url = prompt('Enter URL:');
-    if (url) {
-      formatText('createLink', url);
-    }
-  };
-
-  const insertHTML = (html) => {
-    const editor = document.getElementById('richTextEditor');
-    if (editor) {
-      editor.focus();
-      document.execCommand('insertHTML', false, html);
-      setFormData(prev => ({ ...prev, content: editor.innerHTML }));
-    }
-  };
+  // These functions are no longer needed with TinyMCE
+  // formatText, insertLink, and insertHTML have been replaced by TinyMCE's built-in functionality
 
   const handleSave = async () => {
     if (!formData.title.trim()) {
@@ -370,123 +276,63 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                       </div>
 
                       {editorMode === 'rich' ? (
-                        <>
-                          {/* Rich Text Editor Toolbar */}
-                          <div className="border rounded-top p-2 bg-light">
-                            <div className="btn-toolbar">
-                              <div className="btn-group btn-group-sm me-2">
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('bold')} title="Bold">
-                                  <strong>B</strong>
-                                </button>
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('italic')} title="Italic">
-                                  <em>I</em>
-                                </button>
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('underline')} title="Underline">
-                                  <u>U</u>
-                                </button>
-                              </div>
-                              
-                              <div className="btn-group btn-group-sm me-2">
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('formatBlock', 'h1')} title="Heading 1">
-                                  H1
-                                </button>
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('formatBlock', 'h2')} title="Heading 2">
-                                  H2
-                                </button>
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('formatBlock', 'h3')} title="Heading 3">
-                                  H3
-                                </button>
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('formatBlock', 'p')} title="Paragraph">
-                                  P
-                                </button>
-                              </div>
-                              
-                              <div className="btn-group btn-group-sm me-2">
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('insertUnorderedList')} title="Bullet List">
-                                  •
-                                </button>
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('insertOrderedList')} title="Numbered List">
-                                  1.
-                                </button>
-                              </div>
-                              
-                              <div className="btn-group btn-group-sm me-2">
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('justifyLeft')} title="Align Left">
-                                  ←
-                                </button>
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('justifyCenter')} title="Align Center">
-                                  ↔
-                                </button>
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('justifyRight')} title="Align Right">
-                                  →
-                                </button>
-                              </div>
-                              
-                              <div className="btn-group btn-group-sm me-2">
-                                <button type="button" className="btn btn-outline-secondary" onClick={insertLink} title="Insert Link">
-                                  🔗
-                                </button>
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('unlink')} title="Remove Link">
-                                  ⛓️‍💥
-                                </button>
-                              </div>
-                              
-                              <div className="btn-group btn-group-sm me-2">
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={insertImageInContent}
-                                  className="form-control"
-                                  id="contentImageUpload"
-                                  style={{ display: 'none' }}
-                                />
-                                <button
-                                  type="button"
-                                  className="btn btn-outline-secondary"
-                                  onClick={() => document.getElementById('contentImageUpload').click()}
-                                  disabled={imageUploading}
-                                  title="Insert Image"
-                                >
-                                  {imageUploading ? (
-                                    <span className="spinner-border spinner-border-sm"></span>
-                                  ) : (
-                                    "📷"
-                                  )}
-                                </button>
-                              </div>
-                              
-                              <div className="btn-group btn-group-sm">
-                                <button type="button" className="btn btn-outline-secondary" onClick={() => formatText('removeFormat')} title="Clear Formatting">
-                                  ✂️
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Rich Text Editor */}
-                          <div
-                            id="richTextEditor"
-                            contentEditable={true}
-                            className="form-control"
-                            style={{ 
-                              minHeight: '300px', 
-                              borderTopLeftRadius: 0, 
-                              borderTopRightRadius: 0,
-                              fontFamily: 'inherit'
-                            }}
-                            dangerouslySetInnerHTML={{ __html: formData.content }}
-                            onInput={(e) => handleChange('content', e.target.innerHTML)}
-                            onPaste={(e) => {
-                              // Allow pasting but clean up the content
-                              setTimeout(() => {
-                                const editor = document.getElementById('richTextEditor');
-                                if (editor) {
-                                  handleChange('content', editor.innerHTML);
+                        <Editor
+                          apiKey="no-api-key"
+                          value={formData.content}
+                          onEditorChange={(content) => handleChange('content', content)}
+                          init={{
+                            height: 400,
+                            menubar: false,
+                            plugins: [
+                              'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                              'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                              'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount',
+                              'paste', 'directionality', 'emoticons', 'template', 'codesample'
+                            ],
+                            toolbar: 'undo redo | blocks | ' +
+                              'bold italic forecolor | alignleft aligncenter ' +
+                              'alignright alignjustify | bullist numlist outdent indent | ' +
+                              'table | link image | removeformat | help',
+                            table_toolbar: 'tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol',
+                            table_appearance_options: false,
+                            table_grid: false,
+                            table_class_list: [
+                              { title: 'None', value: '' },
+                              { title: 'Bootstrap Table', value: 'table' },
+                              { title: 'Bootstrap Striped', value: 'table table-striped' },
+                              { title: 'Bootstrap Bordered', value: 'table table-bordered' }
+                            ],
+                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                            paste_data_images: true,
+                            images_upload_handler: async (blobInfo, success, failure) => {
+                              try {
+                                const formData = new FormData();
+                                formData.append('image', blobInfo.blob(), blobInfo.filename());
+
+                                const response = await fetch('/api/upload-image', {
+                                  method: 'POST',
+                                  credentials: 'include',
+                                  body: formData
+                                });
+
+                                if (response.ok) {
+                                  const data = await response.json();
+                                  success(data.url);
+                                } else {
+                                  failure('Image upload failed');
                                 }
-                              }, 10);
-                            }}
-                          />
-                        </>
+                              } catch (error) {
+                                failure('Image upload failed: ' + error.message);
+                              }
+                            },
+                            setup: (editor) => {
+                              editor.on('change', () => {
+                                const content = editor.getContent();
+                                handleChange('content', content);
+                              });
+                            }
+                          }}
+                        />
                       ) : (
                         /* HTML Editor */
                         <div className="position-relative">
