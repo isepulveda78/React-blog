@@ -832,15 +832,45 @@ export function registerRoutes(app) {
         return res.status(404).json({ message: "Post not found" });
       }
       
-      // Decode HTML entities in featuredImage URL
+      // Function to decode HTML entities recursively
+      const decodeHTMLEntities = (text) => {
+        if (!text || typeof text !== 'string') return text;
+        
+        // Keep decoding until no more entities are found
+        let decoded = text;
+        let previousDecoded = '';
+        
+        while (decoded !== previousDecoded) {
+          previousDecoded = decoded;
+          decoded = decoded
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#x2F;/g, '/')
+            .replace(/&#x27;/g, "'");
+        }
+        
+        return decoded;
+      };
+
+      // Decode HTML entities in all text fields
+      if (postData.content) {
+        const originalLength = postData.content.length;
+        postData.content = decodeHTMLEntities(postData.content);
+        console.log('[server] Decoded content:', originalLength, '->', postData.content.length, 'characters');
+      }
+      
+      if (postData.title) {
+        postData.title = decodeHTMLEntities(postData.title);
+      }
+      
+      if (postData.excerpt) {
+        postData.excerpt = decodeHTMLEntities(postData.excerpt);
+      }
+      
       if (postData.featuredImage) {
-        postData.featuredImage = postData.featuredImage
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&quot;/g, '"')
-          .replace(/&#x2F;/g, '/')
-          .replace(/&#x27;/g, "'");
+        postData.featuredImage = decodeHTMLEntities(postData.featuredImage);
         console.log('[server] Decoded image URL:', postData.featuredImage);
       }
       

@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from 'react';
 
-// Utility function to decode HTML entities
+// Utility function to decode HTML entities recursively
 const decodeHTMLEntities = (text) => {
-  if (!text) return text;
-  const textarea = document.createElement('textarea');
-  textarea.innerHTML = text;
-  return textarea.value;
+  if (!text || typeof text !== 'string') return text;
+  
+  // Keep decoding until no more entities are found
+  let decoded = text;
+  let previousDecoded = '';
+  
+  while (decoded !== previousDecoded) {
+    previousDecoded = decoded;
+    decoded = decoded
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#x2F;/g, '/')
+      .replace(/&#x27;/g, "'");
+  }
+  
+  return decoded;
 };
 
 // Helper function to format dates nicely
