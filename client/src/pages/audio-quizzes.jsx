@@ -207,47 +207,6 @@ const AudioQuizzes = ({ user }) => {
                 <p className="text-muted mb-0">{selectedQuiz.description}</p>
               </div>
               <div className="card-body">
-                {/* Audio Test Section */}
-                <div className="alert alert-info mb-4">
-                  <h6>Audio Player Test</h6>
-                  <p className="mb-2">Test the audio player with sample files:</p>
-                  
-                  <div className="mb-2">
-                    <small className="text-muted">Test #1 - Local audio:</small>
-                    <div style={{
-                      width: '100%',
-                      padding: '5px',
-                      border: '1px solid #dee2e6',
-                      borderRadius: '4px',
-                      backgroundColor: 'white',
-                      marginBottom: '4px'
-                    }}>
-                      <audio controls style={{width: '100%', height: '30px'}}>
-                        <source src="/sounds/button-click.mp3" type="audio/mpeg" />
-                        Local audio test
-                      </audio>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-2">
-                    <small className="text-muted">Test #2 - External audio:</small>
-                    <div style={{
-                      width: '100%',
-                      padding: '5px',
-                      border: '1px solid #dee2e6',
-                      borderRadius: '4px',
-                      backgroundColor: 'white',
-                      marginBottom: '4px'
-                    }}>
-                      <audio controls style={{width: '100%', height: '30px'}}>
-                        <source src="https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__nbsp_.mp3" type="audio/mpeg" />
-                        External audio test
-                      </audio>
-                    </div>
-                  </div>
-                  
-                  <small className="text-muted">If these test audios work but your quiz audio doesn't, the issue is with your quiz audio URLs.</small>
-                </div>
 
                 {quizResult ? (
                   <div className="text-center">
@@ -309,18 +268,38 @@ const AudioQuizzes = ({ user }) => {
                                 backgroundColor: '#f8f9fa',
                                 marginBottom: '8px'
                               }}>
-                                <audio 
-                                  controls 
-                                  style={{width: '100%', height: '40px'}} 
-                                  onPlay={() => console.log('Quiz audio playing')}
-                                  onError={(e) => console.error('Quiz audio error:', e)}
-                                  preload="metadata"
-                                >
-                                  <source src={question.audioUrl} type="audio/mpeg" />
-                                  <source src={question.audioUrl} type="audio/wav" />
-                                  <source src={question.audioUrl} type="audio/ogg" />
-                                  Your browser does not support audio.
-                                </audio>
+                                <div className="position-relative">
+                                  <audio 
+                                    controls 
+                                    style={{width: '100%', height: '40px'}} 
+                                    onPlay={(e) => {
+                                      console.log('Quiz audio playing');
+                                      e.target.style.backgroundColor = '#d4edda';
+                                    }}
+                                    onError={(e) => {
+                                      console.error('Quiz audio error:', e);
+                                      e.target.style.border = '2px solid red';
+                                    }}
+                                    onLoadedData={(e) => {
+                                      console.log('Quiz audio loaded successfully');
+                                      e.target.style.border = '2px solid green';
+                                    }}
+                                    onCanPlay={(e) => {
+                                      console.log('Quiz audio ready to play');
+                                      e.target.style.border = '2px solid blue';
+                                    }}
+                                    onLoadStart={() => console.log('Quiz audio loading started')}
+                                    preload="metadata"
+                                  >
+                                    <source src={question.audioUrl} type="audio/mpeg" />
+                                    <source src={question.audioUrl} type="audio/wav" />
+                                    <source src={question.audioUrl} type="audio/ogg" />
+                                    Your browser does not support audio.
+                                  </audio>
+                                  <small className="text-muted d-block mt-1">
+                                    Audio border colors: <span className="text-success">Green=Loaded</span> | <span className="text-primary">Blue=Ready</span> | <span className="text-danger">Red=Error</span>
+                                  </small>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -408,6 +387,60 @@ const AudioQuizzes = ({ user }) => {
                   />
                 </div>
 
+                <div className="alert alert-warning mb-4">
+                  <h6>🔧 Audio Play Button Not Working?</h6>
+                  <p className="mb-2"><strong>Quick Test:</strong></p>
+                  <div className="mb-3">
+                    <button 
+                      className="btn btn-success btn-sm me-2"
+                      onClick={() => {
+                        // Simple beep test that should always work
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                        
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.2);
+                        
+                        alert('✅ If you heard a beep, your browser audio works!\n\nThe issue is with your audio URLs or files.');
+                      }}
+                    >
+                      Test Browser Beep
+                    </button>
+                    
+                    <button 
+                      className="btn btn-info btn-sm"
+                      onClick={() => {
+                        const audio = new Audio('/sounds/button-click.mp3');
+                        audio.volume = 0.3;
+                        audio.play().then(() => {
+                          alert('✅ Local audio works! Problem is with your quiz audio URLs.');
+                        }).catch(error => {
+                          alert('❌ Audio blocked: ' + error.message + '\n\n• Click anywhere on page first\n• Check browser audio settings\n• Try refreshing page');
+                        });
+                      }}
+                    >
+                      Test Local Audio
+                    </button>
+                  </div>
+                  
+                  <div className="bg-light p-2 rounded mb-3">
+                    <small><strong>Common Solutions:</strong><br/>
+                    1. <strong>Click somewhere on this page first</strong> (browser requirement)<br/>
+                    2. Check browser isn't muted or blocking audio<br/>
+                    3. Try a different browser (Chrome, Firefox, Safari)<br/>
+                    4. Make sure audio URL ends with .mp3, .wav, or .ogg<br/>
+                    5. Test your audio URL in a new browser tab
+                    </small>
+                  </div>
+                </div>
+
                 <div className="alert alert-info mb-4">
                   <h6><i className="fas fa-info-circle me-2"></i>Audio URL Help</h6>
                   <p className="mb-2"><strong>For Google Drive files:</strong></p>
@@ -488,8 +521,22 @@ const AudioQuizzes = ({ user }) => {
                                 controls 
                                 style={{width: '100%', height: '40px'}} 
                                 preload="metadata"
-                                onError={(e) => console.error('Audio preview error:', e)}
-                                onLoadedData={(e) => console.log('Audio preview loaded:', question.audioUrl)}
+                                onError={(e) => {
+                                  console.error('Audio preview error:', e);
+                                  e.target.style.border = '2px solid red';
+                                }}
+                                onLoadedData={(e) => {
+                                  console.log('Audio preview loaded:', question.audioUrl);
+                                  e.target.style.border = '2px solid green';
+                                }}
+                                onCanPlay={(e) => {
+                                  console.log('Audio can play:', question.audioUrl);
+                                  e.target.style.border = '2px solid blue';
+                                }}
+                                onPlay={(e) => {
+                                  console.log('Audio started playing:', question.audioUrl);
+                                  e.target.style.backgroundColor = '#d4edda';
+                                }}
                               >
                                 <source src={question.audioUrl} type="audio/mpeg" />
                                 <source src={question.audioUrl} type="audio/wav" />
