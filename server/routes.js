@@ -2543,7 +2543,10 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
       let grades;
       
-      if (canViewAll) {
+      if (quizId && userId) {
+        // Specific user and quiz combination
+        grades = await storage.getQuizGradesByUserAndQuiz(userId, quizId);
+      } else if (canViewAll) {
         // Admin/Teacher can view all grades
         if (quizId) {
           grades = await storage.getQuizGradesByQuizId(quizId);
@@ -2554,7 +2557,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         }
       } else {
         // Regular users can only view their own grades
-        grades = await storage.getQuizGradesByUserId(user.id);
+        if (quizId) {
+          grades = await storage.getQuizGradesByUserAndQuiz(user.id, quizId);
+        } else {
+          grades = await storage.getQuizGradesByUserId(user.id);
+        }
       }
 
       // Add user names to grades

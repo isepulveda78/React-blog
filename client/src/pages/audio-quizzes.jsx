@@ -15,11 +15,18 @@ const AudioQuizzes = ({ user }) => {
   const [showGrades, setShowGrades] = useState(false);
   const [driveUrl, setDriveUrl] = useState('');
   const [randomizedQuestions, setRandomizedQuestions] = useState([]);
+  const [quizAttempts, setQuizAttempts] = useState({});
+
+  // Check permissions
+  const canCreateQuiz = user && (user.isAdmin || user.role === 'teacher');
+  const canEditQuiz = user && (user.isAdmin || user.role === 'teacher');
+  const canDeleteQuiz = user && (user.isAdmin || user.role === 'teacher');
 
   // Form state for creating/editing quizzes
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    maxAttempts: 1,
     questions: [{ audioUrl: '', question: '', options: ['', '', '', ''], correctAnswer: 0 }]
   });
 
@@ -45,6 +52,33 @@ const AudioQuizzes = ({ user }) => {
       fetchGrades();
     }
   }, [user]);
+
+  useEffect(() => {
+    // Fetch attempt counts for each quiz when user is authenticated
+    if (user?.id && quizzes.length > 0) {
+      fetchAttemptCounts();
+    }
+  }, [user?.id, quizzes]);
+
+  const fetchAttemptCounts = async () => {
+    if (!user?.id) return;
+    
+    const attemptData = {};
+    for (const quiz of quizzes) {
+      try {
+        const response = await fetch(`/api/quiz-grades?userId=${user.id}&quizId=${quiz.id}`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const grades = await response.json();
+          attemptData[quiz.id] = grades.length;
+        }
+      } catch (error) {
+        console.error(`Error fetching attempts for quiz ${quiz.id}:`, error);
+      }
+    }
+    setQuizAttempts(attemptData);
+  };
 
   const fetchQuizzes = async () => {
     try {
@@ -247,13 +281,14 @@ const AudioQuizzes = ({ user }) => {
     setFormData({
       title: quiz.title,
       description: quiz.description,
+      maxAttempts: quiz.maxAttempts || 1,
       questions: quiz.questions
     });
     setDriveUrl('');
     setShowCreateForm(true);
   };
 
-  const handleTakeQuiz = (quiz) => {
+  const handleTakeQuiz = async (quiz) => {
     // Check if user is logged in
     if (!user) {
       toast({
@@ -262,6 +297,30 @@ const AudioQuizzes = ({ user }) => {
         variant: "destructive"
       });
       return;
+    }
+
+    // Check attempt limits
+    try {
+      const response = await fetch(`/api/quiz-grades?userId=${user.id}&quizId=${quiz.id}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const userGrades = await response.json();
+        const attemptCount = userGrades.length;
+        
+        // Check if user has exceeded attempt limit (-1 means unlimited)
+        if (quiz.maxAttempts !== -1 && attemptCount >= quiz.maxAttempts) {
+          toast({
+            title: "Attempt Limit Reached",
+            description: `You have already taken this quiz ${attemptCount} time${attemptCount > 1 ? 's' : ''}. Maximum attempts allowed: ${quiz.maxAttempts}.`,
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error checking attempt count:', error);
     }
 
     // Randomize questions when starting the quiz
@@ -321,6 +380,20 @@ const AudioQuizzes = ({ user }) => {
           totalQuestions: questions.length
         })
       });
+      
+      // Update attempt count for this quiz
+      if (user?.id) {
+        const response = await fetch(`/api/quiz-grades?userId=${user.id}&quizId=${selectedQuiz.id}`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const grades = await response.json();
+          setQuizAttempts(prev => ({
+            ...prev,
+            [selectedQuiz.id]: grades.length
+          }));
+        }
+      }
     } catch (error) {
       console.error('Error saving grade:', error);
     }
@@ -353,10 +426,7 @@ const AudioQuizzes = ({ user }) => {
     }));
   };
 
-  // Only allow true admins (not student admins) or teachers to manage quizzes
-  const canCreateQuiz = (user?.isAdmin && user?.role !== 'student') || user?.role === 'teacher';
-  const canEditQuiz = (user?.isAdmin && user?.role !== 'student') || user?.role === 'teacher';
-  const canDeleteQuiz = (user?.isAdmin && user?.role !== 'student') || user?.role === 'teacher';
+
   
   // Debug logging for permissions
   console.log('[Audio Quizzes] User permissions:', {
@@ -757,7 +827,7 @@ const AudioQuizzes = ({ user }) => {
                   />
                 </div>
                 
-                <div className="mb-4">
+                <div className="mb-3">
                   <label className="form-label">Description</label>
                   <textarea 
                     className="form-control"
@@ -766,6 +836,23 @@ const AudioQuizzes = ({ user }) => {
                     placeholder="Enter quiz description"
                     rows="3"
                   />
+                </div>
+
+                <div className="mb-4">
+                  <label className="form-label">Maximum Attempts</label>
+                  <select
+                    className="form-select"
+                    value={formData.maxAttempts || 1}
+                    onChange={(e) => setFormData(prev => ({ ...prev, maxAttempts: parseInt(e.target.value) }))}
+                  >
+                    <option value={1}>1 attempt</option>
+                    <option value={2}>2 attempts</option>
+                    <option value={3}>3 attempts</option>
+                    <option value={5}>5 attempts</option>
+                    <option value={10}>10 attempts</option>
+                    <option value={-1}>Unlimited attempts</option>
+                  </select>
+                  <small className="text-muted">How many times can a student take this quiz?</small>
                 </div>
 
                 <div className="alert alert-info mb-4">
@@ -1500,23 +1587,57 @@ const AudioQuizzes = ({ user }) => {
                 <div className="card-body">
                   <h5 className="card-title">{quiz.title}</h5>
                   <p className="card-text">{quiz.description}</p>
-                  <p className="text-muted small mb-3">
+                  <p className="text-muted small mb-2">
                     <i className="fas fa-question-circle me-1"></i>
                     {quiz.questions?.length || 0} questions
                   </p>
+                  {user && (
+                    <p className="text-muted small mb-2">
+                      {quiz.maxAttempts === -1 
+                        ? `Attempts: ${quizAttempts[quiz.id] || 0} (unlimited)`
+                        : `Attempts: ${quizAttempts[quiz.id] || 0}/${quiz.maxAttempts || 1}`
+                      }
+                    </p>
+                  )}
+                  {canEditQuiz && (
+                    <p className="text-info small mb-2">
+                      Max attempts: {quiz.maxAttempts === -1 ? 'Unlimited' : quiz.maxAttempts || 1}
+                    </p>
+                  )}
                   <p className="text-muted small">
                     Created by: {quiz.createdByName}
                   </p>
                 </div>
                 <div className="card-footer bg-transparent">
                   <div className="d-grid gap-2">
-                    <button 
-                      className={`btn ${user ? 'btn-primary' : 'btn-outline-secondary'}`}
-                      onClick={() => handleTakeQuiz(quiz)}
-                      title={user ? "Take this quiz" : "Login required to take quizzes"}
-                    >
-                      {user ? 'Take Quiz' : 'Login to Take Quiz'}
-                    </button>
+                    {(() => {
+                      if (!user) {
+                        return (
+                          <button 
+                            className="btn btn-outline-secondary"
+                            onClick={() => handleTakeQuiz(quiz)}
+                            title="Login required to take quizzes"
+                          >
+                            Login to Take Quiz
+                          </button>
+                        );
+                      }
+                      
+                      const attemptCount = quizAttempts[quiz.id] || 0;
+                      const maxAttempts = quiz.maxAttempts || 1;
+                      const canTakeQuiz = maxAttempts === -1 || attemptCount < maxAttempts;
+                      
+                      return (
+                        <button 
+                          className={`btn ${canTakeQuiz ? 'btn-primary' : 'btn-secondary'}`}
+                          onClick={() => handleTakeQuiz(quiz)}
+                          disabled={!canTakeQuiz}
+                          title={canTakeQuiz ? "Take this quiz" : "Attempt limit reached"}
+                        >
+                          {canTakeQuiz ? 'Take Quiz' : 'Attempt Limit Reached'}
+                        </button>
+                      );
+                    })()}
                     {canEditQuiz && (
                       <button 
                         className="btn btn-outline-secondary btn-sm"

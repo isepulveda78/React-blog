@@ -214,6 +214,7 @@ class MemStorage {
   async createAudioQuiz(quizData) {
     const quiz = {
       id: nanoid(),
+      maxAttempts: 1, // Default to 1 attempt
       ...quizData,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -1445,6 +1446,7 @@ export class MongoStorage {
     await this.connect();
     const quiz = {
       id: nanoid(),
+      maxAttempts: 1, // Default to 1 attempt
       ...quizData,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -1488,6 +1490,11 @@ export class MongoStorage {
   async getQuizGradesByUserId(userId) {
     await this.connect();
     return await this.db.collection('quizGrades').find({ userId }).sort({ createdAt: -1 }).toArray();
+  }
+
+  async getQuizGradesByUserAndQuiz(userId, quizId) {
+    await this.connect();
+    return await this.db.collection('quizGrades').find({ userId, quizId }).sort({ createdAt: -1 }).toArray();
   }
 
   async createQuizGrade(gradeData) {
