@@ -2410,8 +2410,10 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
   app.post("/api/audio-quizzes", async (req, res) => {
     try {
-      // Check if user is admin or teacher
-      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+      // Check if user is true admin (not student admin) or teacher
+      const user = req.session.user;
+      const canManageQuiz = (user?.isAdmin && user?.role !== 'student') || user?.role === 'teacher';
+      if (!canManageQuiz) {
         return res.status(403).json({ message: "Admin or teacher access required" });
       }
 
@@ -2431,8 +2433,10 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
   app.put("/api/audio-quizzes/:id", async (req, res) => {
     try {
-      // Check if user is admin or teacher
-      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+      // Check if user is true admin (not student admin) or teacher
+      const user = req.session.user;
+      const canManageQuiz = (user?.isAdmin && user?.role !== 'student') || user?.role === 'teacher';
+      if (!canManageQuiz) {
         return res.status(403).json({ message: "Admin or teacher access required" });
       }
 
@@ -2453,8 +2457,9 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       const { id } = req.params;
       const user = req.session.user;
       
-      // Check if user is admin or teacher
-      if (!user?.isAdmin && user?.role !== 'teacher') {
+      // Check if user is true admin (not student admin) or teacher
+      const canManageQuiz = (user?.isAdmin && user?.role !== 'student') || user?.role === 'teacher';
+      if (!canManageQuiz) {
         return res.status(403).json({ message: "Admin or teacher access required" });
       }
 
@@ -2483,7 +2488,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
       const { quizId, userId } = req.query;
       const user = req.session.user;
-      const canViewAll = user.isAdmin || user.role === 'teacher';
+      const canViewAll = (user.isAdmin && user.role !== 'student') || user.role === 'teacher';
       
       // If user is not admin/teacher and trying to view other user's grades, deny access
       if (!canViewAll && userId && userId !== user.id) {

@@ -343,9 +343,10 @@ const AudioQuizzes = ({ user }) => {
     }));
   };
 
-  const canCreateQuiz = user?.isAdmin || user?.role === 'teacher';
-  const canEditQuiz = user?.isAdmin || user?.role === 'teacher';
-  const canDeleteQuiz = user?.isAdmin || user?.role === 'teacher';
+  // Only allow true admins (not student admins) or teachers to manage quizzes
+  const canCreateQuiz = (user?.isAdmin && user?.role !== 'student') || user?.role === 'teacher';
+  const canEditQuiz = (user?.isAdmin && user?.role !== 'student') || user?.role === 'teacher';
+  const canDeleteQuiz = (user?.isAdmin && user?.role !== 'student') || user?.role === 'teacher';
   
   // Debug logging for permissions
   console.log('[Audio Quizzes] User permissions:', {
