@@ -270,6 +270,82 @@ const AudioQuizzes = ({ user }) => {
                               
                               <p className="mb-2">{question.question}</p>
                               
+                              {/* Audio player for review */}
+                              <div className="mb-3">
+                                <div className="d-flex align-items-center" style={{
+                                  padding: '8px',
+                                  border: '1px solid #dee2e6',
+                                  borderRadius: '6px',
+                                  backgroundColor: '#f8f9fa'
+                                }}>
+                                  <button 
+                                    className="btn btn-sm btn-outline-primary me-2"
+                                    style={{ minWidth: '70px' }}
+                                    onClick={(e) => {
+                                      // Check if URL needs proxy (Google Drive, Dropbox, etc.)
+                                      const needsProxy = question.audioUrl.includes('drive.google.com') || 
+                                                        question.audioUrl.includes('dropbox.com') ||
+                                                        question.audioUrl.includes('onedrive.live.com') ||
+                                                        question.audioUrl.includes('icloud.com');
+                                      
+                                      const audioUrl = needsProxy 
+                                        ? `/api/audio-proxy?url=${encodeURIComponent(question.audioUrl)}`
+                                        : question.audioUrl;
+                                      
+                                      const audio = new Audio(audioUrl);
+                                      audio.volume = 0.7;
+                                      
+                                      const btn = e.target;
+                                      const originalText = btn.textContent;
+                                      btn.disabled = true;
+                                      btn.textContent = 'Loading...';
+                                      
+                                      audio.addEventListener('loadeddata', () => {
+                                        btn.textContent = '▶ Play';
+                                        btn.disabled = false;
+                                      });
+                                      
+                                      audio.addEventListener('play', () => {
+                                        btn.textContent = '⏸ Pause';
+                                        btn.className = 'btn btn-sm btn-warning me-2';
+                                      });
+                                      
+                                      audio.addEventListener('pause', () => {
+                                        btn.textContent = '▶ Play';
+                                        btn.className = 'btn btn-sm btn-outline-primary me-2';
+                                      });
+                                      
+                                      audio.addEventListener('ended', () => {
+                                        btn.textContent = '▶ Replay';
+                                        btn.className = 'btn btn-sm btn-outline-primary me-2';
+                                        btn.disabled = false;
+                                      });
+                                      
+                                      audio.addEventListener('error', (e) => {
+                                        console.error('Audio error:', e);
+                                        btn.textContent = 'Error';
+                                        btn.className = 'btn btn-sm btn-outline-danger me-2';
+                                        btn.disabled = true;
+                                      });
+                                      
+                                      // Toggle play/pause
+                                      if (audio.paused) {
+                                        audio.play().catch(err => {
+                                          console.error('Play error:', err);
+                                          btn.textContent = 'Error';
+                                          btn.className = 'btn btn-sm btn-outline-danger me-2';
+                                        });
+                                      } else {
+                                        audio.pause();
+                                      }
+                                    }}
+                                  >
+                                    ▶ Play
+                                  </button>
+                                  <small className="text-muted">Click to listen to the audio again</small>
+                                </div>
+                              </div>
+                              
                               <div className="row">
                                 {question.options.map((option, optionIndex) => {
                                   let optionClass = 'border-secondary';
