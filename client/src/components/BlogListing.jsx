@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import BlogCard from './BlogCard.jsx';
 
 // Helper function to format dates nicely
@@ -31,6 +32,7 @@ const BlogListing = ({ user }) => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [categories, setCategories] = useState([]);
   const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const [location, setLocation] = useLocation();
 
   const fetchData = async (showRefreshLoader = false) => {
     if (showRefreshLoader) setRefreshing(true);
@@ -151,8 +153,8 @@ const BlogListing = ({ user }) => {
     // Use slug if available, otherwise use ID
     const identifier = post.slug || post.id;
     console.log('Post navigation:', { title: post.title, slug: post.slug, id: post.id, identifier });
-    window.history.pushState({}, '', `/blog/${identifier}`);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    console.log('Navigating to:', `/blog/${identifier}`);
+    setLocation(`/blog/${identifier}`);
   };
 
   // Filter posts based on search and category
