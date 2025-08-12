@@ -687,9 +687,78 @@ const AudioQuizzes = ({ user }) => {
                   />
                 </div>
 
+                <div className="alert alert-info mb-4">
+                  <h6><i className="fas fa-volume-up me-2"></i>Quick URL Tester</h6>
+                  <p className="mb-2"><strong>Test any audio URL before adding it to your quiz:</strong></p>
+                  <div className="input-group mb-3">
+                    <input 
+                      type="url" 
+                      className="form-control"
+                      placeholder="Paste your audio URL here to test it..."
+                      value={driveUrl}
+                      onChange={(e) => setDriveUrl(e.target.value)}
+                    />
+                    <button 
+                      className="btn btn-primary"
+                      disabled={!driveUrl}
+                      onClick={() => {
+                        const needsProxy = driveUrl.includes('drive.google.com') || 
+                                          driveUrl.includes('dropbox.com') ||
+                                          driveUrl.includes('onedrive.live.com') ||
+                                          driveUrl.includes('icloud.com');
+                        
+                        const audioUrl = needsProxy 
+                          ? `/api/audio-proxy?url=${encodeURIComponent(driveUrl)}`
+                          : driveUrl;
+                        
+                        console.log('[URL Tester] Testing:', driveUrl);
+                        console.log('[URL Tester] Using proxy:', needsProxy);
+                        
+                        const audio = new Audio(audioUrl);
+                        audio.volume = 0.7;
+                        
+                        audio.addEventListener('loadeddata', () => {
+                          toast({
+                            title: "Audio Ready",
+                            description: "✅ URL works! You can now use this URL in your quiz questions.",
+                            variant: "default"
+                          });
+                        });
+                        
+                        audio.addEventListener('error', (err) => {
+                          console.error('[URL Tester] Error:', err);
+                          toast({
+                            title: "URL Failed",
+                            description: "❌ This URL doesn't work. Check if the file is publicly shared or try a different format.",
+                            variant: "destructive"
+                          });
+                        });
+                        
+                        audio.play().then(() => {
+                          console.log('[URL Tester] Playing successfully');
+                        }).catch(error => {
+                          console.error('[URL Tester] Play failed:', error);
+                          toast({
+                            title: "Audio Blocked",
+                            description: "🔇 Browser blocked audio. Click anywhere on this page first to enable audio playback.",
+                            variant: "destructive"
+                          });
+                        });
+                      }}
+                    >
+                      🎵 Test URL
+                    </button>
+                  </div>
+                  {driveUrl && (
+                    <small className="text-muted">
+                      Ready to test: {driveUrl.length > 50 ? driveUrl.substring(0, 50) + '...' : driveUrl}
+                    </small>
+                  )}
+                </div>
+
                 <div className="alert alert-warning mb-4">
                   <h6>🔧 Audio Play Button Not Working?</h6>
-                  <p className="mb-2"><strong>Quick Test:</strong></p>
+                  <p className="mb-2"><strong>Troubleshooting Tests:</strong></p>
                   <div className="mb-3">
                     <button 
                       className="btn btn-success btn-sm me-2"
@@ -886,36 +955,143 @@ const AudioQuizzes = ({ user }) => {
                                       ? `/api/audio-proxy?url=${encodeURIComponent(question.audioUrl)}`
                                       : question.audioUrl;
                                     
-                                    console.log('[Audio Preview] Using', needsProxy ? 'PROXY' : 'DIRECT', 'for:', question.audioUrl);
-                                    
-                                    const audio = new Audio(audioUrl);
-                                    audio.volume = 0.6;
+                                    console.log('[Audio Preview] Original URL:', question.audioUrl);
+                                    console.log('[Audio Preview] Using', needsProxy ? 'PROXY' : 'DIRECT');
+                                    console.log('[Audio Preview] Final URL:', audioUrl);
                                     
                                     const btn = e.target;
+                                    const originalText = btn.textContent;
+                                    const originalClass = btn.className;
+                                    
                                     btn.disabled = true;
                                     btn.textContent = 'Loading...';
+                                    btn.className = 'btn btn-secondary btn-sm me-2';
                                     
-                                    audio.addEventListener('loadeddata', () => {
-                                      btn.textContent = '▶ Test';
-                                      btn.disabled = false;
-                                    });
-                                    
-                                    audio.addEventListener('error', (err) => {
-                                      console.error('Preview audio error:', err);
-                                      btn.textContent = 'Error';
-                                      btn.className = 'btn btn-danger btn-sm me-2';
-                                    });
-                                    
-                                    audio.play().then(() => {
-                                      console.log('Preview audio playing');
-                                      btn.textContent = '🔊 Playing...';
-                                      btn.className = 'btn btn-info btn-sm me-2';
-                                    }).catch(error => {
-                                      console.error('Preview audio failed:', error);
-                                      btn.disabled = false;
-                                      btn.textContent = 'Blocked';
-                                      btn.className = 'btn btn-warning btn-sm me-2';
-                                    });
+                                    // Test if proxy URL works by fetching it first
+                                    if (needsProxy) {
+                                      console.log('[Audio Preview] Testing proxy URL first...');
+                                      fetch(audioUrl)
+                                        .then(response => {
+                                          console.log('[Audio Preview] Proxy response status:', response.status);
+                                          console.log('[Audio Preview] Proxy response headers:', response.headers.get('content-type'));
+                                          
+                                          if (!response.ok) {
+                                            throw new Error(`Proxy failed with status ${response.status}`);
+                                          }
+                                          
+                                          // Now try to play the audio
+                                          const audio = new Audio(audioUrl);
+                                          audio.volume = 0.6;
+                                          
+                                          audio.addEventListener('loadstart', () => {
+                                            console.log('[Audio Preview] Audio loading started');
+                                          });
+                                          
+                                          audio.addEventListener('loadeddata', () => {
+                                            console.log('[Audio Preview] Audio data loaded successfully');
+                                            btn.textContent = '▶ Playing';
+                                            btn.className = 'btn btn-info btn-sm me-2';
+                                          });
+                                          
+                                          audio.addEventListener('canplay', () => {
+                                            console.log('[Audio Preview] Audio can play');
+                                          });
+                                          
+                                          audio.addEventListener('ended', () => {
+                                            console.log('[Audio Preview] Audio ended');
+                                            btn.textContent = originalText;
+                                            btn.className = originalClass;
+                                            btn.disabled = false;
+                                          });
+                                          
+                                          audio.addEventListener('error', (err) => {
+                                            console.error('[Audio Preview] Audio element error:', err);
+                                            console.error('[Audio Preview] Audio error details:', audio.error);
+                                            btn.textContent = 'Audio Error';
+                                            btn.className = 'btn btn-danger btn-sm me-2';
+                                            btn.disabled = false;
+                                            
+                                            toast({
+                                              title: "Audio Error",
+                                              description: `Failed to play audio: ${audio.error?.message || 'Unknown audio error'}`,
+                                              variant: "destructive"
+                                            });
+                                          });
+                                          
+                                          // Attempt to play
+                                          return audio.play();
+                                        })
+                                        .then(() => {
+                                          console.log('[Audio Preview] Audio playing successfully via proxy');
+                                          toast({
+                                            title: "Success", 
+                                            description: "Audio is playing! The URL works correctly.",
+                                            variant: "default"
+                                          });
+                                        })
+                                        .catch(error => {
+                                          console.error('[Audio Preview] Failed:', error);
+                                          btn.textContent = 'Failed';
+                                          btn.className = 'btn btn-danger btn-sm me-2';
+                                          btn.disabled = false;
+                                          
+                                          toast({
+                                            title: "Audio Failed",
+                                            description: `Cannot play audio: ${error.message}. Try clicking somewhere on the page first, check if the file is publicly shared, or try a different URL.`,
+                                            variant: "destructive"
+                                          });
+                                        });
+                                    } else {
+                                      // Direct URL - try playing immediately
+                                      console.log('[Audio Preview] Playing direct URL...');
+                                      const audio = new Audio(audioUrl);
+                                      audio.volume = 0.6;
+                                      
+                                      audio.addEventListener('loadeddata', () => {
+                                        console.log('[Audio Preview] Direct audio loaded');
+                                        btn.textContent = '▶ Playing';
+                                        btn.className = 'btn btn-info btn-sm me-2';
+                                      });
+                                      
+                                      audio.addEventListener('ended', () => {
+                                        btn.textContent = originalText;
+                                        btn.className = originalClass;
+                                        btn.disabled = false;
+                                      });
+                                      
+                                      audio.addEventListener('error', (err) => {
+                                        console.error('[Audio Preview] Direct audio error:', err);
+                                        btn.textContent = 'Error';
+                                        btn.className = 'btn btn-danger btn-sm me-2';
+                                        btn.disabled = false;
+                                        
+                                        toast({
+                                          title: "Audio Error",
+                                          description: `Cannot play direct URL: ${err.message || 'Unknown error'}`,
+                                          variant: "destructive"
+                                        });
+                                      });
+                                      
+                                      audio.play().then(() => {
+                                        console.log('[Audio Preview] Direct audio playing');
+                                        toast({
+                                          title: "Success",
+                                          description: "Direct audio URL is working!",
+                                          variant: "default"
+                                        });
+                                      }).catch(error => {
+                                        console.error('[Audio Preview] Direct audio play failed:', error);
+                                        btn.textContent = 'Blocked';
+                                        btn.className = 'btn btn-warning btn-sm me-2';
+                                        btn.disabled = false;
+                                        
+                                        toast({
+                                          title: "Audio Blocked",
+                                          description: `Browser blocked audio: ${error.message}. Click somewhere on the page first to enable audio.`,
+                                          variant: "destructive"
+                                        });
+                                      });
+                                    }
                                   }}
                                 >
                                   ▶ Test
