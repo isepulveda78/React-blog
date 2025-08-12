@@ -211,20 +211,45 @@ const AudioQuizzes = ({ user }) => {
                 {/* Audio Test Section */}
                 <div className="alert alert-info mb-4">
                   <h6>Audio Player Test</h6>
-                  <p className="mb-2">Test the audio player with a sample file:</p>
-                  <AudioPlayer
-                    src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"
-                    onPlay={() => console.log("Test audio playing")}
-                    onError={(e) => console.error('Test audio error:', e)}
-                    volume={0.8}
-                    className="mb-2"
-                    style={{
-                      height: '50px',
-                      borderRadius: '4px',
-                      backgroundColor: 'white'
-                    }}
-                  />
-                  <small className="text-muted">If this test audio works but your quiz audio doesn't, the issue is with your audio URLs.</small>
+                  <p className="mb-2">Test the audio player with sample files:</p>
+                  
+                  <div className="mb-2">
+                    <small className="text-muted">Test #1 - Local audio:</small>
+                    <AudioPlayer
+                      src="/sounds/button-click.mp3"
+                      onPlay={() => console.log("Local test audio playing")}
+                      onError={(e) => console.error('Local test audio error:', e)}
+                      onLoadStart={() => console.log("Local test audio load started")}
+                      onCanPlay={() => console.log("Local test audio ready to play")}
+                      volume={0.8}
+                      className="mb-1"
+                      style={{
+                        height: '40px',
+                        borderRadius: '4px',
+                        backgroundColor: 'white'
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="mb-2">
+                    <small className="text-muted">Test #2 - External audio:</small>
+                    <AudioPlayer
+                      src="https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__nbsp_.mp3"
+                      onPlay={() => console.log("External test audio playing")}
+                      onError={(e) => console.error('External test audio error:', e)}
+                      onLoadStart={() => console.log("External test audio load started")}
+                      onCanPlay={() => console.log("External test audio ready to play")}
+                      volume={0.8}
+                      className="mb-1"
+                      style={{
+                        height: '40px',
+                        borderRadius: '4px',
+                        backgroundColor: 'white'
+                      }}
+                    />
+                  </div>
+                  
+                  <small className="text-muted">If these test audios work but your quiz audio doesn't, the issue is with your quiz audio URLs.</small>
                 </div>
 
                 {quizResult ? (
@@ -255,17 +280,28 @@ const AudioQuizzes = ({ user }) => {
                                 <button 
                                   className="btn btn-sm btn-outline-info"
                                   onClick={() => {
+                                    console.log('Testing audio URL:', question.audioUrl);
                                     const audio = new Audio(question.audioUrl);
                                     audio.volume = 0.8;
+                                    
+                                    // Add event listeners for debugging
+                                    audio.addEventListener('loadstart', () => console.log('Direct test: Load started'));
+                                    audio.addEventListener('loadeddata', () => console.log('Direct test: Data loaded'));
+                                    audio.addEventListener('canplay', () => console.log('Direct test: Can play'));
+                                    audio.addEventListener('error', (e) => console.error('Direct test: Error event', e));
+                                    
                                     audio.play().then(() => {
-                                      console.log('Direct audio test: SUCCESS');
+                                      console.log('Direct audio test: SUCCESS - Audio is playing');
+                                      alert('✅ Audio URL works! The issue might be with the React player.');
                                     }).catch((error) => {
                                       console.error('Direct audio test: FAILED', error);
-                                      alert('Audio URL may be invalid or blocked by CORS policy');
+                                      console.error('Error name:', error.name);
+                                      console.error('Error message:', error.message);
+                                      alert(`❌ Audio URL failed: ${error.message}\n\nThis could be:\n- Invalid URL\n- CORS policy blocking\n- Network timeout\n- File not found`);
                                     });
                                   }}
                                 >
-                                  Test Audio
+                                  Test URL
                                 </button>
                               </div>
                               <AudioPlayer
