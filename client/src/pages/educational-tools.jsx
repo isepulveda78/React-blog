@@ -11,26 +11,7 @@ const EducationalTools = ({ user }) => {
         </div>
         <div className="mt-2">
           <div className="row">
-            <div className="col-md-6 col-lg-3 mb-4">
-              <div className="card h-100 shadow-sm">
-                <div className="card-body text-center">
-                  <div className="mb-3">
-                    <i className="fas fa-city fa-3x text-primary"></i>
-                  </div>
-                  <h5 className="card-title">City Builder</h5>
-                  <p className="card-text">Create and design your own virtual city with buildings and streets</p>
-                  <button 
-                    className="btn btn-primary"
-                    onClick={() => {
-                      window.history.pushState({}, '', '/city-builder');
-                      window.dispatchEvent(new PopStateEvent('popstate'));
-                    }}
-                  >
-                    Launch Tool
-                  </button>
-                </div>
-              </div>
-            </div>
+
             
             <div className="col-md-6 col-lg-3 mb-4">
               <div className="card h-100 shadow-sm">

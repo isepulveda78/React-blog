@@ -54,7 +54,7 @@ Cache management: Successfully implemented polling-based hot reload system for i
 
 ### Educational Tools & Features
 - **Code Evolution Visualization**: Real-time code evolution visualization with engaging transitions, interactive timeline, play/pause controls, and statistics tracking.
-- **City Builder**: Interactive city planning and building tool with modular architecture, drag-and-drop building placement, zoom/pan controls, building properties panel, and PNG export functionality.
+
 - **Bingo Generator**: Custom bingo card creation for educational activities.
 - **Spanish Alphabet**: Interactive soundboard for learning Spanish letters.
 - **Word Sorter**: Drag-and-drop word sorting activities with clickable list title editing and PDF export functionality.
