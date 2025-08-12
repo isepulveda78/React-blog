@@ -269,35 +269,87 @@ const AudioQuizzes = ({ user }) => {
                                 marginBottom: '8px'
                               }}>
                                 <div className="position-relative">
-                                  <audio 
-                                    controls 
-                                    style={{width: '100%', height: '40px'}} 
-                                    onPlay={(e) => {
-                                      console.log('Quiz audio playing');
-                                      e.target.style.backgroundColor = '#d4edda';
-                                    }}
-                                    onError={(e) => {
-                                      console.error('Quiz audio error:', e);
-                                      e.target.style.border = '2px solid red';
-                                    }}
-                                    onLoadedData={(e) => {
-                                      console.log('Quiz audio loaded successfully');
-                                      e.target.style.border = '2px solid green';
-                                    }}
-                                    onCanPlay={(e) => {
-                                      console.log('Quiz audio ready to play');
-                                      e.target.style.border = '2px solid blue';
-                                    }}
-                                    onLoadStart={() => console.log('Quiz audio loading started')}
-                                    preload="metadata"
-                                  >
-                                    <source src={question.audioUrl} type="audio/mpeg" />
-                                    <source src={question.audioUrl} type="audio/wav" />
-                                    <source src={question.audioUrl} type="audio/ogg" />
-                                    Your browser does not support audio.
-                                  </audio>
+                                  <div className="d-flex align-items-center" style={{
+                                    padding: '10px',
+                                    border: '2px solid #007bff',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#ffffff'
+                                  }}>
+                                    <button 
+                                      className="btn btn-primary me-3"
+                                      style={{ minWidth: '80px' }}
+                                      onClick={(e) => {
+                                        const audio = new Audio(question.audioUrl);
+                                        audio.volume = 0.7;
+                                        
+                                        const btn = e.target;
+                                        btn.disabled = true;
+                                        btn.textContent = 'Loading...';
+                                        
+                                        audio.addEventListener('loadeddata', () => {
+                                          btn.textContent = '▶ Play';
+                                          btn.disabled = false;
+                                        });
+                                        
+                                        audio.addEventListener('play', () => {
+                                          btn.textContent = '⏸ Pause';
+                                          btn.className = 'btn btn-warning me-3';
+                                        });
+                                        
+                                        audio.addEventListener('pause', () => {
+                                          btn.textContent = '▶ Play';
+                                          btn.className = 'btn btn-primary me-3';
+                                        });
+                                        
+                                        audio.addEventListener('ended', () => {
+                                          btn.textContent = '▶ Play';
+                                          btn.className = 'btn btn-primary me-3';
+                                        });
+                                        
+                                        audio.addEventListener('error', (err) => {
+                                          console.error('Custom audio error:', err);
+                                          btn.textContent = 'Error';
+                                          btn.className = 'btn btn-danger me-3';
+                                          alert('Audio failed to load. Check the URL or try a different file.');
+                                        });
+                                        
+                                        audio.play().then(() => {
+                                          console.log('Custom audio playing successfully');
+                                        }).catch(error => {
+                                          console.error('Custom audio play failed:', error);
+                                          btn.disabled = false;
+                                          btn.textContent = 'Retry';
+                                          btn.className = 'btn btn-warning me-3';
+                                          alert(`Audio blocked by browser: ${error.message}\n\nTry:\n1. Click elsewhere on page first\n2. Check browser settings\n3. Try incognito mode`);
+                                        });
+                                        
+                                        // Store audio reference for pause/resume
+                                        btn._audioInstance = audio;
+                                        
+                                        // Handle pause/resume on same button
+                                        btn.onclick = (e) => {
+                                          if (btn._audioInstance) {
+                                            if (btn._audioInstance.paused) {
+                                              btn._audioInstance.play();
+                                            } else {
+                                              btn._audioInstance.pause();
+                                            }
+                                          }
+                                        };
+                                      }}
+                                    >
+                                      ▶ Play
+                                    </button>
+                                    
+                                    <div className="flex-grow-1">
+                                      <div className="text-muted small mb-1">Audio Question</div>
+                                      <div className="text-truncate small" title={question.audioUrl}>
+                                        {question.audioUrl.split('/').pop() || 'Audio file'}
+                                      </div>
+                                    </div>
+                                  </div>
                                   <small className="text-muted d-block mt-1">
-                                    Audio border colors: <span className="text-success">Green=Loaded</span> | <span className="text-primary">Blue=Ready</span> | <span className="text-danger">Red=Error</span>
+                                    Custom audio player - Click "Play" to hear the question
                                   </small>
                                 </div>
                               </div>
@@ -517,34 +569,52 @@ const AudioQuizzes = ({ user }) => {
                               }}>
                                 Audio Question
                               </div>
-                              <audio 
-                                controls 
-                                style={{width: '100%', height: '40px'}} 
-                                preload="metadata"
-                                onError={(e) => {
-                                  console.error('Audio preview error:', e);
-                                  e.target.style.border = '2px solid red';
-                                }}
-                                onLoadedData={(e) => {
-                                  console.log('Audio preview loaded:', question.audioUrl);
-                                  e.target.style.border = '2px solid green';
-                                }}
-                                onCanPlay={(e) => {
-                                  console.log('Audio can play:', question.audioUrl);
-                                  e.target.style.border = '2px solid blue';
-                                }}
-                                onPlay={(e) => {
-                                  console.log('Audio started playing:', question.audioUrl);
-                                  e.target.style.backgroundColor = '#d4edda';
-                                }}
-                              >
-                                <source src={question.audioUrl} type="audio/mpeg" />
-                                <source src={question.audioUrl} type="audio/wav" />
-                                <source src={question.audioUrl} type="audio/ogg" />
-                                <div style={{color: 'red', padding: '10px'}}>
-                                  Unable to load audio from this URL
+                              <div className="d-flex align-items-center" style={{
+                                padding: '8px',
+                                border: '2px solid #28a745',
+                                borderRadius: '8px',
+                                backgroundColor: '#ffffff'
+                              }}>
+                                <button 
+                                  className="btn btn-success btn-sm me-2"
+                                  onClick={(e) => {
+                                    const audio = new Audio(question.audioUrl);
+                                    audio.volume = 0.6;
+                                    
+                                    const btn = e.target;
+                                    btn.disabled = true;
+                                    btn.textContent = 'Loading...';
+                                    
+                                    audio.addEventListener('loadeddata', () => {
+                                      btn.textContent = '▶ Test';
+                                      btn.disabled = false;
+                                    });
+                                    
+                                    audio.addEventListener('error', (err) => {
+                                      console.error('Preview audio error:', err);
+                                      btn.textContent = 'Error';
+                                      btn.className = 'btn btn-danger btn-sm me-2';
+                                    });
+                                    
+                                    audio.play().then(() => {
+                                      console.log('Preview audio playing');
+                                      btn.textContent = '🔊 Playing...';
+                                      btn.className = 'btn btn-info btn-sm me-2';
+                                    }).catch(error => {
+                                      console.error('Preview audio failed:', error);
+                                      btn.disabled = false;
+                                      btn.textContent = 'Blocked';
+                                      btn.className = 'btn btn-warning btn-sm me-2';
+                                    });
+                                  }}
+                                >
+                                  ▶ Test
+                                </button>
+                                
+                                <div className="flex-grow-1">
+                                  <div className="text-muted small">Preview: {question.audioUrl.split('/').pop()}</div>
                                 </div>
-                              </audio>
+                              </div>
                             </div>
                             <small className="text-muted d-block mt-1">✓ Audio URL added successfully - students will see this player</small>
                           </div>
