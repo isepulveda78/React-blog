@@ -493,8 +493,10 @@ const CityBuilder = () => {
     console.log('Drop event triggered:', { buildingType, streetType });
 
     if (buildingType) {
+      console.log('Adding building:', { buildingType, x, y });
       addBuilding(buildingType, x, y);
     } else if (streetType) {
+      console.log('Adding street:', { streetType, x, y });
       addStreet(streetType, x, y);
     }
   }, [canvasOffset, zoomLevel, addBuilding, addStreet]);
