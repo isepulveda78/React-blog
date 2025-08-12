@@ -214,34 +214,36 @@ const AudioQuizzes = ({ user }) => {
                   
                   <div className="mb-2">
                     <small className="text-muted">Test #1 - Local audio:</small>
-                    <iframe
-                      src={`data:text/html,<html><body style="margin:0;padding:5px;font-family:Arial,sans-serif;background:white;"><audio controls style="width:100%;height:30px;"><source src="/sounds/button-click.mp3" type="audio/mpeg">Local audio test</audio></body></html>`}
-                      style={{
-                        width: '100%',
-                        height: '50px',
-                        border: '1px solid #dee2e6',
-                        borderRadius: '4px',
-                        backgroundColor: 'white'
-                      }}
-                      title="Local Audio Test"
-                      className="mb-1"
-                    />
+                    <div style={{
+                      width: '100%',
+                      padding: '5px',
+                      border: '1px solid #dee2e6',
+                      borderRadius: '4px',
+                      backgroundColor: 'white',
+                      marginBottom: '4px'
+                    }}>
+                      <audio controls style={{width: '100%', height: '30px'}}>
+                        <source src="/sounds/button-click.mp3" type="audio/mpeg" />
+                        Local audio test
+                      </audio>
+                    </div>
                   </div>
                   
                   <div className="mb-2">
                     <small className="text-muted">Test #2 - External audio:</small>
-                    <iframe
-                      src={`data:text/html,<html><body style="margin:0;padding:5px;font-family:Arial,sans-serif;background:white;"><audio controls style="width:100%;height:30px;"><source src="https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__nbsp_.mp3" type="audio/mpeg">External audio test</audio></body></html>`}
-                      style={{
-                        width: '100%',
-                        height: '50px',
-                        border: '1px solid #dee2e6',
-                        borderRadius: '4px',
-                        backgroundColor: 'white'
-                      }}
-                      title="External Audio Test"
-                      className="mb-1"
-                    />
+                    <div style={{
+                      width: '100%',
+                      padding: '5px',
+                      border: '1px solid #dee2e6',
+                      borderRadius: '4px',
+                      backgroundColor: 'white',
+                      marginBottom: '4px'
+                    }}>
+                      <audio controls style={{width: '100%', height: '30px'}}>
+                        <source src="https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__nbsp_.mp3" type="audio/mpeg" />
+                        External audio test
+                      </audio>
+                    </div>
                   </div>
                   
                   <small className="text-muted">If these test audios work but your quiz audio doesn't, the issue is with your quiz audio URLs.</small>
@@ -299,20 +301,27 @@ const AudioQuizzes = ({ user }) => {
                                   Test URL
                                 </button>
                               </div>
-                              <iframe
-                                src={`data:text/html,<html><body style="margin:0;padding:10px;font-family:Arial,sans-serif;background:#f8f9fa;"><audio controls style="width:100%;height:40px;" onplay="console.log('Iframe audio playing')" onerror="console.error('Iframe audio error')"><source src="${question.audioUrl}" type="audio/mpeg"><source src="${question.audioUrl}" type="audio/wav"><source src="${question.audioUrl}" type="audio/ogg">Your browser does not support audio.</audio></body></html>`}
-                                style={{
-                                  width: '100%',
-                                  height: '70px',
-                                  border: '1px solid #dee2e6',
-                                  borderRadius: '8px',
-                                  backgroundColor: '#f8f9fa'
-                                }}
-                                title="Audio Player"
-                                className="mb-2"
-                                onLoad={() => console.log("Iframe loaded for:", question.audioUrl)}
-                                onError={() => console.error("Iframe failed for:", question.audioUrl)}
-                              />
+                              <div style={{
+                                width: '100%',
+                                padding: '10px',
+                                border: '1px solid #dee2e6',
+                                borderRadius: '8px',
+                                backgroundColor: '#f8f9fa',
+                                marginBottom: '8px'
+                              }}>
+                                <audio 
+                                  controls 
+                                  style={{width: '100%', height: '40px'}} 
+                                  onPlay={() => console.log('Quiz audio playing')}
+                                  onError={(e) => console.error('Quiz audio error:', e)}
+                                  preload="metadata"
+                                >
+                                  <source src={question.audioUrl} type="audio/mpeg" />
+                                  <source src={question.audioUrl} type="audio/wav" />
+                                  <source src={question.audioUrl} type="audio/ogg" />
+                                  Your browser does not support audio.
+                                </audio>
+                              </div>
                             </div>
                           </div>
                           <h5>{question.question}</h5>
@@ -458,19 +467,38 @@ const AudioQuizzes = ({ user }) => {
                         {question.audioUrl && (
                           <div className="mt-2">
                             <small className="text-muted">Your audio player (this is how students will hear it):</small>
-                            <iframe
-                              src={`data:text/html,<html><body style="margin:0;padding:8px;font-family:Arial,sans-serif;background:#ffffff;"><div style="text-align:center;margin-bottom:5px;color:#666;font-size:12px;">Audio Question</div><audio controls style="width:100%;height:40px;" preload="metadata"><source src="${question.audioUrl}" type="audio/mpeg"><source src="${question.audioUrl}" type="audio/wav"><source src="${question.audioUrl}" type="audio/ogg"><div style="color:red;padding:10px;">Unable to load audio from this URL</div></audio></body></html>`}
-                              style={{
-                                width: '100%',
-                                height: '70px',
-                                border: '2px solid #007bff',
-                                borderRadius: '8px',
-                                backgroundColor: '#ffffff',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                              }}
-                              title="Audio Player Preview"
-                              className="mt-2"
-                            />
+                            <div style={{
+                              width: '100%',
+                              padding: '8px',
+                              border: '2px solid #007bff',
+                              borderRadius: '8px',
+                              backgroundColor: '#ffffff',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                              marginTop: '8px'
+                            }}>
+                              <div style={{
+                                textAlign: 'center',
+                                marginBottom: '5px',
+                                color: '#666',
+                                fontSize: '12px'
+                              }}>
+                                Audio Question
+                              </div>
+                              <audio 
+                                controls 
+                                style={{width: '100%', height: '40px'}} 
+                                preload="metadata"
+                                onError={(e) => console.error('Audio preview error:', e)}
+                                onLoadedData={(e) => console.log('Audio preview loaded:', question.audioUrl)}
+                              >
+                                <source src={question.audioUrl} type="audio/mpeg" />
+                                <source src={question.audioUrl} type="audio/wav" />
+                                <source src={question.audioUrl} type="audio/ogg" />
+                                <div style={{color: 'red', padding: '10px'}}>
+                                  Unable to load audio from this URL
+                                </div>
+                              </audio>
+                            </div>
                             <small className="text-muted d-block mt-1">✓ Audio URL added successfully - students will see this player</small>
                           </div>
                         )}

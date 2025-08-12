@@ -575,19 +575,38 @@ const AdminQuizGrades = ({ user }) => {
                             {question.audioUrl && (
                               <div className="mt-2">
                                 <small className="text-muted">Audio player preview (how students will see it):</small>
-                                <iframe
-                                  src={`data:text/html,<html><body style="margin:0;padding:8px;font-family:Arial,sans-serif;background:#ffffff;"><div style="text-align:center;margin-bottom:5px;color:#666;font-size:12px;">Audio Question</div><audio controls style="width:100%;height:40px;" preload="metadata"><source src="${question.audioUrl}" type="audio/mpeg"><source src="${question.audioUrl}" type="audio/wav"><source src="${question.audioUrl}" type="audio/ogg"><div style="color:red;padding:10px;">Unable to load audio from this URL</div></audio></body></html>`}
-                                  style={{
-                                    width: '100%',
-                                    height: '70px',
-                                    border: '2px solid #28a745',
-                                    borderRadius: '8px',
-                                    backgroundColor: '#ffffff',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                  }}
-                                  title="Audio Player Preview"
-                                  className="mt-2"
-                                />
+                                <div style={{
+                                  width: '100%',
+                                  padding: '8px',
+                                  border: '2px solid #28a745',
+                                  borderRadius: '8px',
+                                  backgroundColor: '#ffffff',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                  marginTop: '8px'
+                                }}>
+                                  <div style={{
+                                    textAlign: 'center',
+                                    marginBottom: '5px',
+                                    color: '#666',
+                                    fontSize: '12px'
+                                  }}>
+                                    Audio Question
+                                  </div>
+                                  <audio 
+                                    controls 
+                                    style={{width: '100%', height: '40px'}} 
+                                    preload="metadata"
+                                    onError={(e) => console.error('Edit audio preview error:', e)}
+                                    onLoadedData={(e) => console.log('Edit audio preview loaded:', question.audioUrl)}
+                                  >
+                                    <source src={question.audioUrl} type="audio/mpeg" />
+                                    <source src={question.audioUrl} type="audio/wav" />
+                                    <source src={question.audioUrl} type="audio/ogg" />
+                                    <div style={{color: 'red', padding: '10px'}}>
+                                      Unable to load audio from this URL
+                                    </div>
+                                  </audio>
+                                </div>
                                 <small className="text-muted d-block mt-1">✓ Audio URL updated - this is how it will appear to students</small>
                               </div>
                             )}
