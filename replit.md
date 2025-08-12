@@ -25,6 +25,8 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **COMPLETED: Attempt Limits Feature** - Added configurable attempt limits (1, 2, 3, 5, 10, unlimited) to both audio and text quizzes with real-time tracking and enforcement
 - **Updated Educational Tools Access** - Modified educational tools page so students see only quizzes and Spanish Alphabet, while teachers/admins retain access to all tools
 - **RESOLVED: Blog update visibility issue** - Fixed blog refresh system with aggressive cache-busting, enhanced debugging tools, and proper Wouter router navigation. Blog data updates now appear immediately with working "Read More" functionality.
+- **RESOLVED: HTML encoding display issue** - Applied comprehensive HTML entity decoding to all blog API endpoints (public posts, individual posts, admin routes). Blog post updates now display correctly without HTML entity artifacts, with proper cache-busting for immediate visibility.
+- **RESOLVED: WebSocket server conflicts** - Fixed persistent WebSocket port conflicts that were preventing server restarts. Server now starts reliably without port blocking issues.
 
 ## System Architecture
 
@@ -76,9 +78,10 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **Security Enhancements**: Helmet.js for security headers, rate limiting, comprehensive input validation (email, username, passwords, content), express-mongo-sanitize for NoSQL injection prevention, security event logging, secure cookies, strong password requirements, XSS protection, restricted file uploads, and HTTPS configuration.
 
 ### Rich Text Editing
-- **Custom Editor**: Built-in WYSIWYG editor with formatting controls.
-- **Content Storage**: HTML content stored in database.
+- **Custom Editor**: Built-in WYSIWYG editor with formatting controls using Quill.js.
+- **Content Storage**: HTML content stored in database with proper entity encoding/decoding.
 - **Media Support**: Image upload and embedding via Cloudinary.
+- **Known Limitation**: Current Quill.js editor does not support table functionality.
 
 ### SEO Implementation
 - **SEO Management Dashboard**: Dedicated admin interface for SEO analysis, settings, and optimization.
