@@ -2450,17 +2450,23 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
   app.delete("/api/audio-quizzes/:id", async (req, res) => {
     try {
+      const { id } = req.params;
+      const user = req.session.user;
+      
       // Check if user is admin or teacher
-      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+      if (!user?.isAdmin && user?.role !== 'teacher') {
         return res.status(403).json({ message: "Admin or teacher access required" });
       }
 
-      const { id } = req.params;
+      console.log(`[API] Deleting quiz ${id} by user ${user.email} (admin: ${user.isAdmin}, role: ${user.role})`);
+      
       const deleted = await storage.deleteAudioQuiz(id);
       if (!deleted) {
         return res.status(404).json({ message: "Quiz not found" });
       }
-      res.status(204).send();
+      
+      console.log(`[API] Quiz ${id} deleted successfully`);
+      res.json({ message: "Quiz deleted successfully" });
     } catch (error) {
       console.error('Error deleting audio quiz:', error);
       res.status(500).json({ message: "Internal server error" });

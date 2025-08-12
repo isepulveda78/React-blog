@@ -69,6 +69,42 @@ const AudioQuizzes = ({ user }) => {
     }
   };
 
+  const handleDeleteQuiz = async (quizId) => {
+    if (!window.confirm('Are you sure you want to delete this quiz? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/audio-quizzes/${quizId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setQuizzes(quizzes.filter(quiz => quiz.id !== quizId));
+        
+        // If this was the selected quiz, clear selection
+        if (selectedQuiz?.id === quizId) {
+          setSelectedQuiz(null);
+        }
+        
+        // Refresh grades to remove any associated grades
+        if (user?.isAdmin || user?.role === 'teacher') {
+          fetchGrades();
+        }
+        
+        alert('Quiz deleted successfully!');
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to delete quiz: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Error deleting quiz:', error);
+      alert('Error deleting quiz. Please try again.');
+    }
+  };
+
   const handleCreateQuiz = async () => {
     try {
       const response = await fetch('/api/audio-quizzes', {
@@ -999,12 +1035,23 @@ const AudioQuizzes = ({ user }) => {
                   </p>
                 </div>
                 <div className="card-footer bg-transparent">
-                  <button 
-                    className="btn btn-primary w-100"
-                    onClick={() => handleTakeQuiz(quiz)}
-                  >
-                    Take Quiz
-                  </button>
+                  <div className="d-grid gap-2">
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => handleTakeQuiz(quiz)}
+                    >
+                      Take Quiz
+                    </button>
+                    {canCreateQuiz && (
+                      <button 
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => handleDeleteQuiz(quiz.id)}
+                        title="Delete this quiz"
+                      >
+                        🗑️ Delete Quiz
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
