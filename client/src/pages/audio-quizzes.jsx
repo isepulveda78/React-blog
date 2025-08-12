@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../hooks/use-toast';
 // Removed React audio player - using iframe approach instead
 
-const { toast } = window;
-
 const AudioQuizzes = ({ user }) => {
+  const { toast } = useToast();
   const [quizzes, setQuizzes] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);

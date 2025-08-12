@@ -15,7 +15,7 @@ import AdminCategories from './components/AdminCategories.jsx'
 import AdminPostEditor from './components/AdminPostEditor.jsx'
 import SEOManagement from './components/SEOManagement.jsx'
 import AdminChatrooms from './components/AdminChatrooms.jsx'
-import AdminQuizGrades from './components/AdminQuizGrades.jsx'
+
 
 // Clean imports without debug logs
 import Footer from './components/Footer.jsx'
@@ -263,11 +263,7 @@ const AppRoutes = () => {
               <SEOManagement user={user} />
             </ProtectedRoute>
           )} />
-          <Route path="/admin/quiz-grades" component={() => (
-            <ProtectedRoute requireAdmin={true}>
-              <AdminQuizGrades user={user} />
-            </ProtectedRoute>
-          )} />
+
           <Route component={NotFound} />
         </Switch>
       </main>
