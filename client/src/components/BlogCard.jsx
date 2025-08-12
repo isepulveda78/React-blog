@@ -75,11 +75,6 @@ const BlogCard = ({ post, onReadMore }) => {
           </div>
           <h5 className="card-title">
             {decodeHTMLEntities(post.title)}
-            {process.env.NODE_ENV === 'development' && (
-              <small className="text-muted d-block" style={{fontSize: '0.7rem'}}>
-                ID: {post.id}
-              </small>
-            )}
           </h5>
           <div className="mt-auto">
             <button

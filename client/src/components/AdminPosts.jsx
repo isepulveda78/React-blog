@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { Editor } from '@tinymce/tinymce-react';
 
 const { toast } = window;
 
@@ -23,25 +22,18 @@ const AdminPosts = ({ user }) => {
   // Categories state
   const [categories, setCategories] = useState([]);
 
-  // ReactQuill configuration
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'indent': '-1'}, { 'indent': '+1' }],
-      ['link', 'image'],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'align': [] }],
-      ['clean']
+  // TinyMCE configuration for AdminPosts - simpler version
+  const editorConfig = {
+    height: 300,
+    menubar: false,
+    plugins: [
+      'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+      'anchor', 'searchreplace', 'visualblocks', 'code',
+      'insertdatetime', 'media', 'table', 'help', 'wordcount'
     ],
+    toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist | table | removeformat | help',
+    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
   };
-
-  const formats = [
-    'header', 'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'indent',
-    'link', 'image', 'color', 'background', 'align'
-  ];
 
   console.log('AdminPosts component - user:', user);
   
@@ -333,14 +325,34 @@ const AdminPosts = ({ user }) => {
           
           <div className="mb-3">
             <label className="form-label">Content *</label>
-            <ReactQuill
-              theme="snow"
+            <Editor
+              apiKey="no-api-key"
               value={content}
-              onChange={setContent}
-              modules={modules}
-              formats={formats}
-              placeholder="Write your post content here..."
-              style={{ height: '300px', marginBottom: '50px' }}
+              onEditorChange={(content) => setContent(content)}
+              init={{
+                ...editorConfig,
+                images_upload_handler: async (blobInfo, success, failure) => {
+                  try {
+                    const formData = new FormData();
+                    formData.append('image', blobInfo.blob(), blobInfo.filename());
+
+                    const response = await fetch('/api/upload-image', {
+                      method: 'POST',
+                      credentials: 'include',
+                      body: formData
+                    });
+
+                    if (response.ok) {
+                      const data = await response.json();
+                      success(data.url);
+                    } else {
+                      failure('Image upload failed');
+                    }
+                  } catch (error) {
+                    failure('Image upload failed: ' + error.message);
+                  }
+                }
+              }}
             />
           </div>
           

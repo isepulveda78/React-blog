@@ -207,23 +207,19 @@ function CommentsSection({ postId, user }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Debug logging
-  console.log('CommentsSection - postId:', postId, 'user:', user);
   
   // Also set default comment status for auto-approval in development
   const defaultCommentStatus = 'approved'; // For testing - in production this should be 'pending'
 
   const fetchComments = async () => {
-    console.log('fetchComments called - postId:', postId);
+
     if (!postId) {
-      console.log('Skipping comment fetch - no postId');
       setIsLoading(false);
       return;
     }
     
     try {
       setIsLoading(true);
-      console.log('Fetching comments from:', `/api/posts/${postId}/comments`);
       const response = await fetch(`/api/posts/${postId}/comments`, {
         credentials: "include",
       });
