@@ -48,10 +48,6 @@ const CityBuilder = () => {
   const [resizeHandle, setResizeHandle] = useState(null);
   const [resizeStartPos, setResizeStartPos] = useState({ x: 0, y: 0 });
   const [resizeStartSize, setResizeStartSize] = useState({ width: 0, height: 0 });
-  const [isDraggingItem, setIsDraggingItem] = useState(false);
-  const [draggedItem, setDraggedItem] = useState(null);
-  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
-  const [dragItemOffset, setDragItemOffset] = useState({ x: 0, y: 0 });
 
   const canvasRef = useRef(null);
 
@@ -126,7 +122,6 @@ const CityBuilder = () => {
 
   const addStreet = useCallback((streetType, x, y) => {
     try {
-      console.log('Adding street:', { streetType, x, y });
       let parsedType = streetType;
       if (typeof streetType === 'string' && streetType.startsWith('{')) {
         const parsed = JSON.parse(streetType);
@@ -150,10 +145,8 @@ const CityBuilder = () => {
         width: typeData.width,
         height: typeData.height,
         label: typeData.name,
-        color: parsedType === 'water' ? '#4A90E2' : '#8B8B8B'
+        color: parsedType === 'water' ? '#4A90E2' : '#666'
       };
-
-      console.log('New street object:', newStreet);
 
       // Check for collisions with buildings only (streets can overlap)
       if (checkCollision(newStreet, buildings)) {
@@ -161,12 +154,7 @@ const CityBuilder = () => {
         return false;
       }
 
-      setStreets(prev => {
-        const updated = [...prev, newStreet];
-        console.log('Streets updated:', updated.length, 'total streets');
-        return updated;
-      });
-      console.log('Street added successfully');
+      setStreets(prev => [...prev, newStreet]);
       return true;
     } catch (error) {
       console.error('Error adding street:', error);
@@ -411,51 +399,6 @@ const CityBuilder = () => {
     setResizeHandle(null);
   }, []);
 
-  // Item dragging functionality
-  const startItemDrag = useCallback((e, item) => {
-    if (isResizing) return;
-    
-    e.stopPropagation();
-    const rect = canvasRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const itemX = item.x * (zoomLevel / 100) + canvasOffset.x;
-    const itemY = item.y * (zoomLevel / 100) + canvasOffset.y;
-    
-    setIsDraggingItem(true);
-    setDraggedItem(item);
-    setDragStartPos({ x: e.clientX, y: e.clientY });
-    setDragItemOffset({ 
-      x: mouseX - itemX, 
-      y: mouseY - itemY 
-    });
-  }, [isResizing, zoomLevel, canvasOffset]);
-
-  const handleItemDrag = useCallback((e) => {
-    if (!isDraggingItem || !draggedItem) return;
-
-    const rect = canvasRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    
-    const newX = snapToGrid((mouseX - dragItemOffset.x - canvasOffset.x) * (100 / zoomLevel));
-    const newY = snapToGrid((mouseY - dragItemOffset.y - canvasOffset.y) * (100 / zoomLevel));
-
-    // Update item position
-    if (draggedItem.type && BUILDING_TYPES[draggedItem.type]) {
-      updateBuilding(draggedItem.id, { x: newX, y: newY });
-    } else if (draggedItem.type && STREET_TYPES[draggedItem.type]) {
-      updateStreet(draggedItem.id, { x: newX, y: newY });
-    }
-  }, [isDraggingItem, draggedItem, dragItemOffset, canvasOffset, zoomLevel, snapToGrid, updateBuilding, updateStreet]);
-
-  const endItemDrag = useCallback(() => {
-    setIsDraggingItem(false);
-    setDraggedItem(null);
-    setDragStartPos({ x: 0, y: 0 });
-    setDragItemOffset({ x: 0, y: 0 });
-  }, []);
-
   useEffect(() => {
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -466,17 +409,6 @@ const CityBuilder = () => {
       };
     }
   }, [isResizing, handleMouseMove, handleMouseUp]);
-
-  useEffect(() => {
-    if (isDraggingItem) {
-      document.addEventListener('mousemove', handleItemDrag);
-      document.addEventListener('mouseup', endItemDrag);
-      return () => {
-        document.removeEventListener('mousemove', handleItemDrag);
-        document.removeEventListener('mouseup', endItemDrag);
-      };
-    }
-  }, [isDraggingItem, handleItemDrag, endItemDrag]);
 
   // Canvas event handlers
   const handleCanvasDrop = useCallback((e) => {
@@ -493,10 +425,8 @@ const CityBuilder = () => {
     console.log('Drop event triggered:', { buildingType, streetType });
 
     if (buildingType) {
-      console.log('Adding building:', { buildingType, x, y });
       addBuilding(buildingType, x, y);
     } else if (streetType) {
-      console.log('Adding street:', { streetType, x, y });
       addStreet(streetType, x, y);
     }
   }, [canvasOffset, zoomLevel, addBuilding, addStreet]);
@@ -506,7 +436,7 @@ const CityBuilder = () => {
   }, []);
 
   const handleCanvasClick = useCallback((e) => {
-    if (isResizing || isDraggingItem) return;
+    if (isResizing) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left - canvasOffset.x) * (100 / zoomLevel);
@@ -537,7 +467,7 @@ const CityBuilder = () => {
     // Clear selection if clicked on empty space
     setSelectedBuilding(null);
     setSelectedStreet(null);
-  }, [buildings, streets, canvasOffset, zoomLevel, selectBuilding, selectStreet, isResizing, isDraggingItem]);
+  }, [buildings, streets, canvasOffset, zoomLevel, selectBuilding, selectStreet, isResizing]);
 
   // Drag start handlers
   const handleBuildingDragStart = useCallback((e, buildingType) => {
@@ -723,16 +653,6 @@ const CityBuilder = () => {
                     >
                       <div style={{ fontSize: "1.5rem" }}>{data.icon}</div>
                       <small className="text-muted">{data.name}</small>
-                      {type === 'road' && (
-                        <div className="mt-1">
-                          <div 
-                            className="badge bg-secondary"
-                            style={{ fontSize: "0.6rem" }}
-                          >
-                            Resizable
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -823,11 +743,10 @@ const CityBuilder = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: `${32 * (zoomLevel / 100)}px`,
+                    fontSize: `${16 * (zoomLevel / 100)}px`,
                     cursor: 'pointer',
                     zIndex: 1
                   }}
-                  onMouseDown={(e) => startItemDrag(e, street)}
                   onClick={(e) => {
                     e.stopPropagation();
                     selectStreet(street);
@@ -851,17 +770,16 @@ const CityBuilder = () => {
                     top: `${building.y * (zoomLevel / 100) + canvasOffset.y}px`,
                     width: `${building.width * (zoomLevel / 100)}px`,
                     height: `${building.height * (zoomLevel / 100)}px`,
-                    backgroundColor: 'transparent',
-                    border: selectedBuilding?.id === building.id ? '2px solid #007bff' : 'none',
+                    backgroundColor: building.color,
+                    border: selectedBuilding?.id === building.id ? '2px solid #007bff' : '1px solid #333',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: `${40 * (zoomLevel / 100)}px`,
+                    fontSize: `${20 * (zoomLevel / 100)}px`,
                     cursor: 'pointer',
                     zIndex: 2
                   }}
-                  onMouseDown={(e) => startItemDrag(e, building)}
                   onClick={(e) => {
                     e.stopPropagation();
                     selectBuilding(building);
