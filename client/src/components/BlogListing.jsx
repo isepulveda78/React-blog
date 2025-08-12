@@ -36,25 +36,33 @@ const BlogListing = ({ user }) => {
     if (showRefreshLoader) setRefreshing(true);
     
     try {
-      console.log('BlogListing: Fetching latest data...');
+      const timestamp = Date.now();
+      console.log('BlogListing: Fetching latest data at:', new Date(timestamp).toLocaleTimeString());
+      
       const [postsRes, categoriesRes] = await Promise.all([
-        fetch('/api/posts/public', { 
+        fetch(`/api/posts/public?t=${timestamp}`, { 
+          method: 'GET',
           credentials: 'include',
-          cache: 'no-cache',
+          cache: 'no-store',
           headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           }
         }),
-        fetch('/api/categories', { 
+        fetch(`/api/categories?t=${timestamp}`, { 
+          method: 'GET',
           credentials: 'include',
-          cache: 'no-cache',
+          cache: 'no-store',
           headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           }
         })
       ]);
+
+      console.log('BlogListing: API response status:', postsRes.status, categoriesRes.status);
 
       const [postsData, categoriesData] = await Promise.all([
         postsRes.json(),
@@ -62,9 +70,12 @@ const BlogListing = ({ user }) => {
       ]);
 
       console.log('BlogListing: Posts loaded:', postsData.length);
+      console.log('BlogListing: First post title:', postsData[0]?.title);
+      console.log('BlogListing: First post ID:', postsData[0]?.id);
+      
       setPosts(Array.isArray(postsData) ? postsData : []);
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-      setLastRefresh(Date.now());
+      setLastRefresh(timestamp);
       
     } catch (err) {
       console.error('Error loading data:', err);
@@ -77,7 +88,25 @@ const BlogListing = ({ user }) => {
   };
 
   const handleRefresh = () => {
+    console.log('BlogListing: Manual refresh clicked');
+    // Force a hard refresh by clearing posts first
+    setPosts([]);
+    setLoading(true);
     fetchData(true);
+  };
+
+  const handleForceRefresh = () => {
+    console.log('BlogListing: Force refresh - clearing all cache');
+    // Clear all state and force reload
+    setPosts([]);
+    setCategories([]);
+    setLoading(true);
+    setLastRefresh(0);
+    
+    // Add a small delay to ensure state is cleared
+    setTimeout(() => {
+      fetchData(true);
+    }, 100);
   };
 
   useEffect(() => {
@@ -98,13 +127,23 @@ const BlogListing = ({ user }) => {
 
   // Listen for custom refresh events (triggered from admin)
   useEffect(() => {
-    const handleCustomRefresh = () => {
-      console.log('BlogListing: Custom refresh triggered');
+    const handleCustomRefresh = (event) => {
+      console.log('BlogListing: Custom refresh triggered by:', event.detail);
       fetchData(true);
     };
 
+    const handleFocus = () => {
+      console.log('BlogListing: Window focused, refreshing data');
+      fetchData();
+    };
+
     window.addEventListener('blogDataUpdated', handleCustomRefresh);
-    return () => window.removeEventListener('blogDataUpdated', handleCustomRefresh);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('blogDataUpdated', handleCustomRefresh);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const handleReadMore = (post) => {
@@ -161,34 +200,68 @@ const BlogListing = ({ user }) => {
           </select>
         </div>
         <div className="col-md-2">
-          <button
-            className="btn btn-outline-primary btn-lg w-100"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            {refreshing ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Refreshing...
-              </>
-            ) : (
-              <>
-                <i className="bi bi-arrow-clockwise me-2"></i>
-                Refresh
-              </>
-            )}
-          </button>
+          <div className="btn-group w-100" role="group">
+            <button
+              className="btn btn-outline-primary btn-lg"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              style={{ flex: '2' }}
+            >
+              {refreshing ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-arrow-clockwise me-1"></i>
+                  Refresh
+                </>
+              )}
+            </button>
+            <button
+              className="btn btn-outline-danger btn-lg"
+              onClick={handleForceRefresh}
+              disabled={refreshing}
+              style={{ flex: '1' }}
+              title="Force refresh (clear cache)"
+            >
+              <i className="bi bi-lightning"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Last refresh indicator */}
+      {/* Last refresh indicator and debug info */}
       <div className="row mb-2">
-        <div className="col-12">
+        <div className="col-md-6">
           <small className="text-muted">
             Last updated: {new Date(lastRefresh).toLocaleTimeString()}
           </small>
         </div>
+        <div className="col-md-6 text-end">
+          <small className="text-muted">
+            Total posts: {posts.length} | 
+            {refreshing && <span className="text-primary"> Refreshing...</span>}
+            {!refreshing && <span className="text-success"> Ready</span>}
+          </small>
+        </div>
       </div>
+
+      {/* Debug panel for development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="row mb-2">
+          <div className="col-12">
+            <div className="alert alert-info py-2">
+              <small>
+                <strong>Debug:</strong> Posts loaded: {posts.length} | 
+                First post: {posts[0]?.title || 'None'} | 
+                Last refresh: {lastRefresh ? new Date(lastRefresh).toLocaleString() : 'Never'}
+              </small>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-5">
