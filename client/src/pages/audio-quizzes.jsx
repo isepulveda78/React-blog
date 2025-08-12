@@ -73,6 +73,16 @@ const AudioQuizzes = ({ user }) => {
   };
 
   const handleDeleteQuiz = async (quizId) => {
+    // Check permissions before allowing delete
+    if (!canDeleteQuiz) {
+      toast({
+        title: "Access Denied",
+        description: "Only teachers and admins can delete quizzes.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (!window.confirm('Are you sure you want to delete this quiz? This action cannot be undone.')) {
       return;
     }
@@ -158,6 +168,16 @@ const AudioQuizzes = ({ user }) => {
   };
 
   const handleCreateQuiz = async () => {
+    // Check permissions before allowing create/edit
+    if (!canCreateQuiz) {
+      toast({
+        title: "Access Denied",
+        description: "Only teachers and admins can create or edit quizzes.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const url = editingQuiz ? `/api/audio-quizzes/${editingQuiz.id}` : '/api/audio-quizzes';
       const method = editingQuiz ? 'PUT' : 'POST';
@@ -213,6 +233,16 @@ const AudioQuizzes = ({ user }) => {
   };
 
   const handleEditQuiz = (quiz) => {
+    // Check permissions before allowing edit
+    if (!canEditQuiz) {
+      toast({
+        title: "Access Denied",
+        description: "Only teachers and admins can edit quizzes.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setEditingQuiz(quiz);
     setFormData({
       title: quiz.title,
@@ -314,6 +344,18 @@ const AudioQuizzes = ({ user }) => {
   };
 
   const canCreateQuiz = user?.isAdmin || user?.role === 'teacher';
+  const canEditQuiz = user?.isAdmin || user?.role === 'teacher';
+  const canDeleteQuiz = user?.isAdmin || user?.role === 'teacher';
+  
+  // Debug logging for permissions
+  console.log('[Audio Quizzes] User permissions:', {
+    user: user?.name || user?.username || 'Anonymous',
+    isAdmin: user?.isAdmin,
+    role: user?.role,
+    canCreateQuiz,
+    canEditQuiz,
+    canDeleteQuiz
+  });
 
   if (loading) {
     return (
@@ -1381,7 +1423,12 @@ const AudioQuizzes = ({ user }) => {
           <div className="col-12">
             <div className="card border-primary">
               <div className="card-body text-center">
-                <h5 className="card-title">Teacher Tools</h5>
+                <h5 className="card-title">
+                  Teacher Tools 
+                  <small className="text-muted">
+                    ({user?.isAdmin ? 'Admin' : 'Teacher'} Access)
+                  </small>
+                </h5>
                 <div className="btn-group" role="group">
                   <button 
                     className="btn btn-primary"
@@ -1441,23 +1488,23 @@ const AudioQuizzes = ({ user }) => {
                     >
                       Take Quiz
                     </button>
-                    {canCreateQuiz && (
-                      <>
-                        <button 
-                          className="btn btn-outline-secondary btn-sm"
-                          onClick={() => handleEditQuiz(quiz)}
-                          title="Edit this quiz"
-                        >
-                          ✏️ Edit Quiz
-                        </button>
-                        <button 
-                          className="btn btn-outline-danger btn-sm"
-                          onClick={() => handleDeleteQuiz(quiz.id)}
-                          title="Delete this quiz"
-                        >
-                          🗑️ Delete Quiz
-                        </button>
-                      </>
+                    {canEditQuiz && (
+                      <button 
+                        className="btn btn-outline-secondary btn-sm"
+                        onClick={() => handleEditQuiz(quiz)}
+                        title="Edit this quiz"
+                      >
+                        ✏️ Edit Quiz
+                      </button>
+                    )}
+                    {canDeleteQuiz && (
+                      <button 
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => handleDeleteQuiz(quiz.id)}
+                        title="Delete this quiz"
+                      >
+                        🗑️ Delete Quiz
+                      </button>
                     )}
                   </div>
                 </div>
