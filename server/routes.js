@@ -2625,5 +2625,134 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // Text Quiz Routes
+  // Get all text quizzes
+  app.get("/api/text-quizzes", async (req, res) => {
+    try {
+      const quizzes = await storage.getTextQuizzes();
+      res.json(quizzes);
+    } catch (error) {
+      console.error('Error fetching text quizzes:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Create text quiz (admin/teacher only)
+  app.post("/api/text-quizzes", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user?.isAdmin && user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Admin or teacher access required" });
+      }
+
+      const quiz = await storage.createTextQuiz(req.body);
+      res.status(201).json(quiz);
+    } catch (error) {
+      console.error('Error creating text quiz:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update text quiz (admin/teacher only)
+  app.put("/api/text-quizzes/:id", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user?.isAdmin && user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Admin or teacher access required" });
+      }
+
+      const { id } = req.params;
+      const quiz = await storage.updateTextQuiz(id, req.body);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      res.json(quiz);
+    } catch (error) {
+      console.error('Error updating text quiz:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Delete text quiz (admin/teacher only)
+  app.delete("/api/text-quizzes/:id", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user?.isAdmin && user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Admin or teacher access required" });
+      }
+
+      const { id } = req.params;
+      const deleted = await storage.deleteTextQuiz(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      res.json({ message: "Quiz deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting text quiz:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Text Quiz Grade Routes
+  // Get all text quiz grades (admin/teacher only)
+  app.get("/api/text-quiz-grades", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user?.isAdmin && user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Admin or teacher access required" });
+      }
+
+      const grades = await storage.getTextQuizGrades();
+      res.json(grades);
+    } catch (error) {
+      console.error('Error fetching text quiz grades:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Create text quiz grade (authenticated users only)
+  app.post("/api/text-quiz-grades", async (req, res) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const gradeData = {
+        ...req.body,
+        userId: req.session.user.id,
+        userName: req.session.user.name || req.session.user.username
+      };
+
+      const grade = await storage.createTextQuizGrade(gradeData);
+      res.status(201).json(grade);
+    } catch (error) {
+      console.error('Error creating text quiz grade:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Delete text quiz grade (admin/teacher only)
+  app.delete("/api/text-quiz-grades/:id", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user?.isAdmin && user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Admin or teacher access required" });
+      }
+
+      const { id } = req.params;
+      const deleted = await storage.deleteTextQuizGrade(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Text quiz grade not found" });
+      }
+      
+      res.json({ message: "Text quiz grade deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting text quiz grade:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   return httpServer;
 }

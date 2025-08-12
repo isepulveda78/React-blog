@@ -5,9 +5,12 @@ const UserProfile = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quizGrades, setQuizGrades] = useState([]);
+  const [textQuizGrades, setTextQuizGrades] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
+  const [textQuizzes, setTextQuizzes] = useState([]);
   const [gradesLoading, setGradesLoading] = useState(true);
   const [expandedQuizId, setExpandedQuizId] = useState(null);
+  const [activeTab, setActiveTab] = useState('audio'); // 'audio' or 'text'
 
   useEffect(() => {
     if (user) {
@@ -21,22 +24,40 @@ const UserProfile = ({ user }) => {
     try {
       setGradesLoading(true);
       
-      // Fetch user's quiz grades
-      const gradesResponse = await fetch(`/api/quiz-grades?userId=${user.id}`, { 
+      // Fetch user's audio quiz grades
+      const audioGradesResponse = await fetch(`/api/quiz-grades?userId=${user.id}`, { 
         credentials: 'include' 
       });
       
-      // Fetch all quizzes for details
-      const quizzesResponse = await fetch('/api/audio-quizzes', { 
+      // Fetch user's text quiz grades
+      const textGradesResponse = await fetch(`/api/text-quiz-grades?userId=${user.id}`, { 
         credentials: 'include' 
       });
       
-      if (gradesResponse.ok && quizzesResponse.ok) {
-        const gradesData = await gradesResponse.json();
-        const quizzesData = await quizzesResponse.json();
+      // Fetch all audio quizzes for details
+      const audioQuizzesResponse = await fetch('/api/audio-quizzes', { 
+        credentials: 'include' 
+      });
+
+      // Fetch all text quizzes for details  
+      const textQuizzesResponse = await fetch('/api/text-quizzes', { 
+        credentials: 'include' 
+      });
+      
+      if (audioGradesResponse.ok && audioQuizzesResponse.ok) {
+        const audioGradesData = await audioGradesResponse.json();
+        const audioQuizzesData = await audioQuizzesResponse.json();
         
-        setQuizGrades(gradesData);
-        setQuizzes(quizzesData);
+        setQuizGrades(audioGradesData.filter(grade => grade.userId === user.id));
+        setQuizzes(audioQuizzesData);
+      }
+
+      if (textGradesResponse.ok && textQuizzesResponse.ok) {
+        const textGradesData = await textGradesResponse.json();
+        const textQuizzesData = await textQuizzesResponse.json();
+        
+        setTextQuizGrades(textGradesData.filter(grade => grade.userId === user.id));
+        setTextQuizzes(textQuizzesData);
       }
     } catch (err) {
       console.error('Error fetching quiz data:', err);
@@ -45,8 +66,9 @@ const UserProfile = ({ user }) => {
     }
   };
 
-  const getQuizDetails = (quizId) => {
-    return quizzes.find(quiz => quiz.id === quizId);
+  const getQuizDetails = (quizId, type = 'audio') => {
+    const quizList = type === 'text' ? textQuizzes : quizzes;
+    return quizList.find(quiz => quiz.id === quizId);
   };
 
   const toggleQuizExpansion = (quizId) => {
@@ -133,8 +155,30 @@ const UserProfile = ({ user }) => {
           {/* Quiz Results Section */}
           <div className="card mt-4">
             <div className="card-header">
-              <h4 className="card-title mb-0">My Quiz Results</h4>
+              <h4 className="card-title mb-3">My Quiz Results</h4>
               <small className="text-muted">Review your quiz performance and learn from your answers</small>
+              
+              {/* Tab Navigation */}
+              <div className="mt-3">
+                <ul className="nav nav-tabs">
+                  <li className="nav-item">
+                    <button 
+                      className={`nav-link ${activeTab === 'audio' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('audio')}
+                    >
+                      🎧 Audio Quizzes ({quizGrades.length})
+                    </button>
+                  </li>
+                  <li className="nav-item">
+                    <button 
+                      className={`nav-link ${activeTab === 'text' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('text')}
+                    >
+                      📝 Text Quizzes ({textQuizGrades.length})
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </div>
             <div className="card-body">
               {gradesLoading ? (
@@ -143,10 +187,15 @@ const UserProfile = ({ user }) => {
                     <span className="visually-hidden">Loading quiz results...</span>
                   </div>
                 </div>
-              ) : quizGrades.length === 0 ? (
-                <p className="text-muted">You haven't taken any quizzes yet.</p>
               ) : (
-                <div>
+                <div className="tab-content">
+                  {/* Audio Quiz Tab */}
+                  {activeTab === 'audio' && (
+                    <div className="tab-pane active">
+                      {quizGrades.length === 0 ? (
+                        <p className="text-muted">You haven't taken any audio quizzes yet.</p>
+                      ) : (
+                        <div>
                   {quizGrades.map((grade, index) => {
                     const quiz = getQuizDetails(grade.quizId);
                     const isExpanded = expandedQuizId === grade.id;
@@ -292,6 +341,118 @@ const UserProfile = ({ user }) => {
                       </div>
                     );
                   })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Text Quiz Tab */}
+                  {activeTab === 'text' && (
+                    <div className="tab-pane active">
+                      {textQuizGrades.length === 0 ? (
+                        <p className="text-muted">You haven't taken any text quizzes yet.</p>
+                      ) : (
+                        <div>
+                          {textQuizGrades.map((grade, index) => {
+                            const quiz = getQuizDetails(grade.quizId, 'text');
+                            const isExpanded = expandedQuizId === grade.id;
+                            
+                            return (
+                              <div key={grade.id || index} className="border rounded mb-3">
+                                <div className="p-3">
+                                  <div className="row align-items-center">
+                                    <div className="col-md-8">
+                                      <h6 className="mb-1">{grade.quizTitle || 'Unknown Quiz'}</h6>
+                                      <small className="text-muted d-block">
+                                        Completed: {new Date(grade.createdAt || grade.completedAt || Date.now()).toLocaleDateString()}
+                                      </small>
+                                      <small className="text-muted">
+                                        Time: {new Date(grade.createdAt || grade.completedAt || Date.now()).toLocaleTimeString()}
+                                      </small>
+                                    </div>
+                                    <div className="col-md-2 text-center">
+                                      <div className={`badge ${grade.score >= 70 ? 'bg-success' : 'bg-warning'} fs-6`}>
+                                        {grade.score}%
+                                      </div>
+                                    </div>
+                                    <div className="col-md-2">
+                                      <button 
+                                        className="btn btn-sm btn-outline-success w-100"
+                                        onClick={() => toggleQuizExpansion(grade.id || index)}
+                                      >
+                                        {isExpanded ? 'Hide Details' : 'View Details'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {isExpanded && quiz && (
+                                  <div className="border-top bg-light p-3">
+                                    <h6 className="mb-3">Question Review</h6>
+                                    {quiz.questions.map((question, qIndex) => {
+                                      const userAnswer = grade.userAnswers ? grade.userAnswers[qIndex] : null;
+                                      const isCorrect = userAnswer === question.correctAnswer;
+                                      
+                                      return (
+                                        <div key={qIndex} className="border rounded p-3 mb-3 bg-white">
+                                          <div className="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 className="mb-0">Question {qIndex + 1}</h6>
+                                            <span className={`badge ${isCorrect ? 'bg-success' : 'bg-warning'}`}>
+                                              {isCorrect ? 'Correct' : 'Incorrect'}
+                                            </span>
+                                          </div>
+                                          
+                                          <p className="mb-3">{question.question}</p>
+                                          
+                                          <div className="row">
+                                            {question.options.map((option, optionIndex) => {
+                                              const isCorrectOption = optionIndex === question.correctAnswer;
+                                              const isUserAnswer = userAnswer === optionIndex;
+                                              
+                                              let className = 'border rounded p-2 mb-2';
+                                              if (isCorrectOption) {
+                                                className += ' border-success bg-success bg-opacity-10';
+                                              } else if (isUserAnswer && !isCorrectOption) {
+                                                className += ' border-danger bg-danger bg-opacity-10';
+                                              } else {
+                                                className += ' border-secondary';
+                                              }
+                                              
+                                              return (
+                                                <div key={optionIndex} className="col-12 mb-2">
+                                                  <div className={className}>
+                                                    <div className="d-flex justify-content-between align-items-center">
+                                                      <span>{option}</span>
+                                                      <div>
+                                                        {isCorrectOption && (
+                                                          <small className="badge bg-success me-1">
+                                                            Correct Answer
+                                                          </small>
+                                                        )}
+                                                        {isUserAnswer && !isCorrectOption && (
+                                                          <small className="badge bg-danger">
+                                                            Your Answer
+                                                          </small>
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

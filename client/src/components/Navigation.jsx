@@ -416,7 +416,7 @@ const Navigation = ({ user, onLogout }) => {
               {/* Quick admin access button - only show if user is authenticated admin */}
               {user && user.isAdmin && (
                 <button
-                  className="btn btn-danger btn-sm me-2"
+                  className="btn btn-info btn-sm me-2"
                   onClick={() => navigateTo("/admin")}
                 >
                   Admin Dashboard

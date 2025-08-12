@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const AdminQuizGradesDashboard = ({ user }) => {
+const AdminTextQuizGradesDashboard = ({ user }) => {
   const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -20,7 +20,7 @@ const AdminQuizGradesDashboard = ({ user }) => {
   const fetchGrades = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/quiz-grades', { 
+      const response = await fetch('/api/text-quiz-grades', { 
         credentials: 'include',
         method: 'GET',
         headers: {
@@ -50,7 +50,7 @@ const AdminQuizGradesDashboard = ({ user }) => {
 
   const fetchQuizzes = async () => {
     try {
-      const response = await fetch('/api/audio-quizzes', { credentials: 'include' });
+      const response = await fetch('/api/text-quizzes', { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         setQuizzes(data);
@@ -66,7 +66,7 @@ const AdminQuizGradesDashboard = ({ user }) => {
     }
 
     try {
-      const response = await fetch(`/api/quiz-grades/${gradeId}`, {
+      const response = await fetch(`/api/text-quiz-grades/${gradeId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -133,7 +133,7 @@ const AdminQuizGradesDashboard = ({ user }) => {
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
-        <p className="mt-3">Loading quiz grades...</p>
+        <p className="mt-3">Loading text quiz grades...</p>
       </div>
     );
   }
@@ -156,9 +156,9 @@ const AdminQuizGradesDashboard = ({ user }) => {
     <div className="container py-5">
       <div className="row">
         <div className="col-12">
-          <h1 className="display-4 fw-bold text-primary mb-4">Quiz Grades Dashboard</h1>
+          <h1 className="display-4 fw-bold text-success mb-4">Text Quiz Grades Dashboard</h1>
           <p className="lead text-muted mb-5">
-            Monitor student performance and quiz statistics.
+            Monitor student performance on text-based quiz assessments.
           </p>
         </div>
       </div>
@@ -166,7 +166,7 @@ const AdminQuizGradesDashboard = ({ user }) => {
       {/* Statistics Cards */}
       <div className="row mb-5">
         <div className="col-md-3">
-          <div className="card text-center bg-danger text-white">
+          <div className="card text-center bg-success text-white">
             <div className="card-body">
               <h3 className="card-title">{totalAttempts}</h3>
               <p className="card-text">Total Attempts</p>
@@ -174,7 +174,7 @@ const AdminQuizGradesDashboard = ({ user }) => {
           </div>
         </div>
         <div className="col-md-3">
-          <div className="card text-center bg-success text-white">
+          <div className="card text-center bg-info text-white">
             <div className="card-body">
               <h3 className="card-title">{averageScore}%</h3>
               <p className="card-text">Average Score</p>
@@ -182,7 +182,7 @@ const AdminQuizGradesDashboard = ({ user }) => {
           </div>
         </div>
         <div className="col-md-3">
-          <div className="card text-center bg-info text-white">
+          <div className="card text-center bg-primary text-white">
             <div className="card-body">
               <h3 className="card-title">{passedCount}</h3>
               <p className="card-text">Passed (≥70%)</p>
@@ -209,7 +209,7 @@ const AdminQuizGradesDashboard = ({ user }) => {
             value={selectedQuiz}
             onChange={(e) => setSelectedQuiz(e.target.value)}
           >
-            <option value="all">All Quizzes</option>
+            <option value="all">All Text Quizzes</option>
             {quizzes.map(quiz => (
               <option key={quiz.id} value={quiz.id}>
                 {quiz.title}
@@ -225,7 +225,7 @@ const AdminQuizGradesDashboard = ({ user }) => {
           <div className="card">
             <div className="card-header">
               <h5 className="card-title mb-0">
-                Quiz Results 
+                Text Quiz Results 
                 {selectedQuiz !== 'all' && (
                   <small className="text-muted">
                     - {quizzes.find(q => q.id === selectedQuiz)?.title}
@@ -235,7 +235,7 @@ const AdminQuizGradesDashboard = ({ user }) => {
             </div>
             <div className="card-body">
               {filteredGrades.length === 0 ? (
-                <p className="text-center text-muted">No quiz results found.</p>
+                <p className="text-center text-muted">No text quiz results found.</p>
               ) : (
                 <div className="table-responsive">
                   <table className="table table-striped">
@@ -286,4 +286,4 @@ const AdminQuizGradesDashboard = ({ user }) => {
   );
 };
 
-export default AdminQuizGradesDashboard;
+export default AdminTextQuizGradesDashboard;

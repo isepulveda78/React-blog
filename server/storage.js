@@ -12,6 +12,8 @@ class MemStorage {
     this.chatrooms = [];
     this.audioQuizzes = [];
     this.quizGrades = [];
+    this.textQuizzes = [];
+    this.textQuizGrades = [];
     console.log('[storage] Using in-memory storage');
     this.initializeSampleData();
   }
@@ -261,6 +263,70 @@ class MemStorage {
     const index = this.quizGrades.findIndex(g => g.id === id);
     if (index === -1) return false;
     this.quizGrades.splice(index, 1);
+    return true;
+  }
+
+  // Text Quiz Methods
+  async getTextQuizzes() {
+    return this.textQuizzes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  async getTextQuizById(id) {
+    return this.textQuizzes.find(q => q.id === id);
+  }
+
+  async createTextQuiz(quizData) {
+    const quiz = {
+      id: nanoid(),
+      ...quizData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    this.textQuizzes.push(quiz);
+    return quiz;
+  }
+
+  async updateTextQuiz(id, quizData) {
+    const index = this.textQuizzes.findIndex(q => q.id === id);
+    if (index === -1) return null;
+    this.textQuizzes[index] = { ...this.textQuizzes[index], ...quizData, updatedAt: new Date().toISOString() };
+    return this.textQuizzes[index];
+  }
+
+  async deleteTextQuiz(id) {
+    const index = this.textQuizzes.findIndex(q => q.id === id);
+    if (index === -1) return false;
+    this.textQuizzes.splice(index, 1);
+    return true;
+  }
+
+  // Text Quiz Grade Methods
+  async getTextQuizGrades() {
+    return this.textQuizGrades.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  async getTextQuizGradesByQuizId(quizId) {
+    return this.textQuizGrades.filter(g => g.quizId === quizId);
+  }
+
+  async getTextQuizGradesByUserId(userId) {
+    return this.textQuizGrades.filter(g => g.userId === userId);
+  }
+
+  async createTextQuizGrade(gradeData) {
+    const grade = {
+      id: nanoid(),
+      ...gradeData,
+      createdAt: new Date().toISOString()
+    };
+    this.textQuizGrades.push(grade);
+    return grade;
+  }
+
+  async deleteTextQuizGrade(id) {
+    const index = this.textQuizGrades.findIndex(g => g.id === id);
+    if (index === -1) return false;
+    this.textQuizGrades.splice(index, 1);
     return true;
   }
 
@@ -1438,6 +1504,83 @@ export class MongoStorage {
   async deleteQuizGrade(id) {
     await this.connect();
     const result = await this.db.collection('quizGrades').deleteOne({ id });
+    return result.deletedCount > 0;
+  }
+
+  // Text Quiz Methods
+  async getTextQuizzes() {
+    await this.connect();
+    return await this.db.collection('textQuizzes').find({}).sort({ createdAt: -1 }).toArray();
+  }
+
+  async getTextQuizById(id) {
+    await this.connect();
+    return await this.db.collection('textQuizzes').findOne({ id });
+  }
+
+  async createTextQuiz(quizData) {
+    await this.connect();
+    const quiz = {
+      id: nanoid(),
+      ...quizData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    await this.db.collection('textQuizzes').insertOne(quiz);
+    return quiz;
+  }
+
+  async updateTextQuiz(id, quizData) {
+    await this.connect();
+    const existingQuiz = await this.db.collection('textQuizzes').findOne({ id });
+    if (!existingQuiz) return null;
+    
+    const updatedQuiz = {
+      ...existingQuiz,
+      ...quizData,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await this.db.collection('textQuizzes').updateOne({ id }, { $set: updatedQuiz });
+    return updatedQuiz;
+  }
+
+  async deleteTextQuiz(id) {
+    await this.connect();
+    const result = await this.db.collection('textQuizzes').deleteOne({ id });
+    return result.deletedCount > 0;
+  }
+
+  // Text Quiz Grade Methods
+  async getTextQuizGrades() {
+    await this.connect();
+    return await this.db.collection('textQuizGrades').find({}).sort({ createdAt: -1 }).toArray();
+  }
+
+  async getTextQuizGradesByQuizId(quizId) {
+    await this.connect();
+    return await this.db.collection('textQuizGrades').find({ quizId }).sort({ createdAt: -1 }).toArray();
+  }
+
+  async getTextQuizGradesByUserId(userId) {
+    await this.connect();
+    return await this.db.collection('textQuizGrades').find({ userId }).sort({ createdAt: -1 }).toArray();
+  }
+
+  async createTextQuizGrade(gradeData) {
+    await this.connect();
+    const grade = {
+      id: nanoid(),
+      ...gradeData,
+      createdAt: new Date().toISOString()
+    };
+    await this.db.collection('textQuizGrades').insertOne(grade);
+    return grade;
+  }
+
+  async deleteTextQuizGrade(id) {
+    await this.connect();
+    const result = await this.db.collection('textQuizGrades').deleteOne({ id });
     return result.deletedCount > 0;
   }
 }

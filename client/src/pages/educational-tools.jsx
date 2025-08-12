@@ -159,6 +159,27 @@ const EducationalTools = ({ user }) => {
                 </div>
               </div>
             </div>
+
+            <div className="col-md-6 col-lg-3 mb-4">
+              <div className="card h-100 shadow-sm">
+                <div className="card-body text-center">
+                  <div className="mb-3">
+                    <i className="fas fa-edit fa-3x text-success"></i>
+                  </div>
+                  <h5 className="card-title">Text Quizzes</h5>
+                  <p className="card-text">Challenge yourself with text-based multiple choice quizzes</p>
+                  <button 
+                    className="btn btn-success"
+                    onClick={() => {
+                      window.history.pushState({}, '', '/text-quizzes');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }}
+                  >
+                    Launch Tool
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

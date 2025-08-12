@@ -16,6 +16,7 @@ import AdminPostEditor from './components/AdminPostEditor.jsx'
 import SEOManagement from './components/SEOManagement.jsx'
 import AdminChatrooms from './components/AdminChatrooms.jsx'
 import AdminQuizGradesDashboard from './components/AdminQuizGradesDashboard.jsx'
+import AdminTextQuizGradesDashboard from './components/AdminTextQuizGradesDashboard.jsx'
 
 // Clean imports without debug logs
 import Footer from './components/Footer.jsx'
@@ -29,6 +30,7 @@ import ListenToType from './pages/listen-to-type.jsx'
 import CodeEvolutionVisualization from './pages/code-evolution.jsx'
 import CrosswordGenerator from './pages/crossword-generator.jsx'
 import AudioQuizzes from './pages/audio-quizzes.jsx'
+import TextQuizzes from './pages/text-quizzes.jsx'
 import NotFound from './components/NotFound.jsx'
 
 // Auth Context
@@ -226,6 +228,7 @@ const AppRoutes = () => {
           <Route path="/code-evolution" component={() => <CodeEvolutionVisualization user={user} />} />
           <Route path="/crossword-generator" component={() => <CrosswordGenerator user={user} />} />
           <Route path="/audio-quizzes" component={() => <AudioQuizzes user={user} />} />
+          <Route path="/text-quizzes" component={() => <TextQuizzes user={user} />} />
           <Route path="/profile" component={() => (
             <ProtectedRoute>
               <UserProfile user={user} />
@@ -275,6 +278,11 @@ const AppRoutes = () => {
           <Route path="/admin/quiz-grades-dashboard" component={() => (
             <ProtectedRoute requireAdmin={true}>
               <AdminQuizGradesDashboard user={user} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/admin/text-quiz-grades-dashboard" component={() => (
+            <ProtectedRoute requireAdmin={true}>
+              <AdminTextQuizGradesDashboard user={user} />
             </ProtectedRoute>
           )} />
 

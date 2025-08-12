@@ -144,13 +144,29 @@ const AdminDashboard = ({ user }) => {
           <div className="card h-100 shadow-sm hover-shadow">
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🎧</div>
-              <h5 className="card-title">Quiz Grades Dashboard</h5>
-              <p className="card-text">View all student quiz scores and performance data.</p>
+              <h5 className="card-title">Audio Quiz Grades</h5>
+              <p className="card-text">View student audio quiz scores and listening performance.</p>
               <button
                 className="btn btn-primary"
                 onClick={() => navigateTo('/admin/quiz-grades-dashboard')}
               >
-                View All Grades
+                View Audio Grades
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm hover-shadow">
+            <div className="card-body text-center">
+              <div className="display-6 text-success mb-3">📝</div>
+              <h5 className="card-title">Text Quiz Grades</h5>
+              <p className="card-text">View student text quiz scores and reading comprehension.</p>
+              <button
+                className="btn btn-success"
+                onClick={() => navigateTo('/admin/text-quiz-grades-dashboard')}
+              >
+                View Text Grades
               </button>
             </div>
           </div>
