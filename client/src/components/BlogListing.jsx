@@ -90,18 +90,7 @@ const BlogListing = ({ user }) => {
     fetchData(true);
   };
 
-  const handleForceRefresh = () => {
-    // Clear all state and force reload
-    setPosts([]);
-    setCategories([]);
-    setLoading(true);
-    setLastRefresh(0);
-    
-    // Add a small delay to ensure state is cleared
-    setTimeout(() => {
-      fetchData(true);
-    }, 100);
-  };
+
 
   useEffect(() => {
     fetchData();
@@ -192,87 +181,29 @@ const BlogListing = ({ user }) => {
           </select>
         </div>
         <div className="col-md-2">
-          <div className="btn-group w-100" role="group">
-            <button
-              className="btn btn-outline-primary btn-lg"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              style={{ flex: '2' }}
-            >
-              {refreshing ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <i className="bi bi-arrow-clockwise me-1"></i>
-                  Refresh
-                </>
-              )}
-            </button>
-            <button
-              className="btn btn-outline-danger btn-lg"
-              onClick={handleForceRefresh}
-              disabled={refreshing}
-              style={{ flex: '1' }}
-              title="Force refresh (clear cache)"
-            >
-              <i className="bi bi-lightning"></i>
-            </button>
-          </div>
+          <button
+            className="btn btn-outline-primary btn-lg w-100"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                Loading...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-arrow-clockwise me-1"></i>
+                Refresh
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Last refresh indicator and debug info */}
-      <div className="row mb-2">
-        <div className="col-md-6">
-          <small className="text-muted">
-            Last updated: {new Date(lastRefresh).toLocaleTimeString()}
-          </small>
-        </div>
-        <div className="col-md-6 text-end">
-          <small className="text-muted">
-            Total posts: {posts.length} | 
-            {refreshing && <span className="text-primary"> Refreshing...</span>}
-            {!refreshing && <span className="text-success"> Ready</span>}
-          </small>
-        </div>
-      </div>
 
-      {/* Debug panel for development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="row mb-2">
-          <div className="col-12">
-            <div className="alert alert-warning py-2">
-              <div className="row">
-                <div className="col-md-8">
-                  <small>
-                    <strong>Debug Info:</strong><br/>
-                    Posts loaded: {posts.length} | 
-                    First post: "{posts[0]?.title || 'None'}" (ID: {posts[0]?.id || 'None'})<br/>
-                    Last refresh: {lastRefresh ? new Date(lastRefresh).toLocaleString() : 'Never'}
-                  </small>
-                </div>
-                <div className="col-md-4 text-end">
-                  <button 
-                    className="btn btn-sm btn-warning"
-                    onClick={() => {
-                      fetch(`/api/posts/public?debug=${Date.now()}`)
-                        .then(r => r.json())
-                        .then(data => {
-                          // API test for debugging
-                        });
-                    }}
-                  >
-                    Test API
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
+
 
       {loading ? (
         <div className="text-center py-5">
