@@ -374,7 +374,17 @@ function BlogPost({ user, slug }) {
       if (!postSlug) return;
       
       try {
-        const response = await fetch(`/api/posts/public/${postSlug}`);
+        const timestamp = Date.now();
+        const response = await fetch(`/api/posts/public/${postSlug}?t=${timestamp}`, {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
         
         if (response.ok) {
           const data = await response.json();

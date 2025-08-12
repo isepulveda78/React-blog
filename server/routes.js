@@ -630,19 +630,40 @@ export function registerRoutes(app) {
       console.log(`[posts/public] Returning ${posts.length} posts at ${new Date().toISOString()}`);
       console.log(`[posts/public] First post: "${posts[0]?.title}" (ID: ${posts[0]?.id})`);
       
-      // Return posts with limited information for public viewing
+      // Function to decode HTML entities recursively
+      const decodeHTMLEntities = (text) => {
+        if (!text || typeof text !== 'string') return text;
+        
+        let decoded = text;
+        let previousDecoded = '';
+        
+        while (decoded !== previousDecoded) {
+          previousDecoded = decoded;
+          decoded = decoded
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#x2F;/g, '/')
+            .replace(/&#x27;/g, "'");
+        }
+        
+        return decoded;
+      };
+
+      // Return posts with decoded HTML entities
       const publicPosts = posts.map(post => ({
         id: post.id,
-        title: post.title,
-        excerpt: post.excerpt,
+        title: decodeHTMLEntities(post.title),
+        excerpt: decodeHTMLEntities(post.excerpt),
         authorName: post.authorName,
         publishedAt: post.publishedAt,
         categoryName: post.categoryName,
         categoryId: post.categoryId,
-        featuredImage: post.featuredImage,
+        featuredImage: decodeHTMLEntities(post.featuredImage),
         slug: post.slug,
         // Include content for excerpt generation but limit it
-        content: post.content ? post.content.substring(0, 200) : ''
+        content: post.content ? decodeHTMLEntities(post.content).substring(0, 200) : ''
       }));
       
       res.json(publicPosts);
@@ -688,7 +709,37 @@ export function registerRoutes(app) {
         return res.status(404).json({ message: "Post not found" });
       }
 
-      res.json(post);
+      // Function to decode HTML entities recursively
+      const decodeHTMLEntities = (text) => {
+        if (!text || typeof text !== 'string') return text;
+        
+        let decoded = text;
+        let previousDecoded = '';
+        
+        while (decoded !== previousDecoded) {
+          previousDecoded = decoded;
+          decoded = decoded
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#x2F;/g, '/')
+            .replace(/&#x27;/g, "'");
+        }
+        
+        return decoded;
+      };
+
+      // Decode HTML entities before sending
+      const decodedPost = {
+        ...post,
+        title: decodeHTMLEntities(post.title),
+        content: decodeHTMLEntities(post.content),
+        excerpt: decodeHTMLEntities(post.excerpt),
+        featuredImage: decodeHTMLEntities(post.featuredImage)
+      };
+
+      res.json(decodedPost);
     } catch (error) {
       console.error("Error fetching public post:", error);
       res.status(500).json({ message: "Internal server error" });
