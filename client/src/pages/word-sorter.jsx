@@ -308,7 +308,7 @@ const WordSorter = ({ user }) => {
             {/* Add Word Section */}
             <div className="col-md-6">
               <div className="card p-3">
-                <h5>Add New Word</h5>
+                <h5>Add New Word or Phrase</h5>
                 <div className="input-group">
                   <input
                     type="text"
@@ -350,7 +350,7 @@ const WordSorter = ({ user }) => {
                 onDrop={(e) => handleDrop(e, 'list1')}
                 style={{ minHeight: '400px' }}
               >
-                <div className="card-header d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0abde3', color: 'white' }}>
+                <div className="card-header d-flex justify-content-between align-items-center bg-info">
                   {editingList1Title ? (
                     <input
                       type="text"
@@ -412,7 +412,7 @@ const WordSorter = ({ user }) => {
                 onDrop={(e) => handleDrop(e, 'list2')}
                 style={{ minHeight: '400px' }}
               >
-                <div className="card-header d-flex justify-content-between align-items-center" style={{ backgroundColor: '#222f3e', color: 'white' }}>
+                <div className="card-header d-flex justify-content-between align-items-center bg-info">
                   {editingList2Title ? (
                     <input
                       type="text"
