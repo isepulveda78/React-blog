@@ -7,6 +7,7 @@ const AudioQuizzes = ({ user }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingQuiz, setEditingQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
@@ -158,43 +159,68 @@ const AudioQuizzes = ({ user }) => {
 
   const handleCreateQuiz = async () => {
     try {
-      const response = await fetch('/api/audio-quizzes', {
-        method: 'POST',
+      const url = editingQuiz ? `/api/audio-quizzes/${editingQuiz.id}` : '/api/audio-quizzes';
+      const method = editingQuiz ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(formData)
       });
 
       if (response.ok) {
-        const newQuiz = await response.json();
-        setQuizzes([newQuiz, ...quizzes]);
+        const savedQuiz = await response.json();
+        
+        if (editingQuiz) {
+          // Update existing quiz in list
+          setQuizzes(quizzes.map(q => q.id === editingQuiz.id ? savedQuiz : q));
+        } else {
+          // Add new quiz to list
+          setQuizzes([savedQuiz, ...quizzes]);
+        }
+        
         setShowCreateForm(false);
+        setEditingQuiz(null);
         setFormData({
           title: '',
           description: '',
           questions: [{ audioUrl: '', question: '', options: ['', '', '', ''], correctAnswer: 0 }]
         });
+        setDriveUrl('');
+        
         toast({
           title: "Success",
-          description: "Quiz created successfully!",
+          description: editingQuiz ? "Quiz updated successfully!" : "Quiz created successfully!",
           variant: "default"
         });
       } else {
         const error = await response.json();
         toast({
           title: "Error",
-          description: `Error creating quiz: ${error.message || 'Unknown error'}`,
+          description: `Error ${editingQuiz ? 'updating' : 'creating'} quiz: ${error.message || 'Unknown error'}`,
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.error('Error creating quiz:', error);
+      console.error('Error saving quiz:', error);
       toast({
         title: "Error",
-        description: "Error creating quiz",
+        description: `Error ${editingQuiz ? 'updating' : 'creating'} quiz`,
         variant: "destructive"
       });
     }
+  };
+
+  const handleEditQuiz = (quiz) => {
+    setEditingQuiz(quiz);
+    setFormData({
+      title: quiz.title,
+      description: quiz.description,
+      questions: quiz.questions
+    });
+    setDriveUrl('');
+    setShowCreateForm(true);
   };
 
   const handleTakeQuiz = (quiz) => {
@@ -662,7 +688,7 @@ const AudioQuizzes = ({ user }) => {
             
             <div className="card">
               <div className="card-header">
-                <h3 className="mb-0">Create New Audio Quiz</h3>
+                <h3 className="mb-0">{editingQuiz ? 'Edit Audio Quiz' : 'Create New Audio Quiz'}</h3>
               </div>
               <div className="card-body">
                 <div className="mb-3">
@@ -1161,11 +1187,20 @@ const AudioQuizzes = ({ user }) => {
                     onClick={handleCreateQuiz}
                     disabled={!formData.title || formData.questions.some(q => !q.audioUrl || !q.question)}
                   >
-                    Create Quiz
+                    {editingQuiz ? 'Update Quiz' : 'Create Quiz'}
                   </button>
                   <button 
                     className="btn btn-outline-secondary"
-                    onClick={() => setShowCreateForm(false)}
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setEditingQuiz(null);
+                      setFormData({
+                        title: '',
+                        description: '',
+                        questions: [{ audioUrl: '', question: '', options: ['', '', '', ''], correctAnswer: 0 }]
+                      });
+                      setDriveUrl('');
+                    }}
                   >
                     Cancel
                   </button>
@@ -1324,13 +1359,22 @@ const AudioQuizzes = ({ user }) => {
                       Take Quiz
                     </button>
                     {canCreateQuiz && (
-                      <button 
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => handleDeleteQuiz(quiz.id)}
-                        title="Delete this quiz"
-                      >
-                        🗑️ Delete Quiz
-                      </button>
+                      <>
+                        <button 
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => handleEditQuiz(quiz)}
+                          title="Edit this quiz"
+                        >
+                          ✏️ Edit Quiz
+                        </button>
+                        <button 
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => handleDeleteQuiz(quiz.id)}
+                          title="Delete this quiz"
+                        >
+                          🗑️ Delete Quiz
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
