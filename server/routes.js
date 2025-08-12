@@ -2696,16 +2696,32 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   });
 
   // Text Quiz Grade Routes
-  // Get all text quiz grades (admin/teacher only)
+  // Get text quiz grades
   app.get("/api/text-quiz-grades", async (req, res) => {
     try {
       const user = req.session.user;
-      if (!user?.isAdmin && user?.role !== 'teacher') {
-        return res.status(403).json({ message: "Admin or teacher access required" });
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
       }
 
-      const grades = await storage.getTextQuizGrades();
-      res.json(grades);
+      const { userId } = req.query;
+      
+      // If userId is provided, check if user can access that specific user's grades
+      if (userId) {
+        // Students can only access their own grades
+        if (!user.isAdmin && user.role !== 'teacher' && userId !== user.id) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+        const grades = await storage.getTextQuizGradesByUserId(userId);
+        res.json(grades);
+      } else {
+        // Only admin/teacher can get all grades
+        if (!user?.isAdmin && user?.role !== 'teacher') {
+          return res.status(403).json({ message: "Admin or teacher access required" });
+        }
+        const grades = await storage.getTextQuizGrades();
+        res.json(grades);
+      }
     } catch (error) {
       console.error('Error fetching text quiz grades:', error);
       res.status(500).json({ message: "Internal server error" });
