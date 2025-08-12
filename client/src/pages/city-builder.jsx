@@ -20,7 +20,7 @@ const BUILDING_TYPES = {
 };
 
 const STREET_TYPES = {
-  road: { category: "roads", name: "Road", icon: "🛣️", width: 20, height: 20 },
+  road: { category: "roads", name: "Road", icon: "🛣️", width: 60, height: 20 },
   water: { category: "water", name: "Water", icon: "🌊", width: 40, height: 40 }
 };
 
@@ -149,7 +149,7 @@ const CityBuilder = () => {
         width: typeData.width,
         height: typeData.height,
         label: typeData.name,
-        color: parsedType === 'water' ? '#4A90E2' : '#666'
+        color: parsedType === 'water' ? '#4A90E2' : '#8B8B8B'
       };
 
       // Check for collisions with buildings only (streets can overlap)
@@ -713,6 +713,16 @@ const CityBuilder = () => {
                     >
                       <div style={{ fontSize: "1.5rem" }}>{data.icon}</div>
                       <small className="text-muted">{data.name}</small>
+                      {type === 'road' && (
+                        <div className="mt-1">
+                          <div 
+                            className="badge bg-secondary"
+                            style={{ fontSize: "0.6rem" }}
+                          >
+                            Resizable
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -797,9 +807,9 @@ const CityBuilder = () => {
                     top: `${street.y * (zoomLevel / 100) + canvasOffset.y}px`,
                     width: `${street.width * (zoomLevel / 100)}px`,
                     height: `${street.height * (zoomLevel / 100)}px`,
-                    backgroundColor: 'transparent',
-                    border: selectedStreet?.id === street.id ? '2px solid #007bff' : 'none',
-                    borderRadius: '2px',
+                    backgroundColor: street.color,
+                    border: selectedStreet?.id === street.id ? '3px solid #007bff' : '1px solid #333',
+                    borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -954,13 +964,42 @@ const CityBuilder = () => {
                   </div>
                   
                   <div className="mb-3">
-                    <label className="form-label">Color</label>
+                    <label className="form-label">Road Color</label>
                     <input
                       type="color"
                       className="form-control form-control-color"
                       value={selectedStreet.color}
                       onChange={(e) => updateStreet(selectedStreet.id, { color: e.target.value })}
                     />
+                    <div className="mt-2">
+                      <small className="text-muted d-block mb-1">Quick Colors:</small>
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-sm border"
+                          style={{ backgroundColor: '#8B8B8B', width: '30px', height: '30px' }}
+                          onClick={() => updateStreet(selectedStreet.id, { color: '#8B8B8B' })}
+                          title="Gray Road"
+                        ></button>
+                        <button
+                          className="btn btn-sm border"
+                          style={{ backgroundColor: '#2C2C2C', width: '30px', height: '30px' }}
+                          onClick={() => updateStreet(selectedStreet.id, { color: '#2C2C2C' })}
+                          title="Asphalt"
+                        ></button>
+                        <button
+                          className="btn btn-sm border"
+                          style={{ backgroundColor: '#8B4513', width: '30px', height: '30px' }}
+                          onClick={() => updateStreet(selectedStreet.id, { color: '#8B4513' })}
+                          title="Dirt Road"
+                        ></button>
+                        <button
+                          className="btn btn-sm border"
+                          style={{ backgroundColor: '#FFD700', width: '30px', height: '30px' }}
+                          onClick={() => updateStreet(selectedStreet.id, { color: '#FFD700' })}
+                          title="Brick Road"
+                        ></button>
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="row mb-3">
@@ -971,7 +1010,9 @@ const CityBuilder = () => {
                         className="form-control"
                         value={selectedStreet.width}
                         onChange={(e) => updateStreet(selectedStreet.id, { width: parseInt(e.target.value) || 20 })}
-                        min="10"
+                        min="20"
+                        max="200"
+                        step="10"
                       />
                     </div>
                     <div className="col-6">
@@ -982,6 +1023,8 @@ const CityBuilder = () => {
                         value={selectedStreet.height}
                         onChange={(e) => updateStreet(selectedStreet.id, { height: parseInt(e.target.value) || 20 })}
                         min="10"
+                        max="200"
+                        step="10"
                       />
                     </div>
                   </div>
