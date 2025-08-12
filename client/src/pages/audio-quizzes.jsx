@@ -947,10 +947,8 @@ const AudioQuizzes = ({ user }) => {
                             <button 
                               className="btn btn-outline-success"
                               type="button"
-                              onClick={async (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                
+                              onClick={(e) => {
+                                // Use the exact same method that works for students taking quizzes
                                 const needsProxy = question.audioUrl.includes('drive.google.com') || 
                                                   question.audioUrl.includes('dropbox.com') ||
                                                   question.audioUrl.includes('onedrive.live.com') ||
@@ -960,125 +958,56 @@ const AudioQuizzes = ({ user }) => {
                                   ? `/api/audio-proxy?url=${encodeURIComponent(question.audioUrl)}`
                                   : question.audioUrl;
                                 
-                                console.log('[Edit Mode Audio] Original URL:', question.audioUrl);
-                                console.log('[Edit Mode Audio] Needs proxy:', needsProxy);
-                                console.log('[Edit Mode Audio] Final URL:', audioUrl);
+                                console.log('[Edit Mode] Using', needsProxy ? 'PROXY' : 'DIRECT', 'for:', question.audioUrl);
+                                
+                                const audio = new Audio(audioUrl);
+                                audio.volume = 0.7;
                                 
                                 const btn = e.target;
-                                const originalText = btn.textContent;
-                                const originalClass = btn.className;
-                                
                                 btn.disabled = true;
-                                btn.textContent = 'Testing...';
-                                btn.className = 'btn btn-info';
+                                btn.textContent = 'Loading...';
                                 
-                                try {
-                                  // First test if the URL is accessible
-                                  if (needsProxy) {
-                                    console.log('[Edit Mode Audio] Testing proxy URL...');
-                                    const proxyResponse = await fetch(audioUrl, { method: 'HEAD' });
-                                    console.log('[Edit Mode Audio] Proxy test status:', proxyResponse.status);
-                                    
-                                    if (!proxyResponse.ok) {
-                                      throw new Error(`Proxy failed: ${proxyResponse.status} ${proxyResponse.statusText}`);
+                                audio.addEventListener('loadeddata', () => {
+                                  btn.textContent = '▶ Play';
+                                  btn.disabled = false;
+                                });
+                                
+                                audio.addEventListener('play', () => {
+                                  btn.textContent = '⏸ Pause';
+                                  btn.className = 'btn btn-warning';
+                                });
+                                
+                                audio.addEventListener('pause', () => {
+                                  btn.textContent = '▶ Play';
+                                  btn.className = 'btn btn-outline-success';
+                                });
+                                
+                                audio.addEventListener('ended', () => {
+                                  btn.textContent = '🎵 Play Current Audio';
+                                  btn.className = 'btn btn-outline-success';
+                                  btn.disabled = false;
+                                });
+                                
+                                audio.addEventListener('error', (error) => {
+                                  console.error('[Edit Mode] Audio error:', error);
+                                  btn.textContent = 'Error - Click to retry';
+                                  btn.className = 'btn btn-outline-danger';
+                                  btn.disabled = false;
+                                });
+                                
+                                // Store audio instance on button for play/pause control
+                                btn._audioInstance = audio;
+                                
+                                // Handle click for play/pause toggle
+                                btn.onclick = (e) => {
+                                  if (btn._audioInstance) {
+                                    if (btn._audioInstance.paused) {
+                                      btn._audioInstance.play();
+                                    } else {
+                                      btn._audioInstance.pause();
                                     }
                                   }
-                                  
-                                  // Create and configure audio element
-                                  const audio = new Audio();
-                                  audio.volume = 0.8;
-                                  audio.preload = 'auto';
-                                  audio.crossOrigin = 'anonymous';
-                                  
-                                  // Set up event listeners first
-                                  const cleanup = () => {
-                                    audio.pause();
-                                    audio.src = '';
-                                    audio.load();
-                                  };
-                                  
-                                  audio.addEventListener('canplay', () => {
-                                    console.log('[Edit Mode Audio] Audio can play - starting playback');
-                                    btn.textContent = '🔊 Playing...';
-                                    btn.className = 'btn btn-success';
-                                  });
-                                  
-                                  audio.addEventListener('playing', () => {
-                                    console.log('[Edit Mode Audio] Audio is now playing');
-                                    toast({
-                                      title: "Playing Audio",
-                                      description: "This is how students will hear this question.",
-                                      variant: "default"
-                                    });
-                                  });
-                                  
-                                  audio.addEventListener('ended', () => {
-                                    console.log('[Edit Mode Audio] Audio playback ended');
-                                    btn.textContent = originalText;
-                                    btn.className = originalClass;
-                                    btn.disabled = false;
-                                    cleanup();
-                                  });
-                                  
-                                  audio.addEventListener('error', (err) => {
-                                    console.error('[Edit Mode Audio] Audio element error:', err);
-                                    console.error('[Edit Mode Audio] Audio error code:', audio.error?.code);
-                                    console.error('[Edit Mode Audio] Audio error message:', audio.error?.message);
-                                    
-                                    btn.textContent = 'Audio Error';
-                                    btn.className = 'btn btn-danger';
-                                    
-                                    setTimeout(() => {
-                                      btn.textContent = originalText;
-                                      btn.className = originalClass;
-                                      btn.disabled = false;
-                                    }, 3000);
-                                    
-                                    const errorMsg = audio.error?.code === 4 ? 
-                                      'Audio format not supported or file not found' :
-                                      audio.error?.message || 'Unknown audio error';
-                                    
-                                    toast({
-                                      title: "Audio Playback Failed",
-                                      description: `Error: ${errorMsg}. Check if the file is publicly accessible.`,
-                                      variant: "destructive"
-                                    });
-                                    
-                                    cleanup();
-                                  });
-                                  
-                                  // Set source and attempt playback
-                                  audio.src = audioUrl;
-                                  audio.load();
-                                  
-                                  // Wait a bit for loading, then attempt play
-                                  await new Promise(resolve => setTimeout(resolve, 500));
-                                  
-                                  await audio.play();
-                                  console.log('[Edit Mode Audio] Successfully started playback');
-                                  
-                                } catch (error) {
-                                  console.error('[Edit Mode Audio] Playback failed:', error);
-                                  
-                                  btn.textContent = error.name === 'NotAllowedError' ? 'Click First!' : 'Failed';
-                                  btn.className = error.name === 'NotAllowedError' ? 'btn btn-warning' : 'btn btn-danger';
-                                  
-                                  setTimeout(() => {
-                                    btn.textContent = originalText;
-                                    btn.className = originalClass;
-                                    btn.disabled = false;
-                                  }, 3000);
-                                  
-                                  const description = error.name === 'NotAllowedError' ? 
-                                    'Browser blocked audio. Click somewhere on the page first to enable audio playback.' :
-                                    `Audio failed to play: ${error.message}. Check if the URL is valid and publicly accessible.`;
-                                  
-                                  toast({
-                                    title: "Audio Playback Issue",
-                                    description,
-                                    variant: "destructive"
-                                  });
-                                }
+                                };
                               }}
                               title="Play the current audio file"
                             >
