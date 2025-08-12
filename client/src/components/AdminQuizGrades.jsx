@@ -142,6 +142,30 @@ const AdminQuizGrades = ({ user }) => {
     }
   };
 
+  const handleDeleteGrade = async (gradeId) => {
+    if (!confirm('Are you sure you want to delete this quiz result? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/quiz-grades/${gradeId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        setGrades(grades.filter(grade => grade.id !== gradeId));
+        alert('Quiz result deleted successfully!');
+      } else {
+        const errorData = await response.json();
+        alert('Error deleting quiz result: ' + (errorData.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Error deleting quiz result:', err);
+      alert('Network error occurred while deleting quiz result');
+    }
+  };
+
   const handleUpdateQuiz = async () => {
     try {
       const response = await fetch(`/api/audio-quizzes/${editingQuiz.id}`, {
@@ -455,6 +479,7 @@ const AdminQuizGrades = ({ user }) => {
                         <th scope="col">Correct</th>
                         <th scope="col">Percentage</th>
                         <th scope="col">Date Taken</th>
+                        {canViewAllGrades && <th scope="col">Actions</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -493,6 +518,17 @@ const AdminQuizGrades = ({ user }) => {
                               {new Date(grade.createdAt).toLocaleString()}
                             </span>
                           </td>
+                          {canViewAllGrades && (
+                            <td>
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => handleDeleteGrade(grade.id)}
+                                title="Delete this quiz result"
+                              >
+                                🗑️ Delete
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>

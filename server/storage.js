@@ -257,6 +257,13 @@ class MemStorage {
     return grade;
   }
 
+  async deleteQuizGrade(id) {
+    const index = this.quizGrades.findIndex(g => g.id === id);
+    if (index === -1) return false;
+    this.quizGrades.splice(index, 1);
+    return true;
+  }
+
   async updateUserApproval(userId, approved) {
     const index = this.users.findIndex(u => u.id === userId);
     if (index === -1) return null;
@@ -1426,6 +1433,12 @@ export class MongoStorage {
     };
     await this.db.collection('quizGrades').insertOne(grade);
     return grade;
+  }
+
+  async deleteQuizGrade(id) {
+    await this.connect();
+    const result = await this.db.collection('quizGrades').deleteOne({ id });
+    return result.deletedCount > 0;
   }
 }
 

@@ -105,6 +105,31 @@ const AudioQuizzes = ({ user }) => {
     }
   };
 
+  const handleDeleteGrade = async (gradeId) => {
+    if (!window.confirm('Are you sure you want to delete this quiz result? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/quiz-grades/${gradeId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setGrades(grades.filter(grade => grade.id !== gradeId));
+        alert('Quiz result deleted successfully!');
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to delete quiz result: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Error deleting quiz result:', error);
+      alert('Error deleting quiz result. Please try again.');
+    }
+  };
+
   const handleCreateQuiz = async () => {
     try {
       const response = await fetch('/api/audio-quizzes', {
@@ -937,6 +962,7 @@ const AudioQuizzes = ({ user }) => {
                           <th>Score</th>
                           <th>Correct/Total</th>
                           <th>Date</th>
+                          <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -951,6 +977,15 @@ const AudioQuizzes = ({ user }) => {
                             </td>
                             <td>{grade.correctAnswers}/{grade.totalQuestions}</td>
                             <td>{new Date(grade.createdAt).toLocaleDateString()}</td>
+                            <td>
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => handleDeleteGrade(grade.id)}
+                                title="Delete this quiz result"
+                              >
+                                🗑️ Delete
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>

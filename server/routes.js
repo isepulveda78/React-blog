@@ -2526,6 +2526,32 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // Delete quiz grade (admin/teacher only)
+  app.delete("/api/quiz-grades/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = req.session.user;
+      
+      // Check if user is admin or teacher
+      if (!user?.isAdmin && user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Admin or teacher access required" });
+      }
+
+      console.log(`[API] Deleting quiz grade ${id} by user ${user.email} (admin: ${user.isAdmin}, role: ${user.role})`);
+      
+      const deleted = await storage.deleteQuizGrade(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Quiz grade not found" });
+      }
+      
+      console.log(`[API] Quiz grade ${id} deleted successfully`);
+      res.json({ message: "Quiz grade deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting quiz grade:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post("/api/quiz-grades", async (req, res) => {
     try {
       // Check if user is authenticated
