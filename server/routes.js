@@ -2244,26 +2244,44 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   // Create HTTP server
   const httpServer = createServer(app);
 
-  // Create WebSocket server for chat functionality
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws',
-    verifyClient: (info) => {
-      console.log('[websocket] Verifying client connection:', {
-        origin: info.origin,
-        host: info.req.headers.host,
-        url: info.req.url
-      });
-      return true; // Accept all connections for now
-    }
-  });
+  // Create WebSocket server for chat functionality with error handling
+  let wss;
+  try {
+    wss = new WebSocketServer({ 
+      server: httpServer, 
+      path: '/ws',
+      verifyClient: (info) => {
+        console.log('[websocket] Verifying client connection:', {
+          origin: info.origin,
+          host: info.req.headers.host,
+          url: info.req.url
+        });
+        return true; // Accept all connections for now
+      }
+    });
+    
+    // Add error handler for WebSocket server
+    wss.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error('[websocket] WebSocket server error: Port is already in use');
+      } else {
+        console.error('[websocket] WebSocket server error:', error);
+      }
+    });
+    
+  } catch (error) {
+    console.error('[websocket] Failed to create WebSocket server:', error);
+    // Continue without WebSocket if it fails
+    wss = null;
+  }
   
   // Store active chat users by chatroom (in memory)
   const chatUsers = new Map();
   const chatroomUsers = new Map(); // Map of chatroom ID -> Set of user names
   let messageId = 1;
 
-  wss.on('connection', (ws, req) => {
+  if (wss) {
+    wss.on('connection', (ws, req) => {
     console.log('[websocket] New client connected from:', req.socket.remoteAddress);
     console.log('[websocket] Connection headers:', {
       upgrade: req.headers.upgrade,
@@ -2399,9 +2417,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       }
     });
   });
+  } // Close the if (wss) block
 
   // Broadcast message to all connected clients except sender
   function broadcast(message, excludeWs = null) {
+    if (!wss) return; // Guard against missing WebSocket server
     wss.clients.forEach((client) => {
       if (client !== excludeWs && client.readyState === 1) { // WebSocket.OPEN = 1
         client.send(JSON.stringify(message));
@@ -2411,6 +2431,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   
   // Broadcast message to all users in a specific chatroom
   function broadcastToChatroom(message, chatroomId, excludeWs = null) {
+    if (!wss) return; // Guard against missing WebSocket server
     console.log(`[websocket] Broadcasting to chatroom ${chatroomId}:`, message.type);
     console.log(`[websocket] Total connected clients:`, wss.clients.size);
     
