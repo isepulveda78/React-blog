@@ -1,5 +1,4 @@
-const { React } = window;
-const { useState, useCallback, useRef } = React;
+import { useState, useCallback, useRef } from 'react';
 
 // Mock data constants
 const GRID_SIZE = 20;
@@ -645,4 +644,4 @@ const useCityBuilder = () => {
   };
 };
 
-window.useCityBuilder = useCityBuilder;
+export { useCityBuilder };

@@ -1,4 +1,4 @@
-import { useRef, useEffect, forwardRef } from 'react';
+import React, { useRef, useEffect, forwardRef } from 'react';
 
 const GRID_SIZE = 20;
 

@@ -1,4 +1,4 @@
-const { React } = window;
+import React from 'react';
 
 // Building data - keeping in sync with city builder hook
 const BUILDING_CATEGORIES = {
@@ -319,7 +319,4 @@ const BuildingPalette = ({
   );
 };
 
-// Export to window for global access
-console.log("BuildingPalette component loading...");
-window.BuildingPalette = BuildingPalette;
-console.log("BuildingPalette component loaded:", !!window.BuildingPalette);
+export default BuildingPalette;
