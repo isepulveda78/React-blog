@@ -553,28 +553,26 @@ const AudioQuizzes = ({ user }) => {
                   </ol>
                   
                   <div className="bg-light p-3 rounded mb-3">
-                    <h6>Google Drive Link Converter</h6>
-                    <div className="mb-2">
-                      <label className="form-label small">Google Drive sharing link:</label>
-                      <input 
-                        type="url" 
-                        className="form-control form-control-sm"
-                        placeholder="https://drive.google.com/file/d/YOUR_FILE_ID/view?usp=sharing"
-                        value={driveUrl}
-                        onChange={(e) => setDriveUrl(e.target.value)}
-                      />
+                    <h6>🔥 NEW: Direct Google Drive Support!</h6>
+                    <div className="alert alert-success alert-sm p-2 mb-2">
+                      <strong>Just paste your Google Drive sharing link directly!</strong><br/>
+                      No conversion needed - the system automatically handles it.
                     </div>
+                    
                     <div className="mb-2">
-                      <label className="form-label small">Direct download link:</label>
+                      <label className="form-label small">Example Google Drive URL:</label>
                       <input 
                         type="text" 
                         className="form-control form-control-sm"
                         readOnly
-                        value={convertGoogleDriveUrl(driveUrl)}
-                        onClick={(e) => e.target.select()}
+                        value="https://drive.google.com/file/d/YOUR_FILE_ID/view?usp=sharing"
+                        style={{ backgroundColor: '#f8f9fa' }}
                       />
                     </div>
-                    <small className="text-muted">Copy the direct download link and paste it in your quiz questions.</small>
+                    
+                    <small className="text-muted">
+                      <strong>Important:</strong> Make sure your Google Drive file is set to "Anyone with the link can view" in sharing settings.
+                    </small>
                   </div>
                   
                   <p className="mb-2"><strong>Working test examples:</strong></p>

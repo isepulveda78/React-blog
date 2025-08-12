@@ -146,8 +146,18 @@ export function registerRoutes(app) {
     try {
       console.log('[Audio Proxy] Fetching:', url);
       
+      // Convert Google Drive sharing URL to direct download URL
+      let fetchUrl = url;
+      if (url.includes('drive.google.com/file/d/')) {
+        const fileIdMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+        if (fileIdMatch) {
+          fetchUrl = `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
+          console.log('[Audio Proxy] Converted Google Drive URL to:', fetchUrl);
+        }
+      }
+      
       // Fetch the audio file with proper headers to bypass restrictions
-      const response = await fetch(url, {
+      const response = await fetch(fetchUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
           'Accept': 'audio/*,*/*;q=0.9',
@@ -169,6 +179,14 @@ export function registerRoutes(app) {
       const contentLength = response.headers.get('content-length');
       
       console.log('[Audio Proxy] Success - Content-Type:', contentType, 'Size:', contentLength);
+      
+      // Check if we got HTML instead of audio (common with Google Drive)
+      if (contentType.includes('text/html')) {
+        console.error('[Audio Proxy] Received HTML instead of audio - file may not be publicly accessible');
+        return res.status(400).json({ 
+          error: 'Received HTML instead of audio file. Make sure your Google Drive file is publicly shared and accessible.' 
+        });
+      }
       
       // Set appropriate headers for audio streaming
       res.setHeader('Content-Type', contentType);
@@ -195,15 +213,35 @@ export function registerRoutes(app) {
         res.setHeader('Content-Length', chunksize);
       }
       
-      // Stream the audio data
-      response.body.pipe(res);
+      // Convert response to readable stream and pipe to response
+      const reader = response.body.getReader();
+      
+      const stream = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            res.write(value);
+          }
+          res.end();
+        } catch (error) {
+          console.error('[Audio Proxy] Streaming error:', error);
+          if (!res.headersSent) {
+            res.status(500).json({ error: 'Streaming failed' });
+          }
+        }
+      };
+      
+      stream();
       
     } catch (error) {
       console.error('[Audio Proxy] Error:', error.message);
-      res.status(500).json({ 
-        error: 'Failed to proxy audio file',
-        details: error.message 
-      });
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          error: 'Failed to proxy audio file',
+          details: error.message 
+        });
+      }
     }
   });
 
