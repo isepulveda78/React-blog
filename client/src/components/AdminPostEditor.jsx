@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import PostEditor from './PostEditor.jsx';
 
+const { toast } = window;
+
 const AdminPostEditor = ({ user, postId }) => {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(!!postId);
@@ -61,11 +63,19 @@ const AdminPostEditor = ({ user, postId }) => {
         window.location.href = '/admin/posts';
       } else {
         const errorData = await response.json();
-        alert(errorData.message || 'Failed to save post');
+        toast({
+          title: "Error",
+          description: errorData.message || 'Failed to save post',
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error saving post:', error);
-      alert('Error saving post');
+      toast({
+        title: "Error",
+        description: "Error saving post",
+        variant: "destructive"
+      });
     }
   };
 

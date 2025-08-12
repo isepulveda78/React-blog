@@ -1,5 +1,6 @@
 // Example: Adding sound to existing buttons
 const { React } = window;
+const { toast } = window;
 
 // Method 1: Using the useSound hook directly
 const ExampleButton1 = () => {
@@ -25,7 +26,11 @@ const ExampleRegistrationForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     sounds.success(); // Play success sound
-    alert('Registration successful!');
+    toast({
+      title: "Success",
+      description: "Registration successful!",
+      variant: "default"
+    });
   };
 
   const handleCancel = () => {

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 
+const { toast } = window;
+
 const CrosswordGenerator = ({ user }) => {
   const [acrossEntries, setAcrossEntries] = useState([{ clue: '', answer: '' }]);
   const [downEntries, setDownEntries] = useState([{ clue: '', answer: '' }]);
@@ -220,7 +222,11 @@ const CrosswordGenerator = ({ user }) => {
       const validDown = downEntries.filter(entry => entry.answer.trim());
       
       if (validAcross.length === 0 && validDown.length === 0) {
-        alert('Please add at least one word with an answer to generate a crossword puzzle.');
+        toast({
+          title: "Error",
+          description: "Please add at least one word with an answer to generate a crossword puzzle.",
+          variant: "destructive"
+        });
         setIsGenerating(false);
         return;
       }
@@ -274,7 +280,11 @@ const CrosswordGenerator = ({ user }) => {
       
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('There was an error generating the PDF. Please try again.');
+      toast({
+        title: "Error",
+        description: "There was an error generating the PDF. Please try again.",
+        variant: "destructive"
+      });
     }
     
     setIsGenerating(false);

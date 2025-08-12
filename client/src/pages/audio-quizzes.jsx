@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 // Removed React audio player - using iframe approach instead
 
+const { toast } = window;
+
 const AudioQuizzes = ({ user }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
@@ -94,14 +96,26 @@ const AudioQuizzes = ({ user }) => {
           fetchGrades();
         }
         
-        alert('Quiz deleted successfully!');
+        toast({
+          title: "Success",
+          description: "Quiz deleted successfully!",
+          variant: "default"
+        });
       } else {
         const errorData = await response.json();
-        alert(`Failed to delete quiz: ${errorData.message}`);
+        toast({
+          title: "Error",
+          description: `Failed to delete quiz: ${errorData.message}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error deleting quiz:', error);
-      alert('Error deleting quiz. Please try again.');
+      toast({
+        title: "Error",
+        description: "Error deleting quiz. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -119,14 +133,26 @@ const AudioQuizzes = ({ user }) => {
       if (response.ok) {
         // Remove from local state
         setGrades(grades.filter(grade => grade.id !== gradeId));
-        alert('Quiz result deleted successfully!');
+        toast({
+          title: "Success",
+          description: "Quiz result deleted successfully!",
+          variant: "default"
+        });
       } else {
         const errorData = await response.json();
-        alert(`Failed to delete quiz result: ${errorData.message}`);
+        toast({
+          title: "Error",
+          description: `Failed to delete quiz result: ${errorData.message}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error deleting quiz result:', error);
-      alert('Error deleting quiz result. Please try again.');
+      toast({
+        title: "Error",
+        description: "Error deleting quiz result. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -148,14 +174,26 @@ const AudioQuizzes = ({ user }) => {
           description: '',
           questions: [{ audioUrl: '', question: '', options: ['', '', '', ''], correctAnswer: 0 }]
         });
-        alert('Quiz created successfully!');
+        toast({
+          title: "Success",
+          description: "Quiz created successfully!",
+          variant: "default"
+        });
       } else {
         const error = await response.json();
-        alert('Error creating quiz: ' + (error.message || 'Unknown error'));
+        toast({
+          title: "Error",
+          description: `Error creating quiz: ${error.message || 'Unknown error'}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error creating quiz:', error);
-      alert('Error creating quiz');
+      toast({
+        title: "Error",
+        description: "Error creating quiz",
+        variant: "destructive"
+      });
     }
   };
 
@@ -518,7 +556,11 @@ const AudioQuizzes = ({ user }) => {
                                           console.error('Custom audio error:', err);
                                           btn.textContent = 'Error';
                                           btn.className = 'btn btn-danger me-3';
-                                          alert('Audio failed to load. Check the URL or try a different file.');
+                                          toast({
+                                            title: "Error",
+                                            description: "Audio failed to load. Check the URL or try a different file.",
+                                            variant: "destructive"
+                                          });
                                         });
                                         
                                         audio.play().then(() => {
@@ -528,7 +570,11 @@ const AudioQuizzes = ({ user }) => {
                                           btn.disabled = false;
                                           btn.textContent = 'Retry';
                                           btn.className = 'btn btn-warning me-3';
-                                          alert(`Audio blocked by browser: ${error.message}\n\nTry:\n1. Click elsewhere on page first\n2. Check browser settings\n3. Try incognito mode`);
+                                          toast({
+                                            title: "Audio Blocked",
+                                            description: `Audio blocked by browser: ${error.message}. Try clicking elsewhere on page first, check browser settings, or try incognito mode.`,
+                                            variant: "destructive"
+                                          });
                                         });
                                         
                                         // Store audio reference for pause/resume
@@ -662,7 +708,11 @@ const AudioQuizzes = ({ user }) => {
                         oscillator.start();
                         oscillator.stop(audioContext.currentTime + 0.2);
                         
-                        alert('✅ If you heard a beep, your browser audio works!\n\nThe issue is with your audio URLs or files.');
+                        toast({
+                          title: "Success",
+                          description: "If you heard a beep, your browser audio works! The issue is with your audio URLs or files.",
+                          variant: "default"
+                        });
                       }}
                     >
                       Test Browser Beep
@@ -674,9 +724,17 @@ const AudioQuizzes = ({ user }) => {
                         const audio = new Audio('/sounds/button-click.mp3');
                         audio.volume = 0.3;
                         audio.play().then(() => {
-                          alert('✅ Local audio works! Problem is with your quiz audio URLs.');
+                          toast({
+                            title: "Success",
+                            description: "Local audio works! Problem is with your quiz audio URLs.",
+                            variant: "default"
+                          });
                         }).catch(error => {
-                          alert('❌ Audio blocked: ' + error.message + '\n\n• Click anywhere on page first\n• Check browser audio settings\n• Try refreshing page');
+                          toast({
+                            title: "Audio Blocked",
+                            description: `Audio blocked: ${error.message}. Click anywhere on page first, check browser audio settings, or try refreshing page.`,
+                            variant: "destructive"
+                          });
                         });
                       }}
                     >
@@ -693,13 +751,25 @@ const AudioQuizzes = ({ user }) => {
                         fetch(proxyUrl)
                           .then(response => {
                             if (response.ok) {
-                              alert('✅ Audio proxy is working! Google Drive/Dropbox URLs will now work.');
+                              toast({
+                                title: "Success",
+                                description: "Audio proxy is working! Google Drive/Dropbox URLs will now work.",
+                                variant: "default"
+                              });
                             } else {
-                              alert('⚠️ Audio proxy test failed. Check server logs.');
+                              toast({
+                                title: "Warning",
+                                description: "Audio proxy test failed. Check server logs.",
+                                variant: "destructive"
+                              });
                             }
                           })
                           .catch(error => {
-                            alert('❌ Audio proxy error: ' + error.message);
+                            toast({
+                              title: "Error",
+                              description: `Audio proxy error: ${error.message}`,
+                              variant: "destructive"
+                            });
                           });
                       }}
                     >

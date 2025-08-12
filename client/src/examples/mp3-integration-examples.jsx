@@ -1,5 +1,6 @@
 // Examples of how to add MP3 sounds to your React app
 const { React } = window;
+const { toast } = window;
 
 // Example 1: Simple button with MP3 sound
 const MP3ButtonExample = () => {
@@ -66,10 +67,18 @@ const FormWithSounds = () => {
     e.preventDefault();
     if (name && email) {
       playSound('/sounds/success.mp3');
-      alert('Form submitted successfully!');
+      toast({
+        title: "Success",
+        description: "Form submitted successfully!",
+        variant: "default"
+      });
     } else {
       playSound('/sounds/error.mp3');
-      alert('Please fill all fields');
+      toast({
+        title: "Error",
+        description: "Please fill all fields",
+        variant: "destructive"
+      });
     }
   };
 

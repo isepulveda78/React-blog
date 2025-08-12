@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 // Removed React audio player - using iframe approach instead
 
+const { toast } = window;
+
 const AdminQuizGrades = ({ user }) => {
   const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -131,14 +133,26 @@ const AdminQuizGrades = ({ user }) => {
         setQuizzes(quizzes.filter(q => q.id !== quizId));
         // Also refresh grades to remove deleted quiz entries
         fetchGrades();
-        alert('Quiz deleted successfully!');
+        toast({
+          title: "Success",
+          description: "Quiz deleted successfully!",
+          variant: "default"
+        });
       } else {
         const errorData = await response.json();
-        alert('Error deleting quiz: ' + (errorData.message || 'Unknown error'));
+        toast({
+          title: "Error",
+          description: `Error deleting quiz: ${errorData.message || 'Unknown error'}`,
+          variant: "destructive"
+        });
       }
     } catch (err) {
       console.error('Error deleting quiz:', err);
-      alert('Network error occurred while deleting quiz');
+      toast({
+        title: "Error",
+        description: "Network error occurred while deleting quiz",
+        variant: "destructive"
+      });
     }
   };
 
@@ -155,14 +169,26 @@ const AdminQuizGrades = ({ user }) => {
 
       if (response.ok) {
         setGrades(grades.filter(grade => grade.id !== gradeId));
-        alert('Quiz result deleted successfully!');
+        toast({
+          title: "Success",
+          description: "Quiz result deleted successfully!",
+          variant: "default"
+        });
       } else {
         const errorData = await response.json();
-        alert('Error deleting quiz result: ' + (errorData.message || 'Unknown error'));
+        toast({
+          title: "Error",
+          description: `Error deleting quiz result: ${errorData.message || 'Unknown error'}`,
+          variant: "destructive"
+        });
       }
     } catch (err) {
       console.error('Error deleting quiz result:', err);
-      alert('Network error occurred while deleting quiz result');
+      toast({
+        title: "Error",
+        description: "Network error occurred while deleting quiz result",
+        variant: "destructive"
+      });
     }
   };
 
@@ -180,14 +206,26 @@ const AdminQuizGrades = ({ user }) => {
         setQuizzes(quizzes.map(q => q.id === editingQuiz.id ? updatedQuiz : q));
         setShowEditForm(false);
         setEditingQuiz(null);
-        alert('Quiz updated successfully!');
+        toast({
+          title: "Success",
+          description: "Quiz updated successfully!",
+          variant: "default"
+        });
       } else {
         const errorData = await response.json();
-        alert('Error updating quiz: ' + (errorData.message || 'Unknown error'));
+        toast({
+          title: "Error",
+          description: `Error updating quiz: ${errorData.message || 'Unknown error'}`,
+          variant: "destructive"
+        });
       }
     } catch (err) {
       console.error('Error updating quiz:', err);
-      alert('Network error occurred while updating quiz');
+      toast({
+        title: "Error",
+        description: "Network error occurred while updating quiz",
+        variant: "destructive"
+      });
     }
   };
 

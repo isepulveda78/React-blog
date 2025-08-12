@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const { toast } = window;
+
 const WorkingAdminPosts = ({ user }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +75,11 @@ const WorkingAdminPosts = ({ user }) => {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      alert('Please enter a title');
+      toast({
+        title: "Error",
+        description: "Please enter a title",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -106,14 +112,26 @@ const WorkingAdminPosts = ({ user }) => {
         }
         setShowCreateForm(false);
         setEditingPost(null);
-        alert('Post saved successfully!');
+        toast({
+          title: "Success",
+          description: "Post saved successfully!",
+          variant: "default"
+        });
       } else {
         const error = await response.json();
-        alert('Error saving post: ' + (error.message || 'Unknown error'));
+        toast({
+          title: "Error",
+          description: `Error saving post: ${error.message || 'Unknown error'}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error saving post:', error);
-      alert('Error saving post');
+      toast({
+        title: "Error",
+        description: "Error saving post",
+        variant: "destructive"
+      });
     }
     
     setSaving(false);
@@ -130,12 +148,24 @@ const WorkingAdminPosts = ({ user }) => {
       
       if (response.ok) {
         setPosts(posts.filter(p => p.id !== postId));
-        alert('Post deleted successfully');
+        toast({
+          title: "Success",
+          description: "Post deleted successfully",
+          variant: "default"
+        });
       } else {
-        alert('Failed to delete post');
+        toast({
+          title: "Error",
+          description: "Failed to delete post",
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      alert('Error deleting post');
+      toast({
+        title: "Error",
+        description: "Error deleting post",
+        variant: "destructive"
+      });
     }
   };
 

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const { toast } = window;
+
 const PostEditor = ({ user, post, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -73,13 +75,21 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive"
+      });
       return;
     }
 
     // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
+      toast({
+        title: "Error",
+        description: "Image size must be less than 5MB",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -110,14 +120,26 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
         
         console.log('Cleaned URL:', cleanUrl);
         handleChange('featuredImage', cleanUrl);
-        alert('Image uploaded successfully!');
+        toast({
+          title: "Success",
+          description: "Image uploaded successfully!",
+          variant: "default"
+        });
       } else {
         const error = await response.json();
-        alert('Upload failed: ' + (error.message || 'Unknown error'));
+        toast({
+          title: "Error",
+          description: `Upload failed: ${error.message || 'Unknown error'}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Upload failed: ' + error.message);
+      toast({
+        title: "Error",
+        description: `Upload failed: ${error.message}`,
+        variant: "destructive"
+      });
     }
 
     setImageUploading(false);
@@ -130,12 +152,20 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive"
+      });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
+      toast({
+        title: "Error",
+        description: "Image size must be less than 5MB",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -167,14 +197,26 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
           // Insert into HTML editor
           setFormData(prev => ({ ...prev, content: prev.content + imageHtml }));
         }
-        alert('Image inserted into content!');
+        toast({
+          title: "Success",
+          description: "Image inserted into content!",
+          variant: "default"
+        });
       } else {
         const error = await response.json();
-        alert('Upload failed: ' + (error.message || 'Unknown error'));
+        toast({
+          title: "Error",
+          description: `Upload failed: ${error.message || 'Unknown error'}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Upload failed: ' + error.message);
+      toast({
+        title: "Error",
+        description: `Upload failed: ${error.message}`,
+        variant: "destructive"
+      });
     }
 
     setImageUploading(false);
@@ -207,7 +249,11 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
   const handleSave = async () => {
     if (!formData.title.trim()) {
-      alert('Please enter a title');
+      toast({
+        title: "Error",
+        description: "Please enter a title",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -241,11 +287,19 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
         onSave(savedPost);
       } else {
         const error = await response.json();
-        alert('Error saving post: ' + (error.message || 'Unknown error'));
+        toast({
+          title: "Error",
+          description: `Error saving post: ${error.message || 'Unknown error'}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error saving post:', error);
-      alert('Error saving post');
+      toast({
+        title: "Error",
+        description: "Error saving post",
+        variant: "destructive"
+      });
     }
     
     setLoading(false);

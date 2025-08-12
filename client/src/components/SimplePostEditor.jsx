@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const { toast } = window;
+
 const SimplePostEditor = ({ user, post, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -42,7 +44,11 @@ const SimplePostEditor = ({ user, post, onSave, onCancel }) => {
 
   const handleSave = async () => {
     if (!formData.title.trim()) {
-      alert('Please enter a title');
+      toast({
+        title: "Error",
+        description: "Please enter a title",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -68,11 +74,19 @@ const SimplePostEditor = ({ user, post, onSave, onCancel }) => {
         onSave(savedPost);
       } else {
         const error = await response.json();
-        alert('Error saving post: ' + (error.message || 'Unknown error'));
+        toast({
+          title: "Error",
+          description: `Error saving post: ${error.message || 'Unknown error'}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error saving post:', error);
-      alert('Error saving post');
+      toast({
+        title: "Error",
+        description: "Error saving post",
+        variant: "destructive"
+      });
     }
     
     setLoading(false);

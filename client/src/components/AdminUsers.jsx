@@ -236,7 +236,11 @@ const AdminUsers = ({ user }) => {
       });
 
       if (response.ok) {
-        alert(`Password reset successfully for ${selectedUser.name || selectedUser.username}`);
+        toast({
+          title: "Success",
+          description: `Password reset successfully for ${selectedUser.name || selectedUser.username}`,
+          variant: "default"
+        });
         setShowPasswordModal(false);
       } else {
         const errorData = await response.json();
