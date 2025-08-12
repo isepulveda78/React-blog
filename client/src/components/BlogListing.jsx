@@ -39,7 +39,7 @@ const BlogListing = ({ user }) => {
     
     try {
       const timestamp = Date.now();
-      console.log('BlogListing: Fetching latest data at:', new Date(timestamp).toLocaleTimeString());
+
       
       const [postsRes, categoriesRes] = await Promise.all([
         fetch(`/api/posts/public?t=${timestamp}`, { 
@@ -64,16 +64,10 @@ const BlogListing = ({ user }) => {
         })
       ]);
 
-      console.log('BlogListing: API response status:', postsRes.status, categoriesRes.status);
-
       const [postsData, categoriesData] = await Promise.all([
         postsRes.json(),
         categoriesRes.json()
       ]);
-
-      console.log('BlogListing: Posts loaded:', postsData.length);
-      console.log('BlogListing: First post title:', postsData[0]?.title);
-      console.log('BlogListing: First post ID:', postsData[0]?.id);
       
       setPosts(Array.isArray(postsData) ? postsData : []);
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
@@ -90,7 +84,6 @@ const BlogListing = ({ user }) => {
   };
 
   const handleRefresh = () => {
-    console.log('BlogListing: Manual refresh clicked');
     // Force a hard refresh by clearing posts first
     setPosts([]);
     setLoading(true);
@@ -98,7 +91,6 @@ const BlogListing = ({ user }) => {
   };
 
   const handleForceRefresh = () => {
-    console.log('BlogListing: Force refresh - clearing all cache');
     // Clear all state and force reload
     setPosts([]);
     setCategories([]);
@@ -119,7 +111,6 @@ const BlogListing = ({ user }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') {
-        console.log('BlogListing: Auto-refreshing data...');
         fetchData();
       }
     }, 30000);
@@ -130,12 +121,12 @@ const BlogListing = ({ user }) => {
   // Listen for custom refresh events (triggered from admin)
   useEffect(() => {
     const handleCustomRefresh = (event) => {
-      console.log('BlogListing: Custom refresh triggered by:', event.detail);
+
       fetchData(true);
     };
 
     const handleFocus = () => {
-      console.log('BlogListing: Window focused, refreshing data');
+
       fetchData();
     };
 
@@ -152,8 +143,7 @@ const BlogListing = ({ user }) => {
     // Posts are now publicly accessible - no authentication required
     // Use slug if available, otherwise use ID
     const identifier = post.slug || post.id;
-    console.log('Post navigation:', { title: post.title, slug: post.slug, id: post.id, identifier });
-    console.log('Navigating to:', `/blog/${identifier}`);
+
     setLocation(`/blog/${identifier}`);
   };
 
@@ -268,13 +258,10 @@ const BlogListing = ({ user }) => {
                   <button 
                     className="btn btn-sm btn-warning"
                     onClick={() => {
-                      console.log('=== DIRECT API TEST ===');
-                      console.log('Current posts state:', posts);
                       fetch(`/api/posts/public?debug=${Date.now()}`)
                         .then(r => r.json())
                         .then(data => {
-                          console.log('Direct API response:', data);
-                          console.log('First post from API:', data[0]);
+                          // API test for debugging
                         });
                     }}
                   >
@@ -302,7 +289,7 @@ const BlogListing = ({ user }) => {
           </div>
           <div className="row">
             {filteredPosts.map((post, index) => {
-              console.log(`Rendering post ${index}:`, post.title, `(ID: ${post.id})`);
+
               return (
                 <BlogCard
                   key={`${post.id}-${lastRefresh}`}

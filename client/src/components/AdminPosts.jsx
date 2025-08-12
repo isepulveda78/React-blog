@@ -35,7 +35,7 @@ const AdminPosts = ({ user }) => {
     content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
   };
 
-  console.log('AdminPosts component - user:', user);
+
   
   if (!user || !user.isAdmin) {
     return (
@@ -74,13 +74,10 @@ const AdminPosts = ({ user }) => {
 
   const fetchPosts = async () => {
     try {
-      console.log('AdminPosts: Fetching posts...');
       const response = await fetch('/api/posts', { credentials: 'include' });
-      console.log('AdminPosts: Response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('AdminPosts: Posts received:', data.length);
         setPosts(data);
       } else {
         console.error('AdminPosts: Failed to fetch posts:', response.status);
@@ -119,7 +116,7 @@ const AdminPosts = ({ user }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Upload success:', data);
+
         setFeaturedImage(data.url);
         toast({
           title: "Success",

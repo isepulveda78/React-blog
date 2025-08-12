@@ -26,7 +26,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   useEffect(() => {
     fetchCategories();
     if (post) {
-      console.log('PostEditor: Loading post data:', post);
+
       setFormData({
         title: post.title || '',
         content: post.content || '',
@@ -40,7 +40,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
         seoTitle: post.seoTitle || '',
         focusKeyword: post.focusKeyword || ''
       });
-      console.log('PostEditor: Featured image from post:', post.featuredImage);
+
     }
   }, [post]);
 
@@ -108,7 +108,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Upload successful, setting featuredImage to:', data.url);
+
         
         // Ensure the URL is properly formatted and not HTML encoded
         const cleanUrl = data.url
@@ -119,7 +119,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
           .replace(/&#x2F;/g, '/')
           .replace(/&#x27;/g, "'");
         
-        console.log('Cleaned URL:', cleanUrl);
+
         handleChange('featuredImage', cleanUrl);
         toast({
           title: "Success",
@@ -163,8 +163,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       return;
     }
 
-    console.log('PostEditor: Saving post with data:', formData);
-    console.log('PostEditor: Featured image being saved:', formData.featuredImage);
+
 
     setLoading(true);
     
@@ -178,7 +177,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
         authorName: user.name || user.username
       };
       
-      console.log('PostEditor: Full save data:', saveData);
+
       
       const response = await fetch(url, {
         method,
@@ -189,7 +188,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
       if (response.ok) {
         const savedPost = await response.json();
-        console.log('PostEditor: Post saved successfully:', savedPost);
+
         onSave(savedPost);
       } else {
         const error = await response.json();

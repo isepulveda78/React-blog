@@ -224,11 +224,8 @@ function CommentsSection({ postId, user }) {
         credentials: "include",
       });
       
-      console.log('Comments response status:', response.status);
       if (response.ok) {
         const data = await response.json();
-        console.log('Comments received:', data.length, 'comments');
-        console.log('First comment:', data[0]);
         setComments(data);
         setError(null);
       } else {
@@ -259,7 +256,6 @@ function CommentsSection({ postId, user }) {
   if (Array.isArray(comments) && comments.length > 0) {
     // Check if comments have embedded replies (nested structure from MongoDB)
     if (comments[0] && comments[0].replies && Array.isArray(comments[0].replies)) {
-      console.log('Processing nested comment structure');
       parentComments = comments;
       // Flatten all comments for reply lookup
       comments.forEach(comment => {
@@ -269,16 +265,11 @@ function CommentsSection({ postId, user }) {
         }
       });
     } else {
-      console.log('Processing flat comment structure');
       // Flat structure - separate parent and child comments
       parentComments = comments.filter((comment) => !comment.parentId);
       allCommentsFlat = comments;
     }
   }
-
-  console.log('parentComments:', parentComments.length);
-  console.log('allCommentsFlat:', allCommentsFlat.length);
-  console.log('comments state:', comments);
 
   // Function to get replies for a specific comment
   const getReplies = (commentId) => {
