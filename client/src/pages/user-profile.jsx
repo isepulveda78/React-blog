@@ -157,8 +157,11 @@ const UserProfile = ({ user }) => {
                           <div className="row align-items-center">
                             <div className="col-md-8">
                               <h6 className="mb-1">{grade.quizTitle || 'Unknown Quiz'}</h6>
+                              <small className="text-muted d-block">
+                                Completed: {new Date(grade.createdAt || grade.completedAt || Date.now()).toLocaleDateString()}
+                              </small>
                               <small className="text-muted">
-                                Completed: {new Date(grade.completedAt || Date.now()).toLocaleDateString()}
+                                Time: {new Date(grade.createdAt || grade.completedAt || Date.now()).toLocaleTimeString()}
                               </small>
                             </div>
                             <div className="col-md-2 text-center">
