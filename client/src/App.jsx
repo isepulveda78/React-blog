@@ -154,9 +154,18 @@ const AppRoutes = () => {
     console.log('ProtectedRoute - user:', user?.name, 'requireAdmin:', requireAdmin);
     
     if (!user) {
-      console.log('No user, redirecting to Google auth');
-      window.location.href = '/api/auth/google'
-      return null
+      console.log('No user, showing login message');
+      return (
+        <div className="container py-5">
+          <div className="alert alert-info text-center">
+            <h4>Authentication Required</h4>
+            <p>Please log in to access this feature.</p>
+            <a href="/api/auth/google" className="btn btn-primary">
+              Login with Google
+            </a>
+          </div>
+        </div>
+      )
     }
 
     if (requireApproval && !user.approved) {
