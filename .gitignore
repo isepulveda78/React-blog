@@ -3,34 +3,64 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 
-# Build outputs
+# Production builds
 dist/
 build/
-server/public/
 
-# Environment files
+# Environment variables
 .env
 .env.local
-.env.production
-.env.development
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Logs
-logs/
+logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Runtime data
-pids/
+pids
 *.pid
 *.seed
 *.pid.lock
 
 # Coverage directory used by tools like istanbul
 coverage/
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+
+# Build outputs
+build/
+dist/
+
+# Temporary files
+tmp/
+temp/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # OS generated files
 .DS_Store
@@ -41,38 +71,38 @@ coverage/
 ehthumbs.db
 Thumbs.db
 
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# Replit specific
+.replit
+.upm/
 
-# Temporary files
-*.tmp
-*.temp
-temp/
-tmp/
+# Database files (if using local SQLite)
+*.db
+*.sqlite
 
-# Session and cookie files
-admin_cookies.txt
+# Upload directories
+uploads/
+public/uploads/
+
+# Cache files
+.cache/
+
+# Cookie files
+*.txt
 cookies.txt
-*_cookies.txt
+admin_cookies.txt
 test_cookies.txt
 
-# Build and deployment files
-*.tar.gz
+# Build and deployment logs
 build_output.log
-vite.config.ts.*
-
-# Test files (if not needed in repo)
-test-*.html
-test-*.js
-
-# Development utilities that might contain sensitive data
-update_user_role.js
-test-production.js
+deploy-*.log
 
 # Hot reload test files
 test-hot-reload.txt
-hot-reload-working.js
+hot-reload-*.js
+test-*.html
+
+# Attached assets (keep in repo but ignore if too large)
+# attached_assets/
+
+# User-specific files
+editingQuiz
