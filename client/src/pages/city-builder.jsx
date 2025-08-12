@@ -48,6 +48,10 @@ const CityBuilder = () => {
   const [resizeHandle, setResizeHandle] = useState(null);
   const [resizeStartPos, setResizeStartPos] = useState({ x: 0, y: 0 });
   const [resizeStartSize, setResizeStartSize] = useState({ width: 0, height: 0 });
+  const [isDraggingItem, setIsDraggingItem] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
+  const [dragItemOffset, setDragItemOffset] = useState({ x: 0, y: 0 });
 
   const canvasRef = useRef(null);
 
@@ -399,6 +403,51 @@ const CityBuilder = () => {
     setResizeHandle(null);
   }, []);
 
+  // Item dragging functionality
+  const startItemDrag = useCallback((e, item) => {
+    if (isResizing) return;
+    
+    e.stopPropagation();
+    const rect = canvasRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const itemX = item.x * (zoomLevel / 100) + canvasOffset.x;
+    const itemY = item.y * (zoomLevel / 100) + canvasOffset.y;
+    
+    setIsDraggingItem(true);
+    setDraggedItem(item);
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    setDragItemOffset({ 
+      x: mouseX - itemX, 
+      y: mouseY - itemY 
+    });
+  }, [isResizing, zoomLevel, canvasOffset]);
+
+  const handleItemDrag = useCallback((e) => {
+    if (!isDraggingItem || !draggedItem) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    const newX = snapToGrid((mouseX - dragItemOffset.x - canvasOffset.x) * (100 / zoomLevel));
+    const newY = snapToGrid((mouseY - dragItemOffset.y - canvasOffset.y) * (100 / zoomLevel));
+
+    // Update item position
+    if (draggedItem.type && BUILDING_TYPES[draggedItem.type]) {
+      updateBuilding(draggedItem.id, { x: newX, y: newY });
+    } else if (draggedItem.type && STREET_TYPES[draggedItem.type]) {
+      updateStreet(draggedItem.id, { x: newX, y: newY });
+    }
+  }, [isDraggingItem, draggedItem, dragItemOffset, canvasOffset, zoomLevel, snapToGrid, updateBuilding, updateStreet]);
+
+  const endItemDrag = useCallback(() => {
+    setIsDraggingItem(false);
+    setDraggedItem(null);
+    setDragStartPos({ x: 0, y: 0 });
+    setDragItemOffset({ x: 0, y: 0 });
+  }, []);
+
   useEffect(() => {
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -409,6 +458,17 @@ const CityBuilder = () => {
       };
     }
   }, [isResizing, handleMouseMove, handleMouseUp]);
+
+  useEffect(() => {
+    if (isDraggingItem) {
+      document.addEventListener('mousemove', handleItemDrag);
+      document.addEventListener('mouseup', endItemDrag);
+      return () => {
+        document.removeEventListener('mousemove', handleItemDrag);
+        document.removeEventListener('mouseup', endItemDrag);
+      };
+    }
+  }, [isDraggingItem, handleItemDrag, endItemDrag]);
 
   // Canvas event handlers
   const handleCanvasDrop = useCallback((e) => {
@@ -436,7 +496,7 @@ const CityBuilder = () => {
   }, []);
 
   const handleCanvasClick = useCallback((e) => {
-    if (isResizing) return;
+    if (isResizing || isDraggingItem) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left - canvasOffset.x) * (100 / zoomLevel);
@@ -467,7 +527,7 @@ const CityBuilder = () => {
     // Clear selection if clicked on empty space
     setSelectedBuilding(null);
     setSelectedStreet(null);
-  }, [buildings, streets, canvasOffset, zoomLevel, selectBuilding, selectStreet, isResizing]);
+  }, [buildings, streets, canvasOffset, zoomLevel, selectBuilding, selectStreet, isResizing, isDraggingItem]);
 
   // Drag start handlers
   const handleBuildingDragStart = useCallback((e, buildingType) => {
@@ -747,6 +807,7 @@ const CityBuilder = () => {
                     cursor: 'pointer',
                     zIndex: 1
                   }}
+                  onMouseDown={(e) => startItemDrag(e, street)}
                   onClick={(e) => {
                     e.stopPropagation();
                     selectStreet(street);
@@ -780,6 +841,7 @@ const CityBuilder = () => {
                     cursor: 'pointer',
                     zIndex: 2
                   }}
+                  onMouseDown={(e) => startItemDrag(e, building)}
                   onClick={(e) => {
                     e.stopPropagation();
                     selectBuilding(building);
