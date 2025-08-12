@@ -1025,6 +1025,12 @@ export function registerRoutes(app) {
 
       console.log('[user-role] User role updated successfully:', updatedUser.email, 'role:', updatedUser.role);
 
+      // Update session if this is the current user
+      if (req.session.user && req.session.user.id === userId) {
+        req.session.user.role = role;
+        console.log('[user-role] Updated session user role to:', role);
+      }
+
       // Return safe user data
       const safeUser = {
         id: updatedUser.id,
@@ -1041,6 +1047,46 @@ export function registerRoutes(app) {
     } catch (error) {
       console.error('[user-role] Error updating user role:', error);
       res.status(500).json({ message: 'Failed to update user role' });
+    }
+  });
+
+  // Allow admin users to update their own role to teacher (temporary fix)
+  app.patch('/api/auth/update-my-role', async (req, res) => {
+    try {
+      console.log('[update-my-role] Request from:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
+      
+      if (!req.session.user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      if (!req.session.user.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const { role } = req.body;
+
+      if (!role || !['student', 'teacher'].includes(role)) {
+        return res.status(400).json({ message: 'Role must be either "student" or "teacher"' });
+      }
+
+      console.log('[update-my-role] Updating own role to:', role);
+      const updatedUser = await storage.updateUserRole(req.session.user.id, role);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Update session
+      req.session.user.role = role;
+      console.log('[update-my-role] Updated session role to:', role);
+
+      res.json({ 
+        message: 'Role updated successfully',
+        role: updatedUser.role 
+      });
+    } catch (error) {
+      console.error('[update-my-role] Error:', error);
+      res.status(500).json({ message: 'Failed to update role' });
     }
   });
 

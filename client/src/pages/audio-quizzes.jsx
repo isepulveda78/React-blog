@@ -358,6 +358,41 @@ const AudioQuizzes = ({ user }) => {
     canDeleteQuiz
   });
 
+  const handleUpdateRoleToTeacher = async () => {
+    try {
+      const response = await fetch('/api/auth/update-my-role', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ role: 'teacher' })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Your role has been updated to teacher. Please refresh the page.",
+          variant: "default"
+        });
+        // Force page refresh to update user context
+        window.location.reload();
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error updating role:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update role. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="container py-5 text-center">
@@ -1418,6 +1453,27 @@ const AudioQuizzes = ({ user }) => {
           </p>
         </div>
       </div>
+
+      {/* Temporary role update for admins with student role */}
+      {user?.isAdmin && user?.role === 'student' && (
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="alert alert-warning">
+              <h5>Admin Notice</h5>
+              <p className="mb-3">
+                You have admin privileges but a student role. To manage audio quizzes, 
+                you need to update your role to teacher.
+              </p>
+              <button 
+                className="btn btn-warning"
+                onClick={handleUpdateRoleToTeacher}
+              >
+                Update My Role to Teacher
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {canCreateQuiz && (
         <div className="row mb-4">
