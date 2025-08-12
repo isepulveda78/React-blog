@@ -60,9 +60,6 @@ const BlogCard = ({ post, onReadMore }) => {
             </small>
           </div>
           <h5 className="card-title">{post.title}</h5>
-          <p className="card-text flex-grow-1">
-            {getExcerpt(post.content)}
-          </p>
           <div className="mt-auto">
             <button
               className="btn btn-outline-primary"

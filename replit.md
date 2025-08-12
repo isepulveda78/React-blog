@@ -20,7 +20,7 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **BREAKTHROUGH: Solved Google Drive/Dropbox audio streaming issue** - Implemented server-side audio proxy that automatically converts sharing URLs to direct download format and streams audio files, bypassing CORS and hotlinking restrictions
 - **Completed systematic alert() replacement with toast notifications** - Replaced all JavaScript alert functions with Bootstrap toast messages throughout the application
 - **Enhanced Word Sorter with clickable list title editing** - Implemented inline editing functionality allowing users to click on list titles to rename them, removed separate input fields for cleaner UI
-- **Updated City Builder to final modular version** - Replaced monolithic city builder with modular architecture using separate components (BuildingPalette, CityCanvas, BuildingPropertiesPanel) and useCityBuilder hook for better maintainability and functionality
+- **Restored City Builder to working version** - Reverted from broken modular architecture back to fully functional single-file implementation with resizable roads and water, drag-and-drop building placement, comprehensive resize handles, and PNG export functionality
 
 ## System Architecture
 
