@@ -126,6 +126,7 @@ const CityBuilder = () => {
 
   const addStreet = useCallback((streetType, x, y) => {
     try {
+      console.log('Adding street:', { streetType, x, y });
       let parsedType = streetType;
       if (typeof streetType === 'string' && streetType.startsWith('{')) {
         const parsed = JSON.parse(streetType);
@@ -152,13 +153,20 @@ const CityBuilder = () => {
         color: parsedType === 'water' ? '#4A90E2' : '#8B8B8B'
       };
 
+      console.log('New street object:', newStreet);
+
       // Check for collisions with buildings only (streets can overlap)
       if (checkCollision(newStreet, buildings)) {
         console.log('Street placement blocked by building collision');
         return false;
       }
 
-      setStreets(prev => [...prev, newStreet]);
+      setStreets(prev => {
+        const updated = [...prev, newStreet];
+        console.log('Streets updated:', updated.length, 'total streets');
+        return updated;
+      });
+      console.log('Street added successfully');
       return true;
     } catch (error) {
       console.error('Error adding street:', error);
