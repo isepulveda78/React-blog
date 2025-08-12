@@ -1567,6 +1567,11 @@ export class MongoStorage {
     return await this.db.collection('textQuizGrades').find({ userId }).sort({ createdAt: -1 }).toArray();
   }
 
+  async getTextQuizGradesByUserAndQuiz(userId, quizId) {
+    await this.connect();
+    return await this.db.collection('textQuizGrades').find({ userId, quizId }).sort({ createdAt: -1 }).toArray();
+  }
+
   async createTextQuizGrade(gradeData) {
     await this.connect();
     const grade = {

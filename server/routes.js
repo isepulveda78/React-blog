@@ -2704,7 +2704,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         return res.status(401).json({ message: "Authentication required" });
       }
 
-      const { userId } = req.query;
+      const { userId, quizId } = req.query;
       
       // If userId is provided, check if user can access that specific user's grades
       if (userId) {
@@ -2712,8 +2712,16 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         if (!user.isAdmin && user.role !== 'teacher' && userId !== user.id) {
           return res.status(403).json({ message: "Access denied" });
         }
-        const grades = await storage.getTextQuizGradesByUserId(userId);
-        res.json(grades);
+        
+        if (quizId) {
+          // Get grades for specific user and quiz
+          const grades = await storage.getTextQuizGradesByUserAndQuiz(userId, quizId);
+          res.json(grades);
+        } else {
+          // Get all grades for specific user
+          const grades = await storage.getTextQuizGradesByUserId(userId);
+          res.json(grades);
+        }
       } else {
         // Only admin/teacher can get all grades
         if (!user?.isAdmin && user?.role !== 'teacher') {

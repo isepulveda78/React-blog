@@ -12,6 +12,7 @@ const TextQuizzes = ({ user }) => {
   const [userAnswers, setUserAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
   const [showResults, setShowResults] = useState(false);
+  const [quizAttempts, setQuizAttempts] = useState({});
 
   // Check permissions
   const isAuthenticated = user && user.name;
@@ -31,6 +32,33 @@ const TextQuizzes = ({ user }) => {
   useEffect(() => {
     fetchQuizzes();
   }, []);
+
+  useEffect(() => {
+    // Fetch attempt counts for each quiz when user is authenticated
+    if (isAuthenticated && user?.id && quizzes.length > 0) {
+      fetchAttemptCounts();
+    }
+  }, [isAuthenticated, user?.id, quizzes]);
+
+  const fetchAttemptCounts = async () => {
+    if (!user?.id) return;
+    
+    const attemptData = {};
+    for (const quiz of quizzes) {
+      try {
+        const response = await fetch(`/api/text-quiz-grades?userId=${user.id}&quizId=${quiz.id}`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const grades = await response.json();
+          attemptData[quiz.id] = grades.length;
+        }
+      } catch (error) {
+        console.error(`Error fetching attempts for quiz ${quiz.id}:`, error);
+      }
+    }
+    setQuizAttempts(attemptData);
+  };
 
   const fetchQuizzes = async () => {
     try {
@@ -59,6 +87,7 @@ const TextQuizzes = ({ user }) => {
       id: '',
       title: '',
       description: '',
+      maxAttempts: 1,
       questions: [
         {
           question: '',
@@ -175,7 +204,7 @@ const TextQuizzes = ({ user }) => {
     }
   };
 
-  const startQuiz = (quiz) => {
+  const startQuiz = async (quiz) => {
     if (!isAuthenticated) {
       if (toast) {
         toast({
@@ -185,6 +214,32 @@ const TextQuizzes = ({ user }) => {
         });
       }
       return;
+    }
+
+    // Check attempt limits
+    try {
+      const response = await fetch(`/api/text-quiz-grades?userId=${user.id}&quizId=${quiz.id}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const userGrades = await response.json();
+        const attemptCount = userGrades.length;
+        
+        // Check if user has exceeded attempt limit (-1 means unlimited)
+        if (quiz.maxAttempts !== -1 && attemptCount >= quiz.maxAttempts) {
+          if (toast) {
+            toast({
+              title: "Attempt Limit Reached",
+              description: `You have already taken this quiz ${attemptCount} time${attemptCount > 1 ? 's' : ''}. Maximum attempts allowed: ${quiz.maxAttempts}.`,
+              variant: "destructive"
+            });
+          }
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error checking attempt count:', error);
     }
 
     setTakingQuiz(quiz);
@@ -225,6 +280,20 @@ const TextQuizzes = ({ user }) => {
         credentials: 'include',
         body: JSON.stringify(result)
       });
+      
+      // Update attempt count for this quiz
+      if (user?.id) {
+        const response = await fetch(`/api/text-quiz-grades?userId=${user.id}&quizId=${takingQuiz.id}`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const grades = await response.json();
+          setQuizAttempts(prev => ({
+            ...prev,
+            [takingQuiz.id]: grades.length
+          }));
+        }
+      }
     } catch (error) {
       console.error('Error saving quiz result:', error);
     }
@@ -434,7 +503,7 @@ const TextQuizzes = ({ user }) => {
                   />
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-3">
                   <label className="form-label">Description</label>
                   <textarea
                     className="form-control"
@@ -443,6 +512,23 @@ const TextQuizzes = ({ user }) => {
                     onChange={(e) => setEditingQuiz({...editingQuiz, description: e.target.value})}
                     placeholder="Enter quiz description"
                   />
+                </div>
+
+                <div className="mb-4">
+                  <label className="form-label">Maximum Attempts</label>
+                  <select
+                    className="form-select"
+                    value={editingQuiz.maxAttempts || 1}
+                    onChange={(e) => setEditingQuiz({...editingQuiz, maxAttempts: parseInt(e.target.value)})}
+                  >
+                    <option value={1}>1 attempt</option>
+                    <option value={2}>2 attempts</option>
+                    <option value={3}>3 attempts</option>
+                    <option value={5}>5 attempts</option>
+                    <option value={10}>10 attempts</option>
+                    <option value={-1}>Unlimited attempts</option>
+                  </select>
+                  <small className="text-muted">How many times can a student take this quiz?</small>
                 </div>
 
                 <h4>Questions</h4>
@@ -566,16 +652,42 @@ const TextQuizzes = ({ user }) => {
                   <h5 className="card-title text-primary">{quiz.title}</h5>
                   <p className="card-text flex-grow-1">{quiz.description}</p>
                   <div className="text-muted small mb-3">
-                    {quiz.questions?.length || 0} questions
+                    <div>{quiz.questions?.length || 0} questions</div>
+                    {isAuthenticated && (
+                      <div>
+                        {quiz.maxAttempts === -1 
+                          ? `Attempts: ${quizAttempts[quiz.id] || 0} (unlimited)`
+                          : `Attempts: ${quizAttempts[quiz.id] || 0}/${quiz.maxAttempts || 1}`
+                        }
+                      </div>
+                    )}
+                    {canEditQuiz && (
+                      <div className="text-info">
+                        Max attempts: {quiz.maxAttempts === -1 ? 'Unlimited' : quiz.maxAttempts || 1}
+                      </div>
+                    )}
                   </div>
                   <div className="d-flex gap-2 flex-wrap">
-                    <button
-                      className="btn btn-primary flex-fill"
-                      onClick={() => startQuiz(quiz)}
-                      disabled={!isAuthenticated}
-                    >
-                      {!isAuthenticated ? 'Login to Take Quiz' : 'Take Quiz'}
-                    </button>
+                    {(() => {
+                      const attemptCount = quizAttempts[quiz.id] || 0;
+                      const maxAttempts = quiz.maxAttempts || 1;
+                      const canTakeQuiz = !isAuthenticated || maxAttempts === -1 || attemptCount < maxAttempts;
+                      
+                      return (
+                        <button
+                          className={`btn ${canTakeQuiz ? 'btn-primary' : 'btn-secondary'} flex-fill`}
+                          onClick={() => startQuiz(quiz)}
+                          disabled={!isAuthenticated || !canTakeQuiz}
+                        >
+                          {!isAuthenticated 
+                            ? 'Login to Take Quiz' 
+                            : !canTakeQuiz 
+                              ? 'Attempt Limit Reached'
+                              : 'Take Quiz'
+                          }
+                        </button>
+                      );
+                    })()}
                     {canEditQuiz && (
                       <button
                         className="btn btn-outline-secondary"
