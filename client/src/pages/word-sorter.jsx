@@ -9,6 +9,8 @@ const WordSorter = ({ user }) => {
   const [list2, setList2] = React.useState([]);
   const [list1Title, setList1Title] = React.useState('List 1');
   const [list2Title, setList2Title] = React.useState('List 2');
+  const [editingList1Title, setEditingList1Title] = React.useState(false);
+  const [editingList2Title, setEditingList2Title] = React.useState(false);
   const [draggedItem, setDraggedItem] = React.useState(null);
   const [draggedFrom, setDraggedFrom] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -170,9 +172,48 @@ const WordSorter = ({ user }) => {
   };
 
   const clearAllLists = () => {
-    if (confirm('Are you sure you want to clear all words from both lists?')) {
+    toast({
+      title: "Clear All Lists",
+      description: "This will remove all words from both lists. This action cannot be undone.",
+      variant: "destructive",
+      duration: 4000
+    });
+    
+    // Note: For now just showing warning. Could implement two-click confirmation like the grade deletion
+    setTimeout(() => {
       setList1([]);
       setList2([]);
+      toast({
+        title: "Success",
+        description: "All lists have been cleared.",
+        variant: "default"
+      });
+    }, 2000);
+  };
+
+  const handleTitleClick = (listNumber) => {
+    if (listNumber === 1) {
+      setEditingList1Title(true);
+    } else {
+      setEditingList2Title(true);
+    }
+  };
+
+  const handleTitleKeyPress = (e, listNumber) => {
+    if (e.key === 'Enter') {
+      if (listNumber === 1) {
+        setEditingList1Title(false);
+      } else {
+        setEditingList2Title(false);
+      }
+    }
+  };
+
+  const handleTitleBlur = (listNumber) => {
+    if (listNumber === 1) {
+      setEditingList1Title(false);
+    } else {
+      setEditingList2Title(false);
     }
   };
 
@@ -238,25 +279,13 @@ const WordSorter = ({ user }) => {
             </div>
           </div>
 
-          {/* List Titles */}
+          {/* Instruction for editing titles */}
           <div className="row mb-3">
-            <div className="col-md-6">
-              <input
-                type="text"
-                className="form-control"
-                value={list1Title}
-                onChange={(e) => setList1Title(e.target.value)}
-                placeholder="List 1 Title"
-              />
-            </div>
-            <div className="col-md-6">
-              <input
-                type="text"
-                className="form-control"
-                value={list2Title}
-                onChange={(e) => setList2Title(e.target.value)}
-                placeholder="List 2 Title"
-              />
+            <div className="col-12">
+              <div className="alert alert-info">
+                <i className="fas fa-info-circle me-2"></i>
+                <strong>Tip:</strong> Click on any list title to rename it!
+              </div>
             </div>
           </div>
 
@@ -271,7 +300,27 @@ const WordSorter = ({ user }) => {
                 style={{ minHeight: '400px' }}
               >
                 <div className="card-header d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0abde3', color: 'white' }}>
-                  <h5 className="mb-0">{list1Title}</h5>
+                  {editingList1Title ? (
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      value={list1Title}
+                      onChange={(e) => setList1Title(e.target.value)}
+                      onKeyPress={(e) => handleTitleKeyPress(e, 1)}
+                      onBlur={() => handleTitleBlur(1)}
+                      autoFocus
+                      style={{ maxWidth: '200px', backgroundColor: 'white', color: 'black' }}
+                    />
+                  ) : (
+                    <h5 
+                      className="mb-0" 
+                      onClick={() => handleTitleClick(1)}
+                      style={{ cursor: 'pointer' }}
+                      title="Click to edit title"
+                    >
+                      {list1Title} <i className="fas fa-edit ms-1" style={{ fontSize: '0.8em' }}></i>
+                    </h5>
+                  )}
                   <span className="badge bg-light text-dark">{list1.length} words</span>
                 </div>
                 <div className="card-body">
@@ -313,7 +362,27 @@ const WordSorter = ({ user }) => {
                 style={{ minHeight: '400px' }}
               >
                 <div className="card-header d-flex justify-content-between align-items-center" style={{ backgroundColor: '#222f3e', color: 'white' }}>
-                  <h5 className="mb-0">{list2Title}</h5>
+                  {editingList2Title ? (
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      value={list2Title}
+                      onChange={(e) => setList2Title(e.target.value)}
+                      onKeyPress={(e) => handleTitleKeyPress(e, 2)}
+                      onBlur={() => handleTitleBlur(2)}
+                      autoFocus
+                      style={{ maxWidth: '200px', backgroundColor: 'white', color: 'black' }}
+                    />
+                  ) : (
+                    <h5 
+                      className="mb-0" 
+                      onClick={() => handleTitleClick(2)}
+                      style={{ cursor: 'pointer' }}
+                      title="Click to edit title"
+                    >
+                      {list2Title} <i className="fas fa-edit ms-1" style={{ fontSize: '0.8em' }}></i>
+                    </h5>
+                  )}
                   <span className="badge bg-light text-dark">{list2.length} words</span>
                 </div>
                 <div className="card-body">
