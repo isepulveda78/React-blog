@@ -27,7 +27,7 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **RESOLVED: Blog update visibility issue** - Fixed blog refresh system with aggressive cache-busting, enhanced debugging tools, and proper Wouter router navigation. Blog data updates now appear immediately with working "Read More" functionality.
 - **RESOLVED: HTML encoding display issue** - Applied comprehensive HTML entity decoding to all blog API endpoints (public posts, individual posts, admin routes). Blog post updates now display correctly without HTML entity artifacts, with proper cache-busting for immediate visibility.
 - **RESOLVED: WebSocket server conflicts** - Fixed persistent WebSocket port conflicts that were preventing server restarts. Server now starts reliably without port blocking issues.
-- **COMPLETED: TinyMCE Integration with Table Support** - Successfully replaced all ReactQuill instances with TinyMCE rich text editor throughout the application. Implemented comprehensive table editing capabilities (insert, edit, add/remove rows/columns, merge cells) with Bootstrap styling. All editor components (PostEditor.jsx, AdminPosts.jsx) now use TinyMCE with API key authentication for full functionality.
+- **REVERTED: Switched Back to ReactQuill** - Due to TinyMCE compatibility issues, reverted all editor components back to ReactQuill for better stability and reliability. ReactQuill provides consistent rich text editing capabilities without API key dependencies or compatibility problems.
 - **COMPLETED: Production Code Cleanup** - Removed all debugging console.log statements from blog components, admin interfaces, and editor components for cleaner production-ready code.
 
 ## System Architecture
@@ -80,10 +80,10 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **Security Enhancements**: Helmet.js for security headers, rate limiting, comprehensive input validation (email, username, passwords, content), express-mongo-sanitize for NoSQL injection prevention, security event logging, secure cookies, strong password requirements, XSS protection, restricted file uploads, and HTTPS configuration.
 
 ### Rich Text Editing
-- **Custom Editor**: Built-in WYSIWYG editor with formatting controls using Quill.js.
+- **Custom Editor**: Built-in WYSIWYG editor with formatting controls using ReactQuill.
 - **Content Storage**: HTML content stored in database with proper entity encoding/decoding.
 - **Media Support**: Image upload and embedding via Cloudinary.
-- **Known Limitation**: Current Quill.js editor does not support table functionality.
+- **Editor Features**: Headers, bold, italic, underline, strike, colors, lists, alignment, links, and images.
 
 ### SEO Implementation
 - **SEO Management Dashboard**: Dedicated admin interface for SEO analysis, settings, and optimization.

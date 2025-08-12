@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Editor } from '@tinymce/tinymce-react';
+import ReactQuill from 'react-quill';
 
 const { toast } = window;
 
@@ -22,18 +22,24 @@ const AdminPosts = ({ user }) => {
   // Categories state
   const [categories, setCategories] = useState([]);
 
-  // TinyMCE configuration for AdminPosts - simpler version
-  const editorConfig = {
-    height: 300,
-    menubar: false,
-    plugins: [
-      'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-      'anchor', 'searchreplace', 'visualblocks', 'code',
-      'insertdatetime', 'media', 'table', 'help', 'wordcount'
+  // React Quill configuration for AdminPosts
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      ['link', 'image'],
+      ['clean']
     ],
-    toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist | table | removeformat | help',
-    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
   };
+
+  const quillFormats = [
+    'header', 'bold', 'italic', 'underline', 'strike',
+    'color', 'background', 'list', 'bullet', 'align',
+    'link', 'image'
+  ];
 
 
   
@@ -322,34 +328,12 @@ const AdminPosts = ({ user }) => {
           
           <div className="mb-3">
             <label className="form-label">Content *</label>
-            <Editor
-              apiKey={import.meta.env.VITE_TINYMCE_API_KEY || "no-api-key"}
+            <ReactQuill
               value={content}
-              onEditorChange={(content) => setContent(content)}
-              init={{
-                ...editorConfig,
-                images_upload_handler: async (blobInfo, success, failure) => {
-                  try {
-                    const formData = new FormData();
-                    formData.append('image', blobInfo.blob(), blobInfo.filename());
-
-                    const response = await fetch('/api/upload-image', {
-                      method: 'POST',
-                      credentials: 'include',
-                      body: formData
-                    });
-
-                    if (response.ok) {
-                      const data = await response.json();
-                      success(data.url);
-                    } else {
-                      failure('Image upload failed');
-                    }
-                  } catch (error) {
-                    failure('Image upload failed: ' + error.message);
-                  }
-                }
-              }}
+              onChange={setContent}
+              modules={quillModules}
+              formats={quillFormats}
+              style={{ height: '250px' }}
             />
           </div>
           

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Editor } from '@tinymce/tinymce-react';
+import ReactQuill from 'react-quill';
 
 const { toast } = window;
 
@@ -275,62 +275,26 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                       </div>
 
                       {editorMode === 'rich' ? (
-                        <Editor
-                          apiKey={import.meta.env.VITE_TINYMCE_API_KEY || "no-api-key"}
+                        <ReactQuill
                           value={formData.content}
-                          onEditorChange={(content) => handleChange('content', content)}
-                          init={{
-                            height: 400,
-                            menubar: false,
-                            plugins: [
-                              'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                              'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                              'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount',
-                              'paste', 'directionality', 'emoticons', 'template', 'codesample'
+                          onChange={(content) => handleChange('content', content)}
+                          modules={{
+                            toolbar: [
+                              [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                              ['bold', 'italic', 'underline', 'strike'],
+                              [{ 'color': [] }, { 'background': [] }],
+                              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                              [{ 'align': [] }],
+                              ['link', 'image'],
+                              ['clean']
                             ],
-                            toolbar: 'undo redo | blocks | ' +
-                              'bold italic forecolor | alignleft aligncenter ' +
-                              'alignright alignjustify | bullist numlist outdent indent | ' +
-                              'table | link image | removeformat | help',
-                            table_toolbar: 'tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol',
-                            table_appearance_options: false,
-                            table_grid: false,
-                            table_class_list: [
-                              { title: 'None', value: '' },
-                              { title: 'Bootstrap Table', value: 'table' },
-                              { title: 'Bootstrap Striped', value: 'table table-striped' },
-                              { title: 'Bootstrap Bordered', value: 'table table-bordered' }
-                            ],
-                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                            paste_data_images: true,
-                            images_upload_handler: async (blobInfo, success, failure) => {
-                              try {
-                                const formData = new FormData();
-                                formData.append('image', blobInfo.blob(), blobInfo.filename());
-
-                                const response = await fetch('/api/upload-image', {
-                                  method: 'POST',
-                                  credentials: 'include',
-                                  body: formData
-                                });
-
-                                if (response.ok) {
-                                  const data = await response.json();
-                                  success(data.url);
-                                } else {
-                                  failure('Image upload failed');
-                                }
-                              } catch (error) {
-                                failure('Image upload failed: ' + error.message);
-                              }
-                            },
-                            setup: (editor) => {
-                              editor.on('change', () => {
-                                const content = editor.getContent();
-                                handleChange('content', content);
-                              });
-                            }
                           }}
+                          formats={[
+                            'header', 'bold', 'italic', 'underline', 'strike',
+                            'color', 'background', 'list', 'bullet', 'align',
+                            'link', 'image'
+                          ]}
+                          style={{ height: '300px' }}
                         />
                       ) : (
                         /* HTML Editor */
