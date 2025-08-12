@@ -14429,3 +14429,11 @@ a {
 [data-bs-theme=dark] .toast-header {
   --bs-toast-header-color: #fff;
 }
+/* Quiz result highlighting */
+.bg-light-success {
+  background-color: rgba(25, 135, 84, 0.1) !important;
+}
+
+.bg-light-danger {
+  background-color: rgba(220, 53, 69, 0.1) !important;
+}

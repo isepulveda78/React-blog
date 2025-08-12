@@ -136,7 +136,8 @@ const AudioQuizzes = ({ user }) => {
       score,
       correctCount,
       totalQuestions: questions.length,
-      answers: quizAnswers
+      answers: quizAnswers,
+      questions: randomizedQuestions // Store the actual questions for review
     };
 
     setQuizResult(result);
@@ -230,20 +231,82 @@ const AudioQuizzes = ({ user }) => {
               <div className="card-body">
 
                 {quizResult ? (
-                  <div className="text-center">
-                    <div className={`alert ${quizResult.score >= 70 ? 'alert-success' : 'alert-warning'}`}>
-                      <h4>Quiz Complete!</h4>
-                      <p className="mb-2">Score: {quizResult.score}%</p>
-                      <p className="mb-0">
-                        You got {quizResult.correctCount} out of {quizResult.totalQuestions} questions correct
-                      </p>
+                  <div>
+                    <div className="text-center mb-4">
+                      <div className={`alert ${quizResult.score >= 70 ? 'alert-success' : 'alert-warning'}`}>
+                        <h4>Quiz Complete!</h4>
+                        <p className="mb-2">Score: {quizResult.score}%</p>
+                        <p className="mb-0">
+                          You got {quizResult.correctCount} out of {quizResult.totalQuestions} questions correct
+                        </p>
+                      </div>
+                      <button 
+                        className="btn btn-primary"
+                        onClick={() => setSelectedQuiz(null)}
+                      >
+                        Back to Quizzes
+                      </button>
                     </div>
-                    <button 
-                      className="btn btn-primary"
-                      onClick={() => setSelectedQuiz(null)}
-                    >
-                      Back to Quizzes
-                    </button>
+
+                    {/* Question Review Section */}
+                    <div className="card">
+                      <div className="card-header">
+                        <h5 className="mb-0">Question Review</h5>
+                        <small className="text-muted">See which questions you got right and wrong</small>
+                      </div>
+                      <div className="card-body">
+                        {randomizedQuestions.map((question, index) => {
+                          const userAnswer = quizResult.answers[index];
+                          const isCorrect = userAnswer === question.correctAnswer;
+                          
+                          return (
+                            <div key={index} className={`border rounded p-3 mb-3 ${isCorrect ? 'border-success bg-light-success' : 'border-danger bg-light-danger'}`}>
+                              <div className="d-flex justify-content-between align-items-start mb-2">
+                                <h6 className="mb-0">Question {index + 1}</h6>
+                                <span className={`badge ${isCorrect ? 'bg-success' : 'bg-danger'}`}>
+                                  {isCorrect ? '✓ Correct' : '✗ Wrong'}
+                                </span>
+                              </div>
+                              
+                              <p className="mb-2">{question.question}</p>
+                              
+                              <div className="row">
+                                {question.options.map((option, optionIndex) => {
+                                  let optionClass = 'border-secondary';
+                                  let badgeText = '';
+                                  let badgeClass = '';
+                                  
+                                  if (optionIndex === question.correctAnswer) {
+                                    optionClass = 'border-success bg-success bg-opacity-10';
+                                    badgeText = 'Correct Answer';
+                                    badgeClass = 'bg-success';
+                                  } else if (optionIndex === userAnswer && !isCorrect) {
+                                    optionClass = 'border-danger bg-danger bg-opacity-10';
+                                    badgeText = 'Your Answer';
+                                    badgeClass = 'bg-danger';
+                                  }
+                                  
+                                  return (
+                                    <div key={optionIndex} className="col-md-6 mb-2">
+                                      <div className={`border rounded p-2 ${optionClass}`}>
+                                        <div className="d-flex justify-content-between align-items-center">
+                                          <span>{option}</span>
+                                          {badgeText && (
+                                            <small className={`badge ${badgeClass}`}>
+                                              {badgeText}
+                                            </small>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div>
