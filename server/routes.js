@@ -616,7 +616,20 @@ export function registerRoutes(app) {
   // Public posts route - shows post previews to everyone (no content access)
   app.get("/api/posts/public", async (req, res) => {
     try {
+      // Add aggressive cache-busting headers
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Last-Modified': new Date().toUTCString(),
+        'ETag': `"${Date.now()}"`,
+        'Vary': '*'
+      });
+
       const posts = await storage.getPosts();
+      console.log(`[posts/public] Returning ${posts.length} posts at ${new Date().toISOString()}`);
+      console.log(`[posts/public] First post: "${posts[0]?.title}" (ID: ${posts[0]?.id})`);
+      
       // Return posts with limited information for public viewing
       const publicPosts = posts.map(post => ({
         id: post.id,
@@ -631,6 +644,7 @@ export function registerRoutes(app) {
         // Include content for excerpt generation but limit it
         content: post.content ? post.content.substring(0, 200) : ''
       }));
+      
       res.json(publicPosts);
     } catch (error) {
       console.error("Error fetching public posts:", error);

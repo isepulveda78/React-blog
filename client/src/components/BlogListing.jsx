@@ -252,12 +252,34 @@ const BlogListing = ({ user }) => {
       {process.env.NODE_ENV === 'development' && (
         <div className="row mb-2">
           <div className="col-12">
-            <div className="alert alert-info py-2">
-              <small>
-                <strong>Debug:</strong> Posts loaded: {posts.length} | 
-                First post: {posts[0]?.title || 'None'} | 
-                Last refresh: {lastRefresh ? new Date(lastRefresh).toLocaleString() : 'Never'}
-              </small>
+            <div className="alert alert-warning py-2">
+              <div className="row">
+                <div className="col-md-8">
+                  <small>
+                    <strong>Debug Info:</strong><br/>
+                    Posts loaded: {posts.length} | 
+                    First post: "{posts[0]?.title || 'None'}" (ID: {posts[0]?.id || 'None'})<br/>
+                    Last refresh: {lastRefresh ? new Date(lastRefresh).toLocaleString() : 'Never'}
+                  </small>
+                </div>
+                <div className="col-md-4 text-end">
+                  <button 
+                    className="btn btn-sm btn-warning"
+                    onClick={() => {
+                      console.log('=== DIRECT API TEST ===');
+                      console.log('Current posts state:', posts);
+                      fetch(`/api/posts/public?debug=${Date.now()}`)
+                        .then(r => r.json())
+                        .then(data => {
+                          console.log('Direct API response:', data);
+                          console.log('First post from API:', data[0]);
+                        });
+                    }}
+                  >
+                    Test API
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
