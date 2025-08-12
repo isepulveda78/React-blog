@@ -262,7 +262,10 @@ const AdminTextQuizGradesDashboard = ({ user }) => {
                             </span>
                           </td>
                           <td>{grade.correctAnswers}/{grade.totalQuestions}</td>
-                          <td>{new Date(grade.createdAt).toLocaleDateString()}</td>
+                          <td>
+                            <div>{new Date(grade.createdAt).toLocaleDateString()}</div>
+                            <small className="text-muted">{new Date(grade.createdAt).toLocaleTimeString()}</small>
+                          </td>
                           <td>
                             <button
                               className="btn btn-outline-danger btn-sm"
