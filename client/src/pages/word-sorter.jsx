@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { jsPDF } from 'jspdf';
 
 const { toast } = window;
 
@@ -78,93 +77,147 @@ const WordSorter = ({ user }) => {
     }
   };
 
-  const exportToPDF = async () => {
+  const exportToPDF = () => {
     setIsLoading(true);
+    
     try {
       console.log('Starting PDF export...');
       console.log('List 1:', list1);
       console.log('List 2:', list2);
-      console.log('List 1 Title:', list1Title);
-      console.log('List 2 Title:', list2Title);
-      console.log('User Name:', userName);
       
-      console.log('Using imported jsPDF library');
+      // Create a new window with printable content
+      const printWindow = window.open('', '_blank');
       
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 20;
-      let yPosition = 30;
-
-      // Title
-      doc.setFontSize(20);
-      doc.text('Word Sorter Lists', pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 20;
-
-      // User name
-      if (userName.trim()) {
-        doc.setFontSize(14);
-        doc.text(`Created by: ${userName}`, pageWidth / 2, yPosition, { align: 'center' });
-        yPosition += 20;
-      }
-
-      // Date
-      doc.setFontSize(12);
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 30;
-
-      // List 1
-      doc.setFontSize(16);
-      doc.text(list1Title, margin, yPosition);
-      yPosition += 15;
-
-      doc.setFontSize(12);
-      if (list1.length === 0) {
-        doc.text('(No words)', margin + 5, yPosition);
-        yPosition += 15;
-      } else {
-        list1.forEach((word, index) => {
-          doc.text(`${index + 1}. ${word.text}`, margin + 5, yPosition);
-          yPosition += 10;
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Word Sorter Lists - ${userName || 'Student'}</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px; 
+                line-height: 1.6;
+              }
+              .header { 
+                text-align: center; 
+                margin-bottom: 30px; 
+                border-bottom: 2px solid #333;
+                padding-bottom: 20px;
+              }
+              .title { 
+                font-size: 24px; 
+                font-weight: bold; 
+                margin-bottom: 10px; 
+              }
+              .meta { 
+                font-size: 14px; 
+                color: #666; 
+                margin-bottom: 5px;
+              }
+              .lists-container { 
+                display: flex; 
+                justify-content: space-between; 
+                gap: 40px;
+              }
+              .list-section { 
+                flex: 1; 
+                min-width: 200px;
+              }
+              .list-title { 
+                font-size: 18px; 
+                font-weight: bold; 
+                margin-bottom: 15px; 
+                padding: 10px; 
+                background-color: #f8f9fa; 
+                border-left: 4px solid #007bff;
+              }
+              .word-list { 
+                list-style: none; 
+                padding: 0; 
+                margin: 0;
+              }
+              .word-item { 
+                padding: 8px 15px; 
+                margin-bottom: 5px; 
+                background-color: #f8f9fa; 
+                border: 1px solid #ddd; 
+                border-radius: 4px;
+              }
+              .empty-list { 
+                font-style: italic; 
+                color: #999; 
+                padding: 20px; 
+                text-align: center;
+              }
+              @media print { 
+                body { margin: 0; }
+                .lists-container { 
+                  display: block; 
+                }
+                .list-section { 
+                  margin-bottom: 30px; 
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div class="title">Word Sorter Lists</div>
+              ${userName.trim() ? `<div class="meta">Created by: ${userName}</div>` : ''}
+              <div class="meta">Date: ${new Date().toLocaleDateString()}</div>
+            </div>
+            
+            <div class="lists-container">
+              <div class="list-section">
+                <div class="list-title">${list1Title}</div>
+                ${list1.length === 0 ? 
+                  '<div class="empty-list">No words added yet</div>' :
+                  `<ul class="word-list">
+                    ${list1.map((word, index) => 
+                      `<li class="word-item">${index + 1}. ${word.text}</li>`
+                    ).join('')}
+                  </ul>`
+                }
+              </div>
+              
+              <div class="list-section">
+                <div class="list-title">${list2Title}</div>
+                ${list2.length === 0 ? 
+                  '<div class="empty-list">No words added yet</div>' :
+                  `<ul class="word-list">
+                    ${list2.map((word, index) => 
+                      `<li class="word-item">${index + 1}. ${word.text}</li>`
+                    ).join('')}
+                  </ul>`
+                }
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      printWindow.focus();
+      
+      // Small delay to ensure content is loaded before printing
+      setTimeout(() => {
+        printWindow.print();
+        setIsLoading(false);
+        
+        toast({
+          title: "Print Dialog Opened",
+          description: "Use your browser's print dialog to save as PDF or print the document.",
+          variant: "default"
         });
-      }
-      yPosition += 20;
-
-      // List 2
-      doc.setFontSize(16);
-      doc.text(list2Title, margin, yPosition);
-      yPosition += 15;
-
-      doc.setFontSize(12);
-      if (list2.length === 0) {
-        doc.text('(No words)', margin + 5, yPosition);
-        yPosition += 15;
-      } else {
-        list2.forEach((word, index) => {
-          doc.text(`${index + 1}. ${word.text}`, margin + 5, yPosition);
-          yPosition += 10;
-        });
-      }
-
-      // Save the PDF
-      const fileName = userName.trim() ? 
-        `${userName.replace(/[^a-zA-Z0-9\s]/g, '_')}_word_sorter.pdf` : 
-        'word_sorter.pdf';
-      doc.save(fileName);
-
-      toast({
-        title: "Success",
-        description: "PDF exported successfully!",
-        variant: "default"
-      });
-
+      }, 500);
+      
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
         title: "Error",
-        description: `Error generating PDF: ${error.message || 'Unknown error'}. Please refresh the page and try again.`,
+        description: `Error opening print dialog: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
-    } finally {
       setIsLoading(false);
     }
   };
