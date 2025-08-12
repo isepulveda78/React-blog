@@ -254,6 +254,16 @@ const AudioQuizzes = ({ user }) => {
   };
 
   const handleTakeQuiz = (quiz) => {
+    // Check if user is logged in
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to take audio quizzes.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Randomize questions when starting the quiz
     const shuffledQuestions = [...quiz.questions];
     // Fisher-Yates shuffle algorithm
@@ -1459,13 +1469,27 @@ const AudioQuizzes = ({ user }) => {
             <div className="card">
               <div className="card-body py-5">
                 <i className="fas fa-headphones fa-3x text-muted mb-3"></i>
-                <h4 className="text-muted">No Audio Quizzes Available</h4>
-                <p className="text-muted">
-                  {canCreateQuiz 
-                    ? "Create your first audio quiz to get started!"
-                    : "Check back later for new quizzes from your teachers."
-                  }
-                </p>
+                {!user ? (
+                  <>
+                    <h4 className="text-muted">Login Required</h4>
+                    <p className="text-muted mb-4">
+                      Please log in to view and take audio quizzes.
+                    </p>
+                    <a href="/login" className="btn btn-primary">
+                      Login to Continue
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="text-muted">No Audio Quizzes Available</h4>
+                    <p className="text-muted">
+                      {canCreateQuiz 
+                        ? "Create your first audio quiz to get started!"
+                        : "Check back later for new quizzes from your teachers."
+                      }
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -1487,10 +1511,11 @@ const AudioQuizzes = ({ user }) => {
                 <div className="card-footer bg-transparent">
                   <div className="d-grid gap-2">
                     <button 
-                      className="btn btn-primary"
+                      className={`btn ${user ? 'btn-primary' : 'btn-outline-secondary'}`}
                       onClick={() => handleTakeQuiz(quiz)}
+                      title={user ? "Take this quiz" : "Login required to take quizzes"}
                     >
-                      Take Quiz
+                      {user ? 'Take Quiz' : 'Login to Take Quiz'}
                     </button>
                     {canEditQuiz && (
                       <button 
