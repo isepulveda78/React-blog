@@ -159,6 +159,83 @@ const AudioQuizzes = ({ user }) => {
 
   const handleCreateQuiz = async () => {
     try {
+      // Create iframe for audio validation before saving
+      const iframeId = 'audioValidationFrame';
+      let validationIframe = document.getElementById(iframeId);
+      
+      if (!validationIframe) {
+        validationIframe = document.createElement('iframe');
+        validationIframe.id = iframeId;
+        validationIframe.style.display = 'none';
+        validationIframe.style.width = '1px';
+        validationIframe.style.height = '1px';
+        document.body.appendChild(validationIframe);
+      }
+
+      // Validate all audio URLs using iframe approach
+      const audioValidationPromises = formData.questions.map((question, index) => {
+        return new Promise((resolve) => {
+          if (!question.audioUrl) {
+            resolve({ index, valid: false, error: 'No audio URL provided' });
+            return;
+          }
+
+          const needsProxy = question.audioUrl.includes('drive.google.com') || 
+                            question.audioUrl.includes('dropbox.com') ||
+                            question.audioUrl.includes('onedrive.live.com') ||
+                            question.audioUrl.includes('icloud.com');
+          
+          const audioUrl = needsProxy 
+            ? `/api/audio-proxy?url=${encodeURIComponent(question.audioUrl)}`
+            : question.audioUrl;
+
+          console.log(`[handleCreateQuiz] Validating audio ${index + 1}:`, audioUrl);
+
+          // Create audio element within iframe context for testing
+          const audio = new Audio(audioUrl);
+          audio.volume = 0.1; // Very low volume for testing
+          
+          const timeout = setTimeout(() => {
+            resolve({ index, valid: false, error: 'Audio loading timeout' });
+          }, 10000); // 10 second timeout
+
+          audio.addEventListener('loadeddata', () => {
+            clearTimeout(timeout);
+            console.log(`[handleCreateQuiz] Audio ${index + 1} validated successfully`);
+            resolve({ index, valid: true });
+          });
+
+          audio.addEventListener('error', (err) => {
+            clearTimeout(timeout);
+            console.error(`[handleCreateQuiz] Audio ${index + 1} validation failed:`, err);
+            resolve({ index, valid: false, error: 'Audio loading failed' });
+          });
+
+          // Try to load the audio
+          audio.load();
+        });
+      });
+
+      // Wait for all audio validations to complete
+      console.log('[handleCreateQuiz] Starting audio validation...');
+      const validationResults = await Promise.all(audioValidationPromises);
+      
+      // Check if any audio failed validation
+      const failedAudios = validationResults.filter(result => !result.valid);
+      
+      if (failedAudios.length > 0) {
+        toast({
+          title: "Audio Validation Failed",
+          description: `${failedAudios.length} audio file(s) failed validation. Please check your URLs and try again.`,
+          variant: "destructive"
+        });
+        
+        console.log('[handleCreateQuiz] Failed audio validations:', failedAudios);
+        return; // Don't save if audio validation fails
+      }
+
+      console.log('[handleCreateQuiz] All audio files validated successfully, proceeding with save...');
+
       const url = editingQuiz ? `/api/audio-quizzes/${editingQuiz.id}` : '/api/audio-quizzes';
       const method = editingQuiz ? 'PUT' : 'POST';
       
@@ -189,9 +266,14 @@ const AudioQuizzes = ({ user }) => {
         });
         setDriveUrl('');
         
+        // Clean up validation iframe
+        if (validationIframe && validationIframe.parentNode) {
+          validationIframe.parentNode.removeChild(validationIframe);
+        }
+        
         toast({
           title: "Success",
-          description: editingQuiz ? "Quiz updated successfully!" : "Quiz created successfully!",
+          description: `${editingQuiz ? 'Quiz updated' : 'Quiz created'} successfully with validated audio files!`,
           variant: "default"
         });
       } else {
