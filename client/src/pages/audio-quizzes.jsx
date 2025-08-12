@@ -11,6 +11,7 @@ const AudioQuizzes = ({ user }) => {
   const [grades, setGrades] = useState([]);
   const [showGrades, setShowGrades] = useState(false);
   const [driveUrl, setDriveUrl] = useState('');
+  const [randomizedQuestions, setRandomizedQuestions] = useState([]);
 
   // Form state for creating/editing quizzes
   const [formData, setFormData] = useState({
@@ -98,6 +99,15 @@ const AudioQuizzes = ({ user }) => {
   };
 
   const handleTakeQuiz = (quiz) => {
+    // Randomize questions when starting the quiz
+    const shuffledQuestions = [...quiz.questions];
+    // Fisher-Yates shuffle algorithm
+    for (let i = shuffledQuestions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
+    }
+    
+    setRandomizedQuestions(shuffledQuestions);
     setSelectedQuiz(quiz);
     setQuizAnswers({});
     setQuizResult(null);
@@ -111,7 +121,8 @@ const AudioQuizzes = ({ user }) => {
   };
 
   const handleSubmitQuiz = async () => {
-    const questions = selectedQuiz.questions;
+    // Get the current randomized questions from state
+    const questions = randomizedQuestions;
     let correctCount = 0;
 
     questions.forEach((question, index) => {
@@ -190,13 +201,20 @@ const AudioQuizzes = ({ user }) => {
 
   // Quiz Taking View
   if (selectedQuiz) {
+
+
     return (
       <div className="container py-5">
         <div className="row">
           <div className="col-12">
             <button 
               className="btn btn-outline-secondary mb-4"
-              onClick={() => setSelectedQuiz(null)}
+              onClick={() => {
+                setSelectedQuiz(null);
+                setQuizResult(null);
+                setQuizAnswers({});
+                setRandomizedQuestions([]);
+              }}
             >
               ← Back to Quizzes
             </button>
@@ -205,6 +223,9 @@ const AudioQuizzes = ({ user }) => {
               <div className="card-header">
                 <h3 className="mb-0">{selectedQuiz.title}</h3>
                 <p className="text-muted mb-0">{selectedQuiz.description}</p>
+                <small className="text-info">
+                  Questions are randomized for each attempt
+                </small>
               </div>
               <div className="card-body">
 
@@ -226,8 +247,11 @@ const AudioQuizzes = ({ user }) => {
                   </div>
                 ) : (
                   <div>
-                    {selectedQuiz.questions.map((question, index) => (
+                    {randomizedQuestions.map((question, index) => (
                       <div key={index} className="mb-4">
+                        <h5 className="text-primary mb-3">
+                          Question {index + 1} of {randomizedQuestions.length}
+                        </h5>
                         <div className="mb-3">
                           <div className="audio-player-wrapper mb-3">
                             <div className="mb-2">
@@ -380,7 +404,7 @@ const AudioQuizzes = ({ user }) => {
                               </div>
                             </div>
                           </div>
-                          <h5>{question.question}</h5>
+                          <h6 className="mb-3 fw-normal">{question.question}</h6>
                         </div>
                         
                         <div className="row">
@@ -409,7 +433,7 @@ const AudioQuizzes = ({ user }) => {
                       <button 
                         className="btn btn-success btn-lg"
                         onClick={handleSubmitQuiz}
-                        disabled={Object.keys(quizAnswers).length < selectedQuiz.questions.length}
+                        disabled={Object.keys(quizAnswers).length < randomizedQuestions.length}
                       >
                         Submit Quiz
                       </button>
@@ -582,11 +606,14 @@ const AudioQuizzes = ({ user }) => {
                   </ul>
                 </div>
 
-                <h5>Questions</h5>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5>Questions</h5>
+                  <small className="text-muted">Questions will be randomized for each student</small>
+                </div>
                 {formData.questions.map((question, index) => (
                   <div key={index} className="card mb-3">
                     <div className="card-body">
-                      <h6>Question {index + 1}</h6>
+                      <h6 className="text-primary">Question {index + 1}</h6>
                       
                       <div className="mb-3">
                         <label className="form-label">Audio URL</label>
