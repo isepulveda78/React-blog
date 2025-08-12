@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { jsPDF } from 'jspdf';
 
 const { toast } = window;
 
@@ -87,20 +88,7 @@ const WordSorter = ({ user }) => {
       console.log('List 2 Title:', list2Title);
       console.log('User Name:', userName);
       
-      // Check for jsPDF in global scope
-      console.log('Checking for jsPDF...', typeof window.jspdf, typeof window.jsPDF);
-      
-      // Try different ways to access jsPDF
-      let jsPDF;
-      if (window.jspdf && window.jspdf.jsPDF) {
-        jsPDF = window.jspdf.jsPDF;
-      } else if (window.jsPDF) {
-        jsPDF = window.jsPDF;
-      } else {
-        throw new Error('jsPDF library not loaded - please refresh the page');
-      }
-      
-      console.log('jsPDF constructor found:', jsPDF);
+      console.log('Using imported jsPDF library');
       
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
