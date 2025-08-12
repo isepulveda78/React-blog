@@ -18,6 +18,8 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - Fixed authentication JSON parsing error with enhanced error handling and debugging
 - Stabilized WebSocket chat system with comprehensive client connection tracking
 - **BREAKTHROUGH: Solved Google Drive/Dropbox audio streaming issue** - Implemented server-side audio proxy that automatically converts sharing URLs to direct download format and streams audio files, bypassing CORS and hotlinking restrictions
+- **Completed systematic alert() replacement with toast notifications** - Replaced all JavaScript alert functions with Bootstrap toast messages throughout the application
+- **Enhanced Word Sorter with clickable list title editing** - Implemented inline editing functionality allowing users to click on list titles to rename them, removed separate input fields for cleaner UI
 
 ## System Architecture
 
@@ -54,7 +56,7 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **City Builder**: Interactive city planning and building tool.
 - **Bingo Generator**: Custom bingo card creation for educational activities.
 - **Spanish Alphabet**: Interactive soundboard for learning Spanish letters.
-- **Word Sorter**: Drag-and-drop word sorting activities.
+- **Word Sorter**: Drag-and-drop word sorting activities with clickable list title editing and PDF export functionality.
 - **Listen to Type**: Audio-based typing practice tool with chatroom integration.
 - **Audio Quizzes**: Complete audio quiz system with custom play controls, server-side proxy for cloud storage files, teacher grading dashboard, and support for Google Drive/Dropbox/OneDrive audio files.
 
