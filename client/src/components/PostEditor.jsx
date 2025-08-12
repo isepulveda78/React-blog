@@ -277,7 +277,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
                       {editorMode === 'rich' ? (
                         <Editor
-                          apiKey="no-api-key"
+                          apiKey={import.meta.env.VITE_TINYMCE_API_KEY || "no-api-key"}
                           value={formData.content}
                           onEditorChange={(content) => handleChange('content', content)}
                           init={{

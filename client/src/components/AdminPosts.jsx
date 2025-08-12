@@ -326,7 +326,7 @@ const AdminPosts = ({ user }) => {
           <div className="mb-3">
             <label className="form-label">Content *</label>
             <Editor
-              apiKey="no-api-key"
+              apiKey={import.meta.env.VITE_TINYMCE_API_KEY || "no-api-key"}
               value={content}
               onEditorChange={(content) => setContent(content)}
               init={{
