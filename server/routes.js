@@ -135,6 +135,78 @@ export function registerRoutes(app) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Audio proxy to handle CORS and hotlinking restrictions from cloud storage
+  app.get('/api/audio-proxy', async (req, res) => {
+    const { url } = req.query;
+    
+    if (!url) {
+      return res.status(400).json({ error: 'URL parameter required' });
+    }
+    
+    try {
+      console.log('[Audio Proxy] Fetching:', url);
+      
+      // Fetch the audio file with proper headers to bypass restrictions
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'audio/*,*/*;q=0.9',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        redirect: 'follow'
+      });
+      
+      if (!response.ok) {
+        console.error('[Audio Proxy] Failed to fetch:', response.status, response.statusText);
+        return res.status(response.status).json({ 
+          error: `Failed to fetch audio: ${response.status} ${response.statusText}` 
+        });
+      }
+      
+      const contentType = response.headers.get('content-type') || 'audio/mpeg';
+      const contentLength = response.headers.get('content-length');
+      
+      console.log('[Audio Proxy] Success - Content-Type:', contentType, 'Size:', contentLength);
+      
+      // Set appropriate headers for audio streaming
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Accept-Ranges', 'bytes');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Range');
+      
+      if (contentLength) {
+        res.setHeader('Content-Length', contentLength);
+      }
+      
+      // Handle range requests for audio seeking
+      const range = req.headers.range;
+      if (range && contentLength) {
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : parseInt(contentLength) - 1;
+        const chunksize = (end - start) + 1;
+        
+        res.status(206);
+        res.setHeader('Content-Range', `bytes ${start}-${end}/${contentLength}`);
+        res.setHeader('Content-Length', chunksize);
+      }
+      
+      // Stream the audio data
+      response.body.pipe(res);
+      
+    } catch (error) {
+      console.error('[Audio Proxy] Error:', error.message);
+      res.status(500).json({ 
+        error: 'Failed to proxy audio file',
+        details: error.message 
+      });
+    }
+  });
+
   // Google OAuth routes with error handling
   app.get('/api/auth/google', (req, res, next) => {
     console.log('[google-auth] Starting Google OAuth flow');

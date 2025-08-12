@@ -237,7 +237,20 @@ const AudioQuizzes = ({ user }) => {
                                   className="btn btn-sm btn-outline-info"
                                   onClick={() => {
                                     console.log('Testing audio URL:', question.audioUrl);
-                                    const audio = new Audio(question.audioUrl);
+                                    
+                                    // Check if URL needs proxy (Google Drive, Dropbox, etc.)
+                                    const needsProxy = question.audioUrl.includes('drive.google.com') || 
+                                                      question.audioUrl.includes('dropbox.com') ||
+                                                      question.audioUrl.includes('onedrive.live.com') ||
+                                                      question.audioUrl.includes('icloud.com');
+                                    
+                                    const audioUrl = needsProxy 
+                                      ? `/api/audio-proxy?url=${encodeURIComponent(question.audioUrl)}`
+                                      : question.audioUrl;
+                                    
+                                    console.log('[Audio Test] Using', needsProxy ? 'PROXY' : 'DIRECT', 'for:', question.audioUrl);
+                                    
+                                    const audio = new Audio(audioUrl);
                                     audio.volume = 0.8;
                                     
                                     // Add event listeners for debugging
@@ -279,7 +292,19 @@ const AudioQuizzes = ({ user }) => {
                                       className="btn btn-primary me-3"
                                       style={{ minWidth: '80px' }}
                                       onClick={(e) => {
-                                        const audio = new Audio(question.audioUrl);
+                                        // Check if URL needs proxy (Google Drive, Dropbox, etc.)
+                                        const needsProxy = question.audioUrl.includes('drive.google.com') || 
+                                                          question.audioUrl.includes('dropbox.com') ||
+                                                          question.audioUrl.includes('onedrive.live.com') ||
+                                                          question.audioUrl.includes('icloud.com');
+                                        
+                                        const audioUrl = needsProxy 
+                                          ? `/api/audio-proxy?url=${encodeURIComponent(question.audioUrl)}`
+                                          : question.audioUrl;
+                                        
+                                        console.log('[Audio Player] Using', needsProxy ? 'PROXY' : 'DIRECT', 'for:', question.audioUrl);
+                                        
+                                        const audio = new Audio(audioUrl);
                                         audio.volume = 0.7;
                                         
                                         const btn = e.target;
@@ -467,7 +492,7 @@ const AudioQuizzes = ({ user }) => {
                     </button>
                     
                     <button 
-                      className="btn btn-info btn-sm"
+                      className="btn btn-info btn-sm me-2"
                       onClick={() => {
                         const audio = new Audio('/sounds/button-click.mp3');
                         audio.volume = 0.3;
@@ -480,15 +505,40 @@ const AudioQuizzes = ({ user }) => {
                     >
                       Test Local Audio
                     </button>
+                    
+                    <button 
+                      className="btn btn-warning btn-sm"
+                      onClick={() => {
+                        // Test Google Drive proxy
+                        const testUrl = 'https://drive.google.com/file/d/1example/view';
+                        const proxyUrl = `/api/audio-proxy?url=${encodeURIComponent(testUrl)}`;
+                        
+                        fetch(proxyUrl)
+                          .then(response => {
+                            if (response.ok) {
+                              alert('✅ Audio proxy is working! Google Drive/Dropbox URLs will now work.');
+                            } else {
+                              alert('⚠️ Audio proxy test failed. Check server logs.');
+                            }
+                          })
+                          .catch(error => {
+                            alert('❌ Audio proxy error: ' + error.message);
+                          });
+                      }}
+                    >
+                      Test Proxy
+                    </button>
                   </div>
                   
                   <div className="bg-light p-2 rounded mb-3">
-                    <small><strong>Common Solutions:</strong><br/>
+                    <small><strong>Audio Proxy Solution:</strong><br/>
+                    ✅ Google Drive, Dropbox, OneDrive URLs now automatically use proxy<br/>
+                    ✅ This bypasses CORS and hotlinking restrictions<br/>
+                    ✅ Your cloud storage files should now work!<br/><br/>
+                    <strong>Still having issues?</strong><br/>
                     1. <strong>Click somewhere on this page first</strong> (browser requirement)<br/>
-                    2. Check browser isn't muted or blocking audio<br/>
-                    3. Try a different browser (Chrome, Firefox, Safari)<br/>
-                    4. Make sure audio URL ends with .mp3, .wav, or .ogg<br/>
-                    5. Test your audio URL in a new browser tab
+                    2. Make sure your cloud file is publicly shared<br/>
+                    3. Try the "Test Proxy" button above
                     </small>
                   </div>
                 </div>
@@ -578,7 +628,19 @@ const AudioQuizzes = ({ user }) => {
                                 <button 
                                   className="btn btn-success btn-sm me-2"
                                   onClick={(e) => {
-                                    const audio = new Audio(question.audioUrl);
+                                    // Check if URL needs proxy (Google Drive, Dropbox, etc.)
+                                    const needsProxy = question.audioUrl.includes('drive.google.com') || 
+                                                      question.audioUrl.includes('dropbox.com') ||
+                                                      question.audioUrl.includes('onedrive.live.com') ||
+                                                      question.audioUrl.includes('icloud.com');
+                                    
+                                    const audioUrl = needsProxy 
+                                      ? `/api/audio-proxy?url=${encodeURIComponent(question.audioUrl)}`
+                                      : question.audioUrl;
+                                    
+                                    console.log('[Audio Preview] Using', needsProxy ? 'PROXY' : 'DIRECT', 'for:', question.audioUrl);
+                                    
+                                    const audio = new Audio(audioUrl);
                                     audio.volume = 0.6;
                                     
                                     const btn = e.target;
@@ -759,42 +821,6 @@ const AudioQuizzes = ({ user }) => {
           <p className="lead text-muted">
             Test your listening skills with interactive audio-based quizzes
           </p>
-        </div>
-      </div>
-
-      {/* Audio Test Section */}
-      <div className="row mb-4">
-        <div className="col-12">
-          <div className="alert alert-info">
-            <h6><i className="fas fa-volume-up me-2"></i>Audio Test</h6>
-            <p className="mb-2">Test your audio before taking quizzes:</p>
-            <audio 
-              controls 
-              className="w-100"
-              style={{height: '40px'}}
-              muted={false}
-              onLoadedData={(e) => {
-                e.target.muted = false;
-                e.target.volume = 0.8;
-              }}
-              onCanPlay={(e) => {
-                e.target.muted = false;
-              }}
-              onClick={(e) => {
-                e.target.muted = false;
-                e.target.volume = 0.8;
-              }}
-              onPlay={(e) => {
-                e.target.muted = false;
-                e.target.volume = 0.8;
-              }}
-            >
-              <source src="https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3" type="audio/mpeg" />
-              <source src="https://file-examples.com/storage/fe68c9fa4c07bb91554745a/2017/11/file_example_MP3_700KB.mp3" type="audio/mpeg" />
-              Your browser does not support audio playback.
-            </audio>
-            <small className="text-muted">If you can hear the test audio, your browser supports audio playback for quizzes.</small>
-          </div>
         </div>
       </div>
 
