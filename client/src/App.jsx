@@ -96,6 +96,17 @@ const AuthProvider = ({ children }) => {
         }
         setIsLoading(false)
       })
+      
+    // Listen for user updates from authentication modal
+    const handleUserUpdate = (event) => {
+      if (event.detail) {
+        console.log('[AuthProvider] User updated via event:', event.detail.name)
+        setUser(event.detail)
+      }
+    }
+    
+    window.addEventListener('userUpdated', handleUserUpdate)
+    return () => window.removeEventListener('userUpdated', handleUserUpdate)
   }, [])
 
   const login = (userData) => {
@@ -106,6 +117,7 @@ const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null)
     localStorage.removeItem('user')
+    window.currentUser = null
   }
 
   const refreshUser = async () => {
@@ -148,7 +160,7 @@ const AuthProvider = ({ children }) => {
 
 // Route components
 const AppRoutes = () => {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const [location] = useLocation()
 
   // Protected route wrapper
@@ -200,7 +212,7 @@ const AppRoutes = () => {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <Navigation user={user} />
+      <Navigation user={user} onLogout={logout} />
       <main className="flex-grow-1">
         <Switch>
           <Route path="/admin/posts" component={() => (

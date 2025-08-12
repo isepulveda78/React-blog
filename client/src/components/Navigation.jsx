@@ -37,9 +37,12 @@ const Navigation = ({ user, onLogout }) => {
     } catch (e) {
       console.error("Logout error:", e);
     }
-    window.currentUser = null;
-    localStorage.removeItem("user");
-    window.location.href = "/";
+    // Call the parent logout function to update state
+    if (onLogout) {
+      onLogout();
+    }
+    // Navigate to home without hard reload
+    navigateTo('/');
   };
 
   // Simple inline AuthModal since window.AuthModal might not load properly
@@ -101,10 +104,21 @@ const Navigation = ({ user, onLogout }) => {
         console.log("Authentication successful:", userData);
         playSound('success'); // Play success sound
 
-        // Update global user state and refresh
+        // Update global user state and refresh without hard reload
         window.currentUser = userData;
         localStorage.setItem("user", JSON.stringify(userData));
-        window.location.reload();
+        
+        // Show success toast
+        if (window.toast) {
+          window.toast({
+            title: "Success",
+            description: isLoginMode ? "Successfully logged in!" : "Account created successfully!",
+            variant: "default"
+          });
+        }
+        
+        // Trigger auth state update instead of page reload
+        window.dispatchEvent(new CustomEvent('userUpdated', { detail: userData }));
 
         setShowAuthModal(false);
         setFormData({ email: "", password: "", username: "", name: "", role: "" });
