@@ -56,7 +56,9 @@ const AudioQuizzes = ({ user }) => {
   useEffect(() => {
     // Fetch attempt counts for each quiz when user is authenticated
     if (user?.id && quizzes.length > 0) {
-      fetchAttemptCounts();
+      fetchAttemptCounts().catch(error => {
+        console.error('Error fetching attempt counts:', error);
+      });
     }
   }, [user?.id, quizzes]);
 
@@ -383,15 +385,19 @@ const AudioQuizzes = ({ user }) => {
       
       // Update attempt count for this quiz
       if (user?.id) {
-        const response = await fetch(`/api/quiz-grades?userId=${user.id}&quizId=${selectedQuiz.id}`, {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const grades = await response.json();
-          setQuizAttempts(prev => ({
-            ...prev,
-            [selectedQuiz.id]: grades.length
-          }));
+        try {
+          const response = await fetch(`/api/quiz-grades?userId=${user.id}&quizId=${selectedQuiz.id}`, {
+            credentials: 'include'
+          });
+          if (response.ok) {
+            const grades = await response.json();
+            setQuizAttempts(prev => ({
+              ...prev,
+              [selectedQuiz.id]: grades.length
+            }));
+          }
+        } catch (error) {
+          console.error('Error updating attempt count:', error);
         }
       }
     } catch (error) {

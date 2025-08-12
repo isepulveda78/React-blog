@@ -36,7 +36,9 @@ const TextQuizzes = ({ user }) => {
   useEffect(() => {
     // Fetch attempt counts for each quiz when user is authenticated
     if (isAuthenticated && user?.id && quizzes.length > 0) {
-      fetchAttemptCounts();
+      fetchAttemptCounts().catch(error => {
+        console.error('Error fetching attempt counts:', error);
+      });
     }
   }, [isAuthenticated, user?.id, quizzes]);
 
