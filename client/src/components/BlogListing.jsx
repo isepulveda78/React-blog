@@ -299,13 +299,16 @@ const BlogListing = ({ user }) => {
             </small>
           </div>
           <div className="row">
-            {filteredPosts.map(post => (
-              <BlogCard
-                key={post.id}
-                post={post}
-                onReadMore={handleReadMore}
-              />
-            ))}
+            {filteredPosts.map((post, index) => {
+              console.log(`Rendering post ${index}:`, post.title, `(ID: ${post.id})`);
+              return (
+                <BlogCard
+                  key={`${post.id}-${lastRefresh}`}
+                  post={post}
+                  onReadMore={handleReadMore}
+                />
+              );
+            })}
           </div>
         </>
       ) : (

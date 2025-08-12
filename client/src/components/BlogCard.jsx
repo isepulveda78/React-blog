@@ -59,7 +59,14 @@ const BlogCard = ({ post, onReadMore }) => {
               {formatDate(post.publishedAt || post.createdAt)}
             </small>
           </div>
-          <h5 className="card-title">{post.title}</h5>
+          <h5 className="card-title">
+            {post.title}
+            {process.env.NODE_ENV === 'development' && (
+              <small className="text-muted d-block" style={{fontSize: '0.7rem'}}>
+                ID: {post.id}
+              </small>
+            )}
+          </h5>
           <div className="mt-auto">
             <button
               className="btn btn-outline-primary"
