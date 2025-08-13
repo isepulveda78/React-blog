@@ -132,14 +132,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     const matches = findAllMatches(searchValue, content);
     
     setSearchMatches(matches);
-    
-    if (matches.length > 0) {
-      setCurrentMatchIndex(0);
-      setTimeout(() => updateHighlightPosition(content, matches), 10);
-    } else {
-      setCurrentMatchIndex(-1);
-      updateHighlightPosition('', []);
-    }
+    updateHighlights(content, matches);
   };
 
 
@@ -156,44 +149,25 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     } else {
       // Clear highlights when search term is empty
       setSearchMatches([]);
-      setCurrentMatchIndex(-1);
-      updateHighlightPosition('', []);
+      updateHighlights('', []);
     }
   };
 
-  const findNext = () => {
-    if (searchMatches.length === 0) return;
 
-    const nextIndex = (currentMatchIndex + 1) % searchMatches.length;
-    setCurrentMatchIndex(nextIndex);
-  };
 
-  const findPrevious = () => {
-    if (searchMatches.length === 0) return;
-
-    const prevIndex = currentMatchIndex === 0 ? searchMatches.length - 1 : currentMatchIndex - 1;
-    setCurrentMatchIndex(prevIndex);
-  };
-
-  // Create mirror div for precise text measurement like CodePen example
-  const updateHighlightPosition = (content, matches) => {
-    if (!textareaRef.current || matches.length === 0 || currentMatchIndex === -1) {
-      // Clean up existing highlights
-      if (highlightOverlayRef.current) {
-        highlightOverlayRef.current.innerHTML = '';
-      }
-      return;
-    }
-
-    const textarea = textareaRef.current;
-    const currentMatch = matches[currentMatchIndex];
-    
-    // Create mirror div with identical styling to textarea
-    if (!highlightOverlayRef.current) return;
+  // Simple highlighting like CodePen - highlight all matches
+  const updateHighlights = (content, matches) => {
+    if (!textareaRef.current || !highlightOverlayRef.current) return;
     
     const mirror = highlightOverlayRef.current;
     
+    if (matches.length === 0) {
+      mirror.innerHTML = '';
+      return;
+    }
+    
     // Copy all styles from textarea to mirror
+    const textarea = textareaRef.current;
     const computedStyle = getComputedStyle(textarea);
     mirror.style.position = 'absolute';
     mirror.style.top = '0';
@@ -221,18 +195,21 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     mirror.scrollTop = textarea.scrollTop;
     mirror.scrollLeft = textarea.scrollLeft;
     
-    // Create highlighted content
-    let highlightedContent = '';
+    // Create content with all matches highlighted
+    let highlightedContent = content;
     
-    // Text before match (invisible)
-    highlightedContent += escapeHtml(content.substring(0, currentMatch.start));
+    // Sort matches by position (descending) to avoid index shifting
+    const sortedMatches = [...matches].sort((a, b) => b.start - a.start);
     
-    // The match (highlighted)
-    highlightedContent += `<mark style="background-color: rgba(255, 152, 0, 0.8); border-radius: 2px; color: transparent; animation: highlight-pulse 0.3s ease-in-out;">${escapeHtml(currentMatch.text)}</mark>`;
+    // Replace each match with highlighted version
+    sortedMatches.forEach(match => {
+      const before = highlightedContent.substring(0, match.start);
+      const highlighted = `<mark style="background-color: rgba(255, 152, 0, 0.7); border-radius: 2px; color: transparent;">${escapeHtml(match.text)}</mark>`;
+      const after = highlightedContent.substring(match.end);
+      highlightedContent = before + highlighted + after;
+    });
     
-    // Text after match (invisible)
-    highlightedContent += escapeHtml(content.substring(currentMatch.end));
-    
+    // Escape the non-highlighted parts
     mirror.innerHTML = highlightedContent;
   };
 
@@ -546,28 +523,13 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                                   >
                                     <i className="fas fa-search"></i>
                                   </button>
-                                  <button
-                                    type="button"
-                                    className="btn btn-outline-secondary"
-                                    onClick={findPrevious}
-                                    title="Previous (Shift+F3)"
-                                  >
-                                    <i className="fas fa-chevron-up"></i>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="btn btn-outline-secondary"
-                                    onClick={findNext}
-                                    title="Next (F3)"
-                                  >
-                                    <i className="fas fa-chevron-down"></i>
-                                  </button>
+
                                 </div>
                               </div>
                               <div className="col-md-2">
                                 {searchMatches.length > 0 && (
                                   <small className="text-muted">
-                                    {currentMatchIndex + 1} of {searchMatches.length}
+                                    Found: <span className="fw-bold">{searchMatches.length}</span>
                                   </small>
                                 )}
                               </div>
@@ -588,7 +550,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               </div>
                             </div>
                             <small className="text-muted">
-                              Use Ctrl+F to open search, Enter to start searching, F3 for next, Shift+F3 for previous, Esc to close
+                              Use Ctrl+F to open search, type to highlight matches, Esc to close
                             </small>
                           </div>
                         </div>
@@ -615,10 +577,8 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               setSearchMatches(newMatches);
                               if (newMatches.length === 0) {
                                 setCurrentMatchIndex(-1);
-                              } else if (currentMatchIndex >= newMatches.length) {
-                                setCurrentMatchIndex(0);
                               }
-                              setTimeout(() => updateHighlightPosition(e.target.value, newMatches), 10);
+                              updateHighlights(e.target.value, newMatches);
                             }
                           }}
                           onKeyDown={handleKeyDown}
