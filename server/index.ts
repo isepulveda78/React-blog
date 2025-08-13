@@ -47,6 +47,7 @@ app.use(helmet({
       objectSrc: ["'none'"],
       mediaSrc: ["'self'", "data:", "blob:"],
       frameSrc: ["'self'", "https://docs.google.com", "https://drive.google.com", "https://www.google.com", "https://youtube.com", "https://www.youtube.com", "https://youtu.be", "https://player.vimeo.com", "https://codepen.io"],
+      frameAncestors: ["'self'"],
       workerSrc: ["'self'", "blob:"],
       childSrc: ["'self'", "blob:"],
     },
