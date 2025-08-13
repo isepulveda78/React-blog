@@ -49,6 +49,13 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     }
   }, [post]);
 
+  // Update highlighting when current match changes
+  useEffect(() => {
+    if (searchMatches.length > 0 && currentMatchIndex !== -1) {
+      updateHighlightOverlay(formData.content, searchMatches);
+    }
+  }, [currentMatchIndex]);
+
 
 
   const fetchCategories = async () => {
@@ -132,12 +139,14 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     let highlightedContent = '';
     let lastIndex = 0;
     
-    matches.forEach((match) => {
+    matches.forEach((match, index) => {
       // Add text before the match
       highlightedContent += escapeHtml(content.substring(lastIndex, match.start));
       
-      // Add highlighted match (all matches get same highlighting)
-      highlightedContent += `<mark class="search-match">${escapeHtml(match.text)}</mark>`;
+      // Add highlighted match - current match gets different highlighting
+      const isCurrentMatch = index === currentMatchIndex;
+      const className = isCurrentMatch ? 'search-match search-match-current' : 'search-match';
+      highlightedContent += `<mark class="${className}">${escapeHtml(match.text)}</mark>`;
       
       lastIndex = match.end;
     });
@@ -592,7 +601,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                         )}
                         
                         {/* Match counter */}
-                        {searchMatches.length > 0 && (
+                        {searchMatches.length > 0 && currentMatchIndex !== -1 && (
                           <div 
                             className="position-absolute bg-warning text-dark px-2 py-1 rounded"
                             style={{
@@ -604,7 +613,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                             }}
                           >
-                            {searchMatches.length} match{searchMatches.length !== 1 ? 'es' : ''}
+                            Match {currentMatchIndex + 1} of {searchMatches.length}
                           </div>
                         )}
                       </div>

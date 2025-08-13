@@ -14451,4 +14451,12 @@ a {
   border-radius: 2px;
 }
 
+/* Current search match highlighting */
+.search-match-current {
+  background-color: #ff9800 !important;
+  color: #fff !important;
+  font-weight: bold;
+  box-shadow: 0 0 3px rgba(255, 152, 0, 0.5);
+}
+
 
