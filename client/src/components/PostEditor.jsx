@@ -155,75 +155,69 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
 
 
-  // Simple highlighting like CodePen - highlight all matches
+  // Exact CodePen highlighting implementation
   const updateHighlights = (content, matches) => {
     if (!textareaRef.current || !highlightOverlayRef.current) return;
     
     const mirror = highlightOverlayRef.current;
+    const textarea = textareaRef.current;
     
     if (matches.length === 0) {
       mirror.innerHTML = '';
       return;
     }
     
-    // Copy all styles from textarea to mirror - exactly like CodePen
-    const textarea = textareaRef.current;
-    const computedStyle = getComputedStyle(textarea);
+    // Get computed styles from textarea
+    const styles = getComputedStyle(textarea);
     
-    // Set mirror to match textarea exactly
+    // Apply exact same dimensions and position
     mirror.style.position = 'absolute';
-    mirror.style.top = '0';
-    mirror.style.left = '0';
-    mirror.style.right = '0';
-    mirror.style.bottom = '0';
-    mirror.style.fontFamily = computedStyle.fontFamily;
-    mirror.style.fontSize = computedStyle.fontSize;
-    mirror.style.fontWeight = computedStyle.fontWeight;
-    mirror.style.lineHeight = computedStyle.lineHeight;
-    mirror.style.letterSpacing = computedStyle.letterSpacing;
-    mirror.style.wordSpacing = computedStyle.wordSpacing;
-    mirror.style.textTransform = computedStyle.textTransform;
-    mirror.style.textIndent = computedStyle.textIndent;
-    mirror.style.textAlign = computedStyle.textAlign;
-    mirror.style.padding = computedStyle.padding;
-    mirror.style.border = computedStyle.border;
+    mirror.style.top = '0px';
+    mirror.style.left = '0px';
+    mirror.style.width = textarea.clientWidth + 'px';
+    mirror.style.height = textarea.clientHeight + 'px';
+    
+    // Copy every text-related style exactly
+    const styleProps = [
+      'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
+      'lineHeight', 'letterSpacing', 'wordSpacing', 'textAlign', 
+      'textTransform', 'textIndent', 'padding', 'paddingTop', 
+      'paddingRight', 'paddingBottom', 'paddingLeft', 'border',
+      'borderWidth', 'boxSizing', 'whiteSpace', 'wordWrap',
+      'wordBreak', 'overflowWrap'
+    ];
+    
+    styleProps.forEach(prop => {
+      mirror.style[prop] = styles[prop];
+    });
+    
+    // Make invisible overlay
+    mirror.style.color = 'transparent';
+    mirror.style.backgroundColor = 'transparent';
     mirror.style.borderColor = 'transparent';
-    mirror.style.margin = computedStyle.margin;
-    mirror.style.boxSizing = computedStyle.boxSizing;
-    mirror.style.whiteSpace = 'pre-wrap';
-    mirror.style.wordWrap = 'break-word';
-    mirror.style.wordBreak = computedStyle.wordBreak;
     mirror.style.overflow = 'hidden';
-    mirror.style.overflowWrap = computedStyle.overflowWrap;
     mirror.style.pointerEvents = 'none';
     mirror.style.zIndex = '1';
-    mirror.style.color = 'transparent';
-    mirror.style.background = 'transparent';
-    mirror.style.resize = 'none';
     
-    // Sync scroll position
+    // Sync scroll exactly
     mirror.scrollTop = textarea.scrollTop;
     mirror.scrollLeft = textarea.scrollLeft;
     
-    // Build highlighted content like the CodePen example
-    let highlightedContent = '';
-    let lastEnd = 0;
+    // Build HTML with highlights - simple approach like CodePen
+    let html = '';
+    let lastIndex = 0;
     
-    // Process each match in order
     matches.forEach(match => {
-      // Add text before this match (escaped and transparent)
-      highlightedContent += escapeHtml(content.substring(lastEnd, match.start));
-      
+      // Add text before match (HTML escaped)
+      html += escapeHtml(content.substring(lastIndex, match.start));
       // Add highlighted match
-      highlightedContent += `<mark style="background-color: rgba(255, 165, 0, 0.9); color: transparent; padding: 0; margin: 0;">${escapeHtml(match.text)}</mark>`;
-      
-      lastEnd = match.end;
+      html += `<mark>${escapeHtml(match.text)}</mark>`;
+      lastIndex = match.end;
     });
+    // Add remaining text
+    html += escapeHtml(content.substring(lastIndex));
     
-    // Add remaining text after last match
-    highlightedContent += escapeHtml(content.substring(lastEnd));
-    
-    mirror.innerHTML = highlightedContent;
+    mirror.innerHTML = html;
   };
 
   const escapeHtml = (text) => {
