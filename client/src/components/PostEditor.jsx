@@ -274,29 +274,40 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                         </div>
                       </div>
 
-                      {editorMode === 'rich' ? (
-                        <textarea
-                          className="form-control"
-                          rows="15"
-                          value={formData.content}
-                          onChange={(e) => handleChange('content', e.target.value)}
-                          placeholder="Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
-                          style={{ fontFamily: 'inherit', fontSize: '14px' }}
-                        />
-                      ) : (
-                        /* HTML Editor */
-                        <div className="position-relative">
-                          <textarea
-                            className="form-control"
-                            rows="15"
-                            value={formData.content}
-                            onChange={(e) => handleChange('content', e.target.value)}
-                            placeholder="Write your post content here using HTML..."
-                            style={{ fontFamily: 'monospace', fontSize: '14px' }}
-                          />
-                          <div className="position-absolute top-0 end-0 p-2">
-                            <small className="text-muted">HTML Mode</small>
+                      <textarea
+                        className={`form-control ${editorMode === 'html' ? 'font-monospace' : ''}`}
+                        rows="15"
+                        value={formData.content}
+                        onChange={(e) => handleChange('content', e.target.value)}
+                        placeholder={editorMode === 'html' ? "Enter HTML content here..." : "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."}
+                        style={{ fontSize: '14px' }}
+                      />
+                      
+                      {/* HTML Preview Section */}
+                      {editorMode === 'html' && formData.content && (
+                        <div className="mt-4">
+                          <h6 className="mb-3">
+                            <i className="fas fa-eye me-2"></i>
+                            HTML Preview
+                          </h6>
+                          <div 
+                            className="card"
+                            style={{ maxHeight: '400px', overflowY: 'auto' }}
+                          >
+                            <div className="card-body">
+                              <div 
+                                dangerouslySetInnerHTML={{ __html: formData.content }}
+                                style={{ 
+                                  lineHeight: '1.6',
+                                  fontSize: '16px'
+                                }}
+                              />
+                            </div>
                           </div>
+                          <small className="text-muted mt-2 d-block">
+                            <i className="fas fa-info-circle me-1"></i>
+                            This preview shows how your HTML will look when published.
+                          </small>
                         </div>
                       )}
                     </div>
