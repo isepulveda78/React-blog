@@ -226,31 +226,26 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     return div.innerHTML;
   };
 
-  // Function to insert HTML anchor at cursor position
+  // Function to insert HTML link at cursor position
   const insertHtmlAnchor = () => {
     if (!textareaRef.current) return;
     
-    const anchorId = prompt('Enter anchor ID (e.g., "section1"):');
-    if (!anchorId) return;
-    
-    // Clean the anchor ID (remove spaces, special chars)
-    const cleanId = anchorId.replace(/[^a-zA-Z0-9-_]/g, '-').toLowerCase();
-    const anchorTag = `<a id="${cleanId}"></a>`;
+    const linkTag = `<a href=""></a>`;
     
     const textarea = textareaRef.current;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const currentValue = textarea.value;
     
-    // Insert the anchor tag at cursor position
-    const newValue = currentValue.slice(0, start) + anchorTag + currentValue.slice(end);
+    // Insert the link tag at cursor position
+    const newValue = currentValue.slice(0, start) + linkTag + currentValue.slice(end);
     
     handleChange('content', newValue);
     
-    // Set cursor position after the inserted anchor
+    // Set cursor position inside the href quotes
     setTimeout(() => {
       textarea.focus();
-      textarea.setSelectionRange(start + anchorTag.length, start + anchorTag.length);
+      textarea.setSelectionRange(start + 9, start + 9); // Position cursor between the quotes
     }, 0);
   };
 
@@ -505,9 +500,9 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                                 type="button"
                                 className="btn btn-outline-secondary btn-sm"
                                 onClick={insertHtmlAnchor}
-                                title="Insert HTML Anchor"
+                                title="Insert HTML Link"
                               >
-                                <i className="fas fa-anchor"></i>
+                                <i className="fas fa-link"></i>
                               </button>
                             </>
                           )}
