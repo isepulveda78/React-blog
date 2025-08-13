@@ -34,6 +34,7 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **COMPLETED: Audio Lists System** - Created comprehensive audio file management system allowing teachers to create lists of audio files from Google Drive. Students can access these lists to listen to audio files. Features include: create/edit/delete lists, Google Drive URL integration with audio proxy, teacher-only creation with student access, and Bootstrap UI with audio playback controls.
 - **RESOLVED: Browser back button navigation issue** - Fixed client-side routing by replacing manual browser history manipulation with proper Wouter Link components. Browser back button now works correctly for all navigation between pages without showing "not found" errors.
 - **RESOLVED: Blank page issue on admin post create/edit** - Fixed critical routing problem where AdminPosts and AdminPostEditor components were using window.location.href instead of proper client-side routing. Replaced with Wouter navigate() function to eliminate page reloads and blank screens when accessing create/edit post pages.
+- **RESOLVED: Internal link navigation in blog posts** - Fixed issue where internal links with full domain URLs (like https://mr-s-teaches.com/spanish-alphabet) were being treated as external links causing page reloads. Updated link handler to detect same-domain URLs and extract the path for proper client-side navigation. Tested and confirmed working in development with proper production build support.
 
 ## System Architecture
 
