@@ -816,17 +816,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                       </small>
                     </div>
 
-                    <div className="mb-3">
-                      <label className="form-label">Tags</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={formData.tags.join(', ')}
-                        onChange={(e) => handleTagsChange(e.target.value)}
-                        placeholder="tag1, tag2, tag3"
-                      />
-                      <small className="text-muted">Separate tags with commas</small>
-                    </div>
+
                   </div>
                 </div>
 
