@@ -36,7 +36,7 @@ app.use((req, res, next) => {
 
 // Security middleware - implement first for all requests
 app.use(helmet({
-  contentSecurityPolicy: process.env.NODE_ENV === 'development' ? false : {
+  contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
