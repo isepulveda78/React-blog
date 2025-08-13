@@ -750,10 +750,14 @@ export function registerRoutes(app) {
     try {
       // Check if user is authenticated (approval no longer required)
       if (!req.session.user) {
+        console.log("[GET /api/posts/:slugOrId] No user in session for:", req.params.slugOrId);
+        console.log("[GET /api/posts/:slugOrId] Session ID:", req.session.id || 'undefined');
+        console.log("[GET /api/posts/:slugOrId] Session user:", req.session.user || 'undefined');
         return res.status(401).json({ message: "Authentication required to view blog posts" });
       }
 
       const { slugOrId } = req.params;
+      console.log("[GET /api/posts/:slugOrId] Fetching post for user:", req.session.user.email, "Post ID:", slugOrId);
       
       // Try to find by slug first, then by ID
       let post = await storage.getPostBySlug(slugOrId);
@@ -762,9 +766,11 @@ export function registerRoutes(app) {
       }
 
       if (!post) {
+        console.log("[GET /api/posts/:slugOrId] Post not found:", slugOrId);
         return res.status(404).json({ message: "Post not found" });
       }
 
+      console.log("[GET /api/posts/:slugOrId] Successfully found post:", post.title);
       res.json(post);
     } catch (error) {
       console.error("Error fetching post:", error);
