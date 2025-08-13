@@ -392,7 +392,7 @@ const ListenToType = ({ user }) => {
         <div className="row">
           <div className="col-md-8 mx-auto">
             <div className="card shadow">
-              <div className="card-header bg-primary text-white">
+              <div className="card-header bg-primary">
                 <h5 className="mb-0 d-flex justify-content-between align-items-center">
                   <span>
                     <i className="fas fa-comments me-2"></i>
