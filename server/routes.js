@@ -932,13 +932,9 @@ export function registerRoutes(app) {
       }
       
       // Regenerate slug if title changed
-      console.log('[server] Title comparison - New:', postData.title, 'Existing:', existingPost.title);
-      console.log('[server] Title changed?', postData.title !== existingPost.title);
       if (postData.title && postData.title !== existingPost.title) {
         postData.slug = generateSlug(postData.title);
         console.log('[server] Regenerated slug for updated title:', postData.slug);
-      } else {
-        console.log('[server] No slug regeneration - title unchanged or missing');
       }
       
       // Add category name if categoryId is provided
@@ -980,13 +976,9 @@ export function registerRoutes(app) {
       }
       
       // Regenerate slug if title changed
-      console.log('[server] PATCH - Title comparison - New:', postData.title, 'Existing:', existingPost.title);
-      console.log('[server] PATCH - Title changed?', postData.title !== existingPost.title);
       if (postData.title && postData.title !== existingPost.title) {
         postData.slug = generateSlug(postData.title);
         console.log('[server] PATCH - Regenerated slug for updated title:', postData.slug);
-      } else {
-        console.log('[server] PATCH - No slug regeneration - title unchanged or missing');
       }
       
       // Add category name if categoryId is provided

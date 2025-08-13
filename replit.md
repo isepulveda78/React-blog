@@ -28,7 +28,7 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **RESOLVED: HTML encoding display issue** - Applied comprehensive HTML entity decoding to all blog API endpoints (public posts, individual posts, admin routes). Blog post updates now display correctly without HTML entity artifacts, with proper cache-busting for immediate visibility.
 - **RESOLVED: WebSocket server conflicts** - Fixed persistent WebSocket port conflicts that were preventing server restarts. Server now starts reliably without port blocking issues.
 - **RESOLVED: iframe embedding blocked** - Fixed Content Security Policy to allow iframe embedding from Google Docs, Google Drive, YouTube, Vimeo, and other educational platforms. Google presentations and educational content now display properly.
-- **RESOLVED: Slug regeneration on post update** - Fixed issue where post slugs wouldn't update when post titles were changed, now automatically regenerates SEO-friendly URLs when titles are modified.
+- **RESOLVED: Slug regeneration on post update** - Fixed issue where post slugs wouldn't update when post titles were changed, now automatically regenerates SEO-friendly URLs when titles are modified. Confirmed working in both PUT and PATCH routes.
 - **REMOVED: Editor.js Dependencies** - Removed Editor.js block editor due to complexity issues and reverted to simple textarea elements with HTML formatting support for reliable content editing.
 - **COMPLETED: Production Code Cleanup** - Removed all debugging console.log statements from blog components, admin interfaces, and editor components for cleaner production-ready code.
 
