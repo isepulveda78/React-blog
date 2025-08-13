@@ -157,7 +157,7 @@ const BlogListing = ({ user }) => {
 
       {/* Search and Filter */}
       <div className="row mb-4">
-        <div className="col-md-6">
+        <div className="col-md-8">
           <input
             type="text"
             className="form-control form-control-lg"
@@ -180,30 +180,7 @@ const BlogListing = ({ user }) => {
             ))}
           </select>
         </div>
-        <div className="col-md-2">
-          <button
-            className="btn btn-outline-primary btn-lg w-100"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            {refreshing ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                Loading...
-              </>
-            ) : (
-              <>
-                <i className="bi bi-arrow-clockwise me-1"></i>
-                Refresh
-              </>
-            )}
-          </button>
-        </div>
       </div>
-
-
-
-
 
       {loading ? (
         <div className="text-center py-5">
