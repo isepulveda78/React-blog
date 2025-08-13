@@ -63,6 +63,9 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       
       // Scroll to center the match in the viewport
       textarea.scrollTop = Math.max(0, scrollPosition - textarea.clientHeight / 2);
+      
+      // Update highlight mirror to show current match
+      updateHighlightMirror(formData.content, searchMatches);
     }
   }, [currentMatchIndex, searchMatches]);
 
@@ -130,8 +133,10 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     
     if (matches.length > 0) {
       setCurrentMatchIndex(0);
+      updateHighlightMirror(content, matches);
     } else {
       setCurrentMatchIndex(-1);
+      updateHighlightMirror('', []);
     }
   };
 
@@ -150,6 +155,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       // Clear highlights when search term is empty
       setSearchMatches([]);
       setCurrentMatchIndex(-1);
+      updateHighlightMirror('', []);
     }
   };
 
@@ -165,6 +171,48 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
     const prevIndex = currentMatchIndex === 0 ? searchMatches.length - 1 : currentMatchIndex - 1;
     setCurrentMatchIndex(prevIndex);
+  };
+
+  // Update highlight mirror with proper positioning
+  const updateHighlightMirror = (content, matches) => {
+    if (!highlightOverlayRef.current) return;
+    
+    if (matches.length === 0) {
+      highlightOverlayRef.current.innerHTML = '';
+      return;
+    }
+
+    let highlightedContent = '';
+    let lastIndex = 0;
+    
+    matches.forEach((match, index) => {
+      // Add text before the match (invisible)
+      highlightedContent += escapeHtml(content.substring(lastIndex, match.start));
+      
+      // Add highlighted match
+      const isCurrentMatch = index === currentMatchIndex;
+      const className = isCurrentMatch ? 'current-match' : '';
+      highlightedContent += `<mark class="${className}">${escapeHtml(match.text)}</mark>`;
+      
+      lastIndex = match.end;
+    });
+    
+    // Add remaining text (invisible)
+    highlightedContent += escapeHtml(content.substring(lastIndex));
+    
+    highlightOverlayRef.current.innerHTML = highlightedContent;
+    
+    // Sync scroll position
+    if (textareaRef.current) {
+      highlightOverlayRef.current.scrollTop = textareaRef.current.scrollTop;
+      highlightOverlayRef.current.scrollLeft = textareaRef.current.scrollLeft;
+    }
+  };
+
+  const escapeHtml = (text) => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML.replace(/\n/g, '<br>');
   };
 
 
@@ -519,7 +567,18 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                         </div>
                       )}
 
-                      <div className="position-relative">
+                      <div className={`textarea-with-highlights ${searchMatches.length > 0 ? 'position-relative' : ''}`}>
+                        {/* Highlight mirror for visual feedback */}
+                        {searchMatches.length > 0 && (
+                          <div
+                            ref={highlightOverlayRef}
+                            className={`highlight-mirror ${editorMode === 'html' ? 'font-monospace' : ''}`}
+                            style={{
+                              fontSize: editorMode === 'html' ? '13px' : '14px'
+                            }}
+                          />
+                        )}
+                        
                         <textarea
                           ref={textareaRef}
                           className={`form-control ${editorMode === 'html' ? 'font-monospace' : ''} ${searchMatches.length > 0 ? 'search-active' : ''}`}
@@ -536,9 +595,17 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               } else if (currentMatchIndex >= newMatches.length) {
                                 setCurrentMatchIndex(0);
                               }
+                              updateHighlightMirror(e.target.value, newMatches);
                             }
                           }}
                           onKeyDown={handleKeyDown}
+                          onScroll={(e) => {
+                            // Sync scroll position with highlight mirror
+                            if (highlightOverlayRef.current) {
+                              highlightOverlayRef.current.scrollTop = e.target.scrollTop;
+                              highlightOverlayRef.current.scrollLeft = e.target.scrollLeft;
+                            }
+                          }}
                           placeholder={editorMode === 'html' ? 
                             "Enter HTML content here...\n\nExample HTML:\n<h2>Heading</h2>\n<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>\n<ul>\n  <li>List item 1</li>\n  <li>List item 2</li>\n</ul>" : 
                             "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
@@ -546,8 +613,9 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                           style={{ 
                             fontSize: editorMode === 'html' ? '13px' : '14px',
                             ...(searchMatches.length > 0 && {
-                              backgroundColor: '#fefef0',
-                              border: '2px solid #ffc107'
+                              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                              position: 'relative',
+                              zIndex: 2
                             })
                           }}
                         />
