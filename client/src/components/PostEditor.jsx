@@ -140,8 +140,15 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
   const handleSearchInput = (searchValue) => {
     setSearchTerm(searchValue);
-    // Clear highlights when search term changes
-    if (!searchValue) {
+    // Automatically search as user types
+    if (searchValue.trim()) {
+      // Debounce the search to avoid too many searches
+      clearTimeout(window.searchTimeout);
+      window.searchTimeout = setTimeout(() => {
+        performSearch(searchValue.trim());
+      }, 300);
+    } else {
+      // Clear highlights when search term is empty
       setSearchMatches([]);
       setCurrentMatchIndex(-1);
     }
