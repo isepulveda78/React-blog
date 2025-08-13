@@ -236,16 +236,19 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const currentValue = textarea.value;
+    const scrollTop = textarea.scrollTop; // Save current scroll position
     
     // Insert the link tag at cursor position
     const newValue = currentValue.slice(0, start) + linkTag + currentValue.slice(end);
     
     handleChange('content', newValue);
     
-    // Set cursor position inside the href quotes
+    // Set cursor position inside the href quotes without scrolling
     setTimeout(() => {
+      textarea.scrollTop = scrollTop; // Restore scroll position first
       textarea.focus();
       textarea.setSelectionRange(start + 9, start + 9); // Position cursor between the quotes
+      textarea.scrollTop = scrollTop; // Ensure scroll stays in place
     }, 0);
   };
 
