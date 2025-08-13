@@ -49,7 +49,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     }
   }, [post]);
 
-  // Scroll to current match and highlight using text selection
+  // Scroll to current match without interfering with cursor
   useEffect(() => {
     if (searchMatches.length > 0 && currentMatchIndex !== -1 && textareaRef.current) {
       const match = searchMatches[currentMatchIndex];
@@ -63,23 +63,6 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       
       // Scroll to center the match in the viewport
       textarea.scrollTop = Math.max(0, scrollPosition - textarea.clientHeight / 2);
-      
-      // Briefly highlight the match using text selection
-      setTimeout(() => {
-        textarea.setSelectionRange(match.start, match.end);
-        textarea.focus();
-        
-        // Clear selection after a brief moment so it doesn't interfere with editing
-        setTimeout(() => {
-          if (document.activeElement === textarea) {
-            // Only clear if user hasn't started typing
-            const currentSelection = textarea.selectionStart;
-            if (currentSelection >= match.start && currentSelection <= match.end) {
-              textarea.setSelectionRange(match.end, match.end);
-            }
-          }
-        }, 800);
-      }, 100);
     }
   }, [currentMatchIndex, searchMatches]);
 
@@ -553,7 +536,6 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               } else if (currentMatchIndex >= newMatches.length) {
                                 setCurrentMatchIndex(0);
                               }
-
                             }
                           }}
                           onKeyDown={handleKeyDown}
@@ -562,7 +544,11 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                             "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
                           }
                           style={{ 
-                            fontSize: editorMode === 'html' ? '13px' : '14px'
+                            fontSize: editorMode === 'html' ? '13px' : '14px',
+                            ...(searchMatches.length > 0 && {
+                              backgroundColor: '#fefef0',
+                              border: '2px solid #ffc107'
+                            })
                           }}
                         />
                         
@@ -579,7 +565,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                             }}
                           >
-                            {currentMatchIndex !== -1 ? `Match ${currentMatchIndex + 1} of ${searchMatches.length}` : `${searchMatches.length} match${searchMatches.length !== 1 ? 'es' : ''}`}
+{searchMatches.length} match{searchMatches.length !== 1 ? 'es' : ''} found{currentMatchIndex !== -1 ? ` | Viewing: ${currentMatchIndex + 1}` : ''}
                           </div>
                         )}
                       </div>
