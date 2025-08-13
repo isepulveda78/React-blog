@@ -402,15 +402,12 @@ function BlogPost({ user, slug }) {
       const href = target.getAttribute('href');
       if (!href) return;
 
-      console.log('Link clicked:', href);
-
       // Check if it's an internal link (relative path or same domain)
       const isInternal = href.startsWith('/') && !href.startsWith('//') || 
                         href.includes('mr-s-teaches.com') || 
                         href.includes('localhost:5000');
       
       if (isInternal) {
-        console.log('Internal link detected, preventing default and using navigate');
         e.preventDefault();
         
         // Extract the path from full URLs
@@ -425,24 +422,17 @@ function BlogPost({ user, slug }) {
           }
         }
         
-        console.log('Navigating to path:', path);
         navigate(path);
-      } else {
-        console.log('External link, allowing default behavior');
       }
     };
 
     if (contentRef.current) {
-      console.log('Adding click listener to content ref');
       contentRef.current.addEventListener('click', handleLinkClick);
       return () => {
         if (contentRef.current) {
-          console.log('Removing click listener from content ref');
           contentRef.current.removeEventListener('click', handleLinkClick);
         }
       };
-    } else {
-      console.log('contentRef.current is null, cannot add listener');
     }
   }, [post, navigate]);
 
