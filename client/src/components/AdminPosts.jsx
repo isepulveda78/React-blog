@@ -1,9 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import FroalaEditor from 'react-froala-wysiwyg';
-
-// Import Froala Editor css files.
-import 'froala-editor/css/froala_style.min.css';
-import 'froala-editor/css/froala_editor.pkgd.min.css';
 
 
 const { toast } = window;
@@ -316,36 +311,13 @@ const AdminPosts = ({ user }) => {
           
           <div className="mb-3">
             <label className="form-label">Content *</label>
-            <FroalaEditor
-              model={content}
-              onModelChange={setContent}
-              config={{
-                placeholderText: 'Write your post content here...',
-                charCounterCount: false,
-                toolbarButtons: {
-                  'moreText': {
-                    'buttons': ['bold', 'italic', 'underline', 'strikeThrough', 'subscript', 'superscript', 'fontFamily', 'fontSize', 'textColor', 'backgroundColor', 'inlineClass', 'inlineStyle', 'clearFormatting']
-                  },
-                  'moreParagraph': {
-                    'buttons': ['alignLeft', 'alignCenter', 'formatOLSimple', 'alignRight', 'alignJustify', 'formatOL', 'formatUL', 'paragraphFormat', 'paragraphStyle', 'lineHeight', 'outdent', 'indent', 'quote']
-                  },
-                  'moreRich': {
-                    'buttons': ['insertLink', 'insertImage', 'insertVideo', 'insertTable', 'emoticons', 'fontAwesome', 'specialCharacters', 'embedly', 'insertFile', 'insertHR']
-                  },
-                  'moreMisc': {
-                    'buttons': ['undo', 'redo', 'fullscreen', 'print', 'getPDF', 'spellChecker', 'selectAll', 'html', 'help'],
-                    'align': 'right',
-                    'buttonsVisible': 2
-                  }
-                },
-                quickInsertButtons: ['image', 'video', 'embedly', 'table', 'ul', 'ol', 'hr'],
-                imageUploadURL: '/api/upload-image',
-                imageUploadParams: {},
-                imageUploadMethod: 'POST',
-                requestWithCORS: false,
-                heightMin: 250,
-                attribution: false
-              }}
+            <textarea
+              className="form-control"
+              rows="12"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write your post content here. You can use HTML tags for formatting..."
+              style={{ fontFamily: 'inherit', fontSize: '14px' }}
             />
           </div>
           

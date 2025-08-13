@@ -27,7 +27,7 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **RESOLVED: Blog update visibility issue** - Fixed blog refresh system with aggressive cache-busting, enhanced debugging tools, and proper Wouter router navigation. Blog data updates now appear immediately with working "Read More" functionality.
 - **RESOLVED: HTML encoding display issue** - Applied comprehensive HTML entity decoding to all blog API endpoints (public posts, individual posts, admin routes). Blog post updates now display correctly without HTML entity artifacts, with proper cache-busting for immediate visibility.
 - **RESOLVED: WebSocket server conflicts** - Fixed persistent WebSocket port conflicts that were preventing server restarts. Server now starts reliably without port blocking issues.
-- **ADDED: Froala Rich Text Editor** - Implemented Froala Editor as the rich text editing solution, providing professional WYSIWYG editing capabilities with comprehensive formatting tools, image uploads, tables, and embedded content support.
+- **REMOVED: Froala Rich Text Editor** - Removed Froala Editor due to limitations and reverted to simple textarea elements with HTML formatting support for reliable content editing.
 - **COMPLETED: Production Code Cleanup** - Removed all debugging console.log statements from blog components, admin interfaces, and editor components for cleaner production-ready code.
 
 ## System Architecture
@@ -80,10 +80,10 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **Security Enhancements**: Helmet.js for security headers, rate limiting, comprehensive input validation (email, username, passwords, content), express-mongo-sanitize for NoSQL injection prevention, security event logging, secure cookies, strong password requirements, XSS protection, restricted file uploads, and HTTPS configuration.
 
 ### Content Editing
-- **Froala WYSIWYG Editor**: Professional rich text editor with comprehensive formatting tools, table support, image uploads, and embedded content capabilities.
+- **Simple HTML Editor**: Direct HTML textarea editing with helpful formatting hints for reliable content creation.
 - **Content Storage**: HTML content stored in database with proper entity encoding/decoding.
 - **Media Support**: Image upload and embedding via Cloudinary integration.
-- **Advanced Features**: Full toolbar with text formatting, tables, media embedding, and HTML source editing mode.
+- **HTML Support**: Users can write HTML directly for formatting (headers, bold, italic, lists, links, etc.).
 
 ### SEO Implementation
 - **SEO Management Dashboard**: Dedicated admin interface for SEO analysis, settings, and optimization.
