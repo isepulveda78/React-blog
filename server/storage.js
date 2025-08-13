@@ -1219,8 +1219,11 @@ export class MongoStorage {
     if (!existingPost) return null;
     
     const oldCategoryId = existingPost.categoryId;
+    
+    // Create update object without _id field to prevent MongoDB error
+    const { _id, ...existingWithoutId } = existingPost;
     const updatedPost = {
-      ...existingPost,
+      ...existingWithoutId,
       ...postData,
       updatedAt: new Date().toISOString(),
       publishedAt: postData.status === 'published' && !existingPost.publishedAt 
@@ -1228,10 +1231,7 @@ export class MongoStorage {
         : existingPost.publishedAt
     };
     
-    // Remove _id field from update to prevent MongoDB error
-    const { _id, ...updateData } = updatedPost;
-    
-    await this.db.collection('posts').updateOne({ id }, { $set: updateData });
+    await this.db.collection('posts').updateOne({ id }, { $set: updatedPost });
     
     // Update category post counts
     if (oldCategoryId !== postData.categoryId) {
