@@ -1,16 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import EditorJS from '@editorjs/editorjs';
-import Header from '@editorjs/header';
-import List from '@editorjs/list';
-import Paragraph from '@editorjs/paragraph';
-import Image from '@editorjs/image';
-import LinkTool from '@editorjs/link';
-import Quote from '@editorjs/quote';
-import Code from '@editorjs/code';
-import Table from '@editorjs/table';
-import Delimiter from '@editorjs/delimiter';
-import Marker from '@editorjs/marker';
-import InlineCode from '@editorjs/inline-code';
+import React, { useState, useEffect } from 'react';
 
 
 const { toast } = window;
@@ -33,8 +21,6 @@ const AdminPosts = ({ user }) => {
   
   // Categories state
   const [categories, setCategories] = useState([]);
-  const editorRef = useRef(null);
-  const editorInstanceRef = useRef(null);
 
 
 
@@ -75,95 +61,7 @@ const AdminPosts = ({ user }) => {
     }
   }, [editingPost]);
 
-  // Initialize Editor.js
-  useEffect(() => {
-    if ((showCreateForm || editingPost) && editorRef.current && !editorInstanceRef.current) {
-      const initializeEditor = async () => {
-        try {
-          const editor = new EditorJS({
-            holder: editorRef.current,
-            placeholder: 'Start writing your post content...',
-            tools: {
-              header: {
-                class: Header,
-                config: {
-                  placeholder: 'Enter a header',
-                  levels: [2, 3, 4],
-                  defaultLevel: 2
-                }
-              },
-              list: {
-                class: List,
-                inlineToolbar: true,
-                config: {
-                  defaultStyle: 'unordered'
-                }
-              },
-              quote: {
-                class: Quote,
-                inlineToolbar: true,
-                config: {
-                  quotePlaceholder: 'Enter a quote',
-                  captionPlaceholder: 'Quote\'s author',
-                }
-              },
-              code: {
-                class: Code
-              },
-              table: {
-                class: Table,
-                inlineToolbar: true,
-                config: {
-                  rows: 2,
-                  cols: 3,
-                }
-              },
-              delimiter: Delimiter,
-              marker: {
-                class: Marker
-              },
-              inlineCode: {
-                class: InlineCode
-              },
-              linkTool: {
-                class: LinkTool,
-                config: {
-                  endpoint: '/api/link-preview'
-                }
-              },
-              image: {
-                class: Image,
-                config: {
-                  endpoints: {
-                    byFile: '/api/upload-image',
-                  }
-                }
-              }
-            },
-            data: content ? JSON.parse(content) : undefined,
-            onChange: async () => {
-              const outputData = await editor.save();
-              setContent(JSON.stringify(outputData));
-            }
-          });
 
-          await editor.isReady;
-          editorInstanceRef.current = editor;
-        } catch (error) {
-          console.error('Editor.js initialization failed:', error);
-        }
-      };
-
-      initializeEditor();
-    }
-
-    return () => {
-      if (editorInstanceRef.current && editorInstanceRef.current.destroy) {
-        editorInstanceRef.current.destroy();
-        editorInstanceRef.current = null;
-      }
-    };
-  }, [showCreateForm, editingPost, content]);
 
   const fetchPosts = async () => {
     try {
@@ -415,16 +313,14 @@ const AdminPosts = ({ user }) => {
           
           <div className="mb-3">
             <label className="form-label">Content *</label>
-            <div 
-              ref={editorRef}
-              id="editorjs-admin"
-              style={{ 
-                minHeight: '250px', 
-                border: '1px solid #ced4da', 
-                borderRadius: '0.375rem',
-                padding: '1rem'
-              }}
-            ></div>
+            <textarea
+              className="form-control"
+              rows="12"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write your post content here. You can use HTML tags for formatting..."
+              style={{ fontFamily: 'inherit', fontSize: '14px' }}
+            />
           </div>
           
           <div className="mb-3">

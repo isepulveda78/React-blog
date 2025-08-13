@@ -1,16 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import EditorJS from '@editorjs/editorjs';
-import Header from '@editorjs/header';
-import List from '@editorjs/list';
-import Paragraph from '@editorjs/paragraph';
-import Image from '@editorjs/image';
-import LinkTool from '@editorjs/link';
-import Quote from '@editorjs/quote';
-import Code from '@editorjs/code';
-import Table from '@editorjs/table';
-import Delimiter from '@editorjs/delimiter';
-import Marker from '@editorjs/marker';
-import InlineCode from '@editorjs/inline-code';
+import React, { useState, useEffect } from 'react';
 
 
 const { toast } = window;
@@ -34,8 +22,6 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   const [previewMode, setPreviewMode] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [editorMode, setEditorMode] = useState('rich'); // 'rich' or 'html'
-  const editorRef = useRef(null);
-  const editorInstanceRef = useRef(null);
 
   useEffect(() => {
     fetchCategories();
@@ -56,99 +42,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     }
   }, [post]);
 
-  // Initialize Editor.js
-  useEffect(() => {
-    if (editorMode === 'rich' && editorRef.current && !editorInstanceRef.current) {
-      const initializeEditor = async () => {
-        try {
-          const editor = new EditorJS({
-            holder: editorRef.current,
-            placeholder: 'Start writing your post content...',
-            tools: {
-              header: {
-                class: Header,
-                config: {
-                  placeholder: 'Enter a header',
-                  levels: [2, 3, 4],
-                  defaultLevel: 2
-                }
-              },
-              list: {
-                class: List,
-                inlineToolbar: true,
-                config: {
-                  defaultStyle: 'unordered'
-                }
-              },
-              quote: {
-                class: Quote,
-                inlineToolbar: true,
-                shortcut: 'CMD+SHIFT+O',
-                config: {
-                  quotePlaceholder: 'Enter a quote',
-                  captionPlaceholder: 'Quote\'s author',
-                }
-              },
-              code: {
-                class: Code,
-                shortcut: 'CMD+SHIFT+C'
-              },
-              table: {
-                class: Table,
-                inlineToolbar: true,
-                config: {
-                  rows: 2,
-                  cols: 3,
-                }
-              },
-              delimiter: Delimiter,
-              marker: {
-                class: Marker,
-                shortcut: 'CMD+SHIFT+M'
-              },
-              inlineCode: {
-                class: InlineCode,
-                shortcut: 'CMD+SHIFT+C'
-              },
-              linkTool: {
-                class: LinkTool,
-                config: {
-                  endpoint: '/api/link-preview'
-                }
-              },
-              image: {
-                class: Image,
-                config: {
-                  endpoints: {
-                    byFile: '/api/upload-image',
-                  }
-                }
-              }
-            },
-            data: formData.content ? JSON.parse(formData.content) : undefined,
-            onChange: async () => {
-              const outputData = await editor.save();
-              handleChange('content', JSON.stringify(outputData));
-            }
-          });
 
-          await editor.isReady;
-          editorInstanceRef.current = editor;
-        } catch (error) {
-          console.error('Editor.js initialization failed:', error);
-        }
-      };
-
-      initializeEditor();
-    }
-
-    return () => {
-      if (editorInstanceRef.current && editorInstanceRef.current.destroy) {
-        editorInstanceRef.current.destroy();
-        editorInstanceRef.current = null;
-      }
-    };
-  }, [editorMode, formData.content]);
 
   const fetchCategories = async () => {
     try {
@@ -381,16 +275,14 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                       </div>
 
                       {editorMode === 'rich' ? (
-                        <div 
-                          ref={editorRef}
-                          id="editorjs"
-                          style={{ 
-                            minHeight: '300px', 
-                            border: '1px solid #ced4da', 
-                            borderRadius: '0.375rem',
-                            padding: '1rem'
-                          }}
-                        ></div>
+                        <textarea
+                          className="form-control"
+                          rows="15"
+                          value={formData.content}
+                          onChange={(e) => handleChange('content', e.target.value)}
+                          placeholder="Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
+                          style={{ fontFamily: 'inherit', fontSize: '14px' }}
+                        />
                       ) : (
                         /* HTML Editor */
                         <div className="position-relative">
