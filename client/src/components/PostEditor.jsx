@@ -572,7 +572,8 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                           style={{ 
                             fontSize: editorMode === 'html' ? '13px' : '14px',
                             backgroundColor: searchMatches.length > 0 ? 'transparent' : '#fff',
-                            zIndex: searchMatches.length > 0 ? 2 : 1
+                            position: 'relative',
+                            zIndex: 3
                           }}
                         />
                         
@@ -595,7 +596,8 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               color: '#000',
                               backgroundColor: '#fff',
                               zIndex: 1,
-                              lineHeight: '1.5'
+                              lineHeight: '1.5',
+                              userSelect: 'none'
                             }}
                           />
                         )}
@@ -609,7 +611,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               right: '10px',
                               fontSize: '12px',
                               pointerEvents: 'none',
-                              zIndex: 10,
+                              zIndex: 5,
                               boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                             }}
                           >
