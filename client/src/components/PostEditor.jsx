@@ -113,31 +113,15 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     
     if (matches.length > 0) {
       setCurrentMatchIndex(0);
-      setTimeout(() => scrollToCurrentMatch(), 10);
     } else {
       setCurrentMatchIndex(-1);
     }
   };
 
-  // Scroll to match without selecting text
-  const scrollToCurrentMatch = () => {
-    if (!textareaRef.current || searchMatches.length === 0 || currentMatchIndex === -1) return;
-    
-    const match = searchMatches[currentMatchIndex];
-    const textarea = textareaRef.current;
-    
-    // Focus but don't select text - just place cursor at start of match
-    textarea.focus();
-    textarea.setSelectionRange(match.start, match.start);
-    
-    // Scroll to the match
-    const textBeforeMatch = textarea.value.substring(0, match.start);
-    const lines = textBeforeMatch.split('\n');
-    const lineHeight = parseInt(getComputedStyle(textarea).lineHeight) || 20;
-    const scrollPosition = (lines.length - 1) * lineHeight;
-    
-    // Center the match in the viewport
-    textarea.scrollTop = Math.max(0, scrollPosition - textarea.clientHeight / 2);
+  // Just update the visual indicators without moving cursor
+  const updateSearchDisplay = () => {
+    // Only update the visual state, don't move cursor or scroll
+    // The match counter will show the current position
   };
 
   const handleSearchInput = (searchValue) => {
@@ -161,7 +145,6 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
     const nextIndex = (currentMatchIndex + 1) % searchMatches.length;
     setCurrentMatchIndex(nextIndex);
-    setTimeout(() => scrollToCurrentMatch(), 10);
   };
 
   const findPrevious = () => {
@@ -169,7 +152,6 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
     const prevIndex = currentMatchIndex === 0 ? searchMatches.length - 1 : currentMatchIndex - 1;
     setCurrentMatchIndex(prevIndex);
-    setTimeout(() => scrollToCurrentMatch(), 10);
   };
 
   // Handle keyboard shortcuts
