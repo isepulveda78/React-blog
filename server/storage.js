@@ -1228,7 +1228,10 @@ export class MongoStorage {
         : existingPost.publishedAt
     };
     
-    await this.db.collection('posts').updateOne({ id }, { $set: updatedPost });
+    // Remove _id field from update to prevent MongoDB error
+    const { _id, ...updateData } = updatedPost;
+    
+    await this.db.collection('posts').updateOne({ id }, { $set: updateData });
     
     // Update category post counts
     if (oldCategoryId !== postData.categoryId) {

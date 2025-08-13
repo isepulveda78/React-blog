@@ -26,20 +26,15 @@ const AdminPostEditor = ({ user, postId }) => {
 
   const fetchPost = async () => {
     try {
-      console.log(`[AdminPostEditor] Fetching post with ID: ${postId}`);
       const response = await fetch(`/api/posts/${postId}`, {
         credentials: 'include'
       });
-
-      console.log(`[AdminPostEditor] Response status: ${response.status}`);
       
       if (response.ok) {
         const data = await response.json();
-        console.log(`[AdminPostEditor] Post loaded successfully:`, data.title);
         setPost(data);
       } else {
         const errorText = await response.text();
-        console.error(`[AdminPostEditor] Failed to load post. Status: ${response.status}, Error: ${errorText}`);
         setError(`Failed to load post: ${response.status} ${errorText}`);
       }
     } catch (error) {
