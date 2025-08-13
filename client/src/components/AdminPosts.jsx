@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 
 const { toast } = window;
 
 const AdminPosts = ({ user }) => {
+  const [location, navigate] = useLocation();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
@@ -54,13 +56,13 @@ const AdminPosts = ({ user }) => {
   };
 
   const handleCreateNew = () => {
-    // Navigate to the dedicated post editor
-    window.location.href = '/admin/posts/new';
+    // Navigate to the dedicated post editor using client-side routing
+    navigate('/admin/posts/new');
   };
 
   const handleEdit = (post) => {
-    // Navigate to the dedicated post editor
-    window.location.href = `/admin/posts/edit/${post.id}`;
+    // Navigate to the dedicated post editor using client-side routing
+    navigate(`/admin/posts/edit/${post.id}`);
   };
 
   const deletePost = async (postId) => {

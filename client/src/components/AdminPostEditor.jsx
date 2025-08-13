@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import PostEditor from './PostEditor.jsx';
 
 const { toast } = window;
 
 const AdminPostEditor = ({ user, postId }) => {
+  const [location, navigate] = useLocation();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(!!postId);
   const [error, setError] = useState('');
@@ -71,8 +73,7 @@ const AdminPostEditor = ({ user, postId }) => {
         window.dispatchEvent(new CustomEvent('blogDataUpdated', { detail: { action: 'saved', post: savedPost } }));
         
         // Navigate back to admin posts list
-        window.history.pushState({}, '', '/admin/posts');
-        window.dispatchEvent(new PopStateEvent('popstate'));
+        navigate('/admin/posts');
       } else {
         const errorData = await response.json();
         toast({
@@ -92,7 +93,7 @@ const AdminPostEditor = ({ user, postId }) => {
   };
 
   const handleCancel = () => {
-    window.location.href = '/admin/posts';
+    navigate('/admin/posts');
   };
 
   if (loading) {
