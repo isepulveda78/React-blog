@@ -2139,6 +2139,123 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // Audio Lists routes
+  app.get('/api/audio-lists', async (req, res) => {
+    try {
+      const audioLists = await storage.getAudioLists();
+      res.json(audioLists);
+    } catch (error) {
+      console.error('Error fetching audio lists:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.get('/api/audio-lists/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const audioList = await storage.getAudioListById(id);
+      if (!audioList) {
+        return res.status(404).json({ message: 'Audio list not found' });
+      }
+      res.json(audioList);
+    } catch (error) {
+      console.error('Error fetching audio list:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/audio-lists', async (req, res) => {
+    try {
+      // Check if user is teacher or admin
+      if (!req.session.user || (!req.session.user.isAdmin && req.session.user.role !== 'teacher')) {
+        return res.status(403).json({ message: 'Teacher or admin access required' });
+      }
+
+      const { title, description, audioFiles } = req.body;
+      
+      if (!title || !audioFiles || !Array.isArray(audioFiles)) {
+        return res.status(400).json({ message: 'Title and audio files are required' });
+      }
+
+      const audioList = await storage.createAudioList({
+        title,
+        description: description || '',
+        audioFiles,
+        creatorId: req.session.user.id,
+        creatorName: req.session.user.name
+      });
+
+      res.status(201).json(audioList);
+    } catch (error) {
+      console.error('Error creating audio list:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.put('/api/audio-lists/:id', async (req, res) => {
+    try {
+      // Check if user is teacher or admin
+      if (!req.session.user || (!req.session.user.isAdmin && req.session.user.role !== 'teacher')) {
+        return res.status(403).json({ message: 'Teacher or admin access required' });
+      }
+
+      const { id } = req.params;
+      const { title, description, audioFiles } = req.body;
+      
+      // Check if user owns this list or is admin
+      const existingList = await storage.getAudioListById(id);
+      if (!existingList) {
+        return res.status(404).json({ message: 'Audio list not found' });
+      }
+      
+      if (!req.session.user.isAdmin && existingList.creatorId !== req.session.user.id) {
+        return res.status(403).json({ message: 'You can only edit your own audio lists' });
+      }
+
+      const updatedList = await storage.updateAudioList(id, {
+        title,
+        description,
+        audioFiles
+      });
+
+      res.json(updatedList);
+    } catch (error) {
+      console.error('Error updating audio list:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.delete('/api/audio-lists/:id', async (req, res) => {
+    try {
+      // Check if user is teacher or admin
+      if (!req.session.user || (!req.session.user.isAdmin && req.session.user.role !== 'teacher')) {
+        return res.status(403).json({ message: 'Teacher or admin access required' });
+      }
+
+      const { id } = req.params;
+      
+      // Check if user owns this list or is admin
+      const existingList = await storage.getAudioListById(id);
+      if (!existingList) {
+        return res.status(404).json({ message: 'Audio list not found' });
+      }
+      
+      if (!req.session.user.isAdmin && existingList.creatorId !== req.session.user.id) {
+        return res.status(403).json({ message: 'You can only delete your own audio lists' });
+      }
+
+      const deleted = await storage.deleteAudioList(id);
+      if (!deleted) {
+        return res.status(404).json({ message: 'Audio list not found' });
+      }
+
+      res.json({ message: 'Audio list deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting audio list:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   // Chatroom API routes
   app.get('/api/admin/chatrooms', async (req, res) => {
     try {

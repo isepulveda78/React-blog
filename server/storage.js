@@ -14,6 +14,7 @@ class MemStorage {
     this.quizGrades = [];
     this.textQuizzes = [];
     this.textQuizGrades = [];
+    this.audioLists = [];
     console.log('[storage] Using in-memory storage');
     this.initializeSampleData();
   }
@@ -328,6 +329,42 @@ class MemStorage {
     const index = this.textQuizGrades.findIndex(g => g.id === id);
     if (index === -1) return false;
     this.textQuizGrades.splice(index, 1);
+    return true;
+  }
+
+  // Audio Lists methods
+  async getAudioLists() { return this.audioLists.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
+  async getAudioListById(id) { return this.audioLists.find(list => list.id === id); }
+  async getAudioListsByCreator(creatorId) { 
+    return this.audioLists.filter(list => list.creatorId === creatorId).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); 
+  }
+  
+  async createAudioList(listData) {
+    const audioList = { 
+      id: nanoid(), 
+      ...listData, 
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    this.audioLists.push(audioList);
+    return audioList;
+  }
+
+  async updateAudioList(id, updates) {
+    const index = this.audioLists.findIndex(list => list.id === id);
+    if (index === -1) return null;
+    this.audioLists[index] = { 
+      ...this.audioLists[index], 
+      ...updates, 
+      updatedAt: new Date().toISOString() 
+    };
+    return this.audioLists[index];
+  }
+
+  async deleteAudioList(id) {
+    const index = this.audioLists.findIndex(list => list.id === id);
+    if (index === -1) return false;
+    this.audioLists.splice(index, 1);
     return true;
   }
 
@@ -1593,6 +1630,55 @@ export class MongoStorage {
   async deleteTextQuizGrade(id) {
     await this.connect();
     const result = await this.db.collection('textQuizGrades').deleteOne({ id });
+    return result.deletedCount > 0;
+  }
+
+  // Audio Lists methods
+  async getAudioLists() { 
+    await this.connect();
+    return await this.db.collection('audioLists').find({}).sort({ createdAt: -1 }).toArray();
+  }
+  
+  async getAudioListById(id) { 
+    await this.connect();
+    return await this.db.collection('audioLists').findOne({ id });
+  }
+  
+  async getAudioListsByCreator(creatorId) { 
+    await this.connect();
+    return await this.db.collection('audioLists').find({ creatorId }).sort({ createdAt: -1 }).toArray();
+  }
+  
+  async createAudioList(listData) {
+    await this.connect();
+    const audioList = { 
+      id: nanoid(), 
+      ...listData, 
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    await this.db.collection('audioLists').insertOne(audioList);
+    return audioList;
+  }
+
+  async updateAudioList(id, updates) {
+    await this.connect();
+    const existingList = await this.db.collection('audioLists').findOne({ id });
+    if (!existingList) return null;
+    
+    const updatedList = {
+      ...existingList,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await this.db.collection('audioLists').updateOne({ id }, { $set: updatedList });
+    return updatedList;
+  }
+
+  async deleteAudioList(id) {
+    await this.connect();
+    const result = await this.db.collection('audioLists').deleteOne({ id });
     return result.deletedCount > 0;
   }
 }

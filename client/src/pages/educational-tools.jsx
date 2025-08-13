@@ -77,6 +77,15 @@ const EducationalTools = ({ user }) => {
       buttonClass: 'btn btn-info',
       route: '/crossword-generator',
       visibleToStudents: false
+    },
+    {
+      id: 'audio-lists',
+      title: 'Audio Lists',
+      description: 'Create and manage lists of audio files from Google Drive for student listening practice',
+      icon: 'fas fa-list-ul fa-3x text-primary',
+      buttonClass: 'btn btn-primary',
+      route: '/audio-lists',
+      visibleToStudents: true
     }
   ];
 

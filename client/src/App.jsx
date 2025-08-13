@@ -31,6 +31,7 @@ import CodeEvolutionVisualization from './pages/code-evolution.jsx'
 import CrosswordGenerator from './pages/crossword-generator.jsx'
 import AudioQuizzes from './pages/audio-quizzes.jsx'
 import TextQuizzes from './pages/text-quizzes.jsx'
+import AudioLists from './pages/audio-lists.jsx'
 import NotFound from './components/NotFound.jsx'
 
 // Auth Context
@@ -241,6 +242,7 @@ const AppRoutes = () => {
           <Route path="/crossword-generator" component={() => <CrosswordGenerator user={user} />} />
           <Route path="/audio-quizzes" component={() => <AudioQuizzes user={user} />} />
           <Route path="/text-quizzes" component={() => <TextQuizzes user={user} />} />
+          <Route path="/audio-lists" component={() => <AudioLists user={user} />} />
           <Route path="/profile" component={() => (
             <ProtectedRoute>
               <UserProfile user={user} />
