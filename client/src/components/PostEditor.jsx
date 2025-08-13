@@ -581,31 +581,35 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                           }
                           style={{ 
                             fontSize: editorMode === 'html' ? '13px' : '14px',
-                            backgroundColor: 'transparent',
+                            backgroundColor: searchMatches.length > 0 ? 'transparent' : '#fff',
                             position: 'relative',
-                            zIndex: 2
+                            zIndex: 2,
+                            color: searchMatches.length > 0 ? 'transparent' : 'inherit'
                           }}
                         />
-                        {/* Highlight overlay */}
-                        <div
-                          ref={highlightOverlayRef}
-                          className={`position-absolute top-0 start-0 ${editorMode === 'html' ? 'font-monospace' : ''}`}
-                          style={{
-                            fontSize: editorMode === 'html' ? '13px' : '14px',
-                            padding: '0.375rem 0.75rem',
-                            border: '1px solid transparent',
-                            borderRadius: '0.375rem',
-                            width: '100%',
-                            height: '100%',
-                            overflow: 'hidden',
-                            pointerEvents: 'none',
-                            whiteSpace: 'pre-wrap',
-                            wordWrap: 'break-word',
-                            color: 'transparent',
-                            zIndex: 1,
-                            lineHeight: '1.5'
-                          }}
-                        />
+                        {/* Highlight overlay - only show when there are matches */}
+                        {searchMatches.length > 0 && (
+                          <div
+                            ref={highlightOverlayRef}
+                            className={`position-absolute top-0 start-0 ${editorMode === 'html' ? 'font-monospace' : ''}`}
+                            style={{
+                              fontSize: editorMode === 'html' ? '13px' : '14px',
+                              padding: '0.375rem 0.75rem',
+                              border: '1px solid transparent',
+                              borderRadius: '0.375rem',
+                              width: '100%',
+                              height: '100%',
+                              overflow: 'hidden',
+                              pointerEvents: 'none',
+                              whiteSpace: 'pre-wrap',
+                              wordWrap: 'break-word',
+                              color: '#000',
+                              backgroundColor: '#fff',
+                              zIndex: 1,
+                              lineHeight: '1.5'
+                            }}
+                          />
+                        )}
                       </div>
                       
                       {/* HTML Preview Section */}
