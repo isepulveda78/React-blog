@@ -64,22 +64,10 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       // Scroll to center the match in the viewport
       textarea.scrollTop = Math.max(0, scrollPosition - textarea.clientHeight / 2);
       
-      // Update highlight mirror to show current match with different styling
-      updateHighlightMirror(formData.content, searchMatches);
+      // Update highlight position to show current match
+      setTimeout(() => updateHighlightPosition(formData.content, searchMatches), 10);
       
-      // Add a brief visual pulse to the current match
-      setTimeout(() => {
-        if (highlightOverlayRef.current) {
-          const currentMarkElement = highlightOverlayRef.current.querySelector('mark.current-match');
-          if (currentMarkElement) {
-            currentMarkElement.style.transition = 'transform 0.2s ease';
-            currentMarkElement.style.transform = 'scale(1.05)';
-            setTimeout(() => {
-              currentMarkElement.style.transform = 'scale(1)';
-            }, 200);
-          }
-        }
-      }, 50);
+
     }
   }, [currentMatchIndex, searchMatches]);
 
@@ -147,10 +135,10 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     
     if (matches.length > 0) {
       setCurrentMatchIndex(0);
-      updateHighlightMirror(content, matches);
+      setTimeout(() => updateHighlightPosition(content, matches), 10);
     } else {
       setCurrentMatchIndex(-1);
-      updateHighlightMirror('', []);
+      updateHighlightPosition('', []);
     }
   };
 
@@ -169,7 +157,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       // Clear highlights when search term is empty
       setSearchMatches([]);
       setCurrentMatchIndex(-1);
-      updateHighlightMirror('', []);
+      updateHighlightPosition('', []);
     }
   };
 
@@ -187,49 +175,64 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     setCurrentMatchIndex(prevIndex);
   };
 
-  // Update highlight mirror with only the current match highlighted
-  const updateHighlightMirror = (content, matches) => {
-    if (!highlightOverlayRef.current) return;
-    
-    if (matches.length === 0 || currentMatchIndex === -1) {
-      highlightOverlayRef.current.innerHTML = '';
+  // Create absolute positioned highlight div
+  const updateHighlightPosition = (content, matches) => {
+    const container = textareaRef.current?.parentNode;
+    if (!container || matches.length === 0 || currentMatchIndex === -1) {
+      // Remove existing highlights
+      const existingHighlights = container.querySelectorAll('.search-highlight');
+      existingHighlights.forEach(highlight => highlight.remove());
       return;
     }
 
-    // Only highlight the current match, not all matches
+    const textarea = textareaRef.current;
     const currentMatch = matches[currentMatchIndex];
-    let highlightedContent = '';
     
-    // Add text before the current match (invisible)
-    highlightedContent += escapeHtml(content.substring(0, currentMatch.start));
+    // Remove existing highlights
+    const existingHighlights = container.querySelectorAll('.search-highlight');
+    existingHighlights.forEach(highlight => highlight.remove());
     
-    // Add the highlighted current match
-    highlightedContent += `<mark class="current-match">${escapeHtml(currentMatch.text)}</mark>`;
+    // Calculate the position of the match text
+    const textBeforeMatch = content.substring(0, currentMatch.start);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const computedStyle = getComputedStyle(textarea);
     
-    // Add remaining text after the match (invisible)
-    highlightedContent += escapeHtml(content.substring(currentMatch.end));
+    // Set canvas font to match textarea
+    ctx.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
     
-    highlightOverlayRef.current.innerHTML = highlightedContent;
+    // Calculate line height
+    const lineHeight = parseInt(computedStyle.lineHeight) || parseInt(computedStyle.fontSize) * 1.2;
+    const lines = textBeforeMatch.split('\n');
+    const lastLineText = lines[lines.length - 1];
     
-    // Sync scroll position and ensure perfect alignment
-    if (textareaRef.current) {
-      const textarea = textareaRef.current;
-      const mirror = highlightOverlayRef.current;
-      
-      mirror.scrollTop = textarea.scrollTop;
-      mirror.scrollLeft = textarea.scrollLeft;
-      
-      // Force exact font and positioning matching
-      const computedStyle = getComputedStyle(textarea);
-      mirror.style.fontFamily = computedStyle.fontFamily;
-      mirror.style.fontSize = computedStyle.fontSize;
-      mirror.style.lineHeight = computedStyle.lineHeight;
-      mirror.style.letterSpacing = computedStyle.letterSpacing;
-      mirror.style.wordSpacing = computedStyle.wordSpacing;
-      mirror.style.textAlign = computedStyle.textAlign;
-      mirror.style.paddingTop = computedStyle.paddingTop;
-      mirror.style.paddingLeft = computedStyle.paddingLeft;
-    }
+    // Calculate position
+    const textWidth = ctx.measureText(lastLineText).width;
+    const matchWidth = ctx.measureText(currentMatch.text).width;
+    
+    // Get textarea position
+    const textareaRect = textarea.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    // Calculate highlight position
+    const left = parseFloat(computedStyle.paddingLeft) + textWidth;
+    const top = parseFloat(computedStyle.paddingTop) + (lines.length - 1) * lineHeight;
+    
+    // Create highlight element
+    const highlight = document.createElement('div');
+    highlight.className = 'search-highlight';
+    highlight.style.position = 'absolute';
+    highlight.style.left = `${left}px`;
+    highlight.style.top = `${top}px`;
+    highlight.style.width = `${matchWidth}px`;
+    highlight.style.height = `${lineHeight}px`;
+    highlight.style.backgroundColor = 'rgba(255, 152, 0, 0.7)';
+    highlight.style.borderRadius = '2px';
+    highlight.style.pointerEvents = 'none';
+    highlight.style.zIndex = '1';
+    highlight.style.animation = 'highlight-pulse 0.3s ease-in-out';
+    
+    container.appendChild(highlight);
   };
 
   const escapeHtml = (text) => {
@@ -591,16 +594,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                       )}
 
                       <div className={`textarea-with-highlights ${searchMatches.length > 0 ? 'position-relative' : ''}`}>
-                        {/* Highlight mirror for visual feedback */}
-                        {searchMatches.length > 0 && (
-                          <div
-                            ref={highlightOverlayRef}
-                            className={`highlight-mirror ${editorMode === 'html' ? 'font-monospace' : ''}`}
-                            style={{
-                              fontSize: editorMode === 'html' ? '13px' : '14px'
-                            }}
-                          />
-                        )}
+
                         
                         <textarea
                           ref={textareaRef}
@@ -618,15 +612,14 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               } else if (currentMatchIndex >= newMatches.length) {
                                 setCurrentMatchIndex(0);
                               }
-                              updateHighlightMirror(e.target.value, newMatches);
+                              setTimeout(() => updateHighlightPosition(e.target.value, newMatches), 10);
                             }
                           }}
                           onKeyDown={handleKeyDown}
                           onScroll={(e) => {
-                            // Sync scroll position with highlight mirror
-                            if (highlightOverlayRef.current) {
-                              highlightOverlayRef.current.scrollTop = e.target.scrollTop;
-                              highlightOverlayRef.current.scrollLeft = e.target.scrollLeft;
+                            // Update highlight position on scroll
+                            if (searchMatches.length > 0 && currentMatchIndex !== -1) {
+                              setTimeout(() => updateHighlightPosition(formData.content, searchMatches), 10);
                             }
                           }}
                           placeholder={editorMode === 'html' ? 
