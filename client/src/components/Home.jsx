@@ -68,7 +68,7 @@ const Home = ({ user }) => {
         <div className="container">
           <div className="row mb-4">
             <div className="col-12 text-center">
-              <h2 className="display-5 fw-bold text-primary mb-3">Latest Posts</h2>
+              <h2 className="display-5 fw-bold text-primary mb-3">Google Slides</h2>
               <p className="lead text-muted">
                 Discover our most recent content and insights
               </p>
