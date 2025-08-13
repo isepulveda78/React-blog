@@ -148,9 +148,9 @@ const BlogListing = ({ user }) => {
     <div className="container py-5">
       <div className="row mb-5">
         <div className="col-12 text-center">
-          <h1 className="display-4 fw-bold text-primary mb-3">All Blog Posts</h1>
+          <h1 className="display-4 fw-bold text-primary mb-3">Google Slides</h1>
           <p className="lead text-muted">
-            Explore our complete collection of articles and insights
+            Explore our complete collection of slides and insights
           </p>
         </div>
       </div>
