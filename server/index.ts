@@ -46,7 +46,7 @@ app.use(helmet({
       fontSrc: ["'self'", "data:", "https:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'", "data:", "blob:"],
-      frameSrc: ["'none'"],
+      frameSrc: ["'self'", "https://docs.google.com", "https://drive.google.com", "https://www.google.com", "https://youtube.com", "https://www.youtube.com", "https://youtu.be", "https://player.vimeo.com", "https://codepen.io"],
       workerSrc: ["'self'", "blob:"],
       childSrc: ["'self'", "blob:"],
     },

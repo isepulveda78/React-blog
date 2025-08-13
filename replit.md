@@ -27,6 +27,7 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **RESOLVED: Blog update visibility issue** - Fixed blog refresh system with aggressive cache-busting, enhanced debugging tools, and proper Wouter router navigation. Blog data updates now appear immediately with working "Read More" functionality.
 - **RESOLVED: HTML encoding display issue** - Applied comprehensive HTML entity decoding to all blog API endpoints (public posts, individual posts, admin routes). Blog post updates now display correctly without HTML entity artifacts, with proper cache-busting for immediate visibility.
 - **RESOLVED: WebSocket server conflicts** - Fixed persistent WebSocket port conflicts that were preventing server restarts. Server now starts reliably without port blocking issues.
+- **RESOLVED: iframe embedding blocked** - Fixed Content Security Policy to allow iframe embedding from Google Docs, Google Drive, YouTube, Vimeo, and other educational platforms.
 - **REMOVED: Editor.js Dependencies** - Removed Editor.js block editor due to complexity issues and reverted to simple textarea elements with HTML formatting support for reliable content editing.
 - **COMPLETED: Production Code Cleanup** - Removed all debugging console.log statements from blog components, admin interfaces, and editor components for cleaner production-ready code.
 
@@ -84,6 +85,7 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **Content Storage**: HTML content stored in database with proper entity encoding/decoding.
 - **Media Support**: Image upload and embedding via Cloudinary integration.
 - **HTML Support**: Users can write HTML directly for formatting (headers, bold, italic, lists, links, etc.).
+- **iframe Embedding**: Support for embedding Google Docs, Google Drive presentations, YouTube videos, and other educational content via iframe tags.
 
 ### SEO Implementation
 - **SEO Management Dashboard**: Dedicated admin interface for SEO analysis, settings, and optimization.
