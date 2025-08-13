@@ -75,8 +75,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   };
 
   // Search functionality
-  const handleSearch = (searchValue) => {
-    setSearchTerm(searchValue);
+  const performSearch = (searchValue) => {
     if (!searchValue || !textareaRef.current) return;
 
     const textarea = textareaRef.current;
@@ -91,6 +90,11 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     }
   };
 
+  const handleSearchInput = (searchValue) => {
+    setSearchTerm(searchValue);
+    // Only update the search term, don't perform search immediately
+  };
+
   const findNext = () => {
     if (!searchTerm || !textareaRef.current) return;
 
@@ -100,14 +104,14 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     const searchIndex = content.toLowerCase().indexOf(searchTerm.toLowerCase(), currentPos);
     
     if (searchIndex !== -1) {
-      textarea.focus();
       textarea.setSelectionRange(searchIndex, searchIndex + searchTerm.length);
+      textarea.scrollTop = textarea.scrollHeight * (searchIndex / content.length);
     } else {
       // Search from beginning if not found
       const firstIndex = content.toLowerCase().indexOf(searchTerm.toLowerCase());
       if (firstIndex !== -1) {
-        textarea.focus();
         textarea.setSelectionRange(firstIndex, firstIndex + searchTerm.length);
+        textarea.scrollTop = textarea.scrollHeight * (firstIndex / content.length);
       }
     }
   };
@@ -121,14 +125,14 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     const searchIndex = content.toLowerCase().lastIndexOf(searchTerm.toLowerCase(), currentPos);
     
     if (searchIndex !== -1) {
-      textarea.focus();
       textarea.setSelectionRange(searchIndex, searchIndex + searchTerm.length);
+      textarea.scrollTop = textarea.scrollHeight * (searchIndex / content.length);
     } else {
       // Search from end if not found
       const lastIndex = content.toLowerCase().lastIndexOf(searchTerm.toLowerCase());
       if (lastIndex !== -1) {
-        textarea.focus();
         textarea.setSelectionRange(lastIndex, lastIndex + searchTerm.length);
+        textarea.scrollTop = textarea.scrollHeight * (lastIndex / content.length);
       }
     }
   };
@@ -401,11 +405,13 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                                     className="form-control"
                                     placeholder="Search in HTML content..."
                                     value={searchTerm}
-                                    onChange={(e) => handleSearch(e.target.value)}
+                                    onChange={(e) => handleSearchInput(e.target.value)}
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter') {
                                         e.preventDefault();
-                                        findNext();
+                                        if (searchTerm) {
+                                          performSearch(searchTerm);
+                                        }
                                       } else if (e.key === 'Escape') {
                                         setShowSearch(false);
                                         setSearchTerm('');
@@ -417,6 +423,18 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               </div>
                               <div className="col-md-4">
                                 <div className="btn-group btn-group-sm">
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-secondary"
+                                    onClick={() => {
+                                      if (searchTerm) {
+                                        performSearch(searchTerm);
+                                      }
+                                    }}
+                                    title="Search"
+                                  >
+                                    <i className="fas fa-search"></i>
+                                  </button>
                                   <button
                                     type="button"
                                     className="btn btn-outline-secondary"
@@ -450,7 +468,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               </div>
                             </div>
                             <small className="text-muted">
-                              Use Ctrl+F to open search, F3/Enter for next, Shift+F3 for previous, Esc to close
+                              Use Ctrl+F to open search, Enter to start searching, F3 for next, Shift+F3 for previous, Esc to close
                             </small>
                           </div>
                         </div>
