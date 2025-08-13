@@ -14438,20 +14438,14 @@ a {
   background-color: rgba(220, 53, 69, 0.1) !important;
 }
 
-/* Search highlighting styles */
-.search-match {
-  background-color: #ffeb3b !important;
-  color: #000 !important;
-  padding: 1px 2px;
-  border-radius: 2px;
+/* Search active state */
+.search-active {
+  box-shadow: 0 0 0 2px #007bff !important;
 }
 
-.current-match {
+.search-active::selection {
   background-color: #ff9800 !important;
   color: #000 !important;
-  padding: 1px 2px;
-  border-radius: 2px;
-  font-weight: bold;
 }
 
 

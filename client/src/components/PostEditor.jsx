@@ -102,7 +102,6 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     if (!searchValue || !textareaRef.current) {
       setSearchMatches([]);
       setCurrentMatchIndex(-1);
-      updateHighlightOverlay('', []);
       return;
     }
 
@@ -114,49 +113,29 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     
     if (matches.length > 0) {
       setCurrentMatchIndex(0);
-      const firstMatch = matches[0];
-      textarea.focus();
-      textarea.setSelectionRange(firstMatch.start, firstMatch.end);
-      textarea.scrollTop = textarea.scrollHeight * (firstMatch.start / content.length);
-      updateHighlightOverlay(content, matches, 0);
+      setTimeout(() => highlightCurrentMatch(), 10);
     } else {
       setCurrentMatchIndex(-1);
-      updateHighlightOverlay(content, []);
     }
   };
 
-  const updateHighlightOverlay = (content, matches, currentIndex = -1) => {
-    if (!highlightOverlayRef.current) return;
+  // Highlight text using browser's built-in selection
+  const highlightCurrentMatch = () => {
+    if (!textareaRef.current || searchMatches.length === 0 || currentMatchIndex === -1) return;
     
-    if (matches.length === 0) {
-      highlightOverlayRef.current.innerHTML = '';
-      return;
-    }
-
-    let highlightedContent = '';
-    let lastIndex = 0;
+    const match = searchMatches[currentMatchIndex];
+    textareaRef.current.focus();
+    textareaRef.current.setSelectionRange(match.start, match.end);
     
-    matches.forEach((match, index) => {
-      // Add text before the match
-      highlightedContent += escapeHtml(content.substring(lastIndex, match.start));
-      
-      // Add highlighted match
-      const isCurrentMatch = index === currentIndex;
-      highlightedContent += `<mark class="${isCurrentMatch ? 'current-match' : 'search-match'}">${escapeHtml(match.text)}</mark>`;
-      
-      lastIndex = match.end;
-    });
+    // Scroll to the selection
+    const textarea = textareaRef.current;
+    const textBeforeMatch = textarea.value.substring(0, match.start);
+    const lines = textBeforeMatch.split('\n');
+    const lineHeight = parseInt(getComputedStyle(textarea).lineHeight) || 20;
+    const scrollPosition = (lines.length - 1) * lineHeight;
     
-    // Add remaining text
-    highlightedContent += escapeHtml(content.substring(lastIndex));
-    
-    highlightOverlayRef.current.innerHTML = highlightedContent;
-  };
-
-  const escapeHtml = (text) => {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML.replace(/\n/g, '<br>');
+    // Center the match in the viewport
+    textarea.scrollTop = Math.max(0, scrollPosition - textarea.clientHeight / 2);
   };
 
   const handleSearchInput = (searchValue) => {
@@ -165,40 +144,23 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     if (!searchValue) {
       setSearchMatches([]);
       setCurrentMatchIndex(-1);
-      updateHighlightOverlay('', []);
     }
   };
 
   const findNext = () => {
-    if (searchMatches.length === 0 || !textareaRef.current) return;
+    if (searchMatches.length === 0) return;
 
     const nextIndex = (currentMatchIndex + 1) % searchMatches.length;
     setCurrentMatchIndex(nextIndex);
-    
-    const match = searchMatches[nextIndex];
-    const textarea = textareaRef.current;
-    
-    textarea.focus();
-    textarea.setSelectionRange(match.start, match.end);
-    textarea.scrollTop = textarea.scrollHeight * (match.start / textarea.value.length);
-    
-    updateHighlightOverlay(textarea.value, searchMatches, nextIndex);
+    setTimeout(() => highlightCurrentMatch(), 10);
   };
 
   const findPrevious = () => {
-    if (searchMatches.length === 0 || !textareaRef.current) return;
+    if (searchMatches.length === 0) return;
 
     const prevIndex = currentMatchIndex === 0 ? searchMatches.length - 1 : currentMatchIndex - 1;
     setCurrentMatchIndex(prevIndex);
-    
-    const match = searchMatches[prevIndex];
-    const textarea = textareaRef.current;
-    
-    textarea.focus();
-    textarea.setSelectionRange(match.start, match.end);
-    textarea.scrollTop = textarea.scrollHeight * (match.start / textarea.value.length);
-    
-    updateHighlightOverlay(textarea.value, searchMatches, prevIndex);
+    setTimeout(() => highlightCurrentMatch(), 10);
   };
 
   // Handle keyboard shortcuts
@@ -217,7 +179,6 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       setSearchTerm('');
       setSearchMatches([]);
       setCurrentMatchIndex(-1);
-      updateHighlightOverlay('', []);
       textareaRef.current?.focus();
     } else if (e.key === 'F3' || (e.ctrlKey && e.key === 'g')) {
       e.preventDefault();
@@ -484,7 +445,6 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                                         setSearchTerm('');
                                         setSearchMatches([]);
                                         setCurrentMatchIndex(-1);
-                                        updateHighlightOverlay('', []);
                                         textareaRef.current?.focus();
                                       }
                                     }}
@@ -539,7 +499,6 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                                     setSearchTerm('');
                                     setSearchMatches([]);
                                     setCurrentMatchIndex(-1);
-                                    updateHighlightOverlay('', []);
                                   }}
                                   title="Close (Esc)"
                                 >
@@ -554,62 +513,33 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                         </div>
                       )}
 
-                      <div className="position-relative">
-                        <textarea
-                          ref={textareaRef}
-                          className={`form-control ${editorMode === 'html' ? 'font-monospace' : ''}`}
-                          rows="15"
-                          value={formData.content}
-                          onChange={(e) => {
-                            handleChange('content', e.target.value);
-                            // Update highlights when content changes
-                            if (searchMatches.length > 0) {
-                              const newMatches = findAllMatches(searchTerm, e.target.value);
-                              setSearchMatches(newMatches);
-                              if (newMatches.length === 0) {
-                                setCurrentMatchIndex(-1);
-                              } else if (currentMatchIndex >= newMatches.length) {
-                                setCurrentMatchIndex(0);
-                              }
-                              updateHighlightOverlay(e.target.value, newMatches, currentMatchIndex);
+                      <textarea
+                        ref={textareaRef}
+                        className={`form-control ${editorMode === 'html' ? 'font-monospace' : ''} ${searchMatches.length > 0 ? 'search-active' : ''}`}
+                        rows="15"
+                        value={formData.content}
+                        onChange={(e) => {
+                          handleChange('content', e.target.value);
+                          // Update highlights when content changes
+                          if (searchMatches.length > 0) {
+                            const newMatches = findAllMatches(searchTerm, e.target.value);
+                            setSearchMatches(newMatches);
+                            if (newMatches.length === 0) {
+                              setCurrentMatchIndex(-1);
+                            } else if (currentMatchIndex >= newMatches.length) {
+                              setCurrentMatchIndex(0);
                             }
-                          }}
-                          onKeyDown={handleKeyDown}
-                          placeholder={editorMode === 'html' ? 
-                            "Enter HTML content here...\n\nExample HTML:\n<h2>Heading</h2>\n<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>\n<ul>\n  <li>List item 1</li>\n  <li>List item 2</li>\n</ul>" : 
-                            "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
                           }
-                          style={{ 
-                            fontSize: editorMode === 'html' ? '13px' : '14px',
-                            backgroundColor: '#fff',
-                            position: 'relative',
-                            zIndex: searchMatches.length > 0 ? 1 : 2
-                          }}
-                        />
-                        {/* Highlight overlay - only show when there are matches */}
-                        {searchMatches.length > 0 && (
-                          <div
-                            ref={highlightOverlayRef}
-                            className={`position-absolute top-0 start-0 ${editorMode === 'html' ? 'font-monospace' : ''}`}
-                            style={{
-                              fontSize: editorMode === 'html' ? '13px' : '14px',
-                              padding: '0.375rem 0.75rem',
-                              border: '1px solid transparent',
-                              borderRadius: '0.375rem',
-                              width: '100%',
-                              height: '100%',
-                              overflow: 'hidden',
-                              pointerEvents: 'none',
-                              whiteSpace: 'pre-wrap',
-                              wordWrap: 'break-word',
-                              color: '#666',
-                              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                              zIndex: 2,
-                              lineHeight: '1.5'
-                            }}
-                          />
-                        )}
-                      </div>
+                        }}
+                        onKeyDown={handleKeyDown}
+                        placeholder={editorMode === 'html' ? 
+                          "Enter HTML content here...\n\nExample HTML:\n<h2>Heading</h2>\n<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>\n<ul>\n  <li>List item 1</li>\n  <li>List item 2</li>\n</ul>" : 
+                          "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
+                        }
+                        style={{ 
+                          fontSize: editorMode === 'html' ? '13px' : '14px'
+                        }}
+                      />
                       
                       {/* HTML Preview Section */}
                       {editorMode === 'html' && (
