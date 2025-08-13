@@ -378,7 +378,7 @@ const Navigation = ({ user, onLogout }) => {
                     navigateTo("/blog");
                   }}
                 >
-                 Google Slides
+                 Lessons
                 </a>
               </li>
 
