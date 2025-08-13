@@ -24,8 +24,11 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   const [editorMode, setEditorMode] = useState('html'); // 'rich' or 'html' - default to HTML
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [searchMatches, setSearchMatches] = useState([]);
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
   const textareaRef = React.useRef(null);
   const searchInputRef = React.useRef(null);
+  const highlightOverlayRef = React.useRef(null);
 
   useEffect(() => {
     fetchCategories();
@@ -75,66 +78,127 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   };
 
   // Search functionality
+  const findAllMatches = (searchValue, content) => {
+    const matches = [];
+    if (!searchValue || !content) return matches;
+    
+    const lowerContent = content.toLowerCase();
+    const lowerSearch = searchValue.toLowerCase();
+    let index = 0;
+    
+    while ((index = lowerContent.indexOf(lowerSearch, index)) !== -1) {
+      matches.push({
+        start: index,
+        end: index + searchValue.length,
+        text: content.substring(index, index + searchValue.length)
+      });
+      index++;
+    }
+    
+    return matches;
+  };
+
   const performSearch = (searchValue) => {
-    if (!searchValue || !textareaRef.current) return;
+    if (!searchValue || !textareaRef.current) {
+      setSearchMatches([]);
+      setCurrentMatchIndex(-1);
+      updateHighlightOverlay('', []);
+      return;
+    }
 
     const textarea = textareaRef.current;
     const content = textarea.value;
-    const searchIndex = content.toLowerCase().indexOf(searchValue.toLowerCase());
+    const matches = findAllMatches(searchValue, content);
     
-    if (searchIndex !== -1) {
-      // Highlight and scroll to the found text
+    setSearchMatches(matches);
+    
+    if (matches.length > 0) {
+      setCurrentMatchIndex(0);
+      const firstMatch = matches[0];
       textarea.focus();
-      textarea.setSelectionRange(searchIndex, searchIndex + searchValue.length);
-      textarea.scrollTop = textarea.scrollHeight * (searchIndex / content.length);
+      textarea.setSelectionRange(firstMatch.start, firstMatch.end);
+      textarea.scrollTop = textarea.scrollHeight * (firstMatch.start / content.length);
+      updateHighlightOverlay(content, matches, 0);
+    } else {
+      setCurrentMatchIndex(-1);
+      updateHighlightOverlay(content, []);
     }
+  };
+
+  const updateHighlightOverlay = (content, matches, currentIndex = -1) => {
+    if (!highlightOverlayRef.current) return;
+    
+    if (matches.length === 0) {
+      highlightOverlayRef.current.innerHTML = '';
+      return;
+    }
+
+    let highlightedContent = '';
+    let lastIndex = 0;
+    
+    matches.forEach((match, index) => {
+      // Add text before the match
+      highlightedContent += escapeHtml(content.substring(lastIndex, match.start));
+      
+      // Add highlighted match
+      const isCurrentMatch = index === currentIndex;
+      highlightedContent += `<mark class="${isCurrentMatch ? 'current-match' : 'search-match'}">${escapeHtml(match.text)}</mark>`;
+      
+      lastIndex = match.end;
+    });
+    
+    // Add remaining text
+    highlightedContent += escapeHtml(content.substring(lastIndex));
+    
+    highlightOverlayRef.current.innerHTML = highlightedContent;
+  };
+
+  const escapeHtml = (text) => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML.replace(/\n/g, '<br>');
   };
 
   const handleSearchInput = (searchValue) => {
     setSearchTerm(searchValue);
-    // Only update the search term, don't perform search immediately
+    // Clear highlights when search term changes
+    if (!searchValue) {
+      setSearchMatches([]);
+      setCurrentMatchIndex(-1);
+      updateHighlightOverlay('', []);
+    }
   };
 
   const findNext = () => {
-    if (!searchTerm || !textareaRef.current) return;
+    if (searchMatches.length === 0 || !textareaRef.current) return;
 
-    const textarea = textareaRef.current;
-    const content = textarea.value;
-    const currentPos = textarea.selectionEnd;
-    const searchIndex = content.toLowerCase().indexOf(searchTerm.toLowerCase(), currentPos);
+    const nextIndex = (currentMatchIndex + 1) % searchMatches.length;
+    setCurrentMatchIndex(nextIndex);
     
-    if (searchIndex !== -1) {
-      textarea.setSelectionRange(searchIndex, searchIndex + searchTerm.length);
-      textarea.scrollTop = textarea.scrollHeight * (searchIndex / content.length);
-    } else {
-      // Search from beginning if not found
-      const firstIndex = content.toLowerCase().indexOf(searchTerm.toLowerCase());
-      if (firstIndex !== -1) {
-        textarea.setSelectionRange(firstIndex, firstIndex + searchTerm.length);
-        textarea.scrollTop = textarea.scrollHeight * (firstIndex / content.length);
-      }
-    }
+    const match = searchMatches[nextIndex];
+    const textarea = textareaRef.current;
+    
+    textarea.focus();
+    textarea.setSelectionRange(match.start, match.end);
+    textarea.scrollTop = textarea.scrollHeight * (match.start / textarea.value.length);
+    
+    updateHighlightOverlay(textarea.value, searchMatches, nextIndex);
   };
 
   const findPrevious = () => {
-    if (!searchTerm || !textareaRef.current) return;
+    if (searchMatches.length === 0 || !textareaRef.current) return;
 
-    const textarea = textareaRef.current;
-    const content = textarea.value;
-    const currentPos = textarea.selectionStart - 1;
-    const searchIndex = content.toLowerCase().lastIndexOf(searchTerm.toLowerCase(), currentPos);
+    const prevIndex = currentMatchIndex === 0 ? searchMatches.length - 1 : currentMatchIndex - 1;
+    setCurrentMatchIndex(prevIndex);
     
-    if (searchIndex !== -1) {
-      textarea.setSelectionRange(searchIndex, searchIndex + searchTerm.length);
-      textarea.scrollTop = textarea.scrollHeight * (searchIndex / content.length);
-    } else {
-      // Search from end if not found
-      const lastIndex = content.toLowerCase().lastIndexOf(searchTerm.toLowerCase());
-      if (lastIndex !== -1) {
-        textarea.setSelectionRange(lastIndex, lastIndex + searchTerm.length);
-        textarea.scrollTop = textarea.scrollHeight * (lastIndex / content.length);
-      }
-    }
+    const match = searchMatches[prevIndex];
+    const textarea = textareaRef.current;
+    
+    textarea.focus();
+    textarea.setSelectionRange(match.start, match.end);
+    textarea.scrollTop = textarea.scrollHeight * (match.start / textarea.value.length);
+    
+    updateHighlightOverlay(textarea.value, searchMatches, prevIndex);
   };
 
   // Handle keyboard shortcuts
@@ -151,6 +215,9 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     } else if (e.key === 'Escape' && showSearch) {
       setShowSearch(false);
       setSearchTerm('');
+      setSearchMatches([]);
+      setCurrentMatchIndex(-1);
+      updateHighlightOverlay('', []);
       textareaRef.current?.focus();
     } else if (e.key === 'F3' || (e.ctrlKey && e.key === 'g')) {
       e.preventDefault();
@@ -415,13 +482,16 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                                       } else if (e.key === 'Escape') {
                                         setShowSearch(false);
                                         setSearchTerm('');
+                                        setSearchMatches([]);
+                                        setCurrentMatchIndex(-1);
+                                        updateHighlightOverlay('', []);
                                         textareaRef.current?.focus();
                                       }
                                     }}
                                   />
                                 </div>
                               </div>
-                              <div className="col-md-4">
+                              <div className="col-md-3">
                                 <div className="btn-group btn-group-sm">
                                   <button
                                     type="button"
@@ -454,12 +524,22 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                                 </div>
                               </div>
                               <div className="col-md-2">
+                                {searchMatches.length > 0 && (
+                                  <small className="text-muted">
+                                    {currentMatchIndex + 1} of {searchMatches.length}
+                                  </small>
+                                )}
+                              </div>
+                              <div className="col-md-1">
                                 <button
                                   type="button"
                                   className="btn btn-outline-secondary btn-sm"
                                   onClick={() => {
                                     setShowSearch(false);
                                     setSearchTerm('');
+                                    setSearchMatches([]);
+                                    setCurrentMatchIndex(-1);
+                                    updateHighlightOverlay('', []);
                                   }}
                                   title="Close (Esc)"
                                 >
@@ -474,19 +554,59 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                         </div>
                       )}
 
-                      <textarea
-                        ref={textareaRef}
-                        className={`form-control ${editorMode === 'html' ? 'font-monospace' : ''}`}
-                        rows="15"
-                        value={formData.content}
-                        onChange={(e) => handleChange('content', e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder={editorMode === 'html' ? 
-                          "Enter HTML content here...\n\nExample HTML:\n<h2>Heading</h2>\n<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>\n<ul>\n  <li>List item 1</li>\n  <li>List item 2</li>\n</ul>" : 
-                          "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
-                        }
-                        style={{ fontSize: editorMode === 'html' ? '13px' : '14px' }}
-                      />
+                      <div className="position-relative">
+                        <textarea
+                          ref={textareaRef}
+                          className={`form-control ${editorMode === 'html' ? 'font-monospace' : ''}`}
+                          rows="15"
+                          value={formData.content}
+                          onChange={(e) => {
+                            handleChange('content', e.target.value);
+                            // Update highlights when content changes
+                            if (searchMatches.length > 0) {
+                              const newMatches = findAllMatches(searchTerm, e.target.value);
+                              setSearchMatches(newMatches);
+                              if (newMatches.length === 0) {
+                                setCurrentMatchIndex(-1);
+                              } else if (currentMatchIndex >= newMatches.length) {
+                                setCurrentMatchIndex(0);
+                              }
+                              updateHighlightOverlay(e.target.value, newMatches, currentMatchIndex);
+                            }
+                          }}
+                          onKeyDown={handleKeyDown}
+                          placeholder={editorMode === 'html' ? 
+                            "Enter HTML content here...\n\nExample HTML:\n<h2>Heading</h2>\n<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>\n<ul>\n  <li>List item 1</li>\n  <li>List item 2</li>\n</ul>" : 
+                            "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
+                          }
+                          style={{ 
+                            fontSize: editorMode === 'html' ? '13px' : '14px',
+                            backgroundColor: 'transparent',
+                            position: 'relative',
+                            zIndex: 2
+                          }}
+                        />
+                        {/* Highlight overlay */}
+                        <div
+                          ref={highlightOverlayRef}
+                          className={`position-absolute top-0 start-0 ${editorMode === 'html' ? 'font-monospace' : ''}`}
+                          style={{
+                            fontSize: editorMode === 'html' ? '13px' : '14px',
+                            padding: '0.375rem 0.75rem',
+                            border: '1px solid transparent',
+                            borderRadius: '0.375rem',
+                            width: '100%',
+                            height: '100%',
+                            overflow: 'hidden',
+                            pointerEvents: 'none',
+                            whiteSpace: 'pre-wrap',
+                            wordWrap: 'break-word',
+                            color: 'transparent',
+                            zIndex: 1,
+                            lineHeight: '1.5'
+                          }}
+                        />
+                      </div>
                       
                       {/* HTML Preview Section */}
                       {editorMode === 'html' && (
