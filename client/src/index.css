@@ -14465,11 +14465,12 @@ a {
 }
 
 .highlight-mirror mark {
-  background-color: #CC0000 !important;
-  color: transparent !important;
+  background-color: #990000 !important;
+  color: #FFFFFF !important;
   padding: 0 !important;
   margin: 0 !important;
   border: none !important;
+  font-weight: bold !important;
 }
 
 @keyframes highlight-pulse {
