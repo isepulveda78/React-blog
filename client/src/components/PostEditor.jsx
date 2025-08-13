@@ -175,64 +175,65 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     setCurrentMatchIndex(prevIndex);
   };
 
-  // Create absolute positioned highlight div
+  // Create mirror div for precise text measurement like CodePen example
   const updateHighlightPosition = (content, matches) => {
-    const container = textareaRef.current?.parentNode;
-    if (!container || matches.length === 0 || currentMatchIndex === -1) {
-      // Remove existing highlights
-      const existingHighlights = container.querySelectorAll('.search-highlight');
-      existingHighlights.forEach(highlight => highlight.remove());
+    if (!textareaRef.current || matches.length === 0 || currentMatchIndex === -1) {
+      // Clean up existing highlights
+      if (highlightOverlayRef.current) {
+        highlightOverlayRef.current.innerHTML = '';
+      }
       return;
     }
 
     const textarea = textareaRef.current;
     const currentMatch = matches[currentMatchIndex];
     
-    // Remove existing highlights
-    const existingHighlights = container.querySelectorAll('.search-highlight');
-    existingHighlights.forEach(highlight => highlight.remove());
+    // Create mirror div with identical styling to textarea
+    if (!highlightOverlayRef.current) return;
     
-    // Calculate the position of the match text
-    const textBeforeMatch = content.substring(0, currentMatch.start);
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const mirror = highlightOverlayRef.current;
+    
+    // Copy all styles from textarea to mirror
     const computedStyle = getComputedStyle(textarea);
+    mirror.style.position = 'absolute';
+    mirror.style.top = '0';
+    mirror.style.left = '0';
+    mirror.style.width = computedStyle.width;
+    mirror.style.height = computedStyle.height;
+    mirror.style.fontFamily = computedStyle.fontFamily;
+    mirror.style.fontSize = computedStyle.fontSize;
+    mirror.style.lineHeight = computedStyle.lineHeight;
+    mirror.style.letterSpacing = computedStyle.letterSpacing;
+    mirror.style.wordSpacing = computedStyle.wordSpacing;
+    mirror.style.padding = computedStyle.padding;
+    mirror.style.border = computedStyle.border;
+    mirror.style.borderColor = 'transparent';
+    mirror.style.boxSizing = computedStyle.boxSizing;
+    mirror.style.whiteSpace = 'pre-wrap';
+    mirror.style.wordWrap = 'break-word';
+    mirror.style.overflow = 'hidden';
+    mirror.style.pointerEvents = 'none';
+    mirror.style.zIndex = '1';
+    mirror.style.color = 'transparent';
+    mirror.style.background = 'transparent';
     
-    // Set canvas font to match textarea
-    ctx.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+    // Sync scroll position
+    mirror.scrollTop = textarea.scrollTop;
+    mirror.scrollLeft = textarea.scrollLeft;
     
-    // Calculate line height
-    const lineHeight = parseInt(computedStyle.lineHeight) || parseInt(computedStyle.fontSize) * 1.2;
-    const lines = textBeforeMatch.split('\n');
-    const lastLineText = lines[lines.length - 1];
+    // Create highlighted content
+    let highlightedContent = '';
     
-    // Calculate position
-    const textWidth = ctx.measureText(lastLineText).width;
-    const matchWidth = ctx.measureText(currentMatch.text).width;
+    // Text before match (invisible)
+    highlightedContent += escapeHtml(content.substring(0, currentMatch.start));
     
-    // Get textarea position
-    const textareaRect = textarea.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
+    // The match (highlighted)
+    highlightedContent += `<mark style="background-color: rgba(255, 152, 0, 0.8); border-radius: 2px; color: transparent; animation: highlight-pulse 0.3s ease-in-out;">${escapeHtml(currentMatch.text)}</mark>`;
     
-    // Calculate highlight position
-    const left = parseFloat(computedStyle.paddingLeft) + textWidth;
-    const top = parseFloat(computedStyle.paddingTop) + (lines.length - 1) * lineHeight;
+    // Text after match (invisible)
+    highlightedContent += escapeHtml(content.substring(currentMatch.end));
     
-    // Create highlight element
-    const highlight = document.createElement('div');
-    highlight.className = 'search-highlight';
-    highlight.style.position = 'absolute';
-    highlight.style.left = `${left}px`;
-    highlight.style.top = `${top}px`;
-    highlight.style.width = `${matchWidth}px`;
-    highlight.style.height = `${lineHeight}px`;
-    highlight.style.backgroundColor = 'rgba(255, 152, 0, 0.7)';
-    highlight.style.borderRadius = '2px';
-    highlight.style.pointerEvents = 'none';
-    highlight.style.zIndex = '1';
-    highlight.style.animation = 'highlight-pulse 0.3s ease-in-out';
-    
-    container.appendChild(highlight);
+    mirror.innerHTML = highlightedContent;
   };
 
   const escapeHtml = (text) => {
@@ -594,7 +595,12 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                       )}
 
                       <div className={`textarea-with-highlights ${searchMatches.length > 0 ? 'position-relative' : ''}`}>
-
+                        {/* Mirror div for highlighting - exactly like CodePen example */}
+                        <div 
+                          ref={highlightOverlayRef}
+                          className="highlight-mirror"
+                          style={{ display: searchMatches.length > 0 ? 'block' : 'none' }}
+                        />
                         
                         <textarea
                           ref={textareaRef}
@@ -617,9 +623,10 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                           }}
                           onKeyDown={handleKeyDown}
                           onScroll={(e) => {
-                            // Update highlight position on scroll
-                            if (searchMatches.length > 0 && currentMatchIndex !== -1) {
-                              setTimeout(() => updateHighlightPosition(formData.content, searchMatches), 10);
+                            // Sync scroll with mirror like CodePen example
+                            if (highlightOverlayRef.current) {
+                              highlightOverlayRef.current.scrollTop = e.target.scrollTop;
+                              highlightOverlayRef.current.scrollLeft = e.target.scrollLeft;
                             }
                           }}
                           placeholder={editorMode === 'html' ? 
@@ -628,11 +635,9 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                           }
                           style={{ 
                             fontSize: editorMode === 'html' ? '13px' : '14px',
-                            ...(searchMatches.length > 0 && currentMatchIndex !== -1 && {
-                              backgroundColor: 'rgba(255, 255, 255, 0.6)',
-                              position: 'relative',
-                              zIndex: 2
-                            })
+                            position: 'relative',
+                            zIndex: 2,
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)'
                           }}
                         />
                         
