@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'wouter';
 
 // Utility function to decode HTML entities recursively
 const decodeHTMLEntities = (text) => {
@@ -349,9 +350,11 @@ function CommentsSection({ postId, user }) {
 }
 
 function BlogPost({ user, slug }) {
+  const [location, navigate] = useLocation();
   const [post, setPost] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const contentRef = useRef(null);
   
   // Get slug from URL if not provided as prop
   const postSlug = slug || window.location.pathname.split('/').pop();
@@ -389,6 +392,32 @@ function BlogPost({ user, slug }) {
 
     fetchPost();
   }, [postSlug, user]);
+
+  // Handle clicks on internal links to use client-side routing
+  useEffect(() => {
+    const handleLinkClick = (e) => {
+      const target = e.target.closest('a');
+      if (!target) return;
+
+      const href = target.getAttribute('href');
+      if (!href) return;
+
+      // Check if it's an internal link (starts with / but not //)
+      if (href.startsWith('/') && !href.startsWith('//')) {
+        e.preventDefault();
+        navigate(href);
+      }
+    };
+
+    if (contentRef.current) {
+      contentRef.current.addEventListener('click', handleLinkClick);
+      return () => {
+        if (contentRef.current) {
+          contentRef.current.removeEventListener('click', handleLinkClick);
+        }
+      };
+    }
+  }, [post, navigate]);
 
   // Posts are now publicly accessible
 
@@ -437,6 +466,7 @@ function BlogPost({ user, slug }) {
           ),
           // Post Content
           React.createElement("div", {
+            ref: contentRef,
             className: "post-content mb-5",
             dangerouslySetInnerHTML: { __html: decodeHTMLEntities(post.content) },
             style: { lineHeight: "1.7", fontSize: "1.1rem" }
