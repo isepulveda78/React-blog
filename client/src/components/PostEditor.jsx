@@ -211,10 +211,21 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     
     highlightOverlayRef.current.innerHTML = highlightedContent;
     
-    // Sync scroll position
+    // Sync scroll position and ensure perfect alignment
     if (textareaRef.current) {
-      highlightOverlayRef.current.scrollTop = textareaRef.current.scrollTop;
-      highlightOverlayRef.current.scrollLeft = textareaRef.current.scrollLeft;
+      const textarea = textareaRef.current;
+      const mirror = highlightOverlayRef.current;
+      
+      mirror.scrollTop = textarea.scrollTop;
+      mirror.scrollLeft = textarea.scrollLeft;
+      
+      // Force exact font matching
+      const computedStyle = getComputedStyle(textarea);
+      mirror.style.fontFamily = computedStyle.fontFamily;
+      mirror.style.fontSize = computedStyle.fontSize;
+      mirror.style.lineHeight = computedStyle.lineHeight;
+      mirror.style.letterSpacing = computedStyle.letterSpacing;
+      mirror.style.wordSpacing = computedStyle.wordSpacing;
     }
   };
 
@@ -621,8 +632,8 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                           }
                           style={{ 
                             fontSize: editorMode === 'html' ? '13px' : '14px',
-                            ...(searchMatches.length > 0 && {
-                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            ...(searchMatches.length > 0 && currentMatchIndex !== -1 && {
+                              backgroundColor: 'rgba(255, 255, 255, 0.7)',
                               position: 'relative',
                               zIndex: 1
                             })
