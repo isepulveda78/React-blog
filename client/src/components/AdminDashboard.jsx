@@ -1,6 +1,9 @@
 import React from 'react';
+import { useLocation } from 'wouter';
 
 const AdminDashboard = ({ user }) => {
+  const [location, navigate] = useLocation();
+  
   if (!user || !user.isAdmin) {
     return (
       <div className="container py-5">
@@ -10,11 +13,6 @@ const AdminDashboard = ({ user }) => {
       </div>
     );
   }
-
-  const navigateTo = (path) => {
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  };
 
   return (
     <div className="container py-5">
@@ -36,7 +34,7 @@ const AdminDashboard = ({ user }) => {
               <p className="card-text">Create, edit, and publish blog posts.</p>
               <button
                 className="btn btn-primary"
-                onClick={() => navigateTo('/admin/posts')}
+                onClick={() => navigate('/admin/posts')}
               >
                 Go to Posts
               </button>
@@ -52,7 +50,7 @@ const AdminDashboard = ({ user }) => {
               <p className="card-text">Create and organize blog post categories.</p>
               <button
                 className="btn btn-primary"
-                onClick={() => navigateTo('/admin/categories')}
+                onClick={() => navigate('/admin/categories')}
               >
                 Go to Categories
               </button>
@@ -68,7 +66,7 @@ const AdminDashboard = ({ user }) => {
               <p className="card-text">Approve users and manage permissions.</p>
               <button
                 className="btn btn-primary"
-                onClick={() => navigateTo('/admin/users')}
+                onClick={() => navigate('/admin/users')}
               >
                 Go to Users
               </button>
@@ -84,7 +82,7 @@ const AdminDashboard = ({ user }) => {
               <p className="card-text">Moderate and approve user comments.</p>
               <button
                 className="btn btn-primary"
-                onClick={() => navigateTo('/admin/comments')}
+                onClick={() => navigate('/admin/comments')}
               >
                 Go to Comments
               </button>
@@ -100,7 +98,7 @@ const AdminDashboard = ({ user }) => {
               <p className="card-text">Optimize SEO settings and analytics.</p>
               <button
                 className="btn btn-primary"
-                onClick={() => navigateTo('/seo-management')}
+                onClick={() => navigate('/admin/seo')}
               >
                 SEO Tools
               </button>
@@ -116,7 +114,7 @@ const AdminDashboard = ({ user }) => {
               <p className="card-text">Test sound effects and audio integration.</p>
               <button
                 className="btn btn-primary"
-                onClick={() => navigateTo('/sound-demo')}
+                onClick={() => navigate('/sound-demo')}
               >
                 Sound Demo
               </button>
@@ -132,7 +130,7 @@ const AdminDashboard = ({ user }) => {
               <p className="card-text">Create and manage private chatrooms for users.</p>
               <button
                 className="btn btn-primary"
-                onClick={() => navigateTo('/admin/chatrooms')}
+                onClick={() => navigate('/admin/chatrooms')}
               >
                 Go to Chatrooms
               </button>
@@ -148,7 +146,7 @@ const AdminDashboard = ({ user }) => {
               <p className="card-text">View student audio quiz scores and listening performance.</p>
               <button
                 className="btn btn-primary"
-                onClick={() => navigateTo('/admin/quiz-grades-dashboard')}
+                onClick={() => navigate('/admin/quiz-grades-dashboard')}
               >
                 View Audio Grades
               </button>
@@ -164,7 +162,7 @@ const AdminDashboard = ({ user }) => {
               <p className="card-text">View student text quiz scores and reading comprehension.</p>
               <button
                 className="btn btn-success"
-                onClick={() => navigateTo('/admin/text-quiz-grades-dashboard')}
+                onClick={() => navigate('/admin/text-quiz-grades-dashboard')}
               >
                 View Text Grades
               </button>
