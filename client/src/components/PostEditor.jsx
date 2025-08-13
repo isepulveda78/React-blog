@@ -49,7 +49,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     }
   }, [post]);
 
-  // Scroll to current match when navigating
+  // Scroll to current match and update highlighting when navigating
   useEffect(() => {
     if (searchMatches.length > 0 && currentMatchIndex !== -1 && textareaRef.current) {
       const match = searchMatches[currentMatchIndex];
@@ -63,8 +63,11 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       
       // Scroll to center the match in the viewport
       textarea.scrollTop = Math.max(0, scrollPosition - textarea.clientHeight / 2);
+      
+      // Update highlighting to show current match
+      updateHighlightOverlay(formData.content, searchMatches);
     }
-  }, [currentMatchIndex, searchMatches]);
+  }, [currentMatchIndex, searchMatches, formData.content]);
 
 
 
@@ -130,8 +133,10 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     
     if (matches.length > 0) {
       setCurrentMatchIndex(0);
+      updateHighlightOverlay(content, matches);
     } else {
       setCurrentMatchIndex(-1);
+      updateHighlightOverlay('', []);
     }
   };
 
@@ -150,6 +155,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       // Clear highlights when search term is empty
       setSearchMatches([]);
       setCurrentMatchIndex(-1);
+      updateHighlightOverlay('', []);
     }
   };
 
@@ -165,6 +171,42 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
     const prevIndex = currentMatchIndex === 0 ? searchMatches.length - 1 : currentMatchIndex - 1;
     setCurrentMatchIndex(prevIndex);
+  };
+
+  // Simple highlight overlay function
+  const updateHighlightOverlay = (content, matches) => {
+    if (!highlightOverlayRef.current) return;
+    
+    if (matches.length === 0) {
+      highlightOverlayRef.current.innerHTML = '';
+      return;
+    }
+
+    let highlightedContent = '';
+    let lastIndex = 0;
+    
+    matches.forEach((match, index) => {
+      // Add text before the match
+      highlightedContent += escapeHtml(content.substring(lastIndex, match.start));
+      
+      // Add highlighted match - current match gets different highlighting
+      const isCurrentMatch = index === currentMatchIndex;
+      const className = isCurrentMatch ? 'search-match search-match-current' : 'search-match';
+      highlightedContent += `<mark class="${className}">${escapeHtml(match.text)}</mark>`;
+      
+      lastIndex = match.end;
+    });
+    
+    // Add remaining text
+    highlightedContent += escapeHtml(content.substring(lastIndex));
+    
+    highlightOverlayRef.current.innerHTML = highlightedContent;
+  };
+
+  const escapeHtml = (text) => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML.replace(/\n/g, '<br>');
   };
 
   // Handle keyboard shortcuts
@@ -543,11 +585,35 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                             "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
                           }
                           style={{ 
-                            fontSize: editorMode === 'html' ? '13px' : '14px'
+                            fontSize: editorMode === 'html' ? '13px' : '14px',
+                            backgroundColor: searchMatches.length > 0 ? 'rgba(255,255,255,0.9)' : '#fff',
+                            position: 'relative',
+                            zIndex: 2
                           }}
                         />
                         
-
+                        {/* Simple highlight overlay */}
+                        {searchMatches.length > 0 && (
+                          <div
+                            ref={highlightOverlayRef}
+                            className={`position-absolute top-0 start-0 ${editorMode === 'html' ? 'font-monospace' : ''}`}
+                            style={{
+                              fontSize: editorMode === 'html' ? '13px' : '14px',
+                              padding: '0.375rem 0.75rem',
+                              border: '1px solid transparent',
+                              borderRadius: '0.375rem',
+                              width: '100%',
+                              height: '100%',
+                              overflow: 'hidden',
+                              pointerEvents: 'none',
+                              whiteSpace: 'pre-wrap',
+                              wordWrap: 'break-word',
+                              zIndex: 1,
+                              lineHeight: '1.5',
+                              userSelect: 'none'
+                            }}
+                          />
+                        )}
                         
                         {/* Match counter */}
                         {searchMatches.length > 0 && (
