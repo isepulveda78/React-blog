@@ -931,6 +931,12 @@ export function registerRoutes(app) {
         console.log('[server] Preserving existing image:', existingPost.featuredImage);
       }
       
+      // Regenerate slug if title changed
+      if (postData.title && postData.title !== existingPost.title) {
+        postData.slug = generateSlug(postData.title);
+        console.log('[server] Regenerated slug for updated title:', postData.slug);
+      }
+      
       // Add category name if categoryId is provided
       if (postData.categoryId) {
         const category = await storage.getCategoryById(postData.categoryId);
@@ -962,6 +968,18 @@ export function registerRoutes(app) {
 
       const { id } = req.params;
       const postData = req.body;
+      
+      // Get existing post for slug comparison
+      const existingPost = await storage.getPostById(id);
+      if (!existingPost) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+      
+      // Regenerate slug if title changed
+      if (postData.title && postData.title !== existingPost.title) {
+        postData.slug = generateSlug(postData.title);
+        console.log('[server] PATCH - Regenerated slug for updated title:', postData.slug);
+      }
       
       // Add category name if categoryId is provided
       if (postData.categoryId) {
