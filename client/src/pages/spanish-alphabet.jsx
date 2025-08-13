@@ -9,12 +9,12 @@ const SpanishAlphabet = () => {
   // Spanish alphabet with pronunciations
   const spanishLetters = [
     { letter: 'A', name: 'a', pronunciation: 'ah' },
-    { letter: 'B', name: 'bay', pronunciation: 'bay' },
+    { letter: 'B', name: 'b e', pronunciation: 'bay' },
     { letter: 'C', name: 'ce', pronunciation: 'say' },
     { letter: 'D', name: 'de', pronunciation: 'day' },
     { letter: 'E', name: 'e', pronunciation: 'eh' },
     { letter: 'F', name: 'efe', pronunciation: 'eh-feh' },
-    { letter: 'G', name: 'ge', pronunciation: 'hay' },
+    { letter: 'G', name: 'he', pronunciation: 'hay' },
     { letter: 'H', name: 'hache', pronunciation: 'ah-chay' },
     { letter: 'I', name: 'i', pronunciation: 'ee' },
     { letter: 'J', name: 'jota', pronunciation: 'ho-tah' },
@@ -228,11 +228,6 @@ const SpanishAlphabet = () => {
                   className: `display-4 fw-bold mb-2 ${isPlaying === letterObj.letter ? 'text-primary' : 'text-dark'}` 
                 },
                 letterObj.letter
-              ),
-              React.createElement(
-                'h6',
-                { className: 'text-muted mb-1' },
-                letterObj.name
               ),
               React.createElement(
                 'small',
