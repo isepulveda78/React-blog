@@ -1,31 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
-
 const { toast } = window;
 
 const AdminPosts = ({ user }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingPost, setEditingPost] = useState(null);
-  
-  // Form fields
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [excerpt, setExcerpt] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [status, setStatus] = useState('draft');
-  const [featuredImage, setFeaturedImage] = useState('');
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [saving, setSaving] = useState(false);
-  
-  // Categories state
   const [categories, setCategories] = useState([]);
 
-
-
-
-  
   if (!user || !user.isAdmin) {
     return (
       <div className="container py-5">
@@ -43,26 +24,6 @@ const AdminPosts = ({ user }) => {
     fetchCategories();
   }, []);
 
-  useEffect(() => {
-    if (editingPost) {
-      setTitle(editingPost.title || '');
-      setContent(editingPost.content || '');
-      setExcerpt(editingPost.excerpt || '');
-      setCategoryId(editingPost.categoryId || '');
-      setStatus(editingPost.status || 'draft');
-      setFeaturedImage(editingPost.featuredImage || '');
-    } else {
-      setTitle('');
-      setContent('');
-      setExcerpt('');
-      setCategoryId('');
-      setStatus('draft');
-      setFeaturedImage('');
-    }
-  }, [editingPost]);
-
-
-
   const fetchPosts = async () => {
     try {
       const response = await fetch('/api/posts', { credentials: 'include' });
@@ -75,8 +36,9 @@ const AdminPosts = ({ user }) => {
       }
     } catch (error) {
       console.error('AdminPosts: Error fetching posts:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchCategories = async () => {
@@ -91,144 +53,27 @@ const AdminPosts = ({ user }) => {
     }
   };
 
-  const handleImageUpload = async (file) => {
-    if (!file) return;
-
-    setUploadingImage(true);
-    const formData = new FormData();
-    formData.append('image', file);
-
-    try {
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-
-        setFeaturedImage(data.url);
-        toast({
-          title: "Success",
-          description: "Image uploaded successfully!",
-          variant: "default"
-        });
-      } else {
-        const errorData = await response.text();
-        console.error('Upload failed:', response.status, errorData);
-        toast({
-          title: "Error",
-          description: `Failed to upload image: ${response.status} - ${errorData}`,
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Error",
-        description: "Error uploading image",
-        variant: "destructive"
-      });
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
   const handleCreateNew = () => {
-    setEditingPost(null);
-    setShowCreateForm(true);
+    // Navigate to the dedicated post editor
+    window.location.href = '/admin/posts/new';
   };
 
   const handleEdit = (post) => {
-    setEditingPost(post);
-    setShowCreateForm(true);
-  };
-
-  const handleCancel = () => {
-    setShowCreateForm(false);
-    setEditingPost(null);
-  };
-
-  const handleSave = async () => {
-    if (!title.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter a title",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setSaving(true);
-    
-    try {
-      const url = editingPost ? `/api/posts/${editingPost.id}` : '/api/posts';
-      const method = editingPost ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          title,
-          content,
-          excerpt,
-          categoryId,
-          status,
-          featuredImage,
-          authorId: user.id,
-          authorName: user.name || user.username
-        })
-      });
-
-      if (response.ok) {
-        const savedPost = await response.json();
-        if (editingPost) {
-          setPosts(posts.map(p => p.id === savedPost.id ? savedPost : p));
-        } else {
-          setPosts([savedPost, ...posts]);
-        }
-        setShowCreateForm(false);
-        setEditingPost(null);
-        
-        // Trigger refresh event for BlogListing
-        window.dispatchEvent(new CustomEvent('blogDataUpdated', { detail: { action: 'saved', post: savedPost } }));
-        
-        toast({
-          title: "Success",
-          description: "Post saved successfully!",
-          variant: "default"
-        });
-      } else {
-        const error = await response.json();
-        toast({
-          title: "Error",
-          description: 'Error saving post: ' + (error.message || 'Unknown error'),
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error saving post:', error);
-      toast({
-        title: "Error",
-        description: "Error saving post",
-        variant: "destructive"
-      });
-    }
-    
-    setSaving(false);
+    // Navigate to the dedicated post editor
+    window.location.href = `/admin/posts/edit/${post.id}`;
   };
 
   const deletePost = async (postId) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
-    
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
+
     try {
       const response = await fetch(`/api/posts/${postId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         setPosts(posts.filter(p => p.id !== postId));
         
@@ -248,6 +93,7 @@ const AdminPosts = ({ user }) => {
         });
       }
     } catch (error) {
+      console.error('Error deleting post:', error);
       toast({
         title: "Error",
         description: "Error deleting post",
@@ -260,7 +106,7 @@ const AdminPosts = ({ user }) => {
     const newStatus = currentStatus === 'published' ? 'draft' : 'published';
     
     try {
-      const response = await fetch(`/api/posts/${postId}`, {
+      const response = await fetch(`/api/posts/${postId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -293,149 +139,6 @@ const AdminPosts = ({ user }) => {
     );
   }
 
-  if (showCreateForm) {
-    return (
-      <div className="container py-5">
-        <h2 className="mb-4">{editingPost ? 'Edit Post' : 'Create New Post'}</h2>
-        
-        <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
-          <div className="mb-3">
-            <label className="form-label">Title *</label>
-            <input
-              type="text"
-              className="form-control"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter post title"
-              required
-            />
-          </div>
-          
-          <div className="mb-3">
-            <label className="form-label">Content *</label>
-            <textarea
-              className="form-control"
-              rows="12"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write your post content here. You can use HTML tags for formatting..."
-              style={{ fontFamily: 'inherit', fontSize: '14px' }}
-            />
-          </div>
-          
-          <div className="mb-3">
-            <label className="form-label">Excerpt</label>
-            <textarea
-              className="form-control"
-              rows={3}
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-              placeholder="Brief description of the post..."
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Category</label>
-            <select
-              className="form-select"
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-            >
-              <option value="">Select Category (Optional)</option>
-              {categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="mb-3">
-            <label className="form-label">Featured Image</label>
-            
-            {/* Show current image if exists */}
-            {featuredImage && (
-              <div className="mb-2">
-                <div className="position-relative d-inline-block">
-                  <img 
-                    src={featuredImage} 
-                    alt="Current featured image" 
-                    style={{ maxWidth: '200px', height: 'auto' }}
-                    className="img-thumbnail"
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
-                    onClick={() => setFeaturedImage('')}
-                    title="Remove image"
-                  >
-                    <i className="fas fa-times"></i>
-                  </button>
-                </div>
-                <p className="small text-muted mt-1">Current featured image</p>
-              </div>
-            )}
-            
-            {/* Image upload controls */}
-            <div className="input-group">
-              <input
-                type="file"
-                className="form-control"
-                accept="image/*"
-                onChange={(e) => e.target.files[0] && handleImageUpload(e.target.files[0])}
-                disabled={uploadingImage}
-                key={featuredImage} // Reset file input when image changes
-              />
-              <button 
-                className="btn btn-outline-secondary" 
-                type="button"
-                disabled={uploadingImage}
-              >
-                {uploadingImage ? 'Uploading...' : (featuredImage ? 'Change' : 'Upload')}
-              </button>
-            </div>
-            <small className="text-muted">
-              {featuredImage ? 
-                'Upload a new file only if you want to change the current image' : 
-                'Upload an image file for the featured image'
-              }
-            </small>
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Status</label>
-            <select
-              className="form-select"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-            </select>
-          </div>
-          
-          <div className="d-flex gap-2">
-            <button 
-              type="submit"
-              className="btn btn-success"
-              disabled={saving}
-            >
-              {saving ? 'Saving...' : (editingPost ? 'Update Post' : 'Create Post')}
-            </button>
-            <button 
-              type="button"
-              className="btn btn-secondary"
-              onClick={handleCancel}
-              disabled={saving}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    );
-  }
-
   return (
     <div className="container py-5">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -444,6 +147,7 @@ const AdminPosts = ({ user }) => {
           className="btn btn-primary btn-lg"
           onClick={handleCreateNew}
         >
+          <i className="fas fa-plus me-2"></i>
           Create New Post
         </button>
       </div>
