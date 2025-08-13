@@ -226,6 +226,34 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     return div.innerHTML;
   };
 
+  // Function to insert HTML anchor at cursor position
+  const insertHtmlAnchor = () => {
+    if (!textareaRef.current) return;
+    
+    const anchorId = prompt('Enter anchor ID (e.g., "section1"):');
+    if (!anchorId) return;
+    
+    // Clean the anchor ID (remove spaces, special chars)
+    const cleanId = anchorId.replace(/[^a-zA-Z0-9-_]/g, '-').toLowerCase();
+    const anchorTag = `<a id="${cleanId}"></a>`;
+    
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentValue = textarea.value;
+    
+    // Insert the anchor tag at cursor position
+    const newValue = currentValue.slice(0, start) + anchorTag + currentValue.slice(end);
+    
+    handleChange('content', newValue);
+    
+    // Set cursor position after the inserted anchor
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + anchorTag.length, start + anchorTag.length);
+    }, 0);
+  };
+
 
 
   // Handle keyboard shortcuts
@@ -464,14 +492,24 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                             </button>
                           </div>
                           {editorMode === 'html' && (
-                            <button
-                              type="button"
-                              className="btn btn-outline-secondary btn-sm"
-                              onClick={() => setShowSearch(!showSearch)}
-                              title="Search in HTML (Ctrl+F)"
-                            >
-                              <i className="fas fa-search"></i>
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                className="btn btn-outline-secondary btn-sm"
+                                onClick={() => setShowSearch(!showSearch)}
+                                title="Search in HTML (Ctrl+F)"
+                              >
+                                <i className="fas fa-search"></i>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-outline-secondary btn-sm"
+                                onClick={insertHtmlAnchor}
+                                title="Insert HTML Anchor"
+                              >
+                                <i className="fas fa-anchor"></i>
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>
