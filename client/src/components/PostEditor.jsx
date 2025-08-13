@@ -581,10 +581,9 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                           }
                           style={{ 
                             fontSize: editorMode === 'html' ? '13px' : '14px',
-                            backgroundColor: searchMatches.length > 0 ? 'transparent' : '#fff',
+                            backgroundColor: '#fff',
                             position: 'relative',
-                            zIndex: 2,
-                            color: searchMatches.length > 0 ? 'transparent' : 'inherit'
+                            zIndex: searchMatches.length > 0 ? 1 : 2
                           }}
                         />
                         {/* Highlight overlay - only show when there are matches */}
@@ -603,9 +602,9 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               pointerEvents: 'none',
                               whiteSpace: 'pre-wrap',
                               wordWrap: 'break-word',
-                              color: '#000',
-                              backgroundColor: '#fff',
-                              zIndex: 1,
+                              color: '#666',
+                              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                              zIndex: 2,
                               lineHeight: '1.5'
                             }}
                           />
