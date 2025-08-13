@@ -14477,7 +14477,23 @@ a {
 
 .highlight-mirror mark.current-match {
   background-color: rgba(255, 152, 0, 0.9);
-  box-shadow: 0 0 3px rgba(255, 152, 0, 0.5);
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.8);
+  border-radius: 3px;
+  animation: pulse-highlight 0.3s ease-in-out;
+}
+
+@keyframes pulse-highlight {
+  0% {
+    box-shadow: 0 0 8px rgba(255, 152, 0, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 152, 0, 1);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 8px rgba(255, 152, 0, 0.8);
+    transform: scale(1);
+  }
 }
 
 

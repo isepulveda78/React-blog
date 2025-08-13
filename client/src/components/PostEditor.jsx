@@ -49,7 +49,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     }
   }, [post]);
 
-  // Scroll to current match without interfering with cursor
+  // Scroll to current match and update highlighting
   useEffect(() => {
     if (searchMatches.length > 0 && currentMatchIndex !== -1 && textareaRef.current) {
       const match = searchMatches[currentMatchIndex];
@@ -64,8 +64,22 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       // Scroll to center the match in the viewport
       textarea.scrollTop = Math.max(0, scrollPosition - textarea.clientHeight / 2);
       
-      // Update highlight mirror to show current match
+      // Update highlight mirror to show current match with different styling
       updateHighlightMirror(formData.content, searchMatches);
+      
+      // Add a brief visual pulse to the current match
+      setTimeout(() => {
+        if (highlightOverlayRef.current) {
+          const currentMarkElement = highlightOverlayRef.current.querySelector('mark.current-match');
+          if (currentMarkElement) {
+            currentMarkElement.style.transition = 'transform 0.2s ease';
+            currentMarkElement.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+              currentMarkElement.style.transform = 'scale(1)';
+            }, 200);
+          }
+        }
+      }, 50);
     }
   }, [currentMatchIndex, searchMatches]);
 
