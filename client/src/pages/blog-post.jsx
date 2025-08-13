@@ -404,11 +404,29 @@ function BlogPost({ user, slug }) {
 
       console.log('Link clicked:', href);
 
-      // Check if it's an internal link (starts with / but not //)
-      if (href.startsWith('/') && !href.startsWith('//')) {
+      // Check if it's an internal link (relative path or same domain)
+      const isInternal = href.startsWith('/') && !href.startsWith('//') || 
+                        href.includes('mr-s-teaches.com') || 
+                        href.includes('localhost:5000');
+      
+      if (isInternal) {
         console.log('Internal link detected, preventing default and using navigate');
         e.preventDefault();
-        navigate(href);
+        
+        // Extract the path from full URLs
+        let path = href;
+        if (href.includes('://')) {
+          try {
+            const url = new URL(href);
+            path = url.pathname;
+          } catch (e) {
+            console.error('Invalid URL:', href);
+            return;
+          }
+        }
+        
+        console.log('Navigating to path:', path);
+        navigate(path);
       } else {
         console.log('External link, allowing default behavior');
       }
