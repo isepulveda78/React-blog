@@ -113,22 +113,24 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     
     if (matches.length > 0) {
       setCurrentMatchIndex(0);
-      setTimeout(() => highlightCurrentMatch(), 10);
+      setTimeout(() => scrollToCurrentMatch(), 10);
     } else {
       setCurrentMatchIndex(-1);
     }
   };
 
-  // Highlight text using browser's built-in selection
-  const highlightCurrentMatch = () => {
+  // Scroll to match without selecting text
+  const scrollToCurrentMatch = () => {
     if (!textareaRef.current || searchMatches.length === 0 || currentMatchIndex === -1) return;
     
     const match = searchMatches[currentMatchIndex];
-    textareaRef.current.focus();
-    textareaRef.current.setSelectionRange(match.start, match.end);
-    
-    // Scroll to the selection
     const textarea = textareaRef.current;
+    
+    // Focus but don't select text - just place cursor at start of match
+    textarea.focus();
+    textarea.setSelectionRange(match.start, match.start);
+    
+    // Scroll to the match
     const textBeforeMatch = textarea.value.substring(0, match.start);
     const lines = textBeforeMatch.split('\n');
     const lineHeight = parseInt(getComputedStyle(textarea).lineHeight) || 20;
@@ -159,7 +161,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
     const nextIndex = (currentMatchIndex + 1) % searchMatches.length;
     setCurrentMatchIndex(nextIndex);
-    setTimeout(() => highlightCurrentMatch(), 10);
+    setTimeout(() => scrollToCurrentMatch(), 10);
   };
 
   const findPrevious = () => {
@@ -167,7 +169,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
 
     const prevIndex = currentMatchIndex === 0 ? searchMatches.length - 1 : currentMatchIndex - 1;
     setCurrentMatchIndex(prevIndex);
-    setTimeout(() => highlightCurrentMatch(), 10);
+    setTimeout(() => scrollToCurrentMatch(), 10);
   };
 
   // Handle keyboard shortcuts
@@ -520,33 +522,52 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                         </div>
                       )}
 
-                      <textarea
-                        ref={textareaRef}
-                        className={`form-control ${editorMode === 'html' ? 'font-monospace' : ''} ${searchMatches.length > 0 ? 'search-active' : ''}`}
-                        rows="15"
-                        value={formData.content}
-                        onChange={(e) => {
-                          handleChange('content', e.target.value);
-                          // Update highlights when content changes
-                          if (searchMatches.length > 0) {
-                            const newMatches = findAllMatches(searchTerm, e.target.value);
-                            setSearchMatches(newMatches);
-                            if (newMatches.length === 0) {
-                              setCurrentMatchIndex(-1);
-                            } else if (currentMatchIndex >= newMatches.length) {
-                              setCurrentMatchIndex(0);
+                      <div className="position-relative">
+                        <textarea
+                          ref={textareaRef}
+                          className={`form-control ${editorMode === 'html' ? 'font-monospace' : ''} ${searchMatches.length > 0 ? 'search-active' : ''}`}
+                          rows="15"
+                          value={formData.content}
+                          onChange={(e) => {
+                            handleChange('content', e.target.value);
+                            // Update highlights when content changes
+                            if (searchMatches.length > 0) {
+                              const newMatches = findAllMatches(searchTerm, e.target.value);
+                              setSearchMatches(newMatches);
+                              if (newMatches.length === 0) {
+                                setCurrentMatchIndex(-1);
+                              } else if (currentMatchIndex >= newMatches.length) {
+                                setCurrentMatchIndex(0);
+                              }
                             }
+                          }}
+                          onKeyDown={handleKeyDown}
+                          placeholder={editorMode === 'html' ? 
+                            "Enter HTML content here...\n\nExample HTML:\n<h2>Heading</h2>\n<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>\n<ul>\n  <li>List item 1</li>\n  <li>List item 2</li>\n</ul>" : 
+                            "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
                           }
-                        }}
-                        onKeyDown={handleKeyDown}
-                        placeholder={editorMode === 'html' ? 
-                          "Enter HTML content here...\n\nExample HTML:\n<h2>Heading</h2>\n<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>\n<ul>\n  <li>List item 1</li>\n  <li>List item 2</li>\n</ul>" : 
-                          "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
-                        }
-                        style={{ 
-                          fontSize: editorMode === 'html' ? '13px' : '14px'
-                        }}
-                      />
+                          style={{ 
+                            fontSize: editorMode === 'html' ? '13px' : '14px'
+                          }}
+                        />
+                        
+                        {/* Visual indicator showing search position */}
+                        {searchMatches.length > 0 && currentMatchIndex !== -1 && (
+                          <div 
+                            className="position-absolute bg-warning text-dark px-2 py-1 rounded"
+                            style={{
+                              bottom: '10px',
+                              right: '10px',
+                              fontSize: '12px',
+                              pointerEvents: 'none',
+                              zIndex: 10,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                          >
+                            Match {currentMatchIndex + 1} of {searchMatches.length}
+                          </div>
+                        )}
+                      </div>
                       
                       {/* HTML Preview Section */}
                       {editorMode === 'html' && (
