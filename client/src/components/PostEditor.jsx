@@ -113,15 +113,45 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     
     if (matches.length > 0) {
       setCurrentMatchIndex(0);
+      updateHighlightOverlay(content, matches);
     } else {
       setCurrentMatchIndex(-1);
+      updateHighlightOverlay('', []);
     }
   };
 
-  // Just update the visual indicators without moving cursor
-  const updateSearchDisplay = () => {
-    // Only update the visual state, don't move cursor or scroll
-    // The match counter will show the current position
+  // Update highlight overlay with visual highlighting
+  const updateHighlightOverlay = (content, matches) => {
+    if (!highlightOverlayRef.current) return;
+    
+    if (matches.length === 0) {
+      highlightOverlayRef.current.innerHTML = '';
+      return;
+    }
+
+    let highlightedContent = '';
+    let lastIndex = 0;
+    
+    matches.forEach((match) => {
+      // Add text before the match
+      highlightedContent += escapeHtml(content.substring(lastIndex, match.start));
+      
+      // Add highlighted match (all matches get same highlighting)
+      highlightedContent += `<mark class="search-match">${escapeHtml(match.text)}</mark>`;
+      
+      lastIndex = match.end;
+    });
+    
+    // Add remaining text
+    highlightedContent += escapeHtml(content.substring(lastIndex));
+    
+    highlightOverlayRef.current.innerHTML = highlightedContent;
+  };
+
+  const escapeHtml = (text) => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML.replace(/\n/g, '<br>');
   };
 
   const handleSearchInput = (searchValue) => {
@@ -137,6 +167,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       // Clear highlights when search term is empty
       setSearchMatches([]);
       setCurrentMatchIndex(-1);
+      updateHighlightOverlay('', []);
     }
   };
 
@@ -521,6 +552,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               } else if (currentMatchIndex >= newMatches.length) {
                                 setCurrentMatchIndex(0);
                               }
+                              updateHighlightOverlay(e.target.value, newMatches);
                             }
                           }}
                           onKeyDown={handleKeyDown}
@@ -529,12 +561,38 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                             "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
                           }
                           style={{ 
-                            fontSize: editorMode === 'html' ? '13px' : '14px'
+                            fontSize: editorMode === 'html' ? '13px' : '14px',
+                            backgroundColor: searchMatches.length > 0 ? 'transparent' : '#fff',
+                            zIndex: searchMatches.length > 0 ? 2 : 1
                           }}
                         />
                         
-                        {/* Visual indicator showing search position */}
-                        {searchMatches.length > 0 && currentMatchIndex !== -1 && (
+                        {/* Highlight overlay showing matches */}
+                        {searchMatches.length > 0 && (
+                          <div
+                            ref={highlightOverlayRef}
+                            className={`position-absolute top-0 start-0 ${editorMode === 'html' ? 'font-monospace' : ''}`}
+                            style={{
+                              fontSize: editorMode === 'html' ? '13px' : '14px',
+                              padding: '0.375rem 0.75rem',
+                              border: '1px solid transparent',
+                              borderRadius: '0.375rem',
+                              width: '100%',
+                              height: '100%',
+                              overflow: 'hidden',
+                              pointerEvents: 'none',
+                              whiteSpace: 'pre-wrap',
+                              wordWrap: 'break-word',
+                              color: '#000',
+                              backgroundColor: '#fff',
+                              zIndex: 1,
+                              lineHeight: '1.5'
+                            }}
+                          />
+                        )}
+                        
+                        {/* Match counter */}
+                        {searchMatches.length > 0 && (
                           <div 
                             className="position-absolute bg-warning text-dark px-2 py-1 rounded"
                             style={{
@@ -546,7 +604,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                             }}
                           >
-                            Match {currentMatchIndex + 1} of {searchMatches.length}
+                            {searchMatches.length} match{searchMatches.length !== 1 ? 'es' : ''}
                           </div>
                         )}
                       </div>
