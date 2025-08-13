@@ -219,13 +219,16 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       mirror.scrollTop = textarea.scrollTop;
       mirror.scrollLeft = textarea.scrollLeft;
       
-      // Force exact font matching
+      // Force exact font and positioning matching
       const computedStyle = getComputedStyle(textarea);
       mirror.style.fontFamily = computedStyle.fontFamily;
       mirror.style.fontSize = computedStyle.fontSize;
       mirror.style.lineHeight = computedStyle.lineHeight;
       mirror.style.letterSpacing = computedStyle.letterSpacing;
       mirror.style.wordSpacing = computedStyle.wordSpacing;
+      mirror.style.textAlign = computedStyle.textAlign;
+      mirror.style.paddingTop = computedStyle.paddingTop;
+      mirror.style.paddingLeft = computedStyle.paddingLeft;
     }
   };
 
@@ -633,9 +636,9 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                           style={{ 
                             fontSize: editorMode === 'html' ? '13px' : '14px',
                             ...(searchMatches.length > 0 && currentMatchIndex !== -1 && {
-                              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                              backgroundColor: 'rgba(255, 255, 255, 0.6)',
                               position: 'relative',
-                              zIndex: 1
+                              zIndex: 2
                             })
                           }}
                         />

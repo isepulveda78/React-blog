@@ -14450,10 +14450,10 @@ a {
 
 .highlight-mirror {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 1px;
+  left: 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
   pointer-events: none;
   overflow: hidden;
   white-space: pre-wrap;
@@ -14464,11 +14464,11 @@ a {
   padding: 0.375rem 0.75rem;
   margin: 0;
   border: 1px solid transparent;
-  border-width: 1px;
   color: transparent;
   z-index: 0;
   background: transparent;
   box-sizing: border-box;
+  transform: translateY(0);
 }
 
 
