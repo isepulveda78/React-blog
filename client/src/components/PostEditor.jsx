@@ -613,9 +613,9 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                           style={{ 
                             fontSize: editorMode === 'html' ? '13px' : '14px',
                             ...(searchMatches.length > 0 && {
-                              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
                               position: 'relative',
-                              zIndex: 2
+                              zIndex: 1
                             })
                           }}
                         />
