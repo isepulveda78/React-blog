@@ -1219,11 +1219,8 @@ export class MongoStorage {
     if (!existingPost) return null;
     
     const oldCategoryId = existingPost.categoryId;
-    
-    // Create update object without _id field to prevent MongoDB error
-    const { _id, ...existingWithoutId } = existingPost;
     const updatedPost = {
-      ...existingWithoutId,
+      ...existingPost,
       ...postData,
       updatedAt: new Date().toISOString(),
       publishedAt: postData.status === 'published' && !existingPost.publishedAt 
