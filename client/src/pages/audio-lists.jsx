@@ -335,34 +335,21 @@ const AudioLists = ({ user }) => {
                         <small className="text-muted">by {list.creatorName}</small>
                       </div>
                       {isTeacherOrAdmin && (user.isAdmin || list.creatorId === user.id) && (
-                        <div className="dropdown">
+                        <div className="btn-group">
                           <button
-                            className="btn btn-outline-secondary btn-sm dropdown-toggle"
-                            type="button"
-                            data-bs-toggle="dropdown"
+                            className="btn btn-outline-primary btn-sm"
+                            onClick={() => startEdit(list)}
+                            title="Edit Audio List"
                           >
-                            <i className="fas fa-ellipsis-v"></i>
+                            <i className="fas fa-edit"></i>
                           </button>
-                          <ul className="dropdown-menu">
-                            <li>
-                              <button
-                                className="dropdown-item"
-                                onClick={() => startEdit(list)}
-                              >
-                                <i className="fas fa-edit me-2"></i>
-                                Edit
-                              </button>
-                            </li>
-                            <li>
-                              <button
-                                className="dropdown-item text-danger"
-                                onClick={() => handleDelete(list.id)}
-                              >
-                                <i className="fas fa-trash me-2"></i>
-                                Delete
-                              </button>
-                            </li>
-                          </ul>
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => handleDelete(list.id)}
+                            title="Delete Audio List"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
                         </div>
                       )}
                     </div>
