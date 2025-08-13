@@ -195,28 +195,31 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     mirror.scrollTop = textarea.scrollTop;
     mirror.scrollLeft = textarea.scrollLeft;
     
-    // Create content with all matches highlighted
-    let highlightedContent = content;
+    // Build highlighted content like the CodePen example
+    let highlightedContent = '';
+    let lastEnd = 0;
     
-    // Sort matches by position (descending) to avoid index shifting
-    const sortedMatches = [...matches].sort((a, b) => b.start - a.start);
-    
-    // Replace each match with highlighted version
-    sortedMatches.forEach(match => {
-      const before = highlightedContent.substring(0, match.start);
-      const highlighted = `<mark style="background-color: rgba(255, 152, 0, 0.7); border-radius: 2px; color: transparent;">${escapeHtml(match.text)}</mark>`;
-      const after = highlightedContent.substring(match.end);
-      highlightedContent = before + highlighted + after;
+    // Process each match in order
+    matches.forEach(match => {
+      // Add text before this match (escaped and transparent)
+      highlightedContent += escapeHtml(content.substring(lastEnd, match.start));
+      
+      // Add highlighted match
+      highlightedContent += `<mark style="background-color: rgba(255, 152, 0, 0.8); border-radius: 2px; color: transparent;">${escapeHtml(match.text)}</mark>`;
+      
+      lastEnd = match.end;
     });
     
-    // Escape the non-highlighted parts
+    // Add remaining text after last match
+    highlightedContent += escapeHtml(content.substring(lastEnd));
+    
     mirror.innerHTML = highlightedContent;
   };
 
   const escapeHtml = (text) => {
     const div = document.createElement('div');
     div.textContent = text;
-    return div.innerHTML.replace(/\n/g, '<br>');
+    return div.innerHTML;
   };
 
 
@@ -238,12 +241,6 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       setSearchMatches([]);
       setCurrentMatchIndex(-1);
       textareaRef.current?.focus();
-    } else if (e.key === 'F3' || (e.ctrlKey && e.key === 'g')) {
-      e.preventDefault();
-      findNext();
-    } else if (e.shiftKey && e.key === 'F3' || (e.ctrlKey && e.shiftKey && e.key === 'G')) {
-      e.preventDefault();
-      findPrevious();
     }
   };
 
@@ -541,7 +538,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                                     setShowSearch(false);
                                     setSearchTerm('');
                                     setSearchMatches([]);
-                                    setCurrentMatchIndex(-1);
+                                    updateHighlights('', []);
                                   }}
                                   title="Close (Esc)"
                                 >
@@ -572,12 +569,9 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                           onChange={(e) => {
                             handleChange('content', e.target.value);
                             // Update highlights when content changes
-                            if (searchMatches.length > 0) {
+                            if (searchTerm && searchTerm.trim()) {
                               const newMatches = findAllMatches(searchTerm, e.target.value);
                               setSearchMatches(newMatches);
-                              if (newMatches.length === 0) {
-                                setCurrentMatchIndex(-1);
-                              }
                               updateHighlights(e.target.value, newMatches);
                             }
                           }}
@@ -619,48 +613,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                         )}
                       </div>
                       
-                      {/* HTML Preview Section */}
-                      {editorMode === 'html' && (
-                        <div className="mt-4">
-                          <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h6 className="mb-0">
-                              <i className="fas fa-eye me-2"></i>
-                              Live HTML Preview
-                            </h6>
-                            {formData.content && (
-                              <small className="text-success">
-                                <i className="fas fa-check-circle me-1"></i>
-                                Preview updating...
-                              </small>
-                            )}
-                          </div>
-                          <div 
-                            className="card border-primary"
-                            style={{ maxHeight: '400px', overflowY: 'auto' }}
-                          >
-                            <div className="card-body">
-                              {formData.content ? (
-                                <div 
-                                  dangerouslySetInnerHTML={{ __html: formData.content }}
-                                  style={{ 
-                                    lineHeight: '1.6',
-                                    fontSize: '16px'
-                                  }}
-                                />
-                              ) : (
-                                <div className="text-muted text-center py-4">
-                                  <i className="fas fa-code fa-2x mb-2"></i>
-                                  <p>Start typing HTML above to see the live preview here!</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <small className="text-muted mt-2 d-block">
-                            <i className="fas fa-info-circle me-1"></i>
-                            This preview shows exactly how your HTML will appear when published. Preview updates as you type.
-                          </small>
-                        </div>
-                      )}
+
                     </div>
 
                     <div className="mb-3">
