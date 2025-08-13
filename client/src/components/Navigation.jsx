@@ -185,6 +185,53 @@ const Navigation = ({ user, onLogout }) => {
                 React.createElement("span", { className: "text-muted" }, "or"),
               ),
 
+              // Quick Login for Israel
+              React.createElement(
+                "div",
+                { className: "text-center mb-3" },
+                React.createElement(
+                  "button",
+                  {
+                    type: "button",
+                    className: "btn btn-success btn-sm",
+                    onClick: async () => {
+                      try {
+                        const response = await fetch("/api/auth/quick-login", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ email: "sepulveda.israel@yahoo.com" }),
+                          credentials: "include",
+                        });
+                        
+                        if (response.ok) {
+                          const userData = await response.json();
+                          window.currentUser = userData;
+                          localStorage.setItem("user", JSON.stringify(userData));
+                          window.dispatchEvent(new CustomEvent('userUpdated', { detail: userData }));
+                          setShowAuthModal(false);
+                          if (window.toast) {
+                            window.toast({
+                              title: "Success", 
+                              description: "Quick login successful!",
+                              variant: "default"
+                            });
+                          }
+                        }
+                      } catch (e) {
+                        console.error("Quick login failed:", e);
+                      }
+                    }
+                  },
+                  "Quick Login (Israel)"
+                ),
+              ),
+
+              React.createElement(
+                "div",
+                { className: "text-center mb-3" },
+                React.createElement("span", { className: "text-muted" }, "or use regular login"),
+              ),
+
               // Name field for registration
               !isLoginMode &&
                 React.createElement(
