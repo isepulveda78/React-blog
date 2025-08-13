@@ -14468,12 +14468,7 @@ a {
   background: transparent;
 }
 
-.highlight-mirror mark {
-  background-color: rgba(255, 235, 59, 0.7);
-  color: transparent;
-  border-radius: 2px;
-  padding: 0;
-}
+
 
 .highlight-mirror mark.current-match {
   background-color: rgba(255, 152, 0, 0.9);

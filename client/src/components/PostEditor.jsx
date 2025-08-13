@@ -187,32 +187,27 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     setCurrentMatchIndex(prevIndex);
   };
 
-  // Update highlight mirror with proper positioning
+  // Update highlight mirror with only the current match highlighted
   const updateHighlightMirror = (content, matches) => {
     if (!highlightOverlayRef.current) return;
     
-    if (matches.length === 0) {
+    if (matches.length === 0 || currentMatchIndex === -1) {
       highlightOverlayRef.current.innerHTML = '';
       return;
     }
 
+    // Only highlight the current match, not all matches
+    const currentMatch = matches[currentMatchIndex];
     let highlightedContent = '';
-    let lastIndex = 0;
     
-    matches.forEach((match, index) => {
-      // Add text before the match (invisible)
-      highlightedContent += escapeHtml(content.substring(lastIndex, match.start));
-      
-      // Add highlighted match
-      const isCurrentMatch = index === currentMatchIndex;
-      const className = isCurrentMatch ? 'current-match' : '';
-      highlightedContent += `<mark class="${className}">${escapeHtml(match.text)}</mark>`;
-      
-      lastIndex = match.end;
-    });
+    // Add text before the current match (invisible)
+    highlightedContent += escapeHtml(content.substring(0, currentMatch.start));
     
-    // Add remaining text (invisible)
-    highlightedContent += escapeHtml(content.substring(lastIndex));
+    // Add the highlighted current match
+    highlightedContent += `<mark class="current-match">${escapeHtml(currentMatch.text)}</mark>`;
+    
+    // Add remaining text after the match (invisible)
+    highlightedContent += escapeHtml(content.substring(currentMatch.end));
     
     highlightOverlayRef.current.innerHTML = highlightedContent;
     
