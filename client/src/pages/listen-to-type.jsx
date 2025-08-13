@@ -3,6 +3,14 @@ import { useToast } from "../components/Toast.jsx";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
+// Helper function to decode HTML entities
+const decodeHtmlEntities = (str) => {
+  if (!str) return str;
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = str;
+  return textarea.value;
+};
+
 const ListenToType = ({ user }) => {
   // Chat functionality only
   const [chatName, setChatName] = useState("");
@@ -52,7 +60,7 @@ const ListenToType = ({ user }) => {
       const header = `
         <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
           <h2 style="margin: 0; color: #333;">Chat Conversation Export</h2>
-          <p style="margin: 5px 0; color: #666;">Chatroom: ${selectedChatroom?.name || "Unknown"}</p>
+          <p style="margin: 5px 0; color: #666;">Chatroom: ${decodeHtmlEntities(selectedChatroom?.name) || "Unknown"}</p>
           <p style="margin: 5px 0; color: #666;">Exported on: ${new Date().toLocaleString()}</p>
           <p style="margin: 5px 0; color: #666;">Exported by: ${user?.name || "Teacher"}</p>
         </div>
@@ -389,7 +397,7 @@ const ListenToType = ({ user }) => {
                   <span>
                     <i className="fas fa-comments me-2"></i>
                     Live Chat Room
-                    {selectedChatroom && ` - ${selectedChatroom.name}`}
+                    {selectedChatroom && ` - ${decodeHtmlEntities(selectedChatroom.name)}`}
                     {user?.role && (
                       <span className="badge bg-light text-dark ms-2">
                         {user.role}
@@ -445,11 +453,11 @@ const ListenToType = ({ user }) => {
                             >
                               <div className="card-body text-center">
                                 <h6 className="card-title text-primary">
-                                  {chatroom.name}
+                                  {decodeHtmlEntities(chatroom.name)}
                                 </h6>
                                 {chatroom.description && (
                                   <p className="card-text small text-muted">
-                                    {chatroom.description}
+                                    {decodeHtmlEntities(chatroom.description)}
                                   </p>
                                 )}
                                 <button className="btn btn-sm btn-primary">
@@ -537,7 +545,7 @@ const ListenToType = ({ user }) => {
                       <div className="text-center">
                         <div className="d-flex justify-content-between align-items-center mb-3">
                           <h6 className="mb-0">
-                            Enter your name to join {selectedChatroom.name}:
+                            Enter your name to join {decodeHtmlEntities(selectedChatroom.name)}:
                           </h6>
                           <button
                             className="btn btn-sm btn-outline-secondary"
