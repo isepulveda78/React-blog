@@ -1,26 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { Link, useLocation } from 'wouter';
 
 const Navigation = ({ user, onLogout }) => {
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [location, navigate] = useLocation();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isNavOpen, setIsNavOpen] = useState(false);
 
-  useEffect(() => {
-    const handlePathChange = () => {
-      setCurrentPath(window.location.pathname);
-    };
-
-    window.addEventListener("popstate", handlePathChange);
-    return () => window.removeEventListener("popstate", handlePathChange);
-  }, []);
-
-  const isActive = (path) => currentPath === path;
+  const isActive = (path) => location === path;
 
   const navigateTo = (path) => {
-    window.history.pushState({}, "", path);
-    window.dispatchEvent(new PopStateEvent("popstate"));
-    setCurrentPath(path);
+    navigate(path);
     setIsNavOpen(false); // Close mobile nav when navigating
   };
 
@@ -42,7 +32,7 @@ const Navigation = ({ user, onLogout }) => {
       onLogout();
     }
     // Navigate to home without hard reload
-    navigateTo('/');
+    navigate('/');
   };
 
   // Simple inline AuthModal since window.AuthModal might not load properly
@@ -341,16 +331,12 @@ const Navigation = ({ user, onLogout }) => {
       {/* Navigation */}
       <nav className="navbar navbar-expand-lg bg-danger shadow-sm sticky-top">
         <div className="container">
-          <a
-            className="navbar-brand fw-bold text-white ama-font shadow-for-ama text-decoration-none fs-1"
+          <Link
             href="/"
-            onClick={(e) => {
-              e.preventDefault();
-              navigateTo("/");
-            }}
+            className="navbar-brand fw-bold text-white ama-font shadow-for-ama text-decoration-none fs-1"
           >
             Mr. S Teaches 
-          </a>
+          </Link>
 
           <button
             className="navbar-toggler"
@@ -370,58 +356,42 @@ const Navigation = ({ user, onLogout }) => {
             <ul className="navbar-nav me-auto">
 
               <li className="nav-item">
-                <a
-                  className={`nav-link ${isActive("/blog") ? "active" : ""}`}
+                <Link
                   href="/blog"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigateTo("/blog");
-                  }}
+                  className={`nav-link ${isActive("/blog") ? "active" : ""}`}
                 >
                  Lessons
-                </a>
+                </Link>
               </li>
 
               <li className="nav-item">
-                <a
-                  className={`nav-link ${isActive("/educational-tools") ? "active" : ""}`}
+                <Link
                   href="/educational-tools"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigateTo("/educational-tools");
-                  }}
+                  className={`nav-link ${isActive("/educational-tools") ? "active" : ""}`}
                 >
                   Tools
-                </a>
+                </Link>
               </li>
 
               {user && user.approved && (
                 <li className="nav-item">
-                  <a
-                    className={`nav-link ${isActive("/profile") ? "active" : ""}`}
+                  <Link
                     href="/profile"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigateTo("/profile");
-                    }}
+                    className={`nav-link ${isActive("/profile") ? "active" : ""}`}
                   >
                     My Profile
-                  </a>
+                  </Link>
                 </li>
               )}
 
               {user && user.approved && (
                 <li className="nav-item">
-                  <a
-                    className={`nav-link ${isActive("/listen-to-type") ? "active" : ""}`}
+                  <Link
                     href="/listen-to-type"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigateTo("/listen-to-type");
-                    }}
+                    className={`nav-link ${isActive("/listen-to-type") ? "active" : ""}`}
                   >
                     Chatroom
-                  </a>
+                  </Link>
                 </li>
               )}
             </ul>
@@ -429,12 +399,12 @@ const Navigation = ({ user, onLogout }) => {
             <div className="navbar-nav">
               {/* Quick admin access button - only show if user is authenticated admin */}
               {user && user.isAdmin && (
-                <button
+                <Link
+                  href="/admin"
                   className="btn btn-info btn-sm me-2"
-                  onClick={() => navigateTo("/admin")}
                 >
                   Admin Dashboard
-                </button>
+                </Link>
               )}
               {/* Always visible logout button for testing */}
 
