@@ -22,6 +22,10 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   const [previewMode, setPreviewMode] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [editorMode, setEditorMode] = useState('html'); // 'rich' or 'html' - default to HTML
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const textareaRef = React.useRef(null);
+  const searchInputRef = React.useRef(null);
 
   useEffect(() => {
     fetchCategories();
@@ -69,6 +73,101 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
     const keywords = value.split(',').map(kw => kw.trim()).filter(kw => kw);
     handleChange('metaKeywords', keywords);
   };
+
+  // Search functionality
+  const handleSearch = (searchValue) => {
+    setSearchTerm(searchValue);
+    if (!searchValue || !textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const content = textarea.value;
+    const searchIndex = content.toLowerCase().indexOf(searchValue.toLowerCase());
+    
+    if (searchIndex !== -1) {
+      // Highlight and scroll to the found text
+      textarea.focus();
+      textarea.setSelectionRange(searchIndex, searchIndex + searchValue.length);
+      textarea.scrollTop = textarea.scrollHeight * (searchIndex / content.length);
+    }
+  };
+
+  const findNext = () => {
+    if (!searchTerm || !textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const content = textarea.value;
+    const currentPos = textarea.selectionEnd;
+    const searchIndex = content.toLowerCase().indexOf(searchTerm.toLowerCase(), currentPos);
+    
+    if (searchIndex !== -1) {
+      textarea.focus();
+      textarea.setSelectionRange(searchIndex, searchIndex + searchTerm.length);
+    } else {
+      // Search from beginning if not found
+      const firstIndex = content.toLowerCase().indexOf(searchTerm.toLowerCase());
+      if (firstIndex !== -1) {
+        textarea.focus();
+        textarea.setSelectionRange(firstIndex, firstIndex + searchTerm.length);
+      }
+    }
+  };
+
+  const findPrevious = () => {
+    if (!searchTerm || !textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const content = textarea.value;
+    const currentPos = textarea.selectionStart - 1;
+    const searchIndex = content.toLowerCase().lastIndexOf(searchTerm.toLowerCase(), currentPos);
+    
+    if (searchIndex !== -1) {
+      textarea.focus();
+      textarea.setSelectionRange(searchIndex, searchIndex + searchTerm.length);
+    } else {
+      // Search from end if not found
+      const lastIndex = content.toLowerCase().lastIndexOf(searchTerm.toLowerCase());
+      if (lastIndex !== -1) {
+        textarea.focus();
+        textarea.setSelectionRange(lastIndex, lastIndex + searchTerm.length);
+      }
+    }
+  };
+
+  // Handle keyboard shortcuts
+  const handleKeyDown = (e) => {
+    if (e.ctrlKey && e.key === 'f') {
+      e.preventDefault();
+      setShowSearch(true);
+      setTimeout(() => {
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+          searchInputRef.current.select();
+        }
+      }, 100);
+    } else if (e.key === 'Escape' && showSearch) {
+      setShowSearch(false);
+      setSearchTerm('');
+      textareaRef.current?.focus();
+    } else if (e.key === 'F3' || (e.ctrlKey && e.key === 'g')) {
+      e.preventDefault();
+      findNext();
+    } else if (e.shiftKey && e.key === 'F3' || (e.ctrlKey && e.shiftKey && e.key === 'G')) {
+      e.preventDefault();
+      findPrevious();
+    }
+  };
+
+  // Auto-focus search input when search bar opens
+  React.useEffect(() => {
+    if (showSearch && searchInputRef.current) {
+      setTimeout(() => {
+        searchInputRef.current.focus();
+        if (searchTerm) {
+          searchInputRef.current.select();
+        }
+      }, 100);
+    }
+  }, [showSearch]);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -273,14 +372,97 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                               <i className="fas fa-code me-1"></i>HTML
                             </button>
                           </div>
+                          {editorMode === 'html' && (
+                            <button
+                              type="button"
+                              className="btn btn-outline-secondary btn-sm"
+                              onClick={() => setShowSearch(!showSearch)}
+                              title="Search in HTML (Ctrl+F)"
+                            >
+                              <i className="fas fa-search"></i>
+                            </button>
+                          )}
                         </div>
                       </div>
 
+                      {/* Search Bar for HTML Mode */}
+                      {editorMode === 'html' && showSearch && (
+                        <div className="card mb-3 border-info">
+                          <div className="card-body py-2">
+                            <div className="row align-items-center">
+                              <div className="col-md-6">
+                                <div className="input-group input-group-sm">
+                                  <span className="input-group-text">
+                                    <i className="fas fa-search"></i>
+                                  </span>
+                                  <input
+                                    ref={searchInputRef}
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Search in HTML content..."
+                                    value={searchTerm}
+                                    onChange={(e) => handleSearch(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        findNext();
+                                      } else if (e.key === 'Escape') {
+                                        setShowSearch(false);
+                                        setSearchTerm('');
+                                        textareaRef.current?.focus();
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-md-4">
+                                <div className="btn-group btn-group-sm">
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-secondary"
+                                    onClick={findPrevious}
+                                    title="Previous (Shift+F3)"
+                                  >
+                                    <i className="fas fa-chevron-up"></i>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-secondary"
+                                    onClick={findNext}
+                                    title="Next (F3)"
+                                  >
+                                    <i className="fas fa-chevron-down"></i>
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="col-md-2">
+                                <button
+                                  type="button"
+                                  className="btn btn-outline-secondary btn-sm"
+                                  onClick={() => {
+                                    setShowSearch(false);
+                                    setSearchTerm('');
+                                  }}
+                                  title="Close (Esc)"
+                                >
+                                  <i className="fas fa-times"></i>
+                                </button>
+                              </div>
+                            </div>
+                            <small className="text-muted">
+                              Use Ctrl+F to open search, F3/Enter for next, Shift+F3 for previous, Esc to close
+                            </small>
+                          </div>
+                        </div>
+                      )}
+
                       <textarea
+                        ref={textareaRef}
                         className={`form-control ${editorMode === 'html' ? 'font-monospace' : ''}`}
                         rows="15"
                         value={formData.content}
                         onChange={(e) => handleChange('content', e.target.value)}
+                        onKeyDown={handleKeyDown}
                         placeholder={editorMode === 'html' ? 
                           "Enter HTML content here...\n\nExample HTML:\n<h2>Heading</h2>\n<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>\n<ul>\n  <li>List item 1</li>\n  <li>List item 2</li>\n</ul>" : 
                           "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
