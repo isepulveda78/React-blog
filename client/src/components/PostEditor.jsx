@@ -617,6 +617,48 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                         )}
                       </div>
                       
+                      {/* HTML Preview Section */}
+                      {editorMode === 'html' && (
+                        <div className="mt-4">
+                          <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h6 className="mb-0">
+                              <i className="fas fa-eye me-2"></i>
+                              Live HTML Preview
+                            </h6>
+                            {formData.content && (
+                              <small className="text-success">
+                                <i className="fas fa-check-circle me-1"></i>
+                                Preview updating...
+                              </small>
+                            )}
+                          </div>
+                          <div 
+                            className="card border-primary"
+                            style={{ maxHeight: '400px', overflowY: 'auto' }}
+                          >
+                            <div className="card-body">
+                              {formData.content ? (
+                                <div 
+                                  dangerouslySetInnerHTML={{ __html: formData.content }}
+                                  style={{ 
+                                    lineHeight: '1.6',
+                                    fontSize: '16px'
+                                  }}
+                                />
+                              ) : (
+                                <div className="text-muted text-center py-4">
+                                  <i className="fas fa-code fa-2x mb-2"></i>
+                                  <p>Start typing HTML above to see the live preview here!</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <small className="text-muted mt-2 d-block">
+                            <i className="fas fa-info-circle me-1"></i>
+                            This preview shows exactly how your HTML will appear when published. Preview updates as you type.
+                          </small>
+                        </div>
+                      )}
 
                     </div>
 
