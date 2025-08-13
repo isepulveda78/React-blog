@@ -166,30 +166,40 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       return;
     }
     
-    // Copy all styles from textarea to mirror
+    // Copy all styles from textarea to mirror - exactly like CodePen
     const textarea = textareaRef.current;
     const computedStyle = getComputedStyle(textarea);
+    
+    // Set mirror to match textarea exactly
     mirror.style.position = 'absolute';
     mirror.style.top = '0';
     mirror.style.left = '0';
-    mirror.style.width = computedStyle.width;
-    mirror.style.height = computedStyle.height;
+    mirror.style.right = '0';
+    mirror.style.bottom = '0';
     mirror.style.fontFamily = computedStyle.fontFamily;
     mirror.style.fontSize = computedStyle.fontSize;
+    mirror.style.fontWeight = computedStyle.fontWeight;
     mirror.style.lineHeight = computedStyle.lineHeight;
     mirror.style.letterSpacing = computedStyle.letterSpacing;
     mirror.style.wordSpacing = computedStyle.wordSpacing;
+    mirror.style.textTransform = computedStyle.textTransform;
+    mirror.style.textIndent = computedStyle.textIndent;
+    mirror.style.textAlign = computedStyle.textAlign;
     mirror.style.padding = computedStyle.padding;
     mirror.style.border = computedStyle.border;
     mirror.style.borderColor = 'transparent';
+    mirror.style.margin = computedStyle.margin;
     mirror.style.boxSizing = computedStyle.boxSizing;
     mirror.style.whiteSpace = 'pre-wrap';
     mirror.style.wordWrap = 'break-word';
+    mirror.style.wordBreak = computedStyle.wordBreak;
     mirror.style.overflow = 'hidden';
+    mirror.style.overflowWrap = computedStyle.overflowWrap;
     mirror.style.pointerEvents = 'none';
     mirror.style.zIndex = '1';
     mirror.style.color = 'transparent';
     mirror.style.background = 'transparent';
+    mirror.style.resize = 'none';
     
     // Sync scroll position
     mirror.scrollTop = textarea.scrollTop;
@@ -205,7 +215,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
       highlightedContent += escapeHtml(content.substring(lastEnd, match.start));
       
       // Add highlighted match
-      highlightedContent += `<mark style="background-color: rgba(255, 152, 0, 0.8); border-radius: 2px; color: transparent;">${escapeHtml(match.text)}</mark>`;
+      highlightedContent += `<mark style="background-color: rgba(255, 165, 0, 0.9); color: transparent; padding: 0; margin: 0;">${escapeHtml(match.text)}</mark>`;
       
       lastEnd = match.end;
     });
