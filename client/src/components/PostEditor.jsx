@@ -21,7 +21,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
-  const [editorMode, setEditorMode] = useState('rich'); // 'rich' or 'html'
+  const [editorMode, setEditorMode] = useState('html'); // 'rich' or 'html' - default to HTML
 
   useEffect(() => {
     fetchCategories();
@@ -256,21 +256,23 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                     <div className="mb-3">
                       <div className="d-flex justify-content-between align-items-center mb-2">
                         <label className="form-label mb-0">Content *</label>
-                        <div className="btn-group btn-group-sm">
-                          <button
-                            type="button"
-                            className={`btn ${editorMode === 'rich' ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => setEditorMode('rich')}
-                          >
-                            Rich Text
-                          </button>
-                          <button
-                            type="button"
-                            className={`btn ${editorMode === 'html' ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => setEditorMode('html')}
-                          >
-                            HTML
-                          </button>
+                        <div className="d-flex gap-2">
+                          <div className="btn-group btn-group-sm">
+                            <button
+                              type="button"
+                              className={`btn ${editorMode === 'rich' ? 'btn-primary' : 'btn-outline-primary'}`}
+                              onClick={() => setEditorMode('rich')}
+                            >
+                              <i className="fas fa-font me-1"></i>Rich Text
+                            </button>
+                            <button
+                              type="button"
+                              className={`btn ${editorMode === 'html' ? 'btn-primary' : 'btn-outline-primary'}`}
+                              onClick={() => setEditorMode('html')}
+                            >
+                              <i className="fas fa-code me-1"></i>HTML
+                            </button>
+                          </div>
                         </div>
                       </div>
 
@@ -279,34 +281,52 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                         rows="15"
                         value={formData.content}
                         onChange={(e) => handleChange('content', e.target.value)}
-                        placeholder={editorMode === 'html' ? "Enter HTML content here..." : "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."}
-                        style={{ fontSize: '14px' }}
+                        placeholder={editorMode === 'html' ? 
+                          "Enter HTML content here...\n\nExample HTML:\n<h2>Heading</h2>\n<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>\n<ul>\n  <li>List item 1</li>\n  <li>List item 2</li>\n</ul>" : 
+                          "Write your post content here. You can use HTML tags for formatting (e.g., <strong>bold</strong>, <em>italic</em>, <h2>heading</h2>)..."
+                        }
+                        style={{ fontSize: editorMode === 'html' ? '13px' : '14px' }}
                       />
                       
                       {/* HTML Preview Section */}
-                      {editorMode === 'html' && formData.content && (
+                      {editorMode === 'html' && (
                         <div className="mt-4">
-                          <h6 className="mb-3">
-                            <i className="fas fa-eye me-2"></i>
-                            HTML Preview
-                          </h6>
+                          <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h6 className="mb-0">
+                              <i className="fas fa-eye me-2"></i>
+                              Live HTML Preview
+                            </h6>
+                            {formData.content && (
+                              <small className="text-success">
+                                <i className="fas fa-check-circle me-1"></i>
+                                Preview updating...
+                              </small>
+                            )}
+                          </div>
                           <div 
-                            className="card"
+                            className="card border-primary"
                             style={{ maxHeight: '400px', overflowY: 'auto' }}
                           >
                             <div className="card-body">
-                              <div 
-                                dangerouslySetInnerHTML={{ __html: formData.content }}
-                                style={{ 
-                                  lineHeight: '1.6',
-                                  fontSize: '16px'
-                                }}
-                              />
+                              {formData.content ? (
+                                <div 
+                                  dangerouslySetInnerHTML={{ __html: formData.content }}
+                                  style={{ 
+                                    lineHeight: '1.6',
+                                    fontSize: '16px'
+                                  }}
+                                />
+                              ) : (
+                                <div className="text-muted text-center py-4">
+                                  <i className="fas fa-code fa-2x mb-2"></i>
+                                  <p>Start typing HTML above to see the live preview here!</p>
+                                </div>
+                              )}
                             </div>
                           </div>
                           <small className="text-muted mt-2 d-block">
                             <i className="fas fa-info-circle me-1"></i>
-                            This preview shows how your HTML will look when published.
+                            This preview shows exactly how your HTML will appear when published. Preview updates as you type.
                           </small>
                         </div>
                       )}
