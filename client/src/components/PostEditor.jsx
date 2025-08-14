@@ -1,5 +1,26 @@
 import React, { useState, useEffect } from 'react';
 
+// Utility function to decode HTML entities recursively
+const decodeHTMLEntities = (text) => {
+  if (!text || typeof text !== 'string') return text;
+  
+  // Keep decoding until no more entities are found
+  let decoded = text;
+  let previousDecoded = '';
+  
+  while (decoded !== previousDecoded) {
+    previousDecoded = decoded;
+    decoded = decoded
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#x2F;/g, '/')
+      .replace(/&#x27;/g, "'");
+  }
+  
+  return decoded;
+};
 
 const { toast } = window;
 
@@ -739,7 +760,7 @@ const PostEditor = ({ user, post, onSave, onCancel }) => {
                       >
                         <option value="">Select Category</option>
                         {categories.map(cat => (
-                          <option key={cat.id} value={cat.id}>{cat.name}</option>
+                          <option key={cat.id} value={cat.id}>{decodeHTMLEntities(cat.name)}</option>
                         ))}
                       </select>
                     </div>
