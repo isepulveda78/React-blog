@@ -2,48 +2,51 @@
 
 ## How to Change Hero Images
 
-Your hero image system now allows you to easily switch between different images and add new ones.
+Simple code-based hero image switching that works reliably on both development and live sites.
 
-### Quick Image Switch (For Teachers/Admins)
-1. Visit your website's home page
-2. You'll see buttons below the text: "Day of the Dead", "Day of the Dead Art", "Education"
-3. Click any button to instantly change the hero image
-4. Your choice is saved automatically and will persist on future visits
+### Changing the Hero Image
+To change the hero image, edit `client/src/components/Hero.jsx`:
+
+1. **Find line 6** with the `heroImageSrc` variable
+2. **Change the image path** to one of these options:
+   ```javascript
+   // Option 1: Day of the Dead celebration
+   const heroImageSrc = '/img/day_of_the_dead.jpg';
+   
+   // Option 2: Day of the Dead artwork
+   const heroImageSrc = '/img/day_of_the_dead.jpeg';
+   
+   // Option 3: External stock photo (always works)
+   const heroImageSrc = 'https://images.unsplash.com/photo-1667090762902-bd8ee938d3d5?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+   ```
+
+3. **Save the file** - The image will update immediately with cache-busting
 
 ### Adding New Images
-To add more hero images:
+To use your own images:
 
 1. **Add image file**: Put your new image in the `client/img/` folder
    - Supported formats: JPG, JPEG, PNG
    - Recommended size: At least 800x600 pixels for best quality
 
-2. **Update the Hero component**: Edit `client/src/components/Hero.jsx`
-   - Find the `heroImages` array (around line 6)
-   - Add your new image like this:
+2. **Update the code**: Change the `heroImageSrc` variable to your new image:
    ```javascript
-   {
-     src: '/img/your-new-image.jpg',
-     alt: 'Description of your image',
-     name: 'Display Name'
-   }
+   const heroImageSrc = '/img/your-new-image.jpg';
    ```
-
-3. **Save the file** - The image selector buttons will automatically update!
 
 ### Current Images Available
 - **Day of the Dead** (`/img/day_of_the_dead.jpg`) - Main celebration image
 - **Day of the Dead Art** (`/img/day_of_the_dead.jpeg`) - Artistic version
-- **Education** - Stock photo for general education content
+- **External Education Image** - Stock photo (always works as fallback)
 
 ### Technical Features
-- **Instant switching**: No page reload needed
-- **Persistent choice**: Your selection is remembered between visits
+- **Simple code changes**: Just edit one line to switch images
 - **Cache-busting**: New images appear immediately when you replace files
-- **Auto-fallback**: If an image fails to load, it automatically tries the next one
-- **Admin/Teacher only**: Image selection buttons only appear for authorized users
+- **Auto-fallback**: If local image fails to load, automatically uses external backup
+- **Works on live site**: No complex localStorage or dynamic features that might break
 
 ### Tips
 - For best results, use images with a 4:3 or 16:9 aspect ratio
 - Keep file sizes reasonable (under 2MB) for faster loading
-- Use descriptive alt text for accessibility
-- Test images on both desktop and mobile views
+- Test your image path works before deploying
+- External images are reliable but local images load faster
