@@ -469,7 +469,7 @@ function BlogPost({ user, slug }) {
           React.createElement("div", { className: "text-center mb-5" },
             post.categoryName && React.createElement("span", { 
               className: "badge bg-primary mb-3" 
-            }, post.categoryName),
+            }, decodeHTMLEntities(post.categoryName)),
             React.createElement("h1", { className: "display-5 fw-bold mb-3" }, post.title),
             React.createElement("div", { 
               className: "d-flex justify-content-center align-items-center text-muted mb-4" 

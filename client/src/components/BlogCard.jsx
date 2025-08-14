@@ -66,7 +66,7 @@ const BlogCard = ({ post, onReadMore }) => {
           <div className="mb-2">
             {(post.categoryName || post.category) && (
               <span className="badge bg-primary me-2">
-                {post.categoryName || post.category}
+                {decodeHTMLEntities(post.categoryName || post.category)}
               </span>
             )}
             <small className="text-muted">
