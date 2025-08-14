@@ -21,7 +21,7 @@ const Hero = ({ user }) => {
           <div className="col-lg-6 text-center">
             <div className="hero-image">
               <img
-                src={`/img/day_of_the_dead.jpeg?v=${Date.now()}`}
+                src={`/img/day_of_the_dead.jpg?v=${Date.now()}`}
                 alt="Learning and teaching community"
                 className="img-fluid rounded-3 shadow-lg"
                 style={{ maxHeight: '400px', objectFit: 'cover' }}
