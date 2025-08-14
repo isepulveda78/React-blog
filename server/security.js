@@ -19,6 +19,17 @@ export const sanitizeInput = (input) => {
   return sanitized.trim();
 };
 
+// Special sanitizer for post content that preserves HTML tags including iframes
+export const sanitizePostContent = (content) => {
+  if (typeof content !== 'string') {
+    return content;
+  }
+  
+  // For post content, we preserve HTML tags including iframes
+  // Only trim whitespace, don't escape HTML since we want to allow HTML content
+  return content.trim();
+};
+
 // Validate email format
 export const validateEmail = (email) => {
   return validator.isEmail(email) && email.length <= 100;
@@ -67,7 +78,7 @@ export const validateChatroomName = (name) => {
 };
 
 // Sanitize object by applying sanitizeInput to all string properties
-export const sanitizeObject = (obj) => {
+export const sanitizeObject = (obj, preserveContentHTML = false) => {
   if (!obj || typeof obj !== 'object') {
     return obj;
   }
@@ -75,7 +86,12 @@ export const sanitizeObject = (obj) => {
   const sanitized = {};
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === 'string') {
-      sanitized[key] = sanitizeInput(value);
+      // Special handling for post content to preserve HTML tags including iframes
+      if (preserveContentHTML && key === 'content') {
+        sanitized[key] = sanitizePostContent(value);
+      } else {
+        sanitized[key] = sanitizeInput(value);
+      }
     } else if (Array.isArray(value)) {
       sanitized[key] = value.map(item => 
         typeof item === 'string' ? sanitizeInput(item) : item
@@ -91,7 +107,10 @@ export const sanitizeObject = (obj) => {
 // Middleware to sanitize request body
 export const sanitizeRequestBody = (req, res, next) => {
   if (req.body && typeof req.body === 'object') {
-    req.body = sanitizeObject(req.body);
+    // For post creation/update routes, preserve HTML content
+    const preserveHTML = req.path.includes('/api/posts') && 
+                        (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH');
+    req.body = sanitizeObject(req.body, preserveHTML);
   }
   next();
 };
