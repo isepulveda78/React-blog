@@ -7,7 +7,7 @@ const Hero = ({ user }) => {
   // Option 1: '/img/day_of_the_dead.jpg' - Day of the Dead celebration
   // Option 2: '/img/day_of_the_dead.jpeg' - Day of the Dead artwork  
   // Option 3: External stock photo (always works)
-  const heroImageSrc = '/img/day_of_the_dead.jpg';
+  const heroImageSrc = '/img/day_of_the_dead.jpeg';
   
   return (
     <section className="py-5 mb-5 bg-light">
