@@ -140,7 +140,13 @@ const BlogListing = ({ user }) => {
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          post.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || post.category === selectedCategory;
+    const matchesCategory = !selectedCategory || post.categoryName === selectedCategory;
+    
+    // Debug logging for category filtering
+    if (selectedCategory && process.env.NODE_ENV === 'development') {
+      console.log(`Post "${post.title}" categoryName: "${post.categoryName}", selectedCategory: "${selectedCategory}", matches: ${matchesCategory}`);
+    }
+    
     return matchesSearch && matchesCategory;
   });
 
