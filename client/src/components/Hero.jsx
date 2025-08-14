@@ -21,9 +21,10 @@ const Hero = ({ user }) => {
           <div className="col-lg-6 text-center">
             <div className="hero-image">
               <img
-                src="https://images.unsplash.com/photo-1667090762902-bd8ee938d3d5?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                src={`/img/day_of_the_dead.jpg?v=${Date.now()}`}
                 alt="Learning and teaching community"
                 className="img-fluid rounded-3 shadow-lg"
+                style={{ maxHeight: '400px', objectFit: 'cover' }}
               />
             </div>
           </div>

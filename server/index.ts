@@ -143,9 +143,14 @@ express.static.mime.define({'application/javascript': ['jsx']});
 if (process.env.NODE_ENV === 'development') {
   console.log('[server] DEVELOPMENT MODE: serving static files from client/public');
   app.use(express.static(path.join(__dirname, '../client/public')));
+  // Also serve images from client/img directory
+  app.use('/img', express.static(path.join(__dirname, '../client/img')));
+  console.log('[server] serving images from client/img');
 } else {
   console.log('[server] serving static files from dist/public');
   app.use(express.static(path.join(__dirname, '../dist/public')));
+  // In production, images should be in dist/img
+  app.use('/img', express.static(path.join(__dirname, '../dist/img')));
 }
 
 // Add debug route BEFORE API routes
