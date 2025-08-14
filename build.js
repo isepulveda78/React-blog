@@ -73,6 +73,12 @@ try {
   const publicSrc = path.join(__dirname, 'client/public');
   const publicDest = path.join(__dirname, 'dist/public');
   copyAssets(publicSrc, publicDest);
+  
+  // Copy img assets to production build
+  const imgSrc = path.join(__dirname, 'client/img');
+  const imgDest = path.join(__dirname, 'dist/img');
+  console.log('📸 Copying images to production build...');
+  copyAssets(imgSrc, imgDest);
 
   console.log('✅ Build completed successfully!');
   console.log('');

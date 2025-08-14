@@ -39,14 +39,22 @@ To use your own images:
 - **Day of the Dead Art** (`/img/day_of_the_dead.jpeg`) - Artistic version
 - **External Education Image** - Stock photo (always works as fallback)
 
+### For Live Site Deployment
+When you want to deploy changes to your live site:
+1. **Make your image changes** in the Hero.jsx component
+2. **Run the deployment build**: `node deploy-with-images.js` (this includes image copying)
+3. **Your images will work on the live site** because they're properly copied to the production build
+
 ### Technical Features
 - **Simple code changes**: Just edit one line to switch images
 - **Cache-busting**: New images appear immediately when you replace files
 - **Auto-fallback**: If local image fails to load, automatically uses external backup
-- **Works on live site**: No complex localStorage or dynamic features that might break
+- **Production build support**: Custom build script ensures images are copied to live site
+- **Works reliably**: No complex features that might break in production
 
 ### Tips
 - For best results, use images with a 4:3 or 16:9 aspect ratio
 - Keep file sizes reasonable (under 2MB) for faster loading
-- Test your image path works before deploying
+- Test your image path works in development first
+- Use `node deploy-with-images.js` when building for live site deployment
 - External images are reliable but local images load faster
