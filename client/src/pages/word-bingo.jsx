@@ -153,17 +153,13 @@ const WordBingo = ({ user }) => {
         const result = generateRandomCard(wordList, gridSize);
         const card = gridSize === 5 && result.card ? result.card : result;
         
-        // Title
-        pdf.setFontSize(18);
-        pdf.setFont('helvetica', 'bold');
-        const titleWidth = pdf.getTextWidth(cardTitle);
-        pdf.text(cardTitle, (pageWidth - titleWidth) / 2, margin + 15);
+
         
 
         
         // Center the grid horizontally
         const gridStartX = (pageWidth - maxCardSize) / 2;
-        const gridStartY = margin + 30;
+        const gridStartY = margin + 15;
         
         // Draw column headers for 5x5 BINGO cards
         if (gridSize === 5) {
