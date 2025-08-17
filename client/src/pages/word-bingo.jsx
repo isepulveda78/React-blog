@@ -13,28 +13,70 @@ const shuffleArray = (array) => {
 
 // Utility function to generate a random bingo card
 const generateRandomCard = (words, gridSize) => {
-  const shuffledWords = shuffleArray(words);
-  const cellsNeeded = gridSize * gridSize;
-  const centerIndex = Math.floor(cellsNeeded / 2);
+  if (gridSize !== 5) {
+    // For non-5x5 grids, use simple random placement
+    const shuffledWords = shuffleArray(words);
+    const cellsNeeded = gridSize * gridSize;
+    
+    const card = [];
+    let wordIndex = 0;
+    
+    for (let i = 0; i < cellsNeeded; i++) {
+      if (wordIndex < shuffledWords.length) {
+        card.push(shuffledWords[wordIndex]);
+        wordIndex++;
+      } else {
+        card.push(shuffledWords[wordIndex % shuffledWords.length]);
+        wordIndex++;
+      }
+    }
+    
+    return card;
+  }
   
-  const card = [];
+  // For 5x5 BINGO cards, organize by columns
+  const shuffledWords = shuffleArray(words);
+  const wordsPerColumn = 4; // 5 rows minus header, and center is FREE for N column
+  const totalWordsNeeded = wordsPerColumn * 5; // 4 words per column × 5 columns = 20 words
+  
+  // Distribute words across columns
+  const columns = {
+    B: [], I: [], N: [], G: [], O: []
+  };
+  
+  const columnKeys = ['B', 'I', 'N', 'G', 'O'];
   let wordIndex = 0;
   
-  for (let i = 0; i < cellsNeeded; i++) {
-    if (gridSize === 5 && i === centerIndex) {
-      // Center space is FREE for 5x5 grids
-      card.push('FREE');
-    } else if (wordIndex < shuffledWords.length) {
-      card.push(shuffledWords[wordIndex]);
-      wordIndex++;
-    } else {
-      // If we run out of words, repeat from the beginning
-      card.push(shuffledWords[wordIndex % shuffledWords.length]);
-      wordIndex++;
+  // Fill each column with words
+  for (let col = 0; col < 5; col++) {
+    const columnKey = columnKeys[col];
+    for (let row = 0; row < 5; row++) {
+      if (col === 2 && row === 2) {
+        // Center space is FREE for N column
+        columns[columnKey].push('FREE');
+      } else {
+        if (wordIndex < shuffledWords.length) {
+          columns[columnKey].push(shuffledWords[wordIndex]);
+          wordIndex++;
+        } else {
+          // If we run out of words, repeat from the beginning
+          columns[columnKey].push(shuffledWords[wordIndex % shuffledWords.length]);
+          wordIndex++;
+        }
+      }
     }
   }
   
-  return card;
+  // Convert columns to flat array for display
+  const card = [];
+  for (let row = 0; row < 5; row++) {
+    for (let col = 0; col < 5; col++) {
+      const columnKey = columnKeys[col];
+      card.push(columns[columnKey][row]);
+    }
+  }
+  
+  return { card, columns };
 };
 
 const WordBingo = ({ user }) => {
@@ -72,8 +114,12 @@ const WordBingo = ({ user }) => {
       return;
     }
     
-    const card = generateRandomCard(wordList, gridSize);
-    setCurrentCard(card);
+    const result = generateRandomCard(wordList, gridSize);
+    if (gridSize === 5 && result.card) {
+      setCurrentCard(result.card);
+    } else {
+      setCurrentCard(result);
+    }
   };
 
   const exportToPDF = () => {
@@ -104,7 +150,8 @@ const WordBingo = ({ user }) => {
         }
         
         // Generate random card
-        const card = generateRandomCard(wordList, gridSize);
+        const result = generateRandomCard(wordList, gridSize);
+        const card = gridSize === 5 && result.card ? result.card : result;
         
         // Title
         pdf.setFontSize(18);
@@ -124,6 +171,19 @@ const WordBingo = ({ user }) => {
         // Center the grid horizontally
         const gridStartX = (pageWidth - maxCardSize) / 2;
         const gridStartY = margin + (numCards > 1 ? 45 : 30);
+        
+        // Draw column headers for 5x5 BINGO cards
+        if (gridSize === 5) {
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(16);
+          const letters = ['B', 'I', 'N', 'G', 'O'];
+          for (let col = 0; col < 5; col++) {
+            const headerX = gridStartX + (col * cellSize) + cellSize / 2;
+            const headerY = gridStartY - 10;
+            const letterWidth = pdf.getTextWidth(letters[col]);
+            pdf.text(letters[col], headerX - letterWidth / 2, headerY);
+          }
+        }
         
         // Draw the bingo grid
         pdf.setLineWidth(0.5);
@@ -213,14 +273,14 @@ const WordBingo = ({ user }) => {
         const splitInstructions = pdf.splitTextToSize(instructions, pageWidth - (2 * margin));
         pdf.text(splitInstructions, margin, instructionY);
         
-        // Add "BINGO" header if there's space
-        if (gridStartY > 50) {
+        // For non-5x5 grids, add generic "BINGO" header if there's space
+        if (gridSize !== 5 && gridStartY > 50) {
           pdf.setFontSize(24);
           pdf.setFont('helvetica', 'bold');
-          const bingoText = 'B I N G O';
+          const bingoText = 'BINGO';
           const bingoWidth = pdf.getTextWidth(bingoText);
           if (bingoWidth <= maxCardSize) {
-            pdf.text(bingoText, (pageWidth - bingoWidth) / 2, gridStartY - 10);
+            pdf.text(bingoText, (pageWidth - bingoWidth) / 2, gridStartY - 15);
           }
         }
       }
@@ -278,7 +338,7 @@ const WordBingo = ({ user }) => {
                   <option value={5}>5x5 Grid (Traditional)</option>
                 </select>
                 <small className="text-muted">
-                  {gridSize === 5 ? '5x5 includes a FREE center space' : `${gridSize}x${gridSize} grid needs ${gridSize * gridSize} words`}
+                  {gridSize === 5 ? '5x5 Traditional BINGO with B-I-N-G-O columns and FREE center space' : `${gridSize}x${gridSize} grid needs ${gridSize * gridSize} words`}
                 </small>
               </div>
 
@@ -340,6 +400,38 @@ const WordBingo = ({ user }) => {
               {currentCard.length > 0 ? (
                 <div className="text-center">
                   <h4 className="mb-3">{cardTitle}</h4>
+                  
+                  {/* BINGO Column Headers for 5x5 grid */}
+                  {gridSize === 5 && (
+                    <div 
+                      className="bingo-headers mx-auto mb-2"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(5, 1fr)`,
+                        gap: '2px',
+                        maxWidth: '400px',
+                        backgroundColor: '#000'
+                      }}
+                    >
+                      {['B', 'I', 'N', 'G', 'O'].map((letter, index) => (
+                        <div
+                          key={index}
+                          className="bingo-header d-flex align-items-center justify-content-center text-center"
+                          style={{
+                            backgroundColor: '#007bff',
+                            color: 'white',
+                            minHeight: '40px',
+                            fontSize: '18px',
+                            fontWeight: 'bold',
+                            border: '1px solid #0056b3'
+                          }}
+                        >
+                          {letter}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
                   <div 
                     ref={cardRef}
                     className="bingo-card mx-auto"
