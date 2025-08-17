@@ -112,15 +112,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 import { sanitizeRequestBody } from './security.js';
 app.use(sanitizeRequestBody);
 
-// Add cache-busting headers for development
-app.use((req, res, next) => {
-  if (process.env.NODE_ENV === 'development') {
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
-  }
-  next();
-});
+
 
 // Health check endpoint for deployment
 app.get('/health', (req, res) => {
@@ -139,14 +131,8 @@ app.get('/health', (req, res) => {
 // Configure Express to serve JSX files with JavaScript MIME type
 express.static.mime.define({'application/javascript': ['jsx']});
 
-// In development, serve from client folder, not dist
-if (process.env.NODE_ENV === 'development') {
-  console.log('[server] DEVELOPMENT MODE: serving static files from client/public');
-  app.use(express.static(path.join(__dirname, '../client/public')));
-  // Also serve images from client/img directory
-  app.use('/img', express.static(path.join(__dirname, '../client/img')));
-  console.log('[server] serving images from client/img');
-} else {
+// Static file serving handled by Vite in development
+if (process.env.NODE_ENV !== 'development') {
   console.log('[server] serving static files from dist/public');
   app.use(express.static(path.join(__dirname, '../dist/public')));
   // In production, images should be in dist/img
@@ -174,6 +160,16 @@ if (process.env.NODE_ENV === 'development') {
 if (process.env.NODE_ENV === 'development') {
   // const { setupDevReload } = await import('./dev-reload.js');
   // setupDevReload(app, httpServer);
+}
+
+// Add cache-busting headers in development
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.header('Pragma', 'no-cache');
+    res.header('Expires', '0');
+    next();
+  });
 }
 
 // Handle client-side routing fallback ONLY for production
