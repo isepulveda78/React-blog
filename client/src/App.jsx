@@ -165,6 +165,10 @@ const AppRoutes = () => {
   const { user, logout } = useAuth()
   const [location] = useLocation()
 
+  // Debug logging for routing
+  console.log('[Router] Current location:', location)
+  console.log('[Router] User:', user ? user.name : 'No user')
+
   // Protected route wrapper
   const ProtectedRoute = ({ children, requireAdmin = false, requireApproval = true }) => {
     console.log('ProtectedRoute - user:', user?.name, 'requireAdmin:', requireAdmin);
@@ -217,50 +221,6 @@ const AppRoutes = () => {
       <Navigation user={user} onLogout={logout} />
       <main className="flex-grow-1">
         <Switch>
-          <Route path="/admin/posts" component={() => (
-            <ProtectedRoute requireAdmin={true}>
-              <AdminPosts user={user} />
-            </ProtectedRoute>
-          )} />
-          <Route path="/" component={() => <Home user={user} />} />
-          <Route path="/blog" component={() => <BlogListing user={user} />} />
-          <Route path="/blog/:slug" component={({ params }) => (
-            <ProtectedRoute requireApproval={false}>
-              <BlogPost slug={params.slug} user={user} />
-            </ProtectedRoute>
-          )} />
-          <Route path="/educational-tools" component={() => <EducationalTools user={user} />} />
-          <Route path="/bingo-generator" component={() => <BingoGenerator user={user} />} />
-          <Route path="/word-bingo" component={() => <WordBingo user={user} />} />
-          <Route path="/spanish-alphabet" component={() => <SpanishAlphabet user={user} />} />
-          <Route path="/word-sorter" component={() => <WordSorter user={user} />} />
-          <Route path="/listen-to-type" component={() => (
-            <ProtectedRoute requireApproval={false}>
-              <ListenToType user={user} />
-            </ProtectedRoute>
-          )} />
-
-          <Route path="/code-evolution" component={() => <CodeEvolutionVisualization user={user} />} />
-          <Route path="/crossword-generator" component={() => <CrosswordGenerator user={user} />} />
-          <Route path="/audio-quizzes" component={() => <AudioQuizzes user={user} />} />
-          <Route path="/text-quizzes" component={() => <TextQuizzes user={user} />} />
-          <Route path="/audio-lists" component={() => <AudioLists user={user} />} />
-          <Route path="/profile" component={() => (
-            <ProtectedRoute>
-              <UserProfile user={user} />
-            </ProtectedRoute>
-          )} />
-          <Route path="/admin/chatrooms" component={() => (
-            <ProtectedRoute requireAdmin={true}>
-              <AdminChatrooms user={user} />
-            </ProtectedRoute>
-          )} />
-          <Route path="/admin" component={() => (
-            <ProtectedRoute requireAdmin={true}>
-              <AdminDashboard user={user} />
-            </ProtectedRoute>
-          )} />
-
           <Route path="/admin/posts/new" component={() => (
             <ProtectedRoute requireAdmin={true}>
               <AdminPostEditor user={user} />
@@ -269,6 +229,11 @@ const AppRoutes = () => {
           <Route path="/admin/posts/edit/:id" component={({ params }) => (
             <ProtectedRoute requireAdmin={true}>
               <AdminPostEditor user={user} postId={params.id} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/admin/posts" component={() => (
+            <ProtectedRoute requireAdmin={true}>
+              <AdminPosts user={user} />
             </ProtectedRoute>
           )} />
           <Route path="/admin/users" component={() => (
@@ -301,7 +266,43 @@ const AppRoutes = () => {
               <AdminTextQuizGradesDashboard user={user} />
             </ProtectedRoute>
           )} />
-
+          <Route path="/admin/chatrooms" component={() => (
+            <ProtectedRoute requireAdmin={true}>
+              <AdminChatrooms user={user} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/admin" component={() => (
+            <ProtectedRoute requireAdmin={true}>
+              <AdminDashboard user={user} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/blog/:slug" component={({ params }) => (
+            <ProtectedRoute requireApproval={false}>
+              <BlogPost slug={params.slug} user={user} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/blog" component={() => <BlogListing user={user} />} />
+          <Route path="/educational-tools" component={() => <EducationalTools user={user} />} />
+          <Route path="/bingo-generator" component={() => <BingoGenerator user={user} />} />
+          <Route path="/word-bingo" component={() => <WordBingo user={user} />} />
+          <Route path="/spanish-alphabet" component={() => <SpanishAlphabet user={user} />} />
+          <Route path="/word-sorter" component={() => <WordSorter user={user} />} />
+          <Route path="/listen-to-type" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <ListenToType user={user} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/code-evolution" component={() => <CodeEvolutionVisualization user={user} />} />
+          <Route path="/crossword-generator" component={() => <CrosswordGenerator user={user} />} />
+          <Route path="/audio-quizzes" component={() => <AudioQuizzes user={user} />} />
+          <Route path="/text-quizzes" component={() => <TextQuizzes user={user} />} />
+          <Route path="/audio-lists" component={() => <AudioLists user={user} />} />
+          <Route path="/profile" component={() => (
+            <ProtectedRoute>
+              <UserProfile user={user} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/" component={() => <Home user={user} />} />
           <Route component={NotFound} />
         </Switch>
       </main>
