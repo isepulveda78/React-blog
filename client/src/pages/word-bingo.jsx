@@ -159,18 +159,11 @@ const WordBingo = ({ user }) => {
         const titleWidth = pdf.getTextWidth(cardTitle);
         pdf.text(cardTitle, (pageWidth - titleWidth) / 2, margin + 15);
         
-        // Card number (if multiple cards)
-        if (numCards > 1) {
-          pdf.setFontSize(12);
-          pdf.setFont('helvetica', 'normal');
-          const cardLabel = `Card ${cardNum + 1}`;
-          const labelWidth = pdf.getTextWidth(cardLabel);
-          pdf.text(cardLabel, (pageWidth - labelWidth) / 2, margin + 30);
-        }
+
         
         // Center the grid horizontally
         const gridStartX = (pageWidth - maxCardSize) / 2;
-        const gridStartY = margin + (numCards > 1 ? 45 : 30);
+        const gridStartY = margin + 30;
         
         // Draw column headers for 5x5 BINGO cards
         if (gridSize === 5) {
