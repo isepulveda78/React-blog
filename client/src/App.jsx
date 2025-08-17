@@ -23,6 +23,7 @@ import Footer from './components/Footer.jsx'
 import UserProfile from './pages/user-profile.jsx'
 import EducationalTools from './pages/educational-tools.jsx'
 import BingoGenerator from './pages/bingo-generator.jsx'
+import WordBingo from './pages/word-bingo.jsx'
 import SpanishAlphabet from './pages/spanish-alphabet.jsx'
 import WordSorter from './pages/word-sorter.jsx'
 import ListenToType from './pages/listen-to-type.jsx'
@@ -230,6 +231,7 @@ const AppRoutes = () => {
           )} />
           <Route path="/educational-tools" component={() => <EducationalTools user={user} />} />
           <Route path="/bingo-generator" component={() => <BingoGenerator user={user} />} />
+          <Route path="/word-bingo" component={() => <WordBingo user={user} />} />
           <Route path="/spanish-alphabet" component={() => <SpanishAlphabet user={user} />} />
           <Route path="/word-sorter" component={() => <WordSorter user={user} />} />
           <Route path="/listen-to-type" component={() => (

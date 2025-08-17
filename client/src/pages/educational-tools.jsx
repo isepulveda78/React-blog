@@ -34,6 +34,15 @@ const EducationalTools = ({ user }) => {
       visibleToStudents: false
     },
     {
+      id: 'word-bingo',
+      title: 'Word Bingo',
+      description: 'Create random word bingo cards with custom vocabulary lists and export to PDF',
+      icon: 'fas fa-font fa-3x text-primary',
+      buttonClass: 'btn btn-primary',
+      route: '/word-bingo',
+      visibleToStudents: false
+    },
+    {
       id: 'spanish-alphabet',
       title: 'Spanish Alphabet',
       description: 'Interactive soundboard to learn Spanish letters with audio',
