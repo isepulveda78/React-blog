@@ -34,10 +34,17 @@ export async function setupVite(app) {
       },
     });
 
-    // Use vite's connect instance as middleware for all requests
-    app.use(viteServer.middlewares);
+    // Use vite's connect instance as middleware for all non-API requests
+    app.use((req, res, next) => {
+      // Skip API routes and WebSocket
+      if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/ws')) {
+        return next();
+      }
+      // Let Vite handle everything else including static assets and SPA fallback
+      viteServer.middlewares(req, res, next);
+    });
     
-    console.log('[vite] Development server middleware enabled');
+    console.log('[vite] Development server middleware enabled with SPA fallback');
   } catch (error) {
     console.error('[vite] Failed to start development server:', error);
   }

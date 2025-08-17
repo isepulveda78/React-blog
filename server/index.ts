@@ -176,31 +176,29 @@ if (process.env.NODE_ENV === 'development') {
   // setupDevReload(app, httpServer);
 }
 
-// Handle client-side routing - serve HTML for development and production
-app.get('*', (req, res) => {
-  // Skip API routes
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ message: 'API endpoint not found' });
-  }
-  
-  // Skip WebSocket upgrade requests
-  if (req.path === '/ws') {
-    return res.status(404).send('WebSocket endpoint');
-  }
-  
-  // Skip debug route
-  if (req.path === '/debug') {
-    return; // Already handled above
-  }
-  
-  console.log('[root] Serving React app from index.html for path:', req.path);
-  
-  if (process.env.NODE_ENV === 'development') {
-    res.sendFile(path.join(__dirname, '../client/index.html'));
-  } else {
+// Handle client-side routing fallback ONLY for production
+// In development, Vite middleware handles SPA fallback
+if (process.env.NODE_ENV !== 'development') {
+  app.get('*', (req, res) => {
+    // Skip API routes
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ message: 'API endpoint not found' });
+    }
+    
+    // Skip WebSocket upgrade requests
+    if (req.path === '/ws') {
+      return res.status(404).send('WebSocket endpoint');
+    }
+    
+    // Skip debug route
+    if (req.path === '/debug') {
+      return; // Already handled above
+    }
+    
+    console.log('[root] Serving React app from index.html for path:', req.path);
     res.sendFile(path.resolve(__dirname, '../dist/index.html'));
-  }
-});
+  });
+}
 
 httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`[express] serving on port ${PORT}`);
