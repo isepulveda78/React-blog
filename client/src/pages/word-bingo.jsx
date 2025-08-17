@@ -95,8 +95,8 @@ const WordBingo = ({ user }) => {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 20;
-      const cardWidth = pageWidth - (2 * margin);
-      const cardHeight = cardWidth; // Square cards
+      const maxCardSize = Math.min(pageWidth - (2 * margin), 150); // Limit card size
+      const cellSize = maxCardSize / gridSize;
       
       for (let cardNum = 0; cardNum < numCards; cardNum++) {
         if (cardNum > 0) {
@@ -107,65 +107,122 @@ const WordBingo = ({ user }) => {
         const card = generateRandomCard(wordList, gridSize);
         
         // Title
-        pdf.setFontSize(16);
-        pdf.setFont(undefined, 'bold');
+        pdf.setFontSize(18);
+        pdf.setFont('helvetica', 'bold');
         const titleWidth = pdf.getTextWidth(cardTitle);
-        pdf.text(cardTitle, (pageWidth - titleWidth) / 2, margin + 10);
+        pdf.text(cardTitle, (pageWidth - titleWidth) / 2, margin + 15);
         
         // Card number (if multiple cards)
         if (numCards > 1) {
           pdf.setFontSize(12);
-          pdf.setFont(undefined, 'normal');
+          pdf.setFont('helvetica', 'normal');
           const cardLabel = `Card ${cardNum + 1}`;
           const labelWidth = pdf.getTextWidth(cardLabel);
-          pdf.text(cardLabel, (pageWidth - labelWidth) / 2, margin + 25);
+          pdf.text(cardLabel, (pageWidth - labelWidth) / 2, margin + 30);
         }
         
-        // Grid
-        const startY = margin + (numCards > 1 ? 40 : 25);
-        const cellSize = cardWidth / gridSize;
+        // Center the grid horizontally
+        const gridStartX = (pageWidth - maxCardSize) / 2;
+        const gridStartY = margin + (numCards > 1 ? 45 : 30);
         
-        // Draw grid and text
-        pdf.setFontSize(10);
-        pdf.setFont(undefined, 'normal');
+        // Draw the bingo grid
+        pdf.setLineWidth(0.5);
+        pdf.setFont('helvetica', 'normal');
+        
+        // Calculate appropriate font size based on cell size
+        let fontSize = Math.min(12, cellSize / 4);
+        if (fontSize < 6) fontSize = 6;
+        pdf.setFontSize(fontSize);
         
         for (let row = 0; row < gridSize; row++) {
           for (let col = 0; col < gridSize; col++) {
-            const x = margin + (col * cellSize);
-            const y = startY + (row * cellSize);
+            const x = gridStartX + (col * cellSize);
+            const y = gridStartY + (row * cellSize);
             const cellIndex = row * gridSize + col;
             const word = card[cellIndex];
             
-            // Draw cell border
-            pdf.rect(x, y, cellSize, cellSize);
+            // Draw cell border with black outline
+            pdf.setDrawColor(0, 0, 0); // Black border
+            pdf.setFillColor(255, 255, 255); // White background
+            pdf.rect(x, y, cellSize, cellSize, 'FD'); // Fill and Draw
+            
+            // Special styling for FREE space
+            if (word === 'FREE') {
+              pdf.setFillColor(230, 230, 230); // Light gray background for FREE
+              pdf.rect(x, y, cellSize, cellSize, 'FD');
+              pdf.setFont('helvetica', 'bold');
+              pdf.setFontSize(Math.min(14, cellSize / 3));
+            } else {
+              pdf.setFont('helvetica', 'normal');
+              pdf.setFontSize(fontSize);
+            }
             
             // Add text in center of cell
             if (word) {
-              const textWidth = pdf.getTextWidth(word);
-              const textX = x + (cellSize - textWidth) / 2;
-              const textY = y + cellSize / 2 + 2; // +2 for vertical centering
+              // Split long words if needed
+              let displayText = word;
+              let currentFontSize = word === 'FREE' ? Math.min(14, cellSize / 3) : fontSize;
               
-              // Handle long text by reducing font size if needed
+              // Check if text fits, if not, reduce font size
+              let textWidth = pdf.getTextWidth(displayText);
+              while (textWidth > cellSize - 4 && currentFontSize > 4) {
+                currentFontSize -= 0.5;
+                pdf.setFontSize(currentFontSize);
+                textWidth = pdf.getTextWidth(displayText);
+              }
+              
+              // If still too long, try to split the word
               if (textWidth > cellSize - 4) {
-                const newFontSize = Math.max(6, 10 * (cellSize - 4) / textWidth);
-                pdf.setFontSize(newFontSize);
-                const newTextWidth = pdf.getTextWidth(word);
-                const newTextX = x + (cellSize - newTextWidth) / 2;
-                pdf.text(word, newTextX, textY);
-                pdf.setFontSize(10); // Reset font size
+                const maxCharsPerLine = Math.floor((cellSize - 4) / (textWidth / displayText.length));
+                if (displayText.length > maxCharsPerLine && maxCharsPerLine > 3) {
+                  const lines = [];
+                  for (let i = 0; i < displayText.length; i += maxCharsPerLine) {
+                    lines.push(displayText.substring(i, i + maxCharsPerLine));
+                  }
+                  displayText = lines;
+                }
+              }
+              
+              const textX = x + cellSize / 2;
+              const textY = y + cellSize / 2;
+              
+              if (Array.isArray(displayText)) {
+                // Multi-line text
+                const lineHeight = currentFontSize * 0.3;
+                const totalHeight = displayText.length * lineHeight;
+                const startY = textY - totalHeight / 2 + lineHeight / 2;
+                
+                displayText.forEach((line, index) => {
+                  const lineWidth = pdf.getTextWidth(line);
+                  pdf.text(line, textX - lineWidth / 2, startY + (index * lineHeight));
+                });
               } else {
-                pdf.text(word, textX, textY);
+                // Single line text
+                const finalTextWidth = pdf.getTextWidth(displayText);
+                pdf.text(displayText, textX - finalTextWidth / 2, textY + currentFontSize / 3);
               }
             }
           }
         }
         
         // Instructions at bottom
+        const instructionY = gridStartY + maxCardSize + 20;
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
         const instructions = 'Instructions: Mark off words as they are called. Get 5 in a row (horizontal, vertical, or diagonal) to win!';
-        pdf.setFontSize(8);
-        const instructionY = startY + cardHeight + 15;
-        const splitInstructions = pdf.splitTextToSize(instructions, cardWidth);
+        const splitInstructions = pdf.splitTextToSize(instructions, pageWidth - (2 * margin));
         pdf.text(splitInstructions, margin, instructionY);
+        
+        // Add "BINGO" header if there's space
+        if (gridStartY > 50) {
+          pdf.setFontSize(24);
+          pdf.setFont('helvetica', 'bold');
+          const bingoText = 'B I N G O';
+          const bingoWidth = pdf.getTextWidth(bingoText);
+          if (bingoWidth <= maxCardSize) {
+            pdf.text(bingoText, (pageWidth - bingoWidth) / 2, gridStartY - 10);
+          }
+        }
       }
       
       // Save the PDF
