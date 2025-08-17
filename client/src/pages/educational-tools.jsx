@@ -35,8 +35,8 @@ const EducationalTools = ({ user }) => {
     },
     {
       id: 'word-bingo',
-      title: 'Word Bingo',
-      description: 'Create random word bingo cards with custom vocabulary lists and export to PDF',
+      title: 'Bingo',
+      description: 'Create random bingo cards with custom vocabulary lists and export to PDF',
       icon: 'fas fa-font fa-3x text-primary',
       buttonClass: 'btn btn-primary',
       route: '/word-bingo',
