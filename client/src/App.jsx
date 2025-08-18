@@ -46,6 +46,18 @@ const useAuth = () => {
   return context
 }
 
+// Utility function to get user from localStorage 
+export const getUserFromStorage = () => {
+  try {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  } catch (e) {
+    console.error('Error parsing stored user:', e);
+    localStorage.removeItem('user');
+    return null;
+  }
+}
+
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -171,9 +183,24 @@ const AppRoutes = () => {
 
   // Protected route wrapper
   const ProtectedRoute = ({ children, requireAdmin = false, requireApproval = true }) => {
-    console.log('[ProtectedRoute] user:', user?.name, 'requireAdmin:', requireAdmin, 'isAdmin:', user?.isAdmin);
+    // Check localStorage first if no user in context
+    let currentUser = user;
+    if (!currentUser) {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          currentUser = JSON.parse(storedUser);
+          console.log('[ProtectedRoute] Using localStorage user:', currentUser.name);
+        } catch (e) {
+          console.log('[ProtectedRoute] Invalid localStorage user, clearing');
+          localStorage.removeItem('user');
+        }
+      }
+    }
     
-    if (!user) {
+    console.log('[ProtectedRoute] user:', currentUser?.name, 'requireAdmin:', requireAdmin, 'isAdmin:', currentUser?.isAdmin);
+    
+    if (!currentUser) {
       console.log('[ProtectedRoute] No user, showing login message');
       return (
         <div className="container py-5">
@@ -188,7 +215,7 @@ const AppRoutes = () => {
       )
     }
 
-    if (requireApproval && !user.approved) {
+    if (requireApproval && !currentUser.approved) {
       console.log('[ProtectedRoute] User not approved');
       return (
         <div className="container py-5">
@@ -200,8 +227,8 @@ const AppRoutes = () => {
       )
     }
 
-    if (requireAdmin && !user.isAdmin) {
-      console.log('[ProtectedRoute] User not admin, isAdmin:', user.isAdmin);
+    if (requireAdmin && !currentUser.isAdmin) {
+      console.log('[ProtectedRoute] User not admin, isAdmin:', currentUser.isAdmin);
       return (
         <div className="container py-5">
           <div className="alert alert-danger">
@@ -213,96 +240,118 @@ const AppRoutes = () => {
     }
 
     console.log('[ProtectedRoute] Rendering children successfully');
-    return children
+    // Pass the currentUser (from localStorage if needed) to children
+    return React.cloneElement(children, { user: currentUser })
   }
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <Navigation user={user} onLogout={logout} />
+      <Navigation user={user || (() => {
+        const storedUser = localStorage.getItem('user');
+        try {
+          return storedUser ? JSON.parse(storedUser) : null;
+        } catch (e) {
+          return null;
+        }
+      })()} onLogout={logout} />
       <main className="flex-grow-1">
         <Switch>
           <Route path="/admin/posts/new" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminPostEditor user={user} />
+              <AdminPostEditor />
             </ProtectedRoute>
           )} />
           <Route path="/admin/posts/edit/:id" component={({ params }) => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminPostEditor user={user} postId={params.id} />
+              <AdminPostEditor postId={params.id} />
             </ProtectedRoute>
           )} />
           <Route path="/admin/posts" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminPosts user={user} />
+              <AdminPosts />
             </ProtectedRoute>
           )} />
           <Route path="/admin/users" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminUsers user={user} />
+              <AdminUsers />
             </ProtectedRoute>
           )} />
           <Route path="/admin/comments" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminComments user={user} />
+              <AdminComments />
             </ProtectedRoute>
           )} />
           <Route path="/admin/categories" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminCategories user={user} />
+              <AdminCategories />
             </ProtectedRoute>
           )} />
           <Route path="/admin/seo" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <SEOManagement user={user} />
+              <SEOManagement />
             </ProtectedRoute>
           )} />
           <Route path="/admin/quiz-grades-dashboard" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminQuizGradesDashboard user={user} />
+              <AdminQuizGradesDashboard />
             </ProtectedRoute>
           )} />
           <Route path="/admin/text-quiz-grades-dashboard" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminTextQuizGradesDashboard user={user} />
+              <AdminTextQuizGradesDashboard />
             </ProtectedRoute>
           )} />
           <Route path="/admin/chatrooms" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminChatrooms user={user} />
+              <AdminChatrooms />
             </ProtectedRoute>
           )} />
           <Route path="/admin" component={() => (
             <ProtectedRoute requireAdmin={true}>
-              <AdminDashboard user={user} />
+              <AdminDashboard />
             </ProtectedRoute>
           )} />
           <Route path="/blog/:slug" component={({ params }) => (
             <ProtectedRoute requireApproval={false}>
-              <BlogPost slug={params.slug} user={user} />
+              <BlogPost slug={params.slug} />
             </ProtectedRoute>
           )} />
-          <Route path="/blog" component={() => <BlogListing user={user} />} />
-          <Route path="/educational-tools" component={() => <EducationalTools user={user} />} />
-          <Route path="/bingo-generator" component={() => <BingoGenerator user={user} />} />
-          <Route path="/word-bingo" component={() => <WordBingo user={user} />} />
-          <Route path="/spanish-alphabet" component={() => <SpanishAlphabet user={user} />} />
-          <Route path="/word-sorter" component={() => <WordSorter user={user} />} />
+          <Route path="/blog" component={() => <BlogListing />} />
+          <Route path="/educational-tools" component={() => <EducationalTools />} />
+          <Route path="/bingo-generator" component={() => <BingoGenerator />} />
+          <Route path="/word-bingo" component={() => <WordBingo />} />
+          <Route path="/spanish-alphabet" component={() => <SpanishAlphabet />} />
+          <Route path="/word-sorter" component={() => <WordSorter />} />
           <Route path="/listen-to-type" component={() => (
             <ProtectedRoute requireApproval={false}>
-              <ListenToType user={user} />
+              <ListenToType />
             </ProtectedRoute>
           )} />
-          <Route path="/code-evolution" component={() => <CodeEvolutionVisualization user={user} />} />
-          <Route path="/crossword-generator" component={() => <CrosswordGenerator user={user} />} />
-          <Route path="/audio-quizzes" component={() => <AudioQuizzes user={user} />} />
-          <Route path="/text-quizzes" component={() => <TextQuizzes user={user} />} />
-          <Route path="/audio-lists" component={() => <AudioLists user={user} />} />
+          <Route path="/code-evolution" component={() => <CodeEvolutionVisualization />} />
+          <Route path="/crossword-generator" component={() => <CrosswordGenerator />} />
+          <Route path="/audio-quizzes" component={() => <AudioQuizzes />} />
+          <Route path="/text-quizzes" component={() => <TextQuizzes />} />
+          <Route path="/audio-lists" component={() => <AudioLists />} />
           <Route path="/profile" component={() => (
             <ProtectedRoute>
-              <UserProfile user={user} />
+              <UserProfile />
             </ProtectedRoute>
           )} />
-          <Route path="/" component={() => <Home user={user} />} />
+          <Route path="/" component={() => {
+            // For home page, always get user from localStorage like before
+            let homeUser = user;
+            if (!homeUser) {
+              const storedUser = localStorage.getItem('user');
+              if (storedUser) {
+                try {
+                  homeUser = JSON.parse(storedUser);
+                } catch (e) {
+                  localStorage.removeItem('user');
+                }
+              }
+            }
+            return <Home user={homeUser} />;
+          }} />
           <Route component={NotFound} />
         </Switch>
       </main>
