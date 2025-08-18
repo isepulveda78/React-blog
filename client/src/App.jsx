@@ -318,7 +318,11 @@ const AppRoutes = () => {
             </ProtectedRoute>
           )} />
           <Route path="/blog" component={() => <BlogListing />} />
-          <Route path="/educational-tools" component={() => <EducationalTools />} />
+          <Route path="/educational-tools" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <EducationalTools />
+            </ProtectedRoute>
+          )} />
           <Route path="/bingo-generator" component={() => <BingoGenerator />} />
           <Route path="/word-bingo" component={() => <WordBingo />} />
           <Route path="/spanish-alphabet" component={() => <SpanishAlphabet />} />
