@@ -6,7 +6,14 @@ import './custom.css'
 
 // Add global error handlers for unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled promise rejection caught:', event.reason)
+  console.error('=== UNHANDLED PROMISE REJECTION ===')
+  console.error('Reason:', event.reason)
+  console.error('Promise:', event.promise)
+  if (event.reason && event.reason.stack) {
+    console.error('Stack:', event.reason.stack)
+  }
+  console.error('Current URL:', window.location.href)
+  console.error('=================================')
   event.preventDefault() // Prevent the default browser behavior
 })
 
