@@ -151,7 +151,7 @@ const AdminDashboard = ({ user }) => {
             <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🎧</div>
               <h5 className="card-title">Audio Quiz Grades</h5>
-              <p className="card-text">View student audio quiz scores and listening performance.</p>
+              <p className="card-text">View and manage audio quiz grades from students.</p>
               <button
                 className="btn btn-primary"
                 onClick={() => navigate('/admin/quiz-grades-dashboard')}
@@ -167,7 +167,7 @@ const AdminDashboard = ({ user }) => {
             <div className="card-body text-center">
               <div className="display-6 text-success mb-3">📝</div>
               <h5 className="card-title">Text Quiz Grades</h5>
-              <p className="card-text">View student text quiz scores and reading comprehension.</p>
+              <p className="card-text">View and manage text quiz grades from students.</p>
               <button
                 className="btn btn-success"
                 onClick={() => navigate('/admin/text-quiz-grades-dashboard')}
@@ -177,6 +177,24 @@ const AdminDashboard = ({ user }) => {
             </div>
           </div>
         </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card h-100 shadow-sm hover-shadow">
+            <div className="card-body text-center">
+              <div className="display-6 text-primary mb-3">🎓</div>
+              <h5 className="card-title">Educational Tools</h5>
+              <p className="card-text">Access all educational tools and activities.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigate('/educational-tools')}
+              >
+                View Tools
+              </button>
+            </div>
+          </div>
+        </div>
+
+
 
       </div>
     </div>
