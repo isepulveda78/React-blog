@@ -6,6 +6,15 @@ import './custom.css'
 
 // Add global error handlers for unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
+  // Filter out Vite hot reload connection errors - these are normal during development
+  if (event.reason && event.reason.message && 
+      (event.reason.message.includes('Failed to fetch') || event.reason.message.includes('NetworkError')) &&
+      event.reason.stack && event.reason.stack.includes('@vite/client')) {
+    console.log('[Vite] Hot reload connection error (this is normal during development restarts)')
+    event.preventDefault()
+    return
+  }
+  
   console.error('=== UNHANDLED PROMISE REJECTION ===')
   console.error('Reason:', event.reason)
   console.error('Promise:', event.promise)
