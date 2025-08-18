@@ -279,7 +279,19 @@ export function registerRoutes(app) {
         console.log('[google-callback] Setting user session');
         // Set session for approved users
         req.session.user = req.user;
-        res.redirect('/');
+        
+        // Explicitly save session
+        req.session.save((err) => {
+          if (err) {
+            console.error('[google-callback] Session save error:', err);
+            res.redirect('/?error=session-error');
+          } else {
+            console.log('[google-callback] Session saved successfully');
+            console.log('[auth] Session set for user:', req.user.email);
+            console.log('[auth] Session ID:', req.sessionID);
+            res.redirect('/');
+          }
+        });
       } catch (error) {
         console.error('[google-callback] Error:', error);
         res.redirect('/?error=callback-error');
@@ -317,7 +329,17 @@ export function registerRoutes(app) {
         console.log('[quick-login] Session ID:', req.sessionID);
         console.log('[quick-login] User-Agent:', req.headers['user-agent']?.substring(0, 50) + '...');
         req.session.user = user;
-        res.json(user);
+        
+        // Explicitly save session
+        req.session.save((err) => {
+          if (err) {
+            console.error('[quick-login] Session save error:', err);
+            res.status(500).json({ message: "Session save error" });
+          } else {
+            console.log('[quick-login] Session saved successfully');
+            res.json(user);
+          }
+        });
       } else {
         res.status(404).json({ message: "User not found" });
       }

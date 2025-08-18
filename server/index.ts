@@ -90,14 +90,14 @@ app.use(session({
   }),
   secret: process.env.SESSION_SECRET || (() => {
     console.warn('[SECURITY WARNING] Using fallback session secret. Set SESSION_SECRET environment variable in production!');
-    return 'dev-fallback-secret-' + Date.now();
+    return 'blogcraft-secret-key-12345';
   })(),
-  resave: false,
-  saveUninitialized: false,
-  name: 'blogcraft.sid', // Explicit session name
+  resave: true, // Changed to true to ensure sessions are saved
+  saveUninitialized: true, // Changed to true to save new sessions
+  name: 'connect.sid', // Use standard session name
   cookie: {
-    secure: false, // Keep false for both dev and production (Replit handles HTTPS)
-    httpOnly: false, // Allow JavaScript access for authentication
+    secure: false, // Keep false for development
+    httpOnly: true, // Keep true for security
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: 'lax',
     path: '/' // Explicit path
