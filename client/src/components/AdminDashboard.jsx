@@ -4,7 +4,11 @@ import { useLocation } from 'wouter';
 const AdminDashboard = ({ user }) => {
   const [location, navigate] = useLocation();
   
+  console.log('[AdminDashboard] User:', user);
+  console.log('[AdminDashboard] User.isAdmin:', user?.isAdmin);
+  
   if (!user || !user.isAdmin) {
+    console.log('[AdminDashboard] Access denied - no user or not admin');
     return (
       <div className="container py-5">
         <div className="alert alert-danger">
@@ -13,6 +17,8 @@ const AdminDashboard = ({ user }) => {
       </div>
     );
   }
+
+  console.log('[AdminDashboard] Rendering dashboard for admin user');
 
   return (
     <div className="container py-5">

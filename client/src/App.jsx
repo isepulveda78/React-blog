@@ -171,10 +171,10 @@ const AppRoutes = () => {
 
   // Protected route wrapper
   const ProtectedRoute = ({ children, requireAdmin = false, requireApproval = true }) => {
-    console.log('ProtectedRoute - user:', user?.name, 'requireAdmin:', requireAdmin);
+    console.log('[ProtectedRoute] user:', user?.name, 'requireAdmin:', requireAdmin, 'isAdmin:', user?.isAdmin);
     
     if (!user) {
-      console.log('No user, showing login message');
+      console.log('[ProtectedRoute] No user, showing login message');
       return (
         <div className="container py-5">
           <div className="alert alert-info text-center">
@@ -189,7 +189,7 @@ const AppRoutes = () => {
     }
 
     if (requireApproval && !user.approved) {
-      console.log('User not approved');
+      console.log('[ProtectedRoute] User not approved');
       return (
         <div className="container py-5">
           <div className="alert alert-warning">
@@ -201,7 +201,7 @@ const AppRoutes = () => {
     }
 
     if (requireAdmin && !user.isAdmin) {
-      console.log('User not admin, isAdmin:', user.isAdmin);
+      console.log('[ProtectedRoute] User not admin, isAdmin:', user.isAdmin);
       return (
         <div className="container py-5">
           <div className="alert alert-danger">
@@ -212,7 +212,7 @@ const AppRoutes = () => {
       )
     }
 
-    console.log('ProtectedRoute - rendering children');
+    console.log('[ProtectedRoute] Rendering children successfully');
     return children
   }
 
