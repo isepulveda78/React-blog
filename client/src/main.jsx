@@ -4,19 +4,18 @@ import App from './App.jsx'
 import './index.css'
 import './custom.css'
 
-console.log('🚀 BlogCraft starting...')
-console.log('📦 React version:', React.version)
-
-// Global error handlers for unhandled promise rejections
+// Add global error handlers for unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled promise rejection:', event.reason);
-  // Prevent the error from appearing in the console as an uncaught exception
-  event.preventDefault();
-});
+  console.error('Unhandled promise rejection caught:', event.reason)
+  event.preventDefault() // Prevent the default browser behavior
+})
 
 window.addEventListener('error', (event) => {
-  console.error('Global error:', event.error);
-});
+  console.error('Global error caught:', event.error)
+})
+
+console.log('🚀 BlogCraft starting...')
+console.log('📦 React version:', React.version)
 
 const rootElement = document.getElementById('root')
 console.log('📦 Root element:', rootElement)
