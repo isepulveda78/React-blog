@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
 import { Router, Route, Switch, Link, useLocation } from 'wouter'
+import { useHashLocation } from 'wouter/use-hash-location'
 
 // Import components - Adding debug logs to find undefined component
 import Navigation from './components/Navigation.jsx'
@@ -363,7 +364,7 @@ const AppRoutes = () => {
 const App = () => {
   return (
     <AuthProvider>
-      <Router>
+      <Router hook={useHashLocation}>
         <AppRoutes />
       </Router>
     </AuthProvider>
