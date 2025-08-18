@@ -107,8 +107,8 @@ const EducationalTools = ({ user }) => {
   });
 
   const handleToolNavigation = (route) => {
-    window.history.pushState({}, '', route);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    // Use hash-based routing
+    window.location.hash = route;
   };
 
   return (
