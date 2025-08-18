@@ -20,10 +20,16 @@ const AdminDashboard = ({ user }) => {
 
   console.log('[AdminDashboard] Rendering dashboard for admin user');
 
+  console.log('[AdminDashboard] About to render dashboard HTML');
+
   return (
-    <div className="container py-5">
+    <div className="container py-5" style={{backgroundColor: '#f8f9fa', minHeight: '100vh'}}>
       <div className="row">
         <div className="col-12">
+          <div className="alert alert-success mb-4">
+            <strong>DEBUG:</strong> Admin Dashboard is rendering successfully! 
+            Location: {window.location.pathname}
+          </div>
           <h1 className="display-4 fw-bold text-primary mb-4">Admin Dashboard</h1>
           <p className="lead text-muted mb-5">
             Manage your blog content and users from here.
