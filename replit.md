@@ -9,36 +9,6 @@ Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framew
 Development preference: Fast iteration with immediate visual feedback - expects changes to be visible immediately after making edits.
 Cache management: Successfully implemented polling-based hot reload system for instant change detection and automatic page refresh. System detects file changes every 2 seconds and triggers automatic browser refreshes. Working reliably with proper development file serving and cache control headers.
 
-## Recent Issues Resolved (August 2025)
-- Fixed critical React mounting issue where components weren't rendering despite HTML loading properly
-- Resolved Vite middleware ordering problems that prevented JSX module loading
-- Fixed host blocking errors by adding Replit domain allowedHosts configuration
-- Restored functional React application with proper Vite development server integration
-- Permanently resolved infinite reload loop by disabling problematic custom hot reload system
-- Fixed authentication JSON parsing error with enhanced error handling and debugging
-- Stabilized WebSocket chat system with comprehensive client connection tracking
-- **BREAKTHROUGH: Solved Google Drive/Dropbox audio streaming issue** - Implemented server-side audio proxy that automatically converts sharing URLs to direct download format and streams audio files, bypassing CORS and hotlinking restrictions
-- **Completed systematic alert() replacement with toast notifications** - Replaced all JavaScript alert functions with Bootstrap toast messages throughout the application
-- **Enhanced Word Sorter with clickable list title editing** - Implemented inline editing functionality allowing users to click on list titles to rename them, removed separate input fields for cleaner UI
-- **Restored City Builder to working version** - Reverted from broken modular architecture back to fully functional single-file implementation with resizable roads and water, drag-and-drop building placement, comprehensive resize handles, and PNG export functionality
-- **COMPLETED: Comprehensive Text Quiz System** - Built complete text-based quiz system with same functionality as audio quizzes: create/edit/delete quizzes (teacher/admin), take quizzes (students), grade tracking in admin dashboard, and integrated results display in user profiles with tabbed interface
-- **COMPLETED: Attempt Limits Feature** - Added configurable attempt limits (1, 2, 3, 5, 10, unlimited) to both audio and text quizzes with real-time tracking and enforcement
-- **Updated Educational Tools Access** - Modified educational tools page so students see only quizzes and Spanish Alphabet, while teachers/admins retain access to all tools
-- **RESOLVED: Blog update visibility issue** - Fixed blog refresh system with aggressive cache-busting, enhanced debugging tools, and proper Wouter router navigation. Blog data updates now appear immediately with working "Read More" functionality.
-- **RESOLVED: HTML encoding display issue** - Applied comprehensive HTML entity decoding to all blog API endpoints (public posts, individual posts, admin routes). Blog post updates now display correctly without HTML entity artifacts, with proper cache-busting for immediate visibility.
-- **RESOLVED: WebSocket server conflicts** - Fixed persistent WebSocket port conflicts that were preventing server restarts. Server now starts reliably without port blocking issues.
-- **RESOLVED: iframe embedding blocked** - Fixed Content Security Policy to allow iframe embedding from Google Docs, Google Drive, YouTube, Vimeo, and other educational platforms. Google presentations and educational content now display properly.
-- **RESOLVED: Slug regeneration on post update** - Fixed issue where post slugs wouldn't update when post titles were changed, now automatically regenerates SEO-friendly URLs when titles are modified. Confirmed working in both PUT and PATCH routes.
-- **REMOVED: Editor.js Dependencies** - Removed Editor.js block editor due to complexity issues and reverted to simple textarea elements with HTML formatting support for reliable content editing.
-- **COMPLETED: Production Code Cleanup** - Removed all debugging console.log statements from blog components, admin interfaces, and editor components for cleaner production-ready code.
-- **COMPLETED: Audio Lists System** - Created comprehensive audio file management system allowing teachers to create lists of audio files from Google Drive. Students can access these lists to listen to audio files. Features include: create/edit/delete lists, Google Drive URL integration with audio proxy, teacher-only creation with student access, and Bootstrap UI with audio playback controls.
-- **RESOLVED: Browser back button navigation issue** - Fixed client-side routing by replacing manual browser history manipulation with proper Wouter Link components. Browser back button now works correctly for all navigation between pages without showing "not found" errors.
-- **RESOLVED: Blank page issue on admin post create/edit** - Fixed critical routing problem where AdminPosts and AdminPostEditor components were using window.location.href instead of proper client-side routing. Replaced with Wouter navigate() function to eliminate page reloads and blank screens when accessing create/edit post pages.
-- **RESOLVED: Internal link navigation in blog posts** - Fixed issue where internal links with full domain URLs (like https://mr-s-teaches.com/spanish-alphabet) were being treated as external links causing page reloads. Updated link handler to detect same-domain URLs and extract the path for proper client-side navigation. Tested and confirmed working in development with proper production build support.
-- **COMPLETED: Hero Image Management System** - Implemented simple code-based hero image system allowing easy image switching by editing a single variable in Hero.jsx. Features include: cache-busting for immediate updates, automatic fallback to external image if local fails, and easy addition of new images to client/img directory. System works reliably on both development and live sites with proper static file routing. Created guide (HERO_IMAGE_GUIDE.md) for usage.
-- **RESOLVED: Page refresh "not found" errors** - Fixed client-side routing issues where refreshing pages would show "not found" messages. Implemented hash-based routing with Wouter's useHashLocation hook, eliminating server-side routing conflicts. All pages now use hash URLs (/#/admin, /#/blog) and work perfectly on refresh.
-- **RESOLVED: Session persistence and authentication errors** - Fixed critical authentication issues by implementing localStorage-based authentication as primary source of truth across all pages. Updated ProtectedRoute components to check localStorage first, ensuring consistent authentication state without relying on unreliable server sessions.
-
 ## System Architecture
 
 ### Frontend Architecture
@@ -46,64 +16,60 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **UI Components**: Bootstrap 5 components and styling
 - **Build Tool**: Vite for development and production builds with hot module replacement
 - **Forms**: React Hook Form with Zod validation
+- **UI/UX Decisions**: Simple and clean interface, focus on Bootstrap 5 styling, inline editing for certain elements (e.g., Word Sorter list titles).
+- **Hero Image Management**: Simple code-based system for easy image switching and cache-busting.
+- **Client-side Routing**: Hash-based routing with Wouter's `useHashLocation` hook to prevent "not found" errors on page refresh and ensure correct back button navigation. Internal links within blog posts are handled for client-side navigation.
 
 ### Backend Architecture
 - **Framework**: Express.js with JavaScript
-- **Database**: MongoDB with native driver for data persistence, with graceful fallback to in-memory storage if MongoDB unavailable
-- **Authentication**: Session-based authentication with bcrypt password hashing and Google OAuth integration (passport-google-oauth20)
-- **API Design**: RESTful API endpoints
-- **Data Collections**: Users, posts, categories, comments, audio quizzes, text quizzes, quiz grades
-- **Cloud Storage**: Cloudinary for image uploads
-- **Real-time Features**: WebSocket chat system with database-backed chatrooms for educational tools, including PDF export for teachers/admins.
-- **Audio Proxy System**: Server-side proxy at `/api/audio-proxy` that automatically converts Google Drive/Dropbox sharing URLs to direct download format, handles CORS restrictions, and streams audio files with proper range request support for seeking.
+- **Database**: MongoDB with native driver for data persistence, with graceful fallback to in-memory storage if MongoDB unavailable.
+- **Authentication**: Session-based authentication with bcrypt password hashing and Google OAuth integration (passport-google-oauth20). Utilizes localStorage for robust session persistence.
+- **API Design**: RESTful API endpoints.
+- **Data Collections**: Users, posts, categories, comments, audio quizzes, text quizzes, quiz grades.
+- **Cloud Storage**: Cloudinary for image uploads.
+- **Real-time Features**: WebSocket chat system with database-backed chatrooms.
+- **Audio Proxy System**: Server-side proxy at `/api/audio-proxy` for converting Google Drive/Dropbox sharing URLs to direct download format, handling CORS, and streaming audio files with range request support.
+- **Content Storage**: HTML content stored in database with proper entity encoding/decoding. HTML entity decoding applied to all blog API endpoints for correct display.
+- **Security Enhancements**: Helmet.js for security headers, rate limiting, comprehensive input validation, `express-mongo-sanitize` for NoSQL injection prevention, security event logging, secure cookies, strong password requirements, XSS protection, and restricted file uploads. Content Security Policy configured to allow iframe embedding from Google Docs, Google Drive, YouTube, Vimeo.
 
 ### Project Structure
-- **Simplified Layout**: Consolidated architecture with minimal file structure
-- **Client Code**: Single React application in `/client/src/main.jsx`
-- **Server Code**: Express API in `/server` directory
+- **Simplified Layout**: Consolidated architecture with minimal file structure.
+- **Client Code**: Single React application in `/client/src/main.jsx`.
+- **Server Code**: Express API in `/server` directory.
 
 ### Database Schema
-- **Users**: Authentication, profile information, admin roles, and teacher/student roles.
+- **Users**: Authentication, profile information, admin roles, teacher/student roles.
 - **Categories**: Blog post categorization.
-- **Blog Posts**: Rich content with metadata, SEO fields, and publishing workflow.
+- **Blog Posts**: Rich content with metadata, SEO fields, publishing workflow. Slugs automatically regenerate on title changes.
 - **Comments**: Nested commenting system.
 - **Chatrooms**: Admin-created chat spaces with invitation lists and access control.
 
 ### Educational Tools & Features
-- **Code Evolution Visualization**: Real-time code evolution visualization with engaging transitions, interactive timeline, play/pause controls, and statistics tracking.
-
-- **Bingo Generator**: Custom bingo card creation for educational activities.
-- **Spanish Alphabet**: Interactive soundboard for learning Spanish letters.
-- **Word Sorter**: Drag-and-drop word sorting activities with clickable list title editing and PDF export functionality.
-- **Listen to Type**: Audio-based typing practice tool with chatroom integration.
-- **Audio Quizzes**: Complete audio quiz system with custom play controls, server-side proxy for cloud storage files, teacher grading dashboard, and support for Google Drive/Dropbox/OneDrive audio files.
-- **Text Quizzes**: Comprehensive text-based multiple choice quiz system with create, edit, take, and grade functionality. Includes dedicated admin dashboard for grading and student profile integration for performance tracking.
+- **Bingo Generator**: Custom bingo card creation.
+- **Spanish Alphabet**: Interactive soundboard.
+- **Word Sorter**: Drag-and-drop word sorting with clickable list title editing and PDF export.
+- **Listen to Type**: Audio-based typing practice tool.
+- **Audio Quizzes**: Complete audio quiz system with custom play controls, server-side proxy, and teacher grading dashboard. Configurable attempt limits.
+- **Text Quizzes**: Comprehensive text-based multiple choice quiz system with create, edit, take, and grade functionality. Includes admin dashboard for grading and student profile integration for performance tracking. Configurable attempt limits.
+- **Audio Lists System**: Manage audio files from Google Drive for student access.
 
 ### Authentication & Authorization
 - **User Registration/Login**: Email/password and Google OAuth authentication.
-- **Password Security**: bcrypt hashing.
-- **Immediate Blog Access**: Authenticated users can immediately read posts and leave comments without approval.
-- **Role-Based Access**: Admin users have access to management interfaces, students have chat access.
-- **Session Management**: Server-side session validation with proper React context integration.
-- **Chatroom Access Control**: Teachers/admins can create private chatrooms and invite specific users.
-- **Security Enhancements**: Helmet.js for security headers, rate limiting, comprehensive input validation (email, username, passwords, content), express-mongo-sanitize for NoSQL injection prevention, security event logging, secure cookies, strong password requirements, XSS protection, restricted file uploads, and HTTPS configuration.
+- **Role-Based Access**: Admin users have management interface access, students have chat access, and specific tool access based on role.
+- **Secure WYSIWYG Inline Editing**: Click-to-edit functionality for blog posts with admin-only access, cursor preservation, server-side XSS protection, and session authentication.
 
 ### Content Editing
-- **Simple HTML Editor**: Direct HTML textarea editing with helpful formatting hints for reliable content creation.
-- **Content Storage**: HTML content stored in database with proper entity encoding/decoding.
-- **Media Support**: Image upload and embedding via Cloudinary integration.
-- **HTML Support**: Users can write HTML directly for formatting (headers, bold, italic, lists, links, etc.).
-- **iframe Embedding**: Support for embedding Google Docs, Google Drive presentations, YouTube videos, and other educational content via iframe tags.
+- **Simple HTML Editor**: Direct HTML textarea editing with formatting hints.
+- **Media Support**: Image upload and embedding via Cloudinary.
+- **iframe Embedding**: Support for embedding educational content from various platforms.
 
 ### SEO Implementation
-- **SEO Management Dashboard**: Dedicated admin interface for SEO analysis, settings, and optimization.
+- **SEO Management Dashboard**: Admin interface for SEO analysis and settings.
 - **Dynamic Meta Tag Management**: Automatic meta tag updates for blog posts.
 - **Sitemap and Robots.txt Generation**: Automated XML sitemap and robots.txt generation.
-- **SEO Content Analysis**: Real-time SEO scoring and optimization suggestions.
 
 ### Deployment Configuration
 - **Build System**: Vite for frontend, esbuild for backend.
-- **Hybrid Architecture**: Compatible development (CDN-based React, in-browser Babel) and production (optimized bundles) modes.
 - **Port Configuration**: Server listens on port 5000, binds to "0.0.0.0".
 - **Production Setup**: `npm run build` creates `dist/`, `npm run start` runs `dist/index.js`, static files served from `dist/public/`.
 
@@ -121,7 +87,6 @@ Cache management: Successfully implemented polling-based hot reload system for i
 
 ### Development Tools
 - **Vite**: Build tool and development server.
-- **Hot Reload System**: Custom inline hot reload implementation for instant development feedback with visual indicators and console logging.
 - **Express.js**: Backend framework.
 
 ### Cloud Services

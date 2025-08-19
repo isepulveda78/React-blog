@@ -939,11 +939,20 @@ export function registerRoutes(app) {
         return decoded;
       };
 
-      // Decode HTML entities in all text fields
+      // Decode HTML entities in all text fields and basic XSS protection
       if (postData.content) {
         const originalLength = postData.content.length;
         postData.content = decodeHTMLEntities(postData.content);
+        
+        // Basic XSS protection - remove dangerous script tags and event handlers
+        postData.content = postData.content
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+          .replace(/on\w+\s*=\s*"[^"]*"/gi, '')
+          .replace(/on\w+\s*=\s*'[^']*'/gi, '')
+          .replace(/javascript:/gi, '');
+        
         console.log('[server] Decoded content:', originalLength, '->', postData.content.length, 'characters');
+        console.log('[server] XSS protection applied');
       }
       
       if (postData.title) {
@@ -985,6 +994,16 @@ export function registerRoutes(app) {
       }
       
       console.log('[server] Updated post with featuredImage:', post.featuredImage);
+      
+      // Enhanced security logging for inline edits
+      logSecurityEvent('POST_UPDATED_INLINE', { 
+        postId: id, 
+        title: post.title, 
+        user: req.session.user.email,
+        editMethod: 'wysiwyg_inline_editor',
+        fieldsUpdated: Object.keys(postData),
+        contentLength: postData.content ? postData.content.length : 0
+      });
 
       res.json(post);
     } catch (error) {
