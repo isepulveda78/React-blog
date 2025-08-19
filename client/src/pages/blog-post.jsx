@@ -359,6 +359,7 @@ function BlogPost({ user, slug }) {
   const [editedTitle, setEditedTitle] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const contentRef = useRef(null);
+  const editableRef = useRef(null);
   
   // Get slug from URL if not provided as prop
   const postSlug = slug || window.location.pathname.split('/').pop();
@@ -464,6 +465,36 @@ function BlogPost({ user, slug }) {
     setEditedContent(post.content || '');
     setEditedTitle(post.title || '');
     setIsEditing(false);
+  };
+
+  // Update content without losing cursor position
+  const updateContentRef = () => {
+    if (editableRef.current && editableRef.current.innerHTML !== decodeHTMLEntities(editedContent)) {
+      const selection = window.getSelection();
+      const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+      const cursorPosition = range ? range.startOffset : 0;
+      const parentNode = range ? range.startContainer : null;
+      
+      editableRef.current.innerHTML = decodeHTMLEntities(editedContent);
+      
+      // Restore cursor position
+      if (parentNode && editableRef.current.contains(parentNode)) {
+        try {
+          const newRange = document.createRange();
+          newRange.setStart(parentNode, Math.min(cursorPosition, parentNode.textContent?.length || 0));
+          newRange.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+        } catch (e) {
+          // Fallback: place cursor at end
+          const newRange = document.createRange();
+          newRange.selectNodeContents(editableRef.current);
+          newRange.collapse(false);
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+        }
+      }
+    }
   };
 
   // Handle clicks on internal links and admin editing
@@ -641,14 +672,16 @@ function BlogPost({ user, slug }) {
                   </small>
                 </label>
                 <div
+                  ref={editableRef}
                   contentEditable
                   className="form-control"
-                  dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(editedContent) }}
+                  suppressContentEditableWarning={true}
                   onInput={(e) => {
                     setEditedContent(e.target.innerHTML);
                   }}
-                  onBlur={(e) => {
-                    setEditedContent(e.target.innerHTML);
+                  onKeyDown={(e) => {
+                    // Allow all typing without interference
+                    e.stopPropagation();
                   }}
                   style={{ 
                     minHeight: '400px',
@@ -659,6 +692,7 @@ function BlogPost({ user, slug }) {
                     padding: '20px',
                     cursor: 'text'
                   }}
+                  dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(editedContent) }}
                 />
                 <div className="form-text">
                   <strong>WYSIWYG Editor:</strong> Click anywhere to position your cursor and start typing. Content appears exactly as it will on the published post.
