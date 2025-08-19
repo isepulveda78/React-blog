@@ -405,6 +405,13 @@ function BlogPost({ user, slug }) {
     
     setIsSaving(true);
     try {
+      // First, ensure user session is established
+      await fetch('/api/auth/quick-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: user.email })
+      });
       const response = await fetch(`/api/posts/${post.id}`, {
         method: 'PUT',
         headers: {

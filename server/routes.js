@@ -894,8 +894,14 @@ export function registerRoutes(app) {
 
   app.put("/api/posts/:id", async (req, res) => {
     try {
+      // Debug session information
+      console.log('[PUT /api/posts/:id] Session user:', req.session.user);
+      console.log('[PUT /api/posts/:id] Session ID:', req.sessionID);
+      console.log('[PUT /api/posts/:id] User-Agent:', req.headers['user-agent']?.substring(0, 50));
+      
       // Check if user is admin
       if (!req.session.user?.isAdmin) {
+        console.log('[PUT /api/posts/:id] Access denied - user:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
         return res.status(403).json({ message: "Admin access required" });
       }
 
