@@ -610,7 +610,7 @@ function BlogPost({ user, slug }) {
                 <div className="alert alert-info py-2">
                   <small>
                     <i className="fas fa-info-circle me-2"></i>
-                    Double-click on the content below to edit HTML directly
+                    Double-click on the content below to edit this post
                   </small>
                 </div>
               )}
@@ -620,26 +620,37 @@ function BlogPost({ user, slug }) {
             {isEditing ? (
               <div className="mb-5">
                 <label className="form-label">
-                  <strong>HTML Content:</strong>
+                  <strong>Post Content:</strong>
                   <small className="text-muted ms-2">
-                    Edit HTML directly. Use proper tags for formatting.
+                    Edit your post content naturally. Formatting will be preserved.
                   </small>
                 </label>
                 <textarea
                   className="form-control"
-                  value={editedContent}
-                  onChange={(e) => setEditedContent(e.target.value)}
-                  rows={20}
-                  placeholder="Enter HTML content..."
+                  value={editedContent.replace(/<[^>]*>/g, '')} // Strip HTML for editing
+                  onChange={(e) => {
+                    // Convert plain text back to basic HTML
+                    const plainText = e.target.value;
+                    const htmlContent = plainText
+                      .split('\n\n')
+                      .map(paragraph => paragraph.trim())
+                      .filter(paragraph => paragraph.length > 0)
+                      .map(paragraph => `<p>${paragraph}</p>`)
+                      .join('\n');
+                    setEditedContent(htmlContent);
+                  }}
+                  rows={15}
+                  placeholder="Enter your post content here..."
                   style={{ 
-                    fontFamily: 'Monaco, Consolas, monospace', 
-                    fontSize: '14px',
+                    fontFamily: 'Georgia, serif', 
+                    fontSize: '16px',
+                    lineHeight: '1.6',
                     border: '2px dashed #007bff',
                     backgroundColor: '#f8f9ff'
                   }}
                 />
                 <div className="form-text">
-                  <strong>HTML Tips:</strong> Use &lt;p&gt;, &lt;h2&gt;, &lt;h3&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;, &lt;ol&gt;, &lt;li&gt;, &lt;a href=""&gt;, &lt;img src=""&gt;, etc.
+                  <strong>Tip:</strong> Separate paragraphs with blank lines. Your formatting will be preserved when you save.
                 </div>
               </div>
             ) : (
