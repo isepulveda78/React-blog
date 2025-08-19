@@ -11,6 +11,7 @@ const SpanishAlphabet = () => {
     { letter: 'A', name: 'a', pronunciation: 'ah' },
     { letter: 'B', name: 'b e', pronunciation: 'bay' },
     { letter: 'C', name: 'ce', pronunciation: 'say' },
+     { letter: 'Ch', name: 'ch', pronunciation: 'chay' },
     { letter: 'D', name: 'de', pronunciation: 'day' },
     { letter: 'E', name: 'e', pronunciation: 'eh' },
     { letter: 'F', name: 'efe', pronunciation: 'eh-feh' },
@@ -168,7 +169,8 @@ const SpanishAlphabet = () => {
           React.createElement('h6', null, 'How to Use:'),
           React.createElement('ul', { className: 'mb-2' },
             React.createElement('li', null, 'Click any letter to hear its pronunciation'),
-            React.createElement('li', null, 'Use "Play All Letters" to hear the entire alphabet or "Stop" to interrupt')
+            React.createElement('li', null, 'Use "Play All Letters" to hear the entire alphabet or "Stop" to interrupt'),
+            React.createElement('li', null, 'Play in Google Chrome or Microsoft Edge for best results')
           ),
           React.createElement(
             'div',
