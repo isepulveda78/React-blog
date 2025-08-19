@@ -360,6 +360,7 @@ function BlogPost({ user, slug }) {
   const [isSaving, setIsSaving] = useState(false);
   const contentRef = useRef(null);
   const editableRef = useRef(null);
+  const isUpdatingRef = useRef(false);
   
   // Get slug from URL if not provided as prop
   const postSlug = slug || window.location.pathname.split('/').pop();
@@ -460,6 +461,15 @@ function BlogPost({ user, slug }) {
     }
   };
 
+  // Initialize content when entering edit mode
+  useEffect(() => {
+    if (isEditing && editableRef.current && editedContent) {
+      isUpdatingRef.current = true;
+      editableRef.current.innerHTML = decodeHTMLEntities(editedContent);
+      isUpdatingRef.current = false;
+    }
+  }, [isEditing, editedContent]);
+
   // Function to cancel editing
   const handleCancel = () => {
     setEditedContent(post.content || '');
@@ -467,34 +477,47 @@ function BlogPost({ user, slug }) {
     setIsEditing(false);
   };
 
-  // Update content without losing cursor position
-  const updateContentRef = () => {
-    if (editableRef.current && editableRef.current.innerHTML !== decodeHTMLEntities(editedContent)) {
-      const selection = window.getSelection();
-      const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
-      const cursorPosition = range ? range.startOffset : 0;
-      const parentNode = range ? range.startContainer : null;
-      
-      editableRef.current.innerHTML = decodeHTMLEntities(editedContent);
-      
-      // Restore cursor position
-      if (parentNode && editableRef.current.contains(parentNode)) {
-        try {
-          const newRange = document.createRange();
-          newRange.setStart(parentNode, Math.min(cursorPosition, parentNode.textContent?.length || 0));
-          newRange.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(newRange);
-        } catch (e) {
-          // Fallback: place cursor at end
-          const newRange = document.createRange();
-          newRange.selectNodeContents(editableRef.current);
-          newRange.collapse(false);
-          selection.removeAllRanges();
-          selection.addRange(newRange);
+  // Save cursor position
+  const saveCursorPosition = () => {
+    if (!editableRef.current) return null;
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return null;
+    
+    const range = selection.getRangeAt(0);
+    const preCaretRange = range.cloneRange();
+    preCaretRange.selectNodeContents(editableRef.current);
+    preCaretRange.setEnd(range.endContainer, range.endOffset);
+    return preCaretRange.toString().length;
+  };
+
+  // Restore cursor position
+  const restoreCursorPosition = (savedPosition) => {
+    if (!editableRef.current || savedPosition === null) return;
+    
+    const selection = window.getSelection();
+    const range = document.createRange();
+    let currentPos = 0;
+    
+    const walkTextNodes = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const textLength = node.textContent.length;
+        if (currentPos + textLength >= savedPosition) {
+          range.setStart(node, savedPosition - currentPos);
+          range.collapse(true);
+          return true;
+        }
+        currentPos += textLength;
+      } else {
+        for (let i = 0; i < node.childNodes.length; i++) {
+          if (walkTextNodes(node.childNodes[i])) return true;
         }
       }
-    }
+      return false;
+    };
+    
+    walkTextNodes(editableRef.current);
+    selection.removeAllRanges();
+    selection.addRange(range);
   };
 
   // Handle clicks on internal links and admin editing
@@ -677,7 +700,12 @@ function BlogPost({ user, slug }) {
                   className="form-control"
                   suppressContentEditableWarning={true}
                   onInput={(e) => {
-                    setEditedContent(e.target.innerHTML);
+                    if (!isUpdatingRef.current) {
+                      const cursorPos = saveCursorPosition();
+                      setEditedContent(e.target.innerHTML);
+                      // Restore cursor after state update
+                      setTimeout(() => restoreCursorPosition(cursorPos), 0);
+                    }
                   }}
                   onKeyDown={(e) => {
                     // Allow all typing without interference
@@ -692,7 +720,6 @@ function BlogPost({ user, slug }) {
                     padding: '20px',
                     cursor: 'text'
                   }}
-                  dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(editedContent) }}
                 />
                 <div className="form-text">
                   <strong>WYSIWYG Editor:</strong> Click anywhere to position your cursor and start typing. Content appears exactly as it will on the published post.
