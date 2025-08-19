@@ -354,6 +354,10 @@ function BlogPost({ user, slug }) {
   const [post, setPost] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
+  const [editedTitle, setEditedTitle] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const contentRef = useRef(null);
   
   // Get slug from URL if not provided as prop
@@ -379,6 +383,8 @@ function BlogPost({ user, slug }) {
         if (response.ok) {
           const data = await response.json();
           setPost(data);
+          setEditedContent(data.content || '');
+          setEditedTitle(data.title || '');
           setError(null);
         } else {
           throw new Error("Post not found");
@@ -393,48 +399,110 @@ function BlogPost({ user, slug }) {
     fetchPost();
   }, [postSlug, user]);
 
-  // Handle clicks on internal links to use client-side routing
+  // Function to save edited content
+  const handleSave = async () => {
+    if (!post || !user?.isAdmin) return;
+    
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/admin/posts/${post.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: editedTitle,
+          content: editedContent,
+        }),
+      });
+
+      if (response.ok) {
+        const updatedPost = await response.json();
+        setPost(updatedPost);
+        setIsEditing(false);
+        // Show success message
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success position-fixed';
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; width: 300px;';
+        alertDiv.innerHTML = '<strong>Success!</strong> Post updated successfully.';
+        document.body.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 3000);
+      } else {
+        throw new Error('Failed to save post');
+      }
+    } catch (error) {
+      console.error('Error saving post:', error);
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-danger position-fixed';
+      alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; width: 300px;';
+      alertDiv.innerHTML = '<strong>Error!</strong> Failed to save post.';
+      document.body.appendChild(alertDiv);
+      setTimeout(() => alertDiv.remove(), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Function to cancel editing
+  const handleCancel = () => {
+    setEditedContent(post.content || '');
+    setEditedTitle(post.title || '');
+    setIsEditing(false);
+  };
+
+  // Handle clicks on internal links and admin editing
   useEffect(() => {
-    const handleLinkClick = (e) => {
-      const target = e.target.closest('a');
-      if (!target) return;
-
-      const href = target.getAttribute('href');
-      if (!href) return;
-
-      // Check if it's an internal link (relative path or same domain)
-      const isInternal = href.startsWith('/') && !href.startsWith('//') || 
-                        href.includes('mr-s-teaches.com') || 
-                        href.includes('localhost:5000');
-      
-      if (isInternal) {
+    const handleContentClick = (e) => {
+      // Admin editing functionality
+      if (user?.isAdmin && !isEditing && e.detail === 2) { // Double-click to edit
         e.preventDefault();
+        setIsEditing(true);
+        return;
+      }
+
+      // Link navigation (only if not editing)
+      if (!isEditing) {
+        const target = e.target.closest('a');
+        if (!target) return;
+
+        const href = target.getAttribute('href');
+        if (!href) return;
+
+        // Check if it's an internal link (relative path or same domain)
+        const isInternal = href.startsWith('/') && !href.startsWith('//') || 
+                          href.includes('mr-s-teaches.com') || 
+                          href.includes('localhost:5000');
         
-        // Extract the path from full URLs
-        let path = href;
-        if (href.includes('://')) {
-          try {
-            const url = new URL(href);
-            path = url.pathname;
-          } catch (e) {
-            console.error('Invalid URL:', href);
-            return;
+        if (isInternal) {
+          e.preventDefault();
+          
+          // Extract the path from full URLs
+          let path = href;
+          if (href.includes('://')) {
+            try {
+              const url = new URL(href);
+              path = url.pathname;
+            } catch (e) {
+              console.error('Invalid URL:', href);
+              return;
+            }
           }
+          
+          navigate(path);
         }
-        
-        navigate(path);
       }
     };
 
     if (contentRef.current) {
-      contentRef.current.addEventListener('click', handleLinkClick);
+      contentRef.current.addEventListener('click', handleContentClick);
       return () => {
         if (contentRef.current) {
-          contentRef.current.removeEventListener('click', handleLinkClick);
+          contentRef.current.removeEventListener('click', handleContentClick);
         }
       };
     }
-  }, [post, navigate]);
+  }, [post, navigate, user, isEditing]);
 
   // Posts are now publicly accessible
 
@@ -461,48 +529,166 @@ function BlogPost({ user, slug }) {
     );
   }
 
-  return React.createElement("div", { className: "container py-5" },
-    React.createElement("div", { className: "row" },
-      React.createElement("div", { className: "col-lg-8 mx-auto" },
-        React.createElement("article", null,
-          // Post Header
-          React.createElement("div", { className: "text-center mb-5" },
-            post.categoryName && React.createElement("span", { 
-              className: "badge bg-primary mb-3" 
-            }, decodeHTMLEntities(post.categoryName)),
-            React.createElement("h1", { className: "display-5 fw-bold mb-3" }, post.title),
-            React.createElement("div", { 
-              className: "d-flex justify-content-center align-items-center text-muted mb-4" 
-            },
-              React.createElement("span", null, "By ", post.authorName),
-              React.createElement("span", { className: "mx-2" }, "•"),
-              React.createElement("span", null, formatCommentDate(post.publishedAt || post.createdAt)),
-              React.createElement("span", { className: "mx-2" }, "•"),
-              React.createElement("span", null, Math.ceil(post.content.replace(/<[^>]*>/g, '').length / 200), " min read")
-            ),
-          ),
-          // Post Content
-          React.createElement("div", {
-            ref: contentRef,
-            className: "post-content mb-5",
-            dangerouslySetInnerHTML: { __html: decodeHTMLEntities(post.content) },
-            style: { lineHeight: "1.7", fontSize: "1.1rem" }
-          }),
-          // Tags
-          post.tags && post.tags.length > 0 && React.createElement("div", { className: "mb-5" },
-            React.createElement("h6", { className: "text-muted mb-2" }, "Tags:"),
-            post.tags.map((tag, index) => 
-              React.createElement("span", { 
-                key: index, 
-                className: "badge bg-secondary me-2" 
-              }, tag)
-            )
-          )
-        ),
-        // Comments Section
-        React.createElement(CommentsSection, { postId: post.id, user: user })
-      )
-    )
+  return (
+    <div className="container py-5">
+      <div className="row">
+        <div className="col-lg-8 mx-auto">
+          {/* Admin Edit Controls */}
+          {user?.isAdmin && (
+            <div className="d-flex justify-content-end mb-3">
+              {!isEditing ? (
+                <button 
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={() => setIsEditing(true)}
+                  title="Double-click on content to edit"
+                >
+                  <i className="fas fa-edit me-2"></i>
+                  Edit Post
+                </button>
+              ) : (
+                <div className="btn-group">
+                  <button 
+                    className="btn btn-success btn-sm"
+                    onClick={handleSave}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <>
+                        <i className="fas fa-spinner fa-spin me-2"></i>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-save me-2"></i>
+                        Save
+                      </>
+                    )}
+                  </button>
+                  <button 
+                    className="btn btn-secondary btn-sm"
+                    onClick={handleCancel}
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          <article>
+            {/* Post Header */}
+            <div className="text-center mb-5">
+              {post.categoryName && (
+                <span className="badge bg-primary mb-3">
+                  {decodeHTMLEntities(post.categoryName)}
+                </span>
+              )}
+              
+              {isEditing ? (
+                <input
+                  type="text"
+                  className="form-control form-control-lg text-center mb-3"
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  placeholder="Post title"
+                  style={{ border: '2px dashed #007bff', backgroundColor: '#f8f9ff' }}
+                />
+              ) : (
+                <h1 className="display-5 fw-bold mb-3">{post.title}</h1>
+              )}
+              
+              <div className="d-flex justify-content-center align-items-center text-muted mb-4">
+                <span>By {post.authorName}</span>
+                <span className="mx-2">•</span>
+                <span>{formatCommentDate(post.publishedAt || post.createdAt)}</span>
+                <span className="mx-2">•</span>
+                <span>{Math.ceil(post.content.replace(/<[^>]*>/g, '').length / 200)} min read</span>
+              </div>
+              
+              {user?.isAdmin && !isEditing && (
+                <div className="alert alert-info py-2">
+                  <small>
+                    <i className="fas fa-info-circle me-2"></i>
+                    Double-click on the content below to edit HTML directly
+                  </small>
+                </div>
+              )}
+            </div>
+
+            {/* Post Content */}
+            {isEditing ? (
+              <div className="mb-5">
+                <label className="form-label">
+                  <strong>HTML Content:</strong>
+                  <small className="text-muted ms-2">
+                    Edit HTML directly. Use proper tags for formatting.
+                  </small>
+                </label>
+                <textarea
+                  className="form-control"
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  rows={20}
+                  placeholder="Enter HTML content..."
+                  style={{ 
+                    fontFamily: 'Monaco, Consolas, monospace', 
+                    fontSize: '14px',
+                    border: '2px dashed #007bff',
+                    backgroundColor: '#f8f9ff'
+                  }}
+                />
+                <div className="form-text">
+                  <strong>HTML Tips:</strong> Use &lt;p&gt;, &lt;h2&gt;, &lt;h3&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;, &lt;ol&gt;, &lt;li&gt;, &lt;a href=""&gt;, &lt;img src=""&gt;, etc.
+                </div>
+              </div>
+            ) : (
+              <div
+                ref={contentRef}
+                className="post-content mb-5"
+                dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(post.content) }}
+                style={{ 
+                  lineHeight: "1.7", 
+                  fontSize: "1.1rem",
+                  cursor: user?.isAdmin ? 'pointer' : 'default',
+                  transition: 'all 0.2s ease',
+                  padding: user?.isAdmin ? '10px' : '0',
+                  borderRadius: user?.isAdmin ? '5px' : '0'
+                }}
+                onMouseEnter={(e) => {
+                  if (user?.isAdmin) {
+                    e.target.style.backgroundColor = '#f8f9ff';
+                    e.target.style.border = '2px dashed transparent';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (user?.isAdmin) {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.border = 'none';
+                  }
+                }}
+                title={user?.isAdmin ? "Double-click to edit this content" : ""}
+              />
+            )}
+
+            {/* Tags */}
+            {post.tags && post.tags.length > 0 && (
+              <div className="mb-5">
+                <h6 className="text-muted mb-2">Tags:</h6>
+                {post.tags.map((tag, index) => (
+                  <span key={index} className="badge bg-secondary me-2">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </article>
+
+          {/* Comments Section */}
+          <CommentsSection postId={post.id} user={user} />
+        </div>
+      </div>
+    </div>
   );
 }
 

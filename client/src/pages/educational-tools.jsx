@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
 const EducationalTools = ({ user }) => {
-  // Debug user permissions
-  console.log('[Educational Tools] User object:', user);
-  console.log('[Educational Tools] User.isAdmin:', user?.isAdmin);  
-  console.log('[Educational Tools] User.role:', user?.role);
-  
   // Check if user is a teacher or admin
   const isTeacherOrAdmin = user && (user.isAdmin || user.role === 'teacher');
-  console.log('[Educational Tools] isTeacherOrAdmin:', isTeacherOrAdmin);
   
   // Define all tools with their visibility rules
   const allTools = [
@@ -107,17 +101,10 @@ const EducationalTools = ({ user }) => {
   // Filter tools based on user role
   const visibleTools = allTools.filter(tool => {
     if (isTeacherOrAdmin) {
-      console.log('[Educational Tools] Including tool for teacher/admin:', tool.title);
       return true; // Teachers and admins see all tools
     }
-    const shouldShow = tool.visibleToStudents;
-    console.log('[Educational Tools] Student tool check:', tool.title, 'visible:', shouldShow);
-    return shouldShow; // Students only see quiz tools
+    return tool.visibleToStudents; // Students only see quiz tools
   });
-  
-  console.log('[Educational Tools] Total tools available:', allTools.length);
-  console.log('[Educational Tools] Visible tools:', visibleTools.length);
-  console.log('[Educational Tools] Visible tool names:', visibleTools.map(t => t.title));
 
   const handleToolNavigation = (route) => {
     // Use hash-based routing
