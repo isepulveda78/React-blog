@@ -405,7 +405,7 @@ function BlogPost({ user, slug }) {
     
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/admin/posts/${post.id}`, {
+      const response = await fetch(`/api/posts/${post.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -414,6 +414,12 @@ function BlogPost({ user, slug }) {
         body: JSON.stringify({
           title: editedTitle,
           content: editedContent,
+          // Preserve other fields
+          excerpt: post.excerpt,
+          categoryId: post.categoryId,
+          tags: post.tags,
+          featuredImage: post.featuredImage,
+          status: post.status
         }),
       });
 
@@ -429,16 +435,18 @@ function BlogPost({ user, slug }) {
         document.body.appendChild(alertDiv);
         setTimeout(() => alertDiv.remove(), 3000);
       } else {
-        throw new Error('Failed to save post');
+        const errorText = await response.text();
+        console.error('Save failed:', response.status, errorText);
+        throw new Error(`Failed to save post: ${response.status}`);
       }
     } catch (error) {
       console.error('Error saving post:', error);
       const alertDiv = document.createElement('div');
       alertDiv.className = 'alert alert-danger position-fixed';
       alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; width: 300px;';
-      alertDiv.innerHTML = '<strong>Error!</strong> Failed to save post.';
+      alertDiv.innerHTML = `<strong>Error!</strong> ${error.message}`;
       document.body.appendChild(alertDiv);
-      setTimeout(() => alertDiv.remove(), 3000);
+      setTimeout(() => alertDiv.remove(), 5000);
     } finally {
       setIsSaving(false);
     }
@@ -622,35 +630,31 @@ function BlogPost({ user, slug }) {
                 <label className="form-label">
                   <strong>Post Content:</strong>
                   <small className="text-muted ms-2">
-                    Edit your post content naturally. Formatting will be preserved.
+                    Edit content as it appears. Click to position cursor, type to edit.
                   </small>
                 </label>
-                <textarea
+                <div
+                  contentEditable
                   className="form-control"
-                  value={editedContent.replace(/<[^>]*>/g, '')} // Strip HTML for editing
-                  onChange={(e) => {
-                    // Convert plain text back to basic HTML
-                    const plainText = e.target.value;
-                    const htmlContent = plainText
-                      .split('\n\n')
-                      .map(paragraph => paragraph.trim())
-                      .filter(paragraph => paragraph.length > 0)
-                      .map(paragraph => `<p>${paragraph}</p>`)
-                      .join('\n');
-                    setEditedContent(htmlContent);
+                  dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(editedContent) }}
+                  onInput={(e) => {
+                    setEditedContent(e.target.innerHTML);
                   }}
-                  rows={15}
-                  placeholder="Enter your post content here..."
+                  onBlur={(e) => {
+                    setEditedContent(e.target.innerHTML);
+                  }}
                   style={{ 
-                    fontFamily: 'Georgia, serif', 
-                    fontSize: '16px',
-                    lineHeight: '1.6',
+                    minHeight: '400px',
+                    lineHeight: '1.7', 
+                    fontSize: '1.1rem',
                     border: '2px dashed #007bff',
-                    backgroundColor: '#f8f9ff'
+                    backgroundColor: '#f8f9ff',
+                    padding: '20px',
+                    cursor: 'text'
                   }}
                 />
                 <div className="form-text">
-                  <strong>Tip:</strong> Separate paragraphs with blank lines. Your formatting will be preserved when you save.
+                  <strong>WYSIWYG Editor:</strong> Click anywhere to position your cursor and start typing. Content appears exactly as it will on the published post.
                 </div>
               </div>
             ) : (
