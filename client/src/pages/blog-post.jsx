@@ -660,13 +660,25 @@ function BlogPost({ user, slug }) {
                   suppressContentEditableWarning={true}
                   onInput={(e) => {
                     if (!isUpdatingRef.current) {
+                      // Save current scroll position
+                      const scrollY = window.scrollY;
                       // Update state without triggering cursor restoration
                       setEditedContent(e.target.innerHTML);
+                      // Restore scroll position
+                      window.scrollTo(0, scrollY);
                     }
                   }}
                   onKeyDown={(e) => {
-                    // Allow all typing without interference
+                    // Allow all typing without interference and prevent scroll
                     e.stopPropagation();
+                  }}
+                  onFocus={(e) => {
+                    // Prevent automatic scrolling when editor gains focus
+                    e.preventDefault();
+                    const scrollY = window.scrollY;
+                    setTimeout(() => {
+                      window.scrollTo(0, scrollY);
+                    }, 0);
                   }}
                   style={{ 
                     minHeight: '400px',
