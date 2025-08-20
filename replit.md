@@ -8,6 +8,7 @@ Preferred communication style: Simple, everyday language.
 Tech stack preferences: JavaScript (JSX) without TypeScript, Bootstrap UI framework instead of shadcn/ui.
 Development preference: Fast iteration with immediate visual feedback - expects changes to be visible immediately after making edits.
 Cache management: Successfully implemented polling-based hot reload system for instant change detection and automatic page refresh. System detects file changes every 2 seconds and triggers automatic browser refreshes. Working reliably with proper development file serving and cache control headers.
+Inline editing preference: User requires stable cursor behavior during WYSIWYG editing - cursor jumping issues have been resolved by removing problematic cursor save/restore logic.
 
 ## System Architecture
 
@@ -51,12 +52,12 @@ Cache management: Successfully implemented polling-based hot reload system for i
 - **Listen to Type**: Audio-based typing practice tool.
 - **Audio Quizzes**: Complete audio quiz system with custom play controls, server-side proxy, and teacher grading dashboard. Configurable attempt limits.
 - **Text Quizzes**: Comprehensive text-based multiple choice quiz system with create, edit, take, and grade functionality. Includes admin dashboard for grading and student profile integration for performance tracking. Configurable attempt limits.
-- **Audio Lists System**: Manage audio files from Google Drive for student access.
+- **Audio Lists System**: Manage audio files from Google Drive for student access. Features loading spinners on play buttons and proper admin controls for create/edit/delete operations.
 
 ### Authentication & Authorization
 - **User Registration/Login**: Email/password and Google OAuth authentication.
 - **Role-Based Access**: Admin users have management interface access, students have chat access, and specific tool access based on role.
-- **Secure WYSIWYG Inline Editing**: Click-to-edit functionality for blog posts with admin-only access, cursor preservation, server-side XSS protection, and session authentication.
+- **Secure WYSIWYG Inline Editing**: Click-to-edit functionality for blog posts with admin-only access, stable cursor behavior, server-side XSS protection, and session authentication. Cursor jumping issues resolved (August 2025).
 
 ### Content Editing
 - **Simple HTML Editor**: Direct HTML textarea editing with formatting hints.
