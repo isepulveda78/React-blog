@@ -461,14 +461,14 @@ function BlogPost({ user, slug }) {
     }
   };
 
-  // Initialize content when entering edit mode
+  // Initialize content when entering edit mode (only once)
   useEffect(() => {
-    if (isEditing && editableRef.current && editedContent) {
+    if (isEditing && editableRef.current && !editableRef.current.innerHTML) {
       isUpdatingRef.current = true;
       editableRef.current.innerHTML = decodeHTMLEntities(editedContent);
       isUpdatingRef.current = false;
     }
-  }, [isEditing, editedContent]);
+  }, [isEditing]);
 
   // Function to cancel editing
   const handleCancel = () => {
@@ -477,48 +477,7 @@ function BlogPost({ user, slug }) {
     setIsEditing(false);
   };
 
-  // Save cursor position
-  const saveCursorPosition = () => {
-    if (!editableRef.current) return null;
-    const selection = window.getSelection();
-    if (selection.rangeCount === 0) return null;
-    
-    const range = selection.getRangeAt(0);
-    const preCaretRange = range.cloneRange();
-    preCaretRange.selectNodeContents(editableRef.current);
-    preCaretRange.setEnd(range.endContainer, range.endOffset);
-    return preCaretRange.toString().length;
-  };
-
-  // Restore cursor position
-  const restoreCursorPosition = (savedPosition) => {
-    if (!editableRef.current || savedPosition === null) return;
-    
-    const selection = window.getSelection();
-    const range = document.createRange();
-    let currentPos = 0;
-    
-    const walkTextNodes = (node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        const textLength = node.textContent.length;
-        if (currentPos + textLength >= savedPosition) {
-          range.setStart(node, savedPosition - currentPos);
-          range.collapse(true);
-          return true;
-        }
-        currentPos += textLength;
-      } else {
-        for (let i = 0; i < node.childNodes.length; i++) {
-          if (walkTextNodes(node.childNodes[i])) return true;
-        }
-      }
-      return false;
-    };
-    
-    walkTextNodes(editableRef.current);
-    selection.removeAllRanges();
-    selection.addRange(range);
-  };
+  // Removed cursor position tracking - let browser handle natural cursor behavior
 
   // Handle clicks on internal links and admin editing
   useEffect(() => {
@@ -701,10 +660,8 @@ function BlogPost({ user, slug }) {
                   suppressContentEditableWarning={true}
                   onInput={(e) => {
                     if (!isUpdatingRef.current) {
-                      const cursorPos = saveCursorPosition();
+                      // Update state without triggering cursor restoration
                       setEditedContent(e.target.innerHTML);
-                      // Restore cursor after state update
-                      setTimeout(() => restoreCursorPosition(cursorPos), 0);
                     }
                   }}
                   onKeyDown={(e) => {
