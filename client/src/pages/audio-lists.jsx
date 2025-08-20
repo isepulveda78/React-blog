@@ -11,7 +11,13 @@ const AudioLists = ({ user }) => {
     audioFiles: []
   });
 
+  // Debug user permissions
+  console.log('[Audio Lists] User received:', user);
+  console.log('[Audio Lists] User isAdmin:', user?.isAdmin);
+  console.log('[Audio Lists] User role:', user?.role);
+
   const isTeacherOrAdmin = user && (user.isAdmin || user.role === 'teacher');
+  console.log('[Audio Lists] isTeacherOrAdmin:', isTeacherOrAdmin);
 
   useEffect(() => {
     fetchAudioLists();

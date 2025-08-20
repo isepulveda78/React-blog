@@ -334,9 +334,21 @@ const AppRoutes = () => {
           )} />
           <Route path="/code-evolution" component={() => <CodeEvolutionVisualization />} />
           <Route path="/crossword-generator" component={() => <CrosswordGenerator />} />
-          <Route path="/audio-quizzes" component={() => <AudioQuizzes />} />
-          <Route path="/text-quizzes" component={() => <TextQuizzes />} />
-          <Route path="/audio-lists" component={() => <AudioLists />} />
+          <Route path="/audio-quizzes" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <AudioQuizzes />
+            </ProtectedRoute>
+          )} />
+          <Route path="/text-quizzes" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <TextQuizzes />
+            </ProtectedRoute>
+          )} />
+          <Route path="/audio-lists" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <AudioLists />
+            </ProtectedRoute>
+          )} />
           <Route path="/profile" component={() => (
             <ProtectedRoute>
               <UserProfile />
