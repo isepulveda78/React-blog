@@ -10,6 +10,7 @@ const AudioLists = ({ user }) => {
     description: '',
     audioFiles: []
   });
+  const [loadingAudio, setLoadingAudio] = useState({}); // Track loading state for each audio file
 
   // Debug user permissions
   console.log('[Audio Lists] User received:', user);
@@ -148,14 +149,36 @@ const AudioLists = ({ user }) => {
     return url;
   };
 
-  const playAudio = (audioUrl, audioName) => {
+  const playAudio = (audioUrl, audioName, listId, audioIndex) => {
+    const audioKey = `${listId}-${audioIndex}`;
+    
+    // Set loading state for this specific audio file
+    setLoadingAudio(prev => ({ ...prev, [audioKey]: true }));
+    
     // Use the existing audio proxy system for Google Drive files
     const proxyUrl = `/api/audio-proxy?url=${encodeURIComponent(convertGoogleDriveUrl(audioUrl))}`;
     
     const audio = new Audio(proxyUrl);
     audio.volume = 0.7;
+    
+    // Clear loading state when audio can play
+    audio.addEventListener('canplay', () => {
+      setLoadingAudio(prev => ({ ...prev, [audioKey]: false }));
+    });
+    
+    // Clear loading state on error
+    audio.addEventListener('error', () => {
+      setLoadingAudio(prev => ({ ...prev, [audioKey]: false }));
+    });
+    
+    // Clear loading state when audio ends
+    audio.addEventListener('ended', () => {
+      setLoadingAudio(prev => ({ ...prev, [audioKey]: false }));
+    });
+    
     audio.play().catch(error => {
       console.error('Error playing audio:', error);
+      setLoadingAudio(prev => ({ ...prev, [audioKey]: false }));
       alert(`Failed to play "${audioName}". Please check the audio URL.`);
     });
   };
@@ -371,19 +394,31 @@ const AudioLists = ({ user }) => {
                           Audio Files ({list.audioFiles?.length || 0})
                         </h6>
                         
-                        {list.audioFiles?.map((audio, index) => (
-                          <div key={index} className="d-flex justify-content-between align-items-center p-2 border rounded mb-2">
-                            <div className="flex-grow-1">
-                              <div className="fw-medium">{audio.name}</div>
+                        {list.audioFiles?.map((audio, index) => {
+                          const audioKey = `${list.id}-${index}`;
+                          const isLoadingThis = loadingAudio[audioKey];
+                          
+                          return (
+                            <div key={index} className="d-flex justify-content-between align-items-center p-2 border rounded mb-2">
+                              <div className="flex-grow-1">
+                                <div className="fw-medium">{audio.name}</div>
+                              </div>
+                              <button
+                                className="btn btn-primary btn-sm"
+                                onClick={() => playAudio(audio.url, audio.name, list.id, index)}
+                                disabled={isLoadingThis}
+                              >
+                                {isLoadingThis ? (
+                                  <div className="spinner-border spinner-border-sm" role="status">
+                                    <span className="visually-hidden">Loading...</span>
+                                  </div>
+                                ) : (
+                                  <i className="fas fa-play"></i>
+                                )}
+                              </button>
                             </div>
-                            <button
-                              className="btn btn-primary btn-sm"
-                              onClick={() => playAudio(audio.url, audio.name)}
-                            >
-                              <i className="fas fa-play"></i>
-                            </button>
-                          </div>
-                        )) || (
+                          );
+                        }) || (
                           <div className="text-muted">No audio files</div>
                         )}
                       </div>
