@@ -43,9 +43,8 @@ const Home = ({ user }) => {
     }
     
     // All registered users can now read posts
-    // Navigate to blog post
-    window.history.pushState({}, '', `/blog/${post.slug}`);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    // Navigate to blog post using hash-based routing
+    window.location.hash = `/blog/${post.slug}`;
   };
 
   return (
@@ -106,8 +105,7 @@ const Home = ({ user }) => {
               <button
                 className="btn btn-primary btn-lg"
                 onClick={() => {
-                  window.history.pushState({}, '', '/blog');
-                  window.dispatchEvent(new PopStateEvent('popstate'));
+                  window.location.hash = '/blog';
                 }}
               >
                 View All Posts
