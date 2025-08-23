@@ -464,8 +464,25 @@ function BlogPost({ user, slug }) {
   // Initialize content when entering edit mode (only once)
   useEffect(() => {
     if (isEditing && editableRef.current && !editableRef.current.innerHTML) {
+      const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
+      const isWindows = /Windows/.test(navigator.userAgent);
+      
       isUpdatingRef.current = true;
       editableRef.current.innerHTML = decodeHTMLEntities(editedContent);
+      
+      if (isChrome && isWindows) {
+        // Chrome on PC: Set cursor at end after a short delay
+        setTimeout(() => {
+          const range = document.createRange();
+          const sel = window.getSelection();
+          range.selectNodeContents(editableRef.current);
+          range.collapse(false); // Collapse to end
+          sel.removeAllRanges();
+          sel.addRange(range);
+          editableRef.current.focus();
+        }, 50);
+      }
+      
       isUpdatingRef.current = false;
     }
   }, [isEditing]);
@@ -660,12 +677,21 @@ function BlogPost({ user, slug }) {
                   suppressContentEditableWarning={true}
                   onInput={(e) => {
                     if (!isUpdatingRef.current) {
-                      // Save current scroll position
-                      const scrollY = window.scrollY;
-                      // Update state without triggering cursor restoration
-                      setEditedContent(e.target.innerHTML);
-                      // Restore scroll position
-                      window.scrollTo(0, scrollY);
+                      // Detect Chrome on PC to handle cursor jumping
+                      const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
+                      const isWindows = /Windows/.test(navigator.userAgent);
+                      
+                      if (isChrome && isWindows) {
+                        // Chrome on PC: Use requestAnimationFrame to avoid cursor jumping
+                        requestAnimationFrame(() => {
+                          setEditedContent(e.target.innerHTML);
+                        });
+                      } else {
+                        // Other browsers: Use original method with scroll preservation
+                        const scrollY = window.scrollY;
+                        setEditedContent(e.target.innerHTML);
+                        window.scrollTo(0, scrollY);
+                      }
                     }
                   }}
                   onKeyDown={(e) => {
@@ -673,12 +699,21 @@ function BlogPost({ user, slug }) {
                     e.stopPropagation();
                   }}
                   onFocus={(e) => {
-                    // Prevent automatic scrolling when editor gains focus
-                    e.preventDefault();
-                    const scrollY = window.scrollY;
-                    setTimeout(() => {
-                      window.scrollTo(0, scrollY);
-                    }, 0);
+                    // Handle focus differently for Chrome on PC
+                    const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
+                    const isWindows = /Windows/.test(navigator.userAgent);
+                    
+                    if (isChrome && isWindows) {
+                      // Chrome on PC: Minimal interference
+                      return;
+                    } else {
+                      // Other browsers: Prevent automatic scrolling when editor gains focus
+                      e.preventDefault();
+                      const scrollY = window.scrollY;
+                      setTimeout(() => {
+                        window.scrollTo(0, scrollY);
+                      }, 0);
+                    }
                   }}
                   style={{ 
                     minHeight: '400px',
