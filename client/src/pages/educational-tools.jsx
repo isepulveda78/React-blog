@@ -95,6 +95,15 @@ const EducationalTools = ({ user }) => {
       buttonClass: 'btn btn-primary',
       route: '/audio-lists',
       visibleToStudents: true
+    },
+    {
+      id: 'lesson-plans',
+      title: 'Lesson Plans',
+      description: 'Create and manage comprehensive lesson plans with the 5E instructional model',
+      icon: 'fas fa-clipboard-list fa-3x text-info',
+      buttonClass: 'btn btn-info',
+      route: '/lesson-plans',
+      visibleToStudents: false
     }
   ];
 

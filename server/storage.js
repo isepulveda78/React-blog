@@ -15,6 +15,7 @@ class MemStorage {
     this.textQuizzes = [];
     this.textQuizGrades = [];
     this.audioLists = [];
+    this.lessonPlans = [];
     console.log('[storage] Using in-memory storage');
     this.initializeSampleData();
   }
@@ -365,6 +366,44 @@ class MemStorage {
     const index = this.audioLists.findIndex(list => list.id === id);
     if (index === -1) return false;
     this.audioLists.splice(index, 1);
+    return true;
+  }
+
+  // Lesson Plans CRUD operations
+  async getLessonPlans() { 
+    return this.lessonPlans.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); 
+  }
+  async getLessonPlanById(id) { return this.lessonPlans.find(plan => plan.id === id); }
+  async getLessonPlansByCreator(creatorId) { 
+    return this.lessonPlans.filter(plan => plan.creatorId === creatorId).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); 
+  }
+  
+  async createLessonPlan(planData) {
+    const lessonPlan = { 
+      id: nanoid(), 
+      ...planData, 
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    this.lessonPlans.push(lessonPlan);
+    return lessonPlan;
+  }
+
+  async updateLessonPlan(id, updates) {
+    const index = this.lessonPlans.findIndex(plan => plan.id === id);
+    if (index === -1) return null;
+    this.lessonPlans[index] = { 
+      ...this.lessonPlans[index], 
+      ...updates, 
+      updatedAt: new Date().toISOString() 
+    };
+    return this.lessonPlans[index];
+  }
+
+  async deleteLessonPlan(id) {
+    const index = this.lessonPlans.findIndex(plan => plan.id === id);
+    if (index === -1) return false;
+    this.lessonPlans.splice(index, 1);
     return true;
   }
 
@@ -1679,6 +1718,55 @@ export class MongoStorage {
   async deleteAudioList(id) {
     await this.connect();
     const result = await this.db.collection('audioLists').deleteOne({ id });
+    return result.deletedCount > 0;
+  }
+
+  // Lesson Plans methods
+  async getLessonPlans() { 
+    await this.connect();
+    return await this.db.collection('lessonPlans').find({}).sort({ createdAt: -1 }).toArray();
+  }
+  
+  async getLessonPlanById(id) { 
+    await this.connect();
+    return await this.db.collection('lessonPlans').findOne({ id });
+  }
+  
+  async getLessonPlansByCreator(creatorId) { 
+    await this.connect();
+    return await this.db.collection('lessonPlans').find({ creatorId }).sort({ createdAt: -1 }).toArray();
+  }
+  
+  async createLessonPlan(planData) {
+    await this.connect();
+    const lessonPlan = { 
+      id: nanoid(), 
+      ...planData, 
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    await this.db.collection('lessonPlans').insertOne(lessonPlan);
+    return lessonPlan;
+  }
+
+  async updateLessonPlan(id, updates) {
+    await this.connect();
+    const existingPlan = await this.db.collection('lessonPlans').findOne({ id });
+    if (!existingPlan) return null;
+    
+    const updatedPlan = {
+      ...existingPlan,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await this.db.collection('lessonPlans').updateOne({ id }, { $set: updatedPlan });
+    return updatedPlan;
+  }
+
+  async deleteLessonPlan(id) {
+    await this.connect();
+    const result = await this.db.collection('lessonPlans').deleteOne({ id });
     return result.deletedCount > 0;
   }
 }

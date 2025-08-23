@@ -34,6 +34,7 @@ import CrosswordGenerator from './pages/crossword-generator.jsx'
 import AudioQuizzes from './pages/audio-quizzes.jsx'
 import TextQuizzes from './pages/text-quizzes.jsx'
 import AudioLists from './pages/audio-lists.jsx'
+import LessonPlans from './pages/lesson-plans.jsx'
 import NotFound from './components/NotFound.jsx'
 
 // Auth Context
@@ -347,6 +348,11 @@ const AppRoutes = () => {
           <Route path="/audio-lists" component={() => (
             <ProtectedRoute requireApproval={false}>
               <AudioLists />
+            </ProtectedRoute>
+          )} />
+          <Route path="/lesson-plans" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <LessonPlans />
             </ProtectedRoute>
           )} />
           <Route path="/profile" component={() => (

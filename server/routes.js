@@ -3089,5 +3089,166 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // Lesson Plan Routes
+  // Get lesson plans
+  app.get("/api/lesson-plans", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Only teachers and admins can access lesson plans
+      if (!user.isAdmin && user.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
+      }
+
+      const { creatorId } = req.query;
+      
+      if (creatorId) {
+        // Get lesson plans for specific creator
+        const plans = await storage.getLessonPlansByCreator(creatorId);
+        res.json(plans);
+      } else {
+        // Get all lesson plans (admin only) or own plans (teachers)
+        if (user.isAdmin) {
+          const plans = await storage.getLessonPlans();
+          res.json(plans);
+        } else {
+          const plans = await storage.getLessonPlansByCreator(user.id);
+          res.json(plans);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching lesson plans:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get specific lesson plan
+  app.get("/api/lesson-plans/:id", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      if (!user.isAdmin && user.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
+      }
+
+      const { id } = req.params;
+      const plan = await storage.getLessonPlanById(id);
+      
+      if (!plan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+
+      // Teachers can only access their own plans unless they're admin
+      if (!user.isAdmin && plan.creatorId !== user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(plan);
+    } catch (error) {
+      console.error('Error fetching lesson plan:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Create lesson plan (teacher/admin only)
+  app.post("/api/lesson-plans", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      if (!user.isAdmin && user.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
+      }
+
+      const planData = {
+        ...req.body,
+        creatorId: user.id,
+        creatorName: user.name || user.username
+      };
+
+      const plan = await storage.createLessonPlan(planData);
+      res.status(201).json(plan);
+    } catch (error) {
+      console.error('Error creating lesson plan:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update lesson plan (creator or admin only)
+  app.put("/api/lesson-plans/:id", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      if (!user.isAdmin && user.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
+      }
+
+      const { id } = req.params;
+      const existingPlan = await storage.getLessonPlanById(id);
+      
+      if (!existingPlan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+
+      // Teachers can only update their own plans unless they're admin
+      if (!user.isAdmin && existingPlan.creatorId !== user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const plan = await storage.updateLessonPlan(id, req.body);
+      res.json(plan);
+    } catch (error) {
+      console.error('Error updating lesson plan:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Delete lesson plan (creator or admin only)
+  app.delete("/api/lesson-plans/:id", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      if (!user.isAdmin && user.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
+      }
+
+      const { id } = req.params;
+      const existingPlan = await storage.getLessonPlanById(id);
+      
+      if (!existingPlan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+
+      // Teachers can only delete their own plans unless they're admin
+      if (!user.isAdmin && existingPlan.creatorId !== user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const deleted = await storage.deleteLessonPlan(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+      
+      res.json({ message: "Lesson plan deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting lesson plan:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   return httpServer;
 }
