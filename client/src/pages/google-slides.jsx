@@ -19,20 +19,26 @@ const GoogleSlides = ({ user }) => {
   const isTeacherOrAdmin = user && (user.isAdmin || user.role === 'teacher');
 
   useEffect(() => {
+    console.log('GoogleSlides component - user:', user);
     fetchSlides();
-  }, []);
+  }, [user]);
 
   const fetchSlides = async () => {
     try {
       setLoading(true);
+      console.log('Fetching Google Slides...');
       const response = await fetch('/api/google-slides', {
         credentials: 'include'
       });
       
+      console.log('Google Slides response status:', response.status);
       if (response.ok) {
         const data = await response.json();
+        console.log('Google Slides data:', data);
         setSlides(data);
       } else {
+        const errorText = await response.text();
+        console.error('Failed to fetch Google Slides:', response.status, errorText);
         setError('Failed to fetch Google Slides');
       }
     } catch (error) {
@@ -164,7 +170,14 @@ const GoogleSlides = ({ user }) => {
   };
 
   const openSlide = (slide) => {
-    window.open(slide.googleSlidesUrl, '_blank');
+    console.log('Opening slide:', slide);
+    console.log('URL to open:', slide.googleSlidesUrl);
+    if (slide.googleSlidesUrl) {
+      window.open(slide.googleSlidesUrl, '_blank');
+    } else {
+      console.error('No Google Slides URL found for slide:', slide);
+      setError('No Google Slides URL available for this presentation');
+    }
   };
 
   if (!user) {
@@ -382,7 +395,7 @@ const GoogleSlides = ({ user }) => {
                     )}
 
                     {/* Embedded Preview */}
-                    {slide.embedUrl && (
+                    {slide.embedUrl ? (
                       <div className="mb-3">
                         <iframe
                           src={slide.embedUrl}
@@ -392,7 +405,15 @@ const GoogleSlides = ({ user }) => {
                           allowFullScreen
                           title={slide.title}
                           style={{ border: '1px solid #dee2e6', borderRadius: '0.375rem' }}
+                          onError={(e) => console.error('Iframe error:', e)}
+                          onLoad={() => console.log('Iframe loaded for:', slide.title)}
                         />
+                      </div>
+                    ) : (
+                      <div className="mb-3 p-3 bg-light text-center">
+                        <i className="fab fa-google fa-2x text-muted mb-2"></i>
+                        <div className="text-muted">Preview not available</div>
+                        <small className="text-muted">Click "Open in Google Slides" to view</small>
                       </div>
                     )}
                   </div>

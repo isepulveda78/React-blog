@@ -358,7 +358,7 @@ const AppRoutes = () => {
           )} />
           <Route path="/google-slides" component={() => (
             <ProtectedRoute requireApproval={false}>
-              <GoogleSlides />
+              <GoogleSlides user={user} />
             </ProtectedRoute>
           )} />
           <Route path="/profile" component={() => (
