@@ -3250,5 +3250,168 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // Google Slides Routes
+  // Get Google Slides
+  app.get("/api/google-slides", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const { creatorId } = req.query;
+      
+      if (creatorId) {
+        // Get slides for specific creator
+        const slides = await storage.getGoogleSlidesByCreator(creatorId);
+        res.json(slides);
+      } else {
+        // Get all slides (admin/teacher only) or own slides (teachers)
+        if (user.isAdmin || user.role === 'teacher') {
+          if (user.isAdmin) {
+            const slides = await storage.getGoogleSlides();
+            res.json(slides);
+          } else {
+            const slides = await storage.getGoogleSlidesByCreator(user.id);
+            res.json(slides);
+          }
+        } else {
+          // Students can see all public slides
+          const allSlides = await storage.getGoogleSlides();
+          const publicSlides = allSlides.filter(slide => slide.isPublic);
+          res.json(publicSlides);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching Google Slides:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get specific Google Slide
+  app.get("/api/google-slides/:id", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const { id } = req.params;
+      const slide = await storage.getGoogleSlideById(id);
+      
+      if (!slide) {
+        return res.status(404).json({ message: "Google Slide not found" });
+      }
+
+      // Check access permissions
+      const canAccess = user.isAdmin || 
+                       slide.creatorId === user.id || 
+                       (slide.isPublic && user.role === 'student');
+
+      if (!canAccess) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(slide);
+    } catch (error) {
+      console.error('Error fetching Google Slide:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Create Google Slide (teacher/admin only)
+  app.post("/api/google-slides", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      if (!user.isAdmin && user.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
+      }
+
+      const slideData = {
+        ...req.body,
+        creatorId: user.id,
+        creatorName: user.name || user.username
+      };
+
+      const slide = await storage.createGoogleSlide(slideData);
+      res.status(201).json(slide);
+    } catch (error) {
+      console.error('Error creating Google Slide:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update Google Slide (creator or admin only)
+  app.put("/api/google-slides/:id", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      if (!user.isAdmin && user.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
+      }
+
+      const { id } = req.params;
+      const existingSlide = await storage.getGoogleSlideById(id);
+      
+      if (!existingSlide) {
+        return res.status(404).json({ message: "Google Slide not found" });
+      }
+
+      // Teachers can only update their own slides unless they're admin
+      if (!user.isAdmin && existingSlide.creatorId !== user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const slide = await storage.updateGoogleSlide(id, req.body);
+      res.json(slide);
+    } catch (error) {
+      console.error('Error updating Google Slide:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Delete Google Slide (creator or admin only)
+  app.delete("/api/google-slides/:id", async (req, res) => {
+    try {
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      if (!user.isAdmin && user.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
+      }
+
+      const { id } = req.params;
+      const existingSlide = await storage.getGoogleSlideById(id);
+      
+      if (!existingSlide) {
+        return res.status(404).json({ message: "Google Slide not found" });
+      }
+
+      // Teachers can only delete their own slides unless they're admin
+      if (!user.isAdmin && existingSlide.creatorId !== user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const deleted = await storage.deleteGoogleSlide(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Google Slide not found" });
+      }
+      
+      res.json({ message: "Google Slide deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting Google Slide:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   return httpServer;
 }

@@ -1769,6 +1769,55 @@ export class MongoStorage {
     const result = await this.db.collection('lessonPlans').deleteOne({ id });
     return result.deletedCount > 0;
   }
+
+  // Google Slides methods
+  async getGoogleSlides() {
+    await this.connect();
+    return await this.db.collection('googleSlides').find({}).sort({ createdAt: -1 }).toArray();
+  }
+  
+  async getGoogleSlideById(id) {
+    await this.connect();
+    return await this.db.collection('googleSlides').findOne({ id });
+  }
+  
+  async getGoogleSlidesByCreator(creatorId) {
+    await this.connect();
+    return await this.db.collection('googleSlides').find({ creatorId }).sort({ createdAt: -1 }).toArray();
+  }
+  
+  async createGoogleSlide(slideData) {
+    await this.connect();
+    const googleSlide = { 
+      id: nanoid(), 
+      ...slideData, 
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    await this.db.collection('googleSlides').insertOne(googleSlide);
+    return googleSlide;
+  }
+
+  async updateGoogleSlide(id, updates) {
+    await this.connect();
+    const existingSlide = await this.db.collection('googleSlides').findOne({ id });
+    if (!existingSlide) return null;
+    
+    const updatedSlide = {
+      ...existingSlide,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await this.db.collection('googleSlides').updateOne({ id }, { $set: updatedSlide });
+    return updatedSlide;
+  }
+
+  async deleteGoogleSlide(id) {
+    await this.connect();
+    const result = await this.db.collection('googleSlides').deleteOne({ id });
+    return result.deletedCount > 0;
+  }
 }
 
 // Create storage instance with improved fallback

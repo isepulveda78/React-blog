@@ -104,6 +104,15 @@ const EducationalTools = ({ user }) => {
       buttonClass: 'btn btn-info',
       route: '/lesson-plans',
       visibleToStudents: false
+    },
+    {
+      id: 'google-slides',
+      title: 'Google Slides',
+      description: 'Manage and share Google Slides presentations with embedded previews',
+      icon: 'fab fa-google fa-3x text-danger',
+      buttonClass: 'btn btn-danger',
+      route: '/google-slides',
+      visibleToStudents: true
     }
   ];
 
