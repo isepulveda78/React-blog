@@ -31,7 +31,15 @@ const GoogleSlides = ({ user }) => {
       
       if (response.ok) {
         const data = await response.json();
-        setSlides(data);
+        // Fix embed URLs for any slides that might have incorrect format
+        const fixedSlides = data.map(slide => {
+          const correctEmbedUrl = extractEmbedUrl(slide.googleSlidesUrl);
+          if (correctEmbedUrl && correctEmbedUrl !== slide.embedUrl) {
+            return { ...slide, embedUrl: correctEmbedUrl };
+          }
+          return slide;
+        });
+        setSlides(fixedSlides);
       } else {
         const errorText = await response.text();
         console.error('Failed to fetch Google Slides:', response.status, errorText);
@@ -56,18 +64,22 @@ const GoogleSlides = ({ user }) => {
   const extractEmbedUrl = (googleSlidesUrl) => {
     if (!googleSlidesUrl) return '';
     
-    // Extract the presentation ID from various Google Slides URL formats
-    let presentationId = '';
-    
-    if (googleSlidesUrl.includes('/presentation/d/')) {
-      const match = googleSlidesUrl.match(/\/presentation\/d\/([a-zA-Z0-9-_]+)/);
+    // Handle published Google Slides URLs (format: /d/e/[ID]/pub)
+    if (googleSlidesUrl.includes('/d/e/') && googleSlidesUrl.includes('/pub')) {
+      const match = googleSlidesUrl.match(/\/d\/e\/([a-zA-Z0-9-_]+)\/pub/);
       if (match) {
-        presentationId = match[1];
+        const presentationId = match[1];
+        return `https://docs.google.com/presentation/d/e/${presentationId}/embed?start=false&loop=false&delayms=3000`;
       }
     }
     
-    if (presentationId) {
-      return `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000`;
+    // Handle regular Google Slides URLs (format: /d/[ID])
+    if (googleSlidesUrl.includes('/presentation/d/')) {
+      const match = googleSlidesUrl.match(/\/presentation\/d\/([a-zA-Z0-9-_]+)/);
+      if (match) {
+        const presentationId = match[1];
+        return `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000`;
+      }
     }
     
     return '';
