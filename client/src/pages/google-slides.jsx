@@ -19,22 +19,18 @@ const GoogleSlides = ({ user }) => {
   const isTeacherOrAdmin = user && (user.isAdmin || user.role === 'teacher');
 
   useEffect(() => {
-    console.log('GoogleSlides component - user:', user);
     fetchSlides();
   }, [user]);
 
   const fetchSlides = async () => {
     try {
       setLoading(true);
-      console.log('Fetching Google Slides...');
       const response = await fetch('/api/google-slides', {
         credentials: 'include'
       });
       
-      console.log('Google Slides response status:', response.status);
       if (response.ok) {
         const data = await response.json();
-        console.log('Google Slides data:', data);
         setSlides(data);
       } else {
         const errorText = await response.text();
@@ -170,8 +166,6 @@ const GoogleSlides = ({ user }) => {
   };
 
   const openSlide = (slide) => {
-    console.log('Opening slide:', slide);
-    console.log('URL to open:', slide.googleSlidesUrl);
     if (slide.googleSlidesUrl) {
       window.open(slide.googleSlidesUrl, '_blank');
     } else {
@@ -406,7 +400,6 @@ const GoogleSlides = ({ user }) => {
                           title={slide.title}
                           style={{ border: '1px solid #dee2e6', borderRadius: '0.375rem' }}
                           onError={(e) => console.error('Iframe error:', e)}
-                          onLoad={() => console.log('Iframe loaded for:', slide.title)}
                         />
                       </div>
                     ) : (

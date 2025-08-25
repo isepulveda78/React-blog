@@ -1770,20 +1770,45 @@ export class MongoStorage {
     return result.deletedCount > 0;
   }
 
+  // Helper function to decode HTML entities in URLs
+  decodeHtmlEntities(str) {
+    if (!str) return str;
+    return str
+      .replace(/&#x2F;/g, '/')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#x27;/g, "'");
+  }
+
+  // Helper function to fix URL encoding in Google Slides data
+  fixGoogleSlideUrls(slide) {
+    if (!slide) return slide;
+    return {
+      ...slide,
+      googleSlidesUrl: this.decodeHtmlEntities(slide.googleSlidesUrl),
+      embedUrl: this.decodeHtmlEntities(slide.embedUrl)
+    };
+  }
+
   // Google Slides methods
   async getGoogleSlides() {
     await this.connect();
-    return await this.db.collection('googleSlides').find({}).sort({ createdAt: -1 }).toArray();
+    const slides = await this.db.collection('googleSlides').find({}).sort({ createdAt: -1 }).toArray();
+    return slides.map(slide => this.fixGoogleSlideUrls(slide));
   }
   
   async getGoogleSlideById(id) {
     await this.connect();
-    return await this.db.collection('googleSlides').findOne({ id });
+    const slide = await this.db.collection('googleSlides').findOne({ id });
+    return this.fixGoogleSlideUrls(slide);
   }
   
   async getGoogleSlidesByCreator(creatorId) {
     await this.connect();
-    return await this.db.collection('googleSlides').find({ creatorId }).sort({ createdAt: -1 }).toArray();
+    const slides = await this.db.collection('googleSlides').find({ creatorId }).sort({ createdAt: -1 }).toArray();
+    return slides.map(slide => this.fixGoogleSlideUrls(slide));
   }
   
   async createGoogleSlide(slideData) {
@@ -1810,7 +1835,7 @@ export class MongoStorage {
     };
     
     await this.db.collection('googleSlides').updateOne({ id }, { $set: updatedSlide });
-    return updatedSlide;
+    return this.fixGoogleSlideUrls(updatedSlide);
   }
 
   async deleteGoogleSlide(id) {
