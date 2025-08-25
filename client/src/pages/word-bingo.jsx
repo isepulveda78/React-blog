@@ -164,7 +164,7 @@ const WordBingo = ({ user }) => {
         // Draw column headers for 5x5 BINGO cards
         if (gridSize === 5) {
           pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(16);
+          pdf.setFontSize(24); // Increased from 16 to 24
           const letters = ['B', 'I', 'N', 'G', 'O'];
           for (let col = 0; col < 5; col++) {
             const headerX = gridStartX + (col * cellSize) + cellSize / 2;
@@ -178,9 +178,9 @@ const WordBingo = ({ user }) => {
         pdf.setLineWidth(0.5);
         pdf.setFont('helvetica', 'normal');
         
-        // Calculate appropriate font size based on cell size
-        let fontSize = Math.min(12, cellSize / 4);
-        if (fontSize < 6) fontSize = 6;
+        // Use larger, more readable font sizes
+        let fontSize = Math.min(18, cellSize / 3); // Increased base font size
+        if (fontSize < 10) fontSize = 10; // Increased minimum font size
         pdf.setFontSize(fontSize);
         
         for (let row = 0; row < gridSize; row++) {
@@ -200,7 +200,7 @@ const WordBingo = ({ user }) => {
               pdf.setFillColor(230, 230, 230); // Light gray background for FREE
               pdf.rect(x, y, cellSize, cellSize, 'FD');
               pdf.setFont('helvetica', 'bold');
-              pdf.setFontSize(Math.min(14, cellSize / 3));
+              pdf.setFontSize(Math.min(20, cellSize / 2.5)); // Increased FREE space font size
             } else {
               pdf.setFont('helvetica', 'normal');
               pdf.setFontSize(fontSize);
@@ -210,11 +210,11 @@ const WordBingo = ({ user }) => {
             if (word) {
               // Split long words if needed
               let displayText = word;
-              let currentFontSize = word === 'FREE' ? Math.min(14, cellSize / 3) : fontSize;
+              let currentFontSize = word === 'FREE' ? Math.min(20, cellSize / 2.5) : fontSize;
               
               // Check if text fits, if not, reduce font size
               let textWidth = pdf.getTextWidth(displayText);
-              while (textWidth > cellSize - 4 && currentFontSize > 4) {
+              while (textWidth > cellSize - 4 && currentFontSize > 8) { // Increased minimum from 4 to 8
                 currentFontSize -= 0.5;
                 pdf.setFontSize(currentFontSize);
                 textWidth = pdf.getTextWidth(displayText);
