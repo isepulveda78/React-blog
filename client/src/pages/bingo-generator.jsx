@@ -82,9 +82,9 @@ const BingoGenerator = () => {
             .card { page-break-after: always; margin-bottom: 30px; }
             .card:last-child { page-break-after: avoid; }
             h2 { text-align: center; margin-bottom: 20px; }
-            table { width: 400px; margin: 0 auto; border-collapse: collapse; }
-            td { width: 80px; height: 80px; border: 2px solid #000; text-align: center; font-size: 24px; font-weight: bold; }
-            th { width: 80px; height: 60px; border: 2px solid #000; text-align: center; font-size: 32px; font-weight: bold; background-color: #333; color: white; }
+            table { width: 500px; margin: 0 auto; border-collapse: collapse; }
+            td { width: 100px; height: 100px; border: 2px solid #000; text-align: center; font-size: 36px; font-weight: bold; vertical-align: middle; }
+            th { width: 100px; height: 80px; border: 2px solid #000; text-align: center; font-size: 48px; font-weight: bold; background-color: #333; color: white; vertical-align: middle; }
             .free { background-color: #f0f0f0; }
             @media print { .card { page-break-after: always; } }
           </style>
