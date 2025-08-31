@@ -2549,6 +2549,20 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   const chatroomUsers = new Map(); // Map of chatroom ID -> Set of user names
   let messageId = 1;
 
+  // Tank Battle Game State
+  const tankBattleQueue = [];
+  const activeTankGames = new Map(); // gameId -> game state
+  const tankBattlePlayers = new Map(); // ws -> player info
+  let gameIdCounter = 1;
+
+  // Tank Battle Game Constants
+  const CANVAS_WIDTH = 800;
+  const CANVAS_HEIGHT = 600;
+  const TANK_SIZE = 30;
+  const TANK_SPEED = 3;
+  const BULLET_SPEED = 5;
+  const GAME_TICK_RATE = 60; // 60 FPS
+
   if (wss) {
     wss.on('connection', (ws, req) => {
     console.log('[websocket] New client connected from:', req.socket.remoteAddress);
@@ -2654,6 +2668,60 @@ Sitemap: ${baseUrl}/sitemap.xml`;
               console.log('[websocket] Available users:', Array.from(chatUsers.values()).map(u => ({ name: u.name, role: u.role, chatroom: u.chatroom })));
             }
             break;
+
+          // Tank Battle Game Cases
+          case 'join_tank_battle':
+            console.log('[tank-battle] Player joining:', message.userId, message.username);
+            break;
+
+          case 'join_queue':
+            const queuePlayer = {
+              ws: ws,
+              userId: message.userId,
+              username: message.username,
+              joinedAt: Date.now()
+            };
+            
+            // Check if player is already in queue
+            const existingIndex = tankBattleQueue.findIndex(p => p.userId === message.userId);
+            if (existingIndex === -1) {
+              tankBattleQueue.push(queuePlayer);
+              tankBattlePlayers.set(ws, queuePlayer);
+              console.log('[tank-battle] Player joined queue:', message.username, 'Queue size:', tankBattleQueue.length);
+              
+              // Send queue status
+              ws.send(JSON.stringify({
+                type: 'game_update',
+                gameState: {
+                  status: 'waiting',
+                  players: tankBattleQueue.map(p => ({ userId: p.userId, username: p.username }))
+                }
+              }));
+
+              // If we have 2 players, start a game
+              if (tankBattleQueue.length >= 2) {
+                const player1 = tankBattleQueue.shift();
+                const player2 = tankBattleQueue.shift();
+                startTankBattleGame(player1, player2);
+              }
+            }
+            break;
+
+          case 'leave_queue':
+            const leaveIndex = tankBattleQueue.findIndex(p => p.userId === message.userId);
+            if (leaveIndex !== -1) {
+              tankBattleQueue.splice(leaveIndex, 1);
+              tankBattlePlayers.delete(ws);
+              console.log('[tank-battle] Player left queue:', message.userId);
+            }
+            break;
+
+          case 'player_input':
+            const playerGame = findPlayerGame(message.userId);
+            if (playerGame) {
+              updatePlayerInput(playerGame, message.userId, message.controls);
+            }
+            break;
         }
       } catch (error) {
         console.error('[websocket] Error parsing message:', error);
@@ -2662,6 +2730,8 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     
     ws.on('close', (code, reason) => {
       console.log(`[websocket] Client disconnected - code: ${code}, reason: ${reason}`);
+      
+      // Handle chat user disconnect
       const user = chatUsers.get(ws);
       if (user) {
         // Remove user from chatroom tracking
@@ -2683,6 +2753,25 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         broadcastToChatroom(leaveMessage, user.chatroom);
         chatUsers.delete(ws);
         console.log(`[chat] ${user.name} left the chat`);
+      }
+
+      // Handle tank battle disconnect
+      const tankPlayer = tankBattlePlayers.get(ws);
+      if (tankPlayer) {
+        // Remove from queue
+        const queueIndex = tankBattleQueue.findIndex(p => p.userId === tankPlayer.userId);
+        if (queueIndex !== -1) {
+          tankBattleQueue.splice(queueIndex, 1);
+          console.log('[tank-battle] Player removed from queue:', tankPlayer.username);
+        }
+
+        // End any active game
+        const playerGame = findPlayerGame(tankPlayer.userId);
+        if (playerGame) {
+          endTankBattleGame(playerGame.gameId, 'disconnect');
+        }
+
+        tankBattlePlayers.delete(ws);
       }
     });
   });
@@ -3412,6 +3501,212 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       res.status(500).json({ message: "Internal server error" });
     }
   });
+
+  // Tank Battle Game Logic Functions
+  function startTankBattleGame(player1, player2) {
+    const gameId = gameIdCounter++;
+    const gameState = {
+      gameId: gameId,
+      players: [
+        { userId: player1.userId, username: player1.username, ws: player1.ws },
+        { userId: player2.userId, username: player2.username, ws: player2.ws }
+      ],
+      tanks: {
+        [player1.userId]: {
+          x: 100,
+          y: CANVAS_HEIGHT / 2,
+          angle: 0,
+          health: 100,
+          color: '#4a90e2',
+          username: player1.username,
+          lastShot: 0
+        },
+        [player2.userId]: {
+          x: CANVAS_WIDTH - 100,
+          y: CANVAS_HEIGHT / 2,
+          angle: Math.PI,
+          health: 100,
+          color: '#e24a4a',
+          username: player2.username,
+          lastShot: 0
+        }
+      },
+      bullets: [],
+      status: 'playing',
+      startTime: Date.now(),
+      lastUpdate: Date.now(),
+      controls: {}
+    };
+
+    activeTankGames.set(gameId, gameState);
+
+    // Notify both players that the game has started
+    const startMessage = {
+      type: 'game_started',
+      gameRoom: gameId,
+      tanks: gameState.tanks,
+      players: gameState.players.map(p => ({ userId: p.userId, username: p.username }))
+    };
+
+    player1.ws.send(JSON.stringify(startMessage));
+    player2.ws.send(JSON.stringify(startMessage));
+
+    console.log('[tank-battle] Game started:', gameId, 'Players:', player1.username, 'vs', player2.username);
+
+    // Start game loop
+    startGameLoop(gameId);
+  }
+
+  function findPlayerGame(userId) {
+    for (const [gameId, game] of activeTankGames) {
+      if (game.players.some(p => p.userId === userId)) {
+        return game;
+      }
+    }
+    return null;
+  }
+
+  function updatePlayerInput(game, userId, controls) {
+    game.controls[userId] = controls;
+  }
+
+  function startGameLoop(gameId) {
+    const gameLoop = setInterval(() => {
+      const game = activeTankGames.get(gameId);
+      if (!game || game.status !== 'playing') {
+        clearInterval(gameLoop);
+        return;
+      }
+
+      updateGameState(game);
+      broadcastGameUpdate(game);
+    }, 1000 / GAME_TICK_RATE);
+  }
+
+  function updateGameState(game) {
+    const deltaTime = Date.now() - game.lastUpdate;
+    game.lastUpdate = Date.now();
+
+    // Update tanks based on player input
+    game.players.forEach(player => {
+      const controls = game.controls[player.userId] || {};
+      const tank = game.tanks[player.userId];
+      
+      if (!tank || tank.health <= 0) return;
+
+      // Movement
+      if (controls.left) tank.angle -= 0.05;
+      if (controls.right) tank.angle += 0.05;
+      
+      if (controls.up) {
+        tank.x += Math.cos(tank.angle) * TANK_SPEED;
+        tank.y += Math.sin(tank.angle) * TANK_SPEED;
+      }
+      if (controls.down) {
+        tank.x -= Math.cos(tank.angle) * TANK_SPEED;
+        tank.y -= Math.sin(tank.angle) * TANK_SPEED;
+      }
+
+      // Keep tanks within bounds
+      tank.x = Math.max(TANK_SIZE/2, Math.min(CANVAS_WIDTH - TANK_SIZE/2, tank.x));
+      tank.y = Math.max(TANK_SIZE/2, Math.min(CANVAS_HEIGHT - TANK_SIZE/2, tank.y));
+
+      // Shooting
+      if (controls.shoot && Date.now() - tank.lastShot > 500) { // 500ms cooldown
+        game.bullets.push({
+          id: Date.now() + player.userId,
+          x: tank.x + Math.cos(tank.angle) * (TANK_SIZE/2 + 10),
+          y: tank.y + Math.sin(tank.angle) * (TANK_SIZE/2 + 10),
+          angle: tank.angle,
+          ownerId: player.userId,
+          speed: BULLET_SPEED,
+          createdAt: Date.now()
+        });
+        tank.lastShot = Date.now();
+      }
+    });
+
+    // Update bullets
+    game.bullets = game.bullets.filter(bullet => {
+      bullet.x += Math.cos(bullet.angle) * bullet.speed;
+      bullet.y += Math.sin(bullet.angle) * bullet.speed;
+
+      // Remove bullets that are out of bounds or too old
+      if (bullet.x < 0 || bullet.x > CANVAS_WIDTH || 
+          bullet.y < 0 || bullet.y > CANVAS_HEIGHT ||
+          Date.now() - bullet.createdAt > 3000) {
+        return false;
+      }
+
+      // Check collisions with tanks
+      for (const [playerId, tank] of Object.entries(game.tanks)) {
+        if (playerId === bullet.ownerId || tank.health <= 0) continue;
+
+        const dx = bullet.x - tank.x;
+        const dy = bullet.y - tank.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < TANK_SIZE/2) {
+          tank.health -= 25;
+          console.log('[tank-battle] Hit!', tank.username, 'health:', tank.health);
+          
+          if (tank.health <= 0) {
+            const winner = game.players.find(p => p.userId !== playerId);
+            endTankBattleGame(game.gameId, 'victory', winner);
+          }
+          
+          return false; // Remove bullet
+        }
+      }
+
+      return true; // Keep bullet
+    });
+  }
+
+  function broadcastGameUpdate(game) {
+    const updateMessage = {
+      type: 'game_update',
+      gameState: {
+        status: game.status,
+        tanks: game.tanks,
+        bullets: game.bullets,
+        players: game.players.map(p => ({ userId: p.userId, username: p.username }))
+      }
+    };
+
+    game.players.forEach(player => {
+      if (player.ws.readyState === 1) { // WebSocket.OPEN = 1
+        player.ws.send(JSON.stringify(updateMessage));
+      }
+    });
+  }
+
+  function endTankBattleGame(gameId, reason, winner = null) {
+    const game = activeTankGames.get(gameId);
+    if (!game) return;
+
+    game.status = 'finished';
+    
+    const endMessage = {
+      type: 'game_ended',
+      reason: reason,
+      winner: winner ? { userId: winner.userId, username: winner.username } : null
+    };
+
+    game.players.forEach(player => {
+      if (player.ws.readyState === 1) {
+        player.ws.send(JSON.stringify(endMessage));
+      }
+    });
+
+    // Clean up game state
+    setTimeout(() => {
+      activeTankGames.delete(gameId);
+      console.log('[tank-battle] Game cleaned up:', gameId);
+    }, 5000);
+
+    console.log('[tank-battle] Game ended:', gameId, 'Reason:', reason, 'Winner:', winner?.username);
+  }
 
   return httpServer;
 }

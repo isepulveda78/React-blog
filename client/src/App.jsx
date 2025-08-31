@@ -36,6 +36,7 @@ import TextQuizzes from './pages/text-quizzes.jsx'
 import AudioLists from './pages/audio-lists.jsx'
 import LessonPlans from './pages/lesson-plans.jsx'
 import GoogleSlides from './pages/google-slides.jsx'
+import TankBattle from './pages/tank-battle.jsx'
 import NotFound from './components/NotFound.jsx'
 
 // Auth Context
@@ -359,6 +360,11 @@ const AppRoutes = () => {
           <Route path="/google-slides" component={() => (
             <ProtectedRoute requireApproval={false}>
               <GoogleSlides user={user} />
+            </ProtectedRoute>
+          )} />
+          <Route path="/tank-battle" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <TankBattle user={user} />
             </ProtectedRoute>
           )} />
           <Route path="/profile" component={() => (
