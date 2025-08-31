@@ -99,18 +99,9 @@ const AuthProvider = ({ children }) => {
       })
       .catch((error) => {
         console.log('[AuthProvider] Auth failed:', error.message)
-        // Not authenticated, check localStorage as fallback
-        const storedUser = localStorage.getItem('user')
-        if (storedUser) {
-          try {
-            const parsedUser = JSON.parse(storedUser)
-            console.log('[AuthProvider] Using localStorage user:', parsedUser.name)
-            setUser(parsedUser)
-          } catch (e) {
-            console.log('[AuthProvider] Invalid localStorage user, clearing')
-            localStorage.removeItem('user')
-          }
-        }
+        // Clear any stale localStorage data when auth fails
+        localStorage.removeItem('user')
+        setUser(null)
         setIsLoading(false)
       })
       
@@ -186,20 +177,8 @@ const AppRoutes = () => {
 
   // Protected route wrapper
   const ProtectedRoute = ({ children, requireAdmin = false, requireApproval = true }) => {
-    // Check localStorage first if no user in context
-    let currentUser = user;
-    if (!currentUser) {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          currentUser = JSON.parse(storedUser);
-          console.log('[ProtectedRoute] Using localStorage user:', currentUser.name);
-        } catch (e) {
-          console.log('[ProtectedRoute] Invalid localStorage user, clearing');
-          localStorage.removeItem('user');
-        }
-      }
-    }
+    // Only use user from valid server session - no localStorage fallback
+    const currentUser = user;
     
     console.log('[ProtectedRoute] user:', currentUser?.name, 'requireAdmin:', requireAdmin, 'isAdmin:', currentUser?.isAdmin);
     
@@ -249,14 +228,7 @@ const AppRoutes = () => {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <Navigation user={user || (() => {
-        const storedUser = localStorage.getItem('user');
-        try {
-          return storedUser ? JSON.parse(storedUser) : null;
-        } catch (e) {
-          return null;
-        }
-      })()} onLogout={logout} />
+      <Navigation user={user} onLogout={logout} />
       <main className="flex-grow-1">
         <Switch>
           <Route path="/admin/posts/new" component={() => (
@@ -319,23 +291,51 @@ const AppRoutes = () => {
               <BlogPost slug={params.slug} />
             </ProtectedRoute>
           )} />
-          <Route path="/blog" component={() => <BlogListing />} />
+          <Route path="/blog" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <BlogListing />
+            </ProtectedRoute>
+          )} />
           <Route path="/educational-tools" component={() => (
             <ProtectedRoute requireApproval={false}>
               <EducationalTools />
             </ProtectedRoute>
           )} />
-          <Route path="/bingo-generator" component={() => <BingoGenerator />} />
-          <Route path="/word-bingo" component={() => <WordBingo />} />
-          <Route path="/spanish-alphabet" component={() => <SpanishAlphabet />} />
-          <Route path="/word-sorter" component={() => <WordSorter />} />
+          <Route path="/bingo-generator" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <BingoGenerator />
+            </ProtectedRoute>
+          )} />
+          <Route path="/word-bingo" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <WordBingo />
+            </ProtectedRoute>
+          )} />
+          <Route path="/spanish-alphabet" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <SpanishAlphabet />
+            </ProtectedRoute>
+          )} />
+          <Route path="/word-sorter" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <WordSorter />
+            </ProtectedRoute>
+          )} />
           <Route path="/listen-to-type" component={() => (
             <ProtectedRoute requireApproval={false}>
               <ListenToType />
             </ProtectedRoute>
           )} />
-          <Route path="/code-evolution" component={() => <CodeEvolutionVisualization />} />
-          <Route path="/crossword-generator" component={() => <CrosswordGenerator />} />
+          <Route path="/code-evolution" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <CodeEvolutionVisualization />
+            </ProtectedRoute>
+          )} />
+          <Route path="/crossword-generator" component={() => (
+            <ProtectedRoute requireApproval={false}>
+              <CrosswordGenerator />
+            </ProtectedRoute>
+          )} />
           <Route path="/audio-quizzes" component={() => (
             <ProtectedRoute requireApproval={false}>
               <AudioQuizzes />
@@ -366,21 +366,7 @@ const AppRoutes = () => {
               <UserProfile />
             </ProtectedRoute>
           )} />
-          <Route path="/" component={() => {
-            // For home page, always get user from localStorage like before
-            let homeUser = user;
-            if (!homeUser) {
-              const storedUser = localStorage.getItem('user');
-              if (storedUser) {
-                try {
-                  homeUser = JSON.parse(storedUser);
-                } catch (e) {
-                  localStorage.removeItem('user');
-                }
-              }
-            }
-            return <Home user={homeUser} />;
-          }} />
+          <Route path="/" component={() => <Home user={user} />} />
           <Route component={NotFound} />
         </Switch>
       </main>
