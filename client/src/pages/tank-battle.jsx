@@ -137,48 +137,59 @@ const TankBattle = ({ user }) => {
         case 'w':
         case 'arrowup':
           newControls.up = true;
+          e.preventDefault(); // Prevent page scrolling
           break;
         case 's':
         case 'arrowdown':
           newControls.down = true;
+          e.preventDefault(); // Prevent page scrolling
           break;
         case 'a':
         case 'arrowleft':
           newControls.left = true;
+          e.preventDefault(); // Prevent page scrolling
           break;
         case 'd':
         case 'arrowright':
           newControls.right = true;
+          e.preventDefault(); // Prevent page scrolling
           break;
         case ' ':
           newControls.shoot = true;
-          e.preventDefault();
+          e.preventDefault(); // Prevent page scrolling
           break;
       }
       setControls(newControls);
     };
 
     const handleKeyUp = (e) => {
+      if (gameState.status !== 'playing') return;
+
       const newControls = { ...controls };
       switch (e.key.toLowerCase()) {
         case 'w':
         case 'arrowup':
           newControls.up = false;
+          e.preventDefault(); // Prevent page scrolling
           break;
         case 's':
         case 'arrowdown':
           newControls.down = false;
+          e.preventDefault(); // Prevent page scrolling
           break;
         case 'a':
         case 'arrowleft':
           newControls.left = false;
+          e.preventDefault(); // Prevent page scrolling
           break;
         case 'd':
         case 'arrowright':
           newControls.right = false;
+          e.preventDefault(); // Prevent page scrolling
           break;
         case ' ':
           newControls.shoot = false;
+          e.preventDefault(); // Prevent page scrolling
           break;
       }
       setControls(newControls);
