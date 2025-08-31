@@ -3748,11 +3748,13 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
       // Shooting
       if (controls.shoot && Date.now() - tank.lastShot > 500) { // 500ms cooldown
+        // Adjust angle by -90 degrees (π/2) to align with visual cannon orientation
+        const bulletAngle = tank.angle - Math.PI/2;
         game.bullets.push({
           id: Date.now() + player.userId,
-          x: tank.x + Math.cos(tank.angle) * (TANK_SIZE/2 + 10),
-          y: tank.y + Math.sin(tank.angle) * (TANK_SIZE/2 + 10),
-          angle: tank.angle,
+          x: tank.x + Math.cos(bulletAngle) * (TANK_SIZE/2 + 10),
+          y: tank.y + Math.sin(bulletAngle) * (TANK_SIZE/2 + 10),
+          angle: bulletAngle,
           ownerId: player.userId,
           speed: BULLET_SPEED,
           createdAt: Date.now()
