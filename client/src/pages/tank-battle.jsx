@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 const TankBattle = ({ user }) => {
   const canvasRef = useRef(null);
   const [gameState, setGameState] = useState({
-    status: 'waiting', // waiting, playing, finished
+    status: 'lobby', // lobby, waiting, playing, finished
     players: [],
     tanks: {},
     bullets: [],
@@ -11,6 +11,9 @@ const TankBattle = ({ user }) => {
     winner: null
   });
   const [socket, setSocket] = useState(null);
+  const [availableRooms, setAvailableRooms] = useState([]);
+  const [showCreateRoom, setShowCreateRoom] = useState(false);
+  const [roomName, setRoomName] = useState('');
   const [controls, setControls] = useState({
     up: false,
     down: false,
@@ -42,6 +45,10 @@ const TankBattle = ({ user }) => {
         userId: user.id,
         username: user.name
       }));
+      // Request available rooms
+      ws.send(JSON.stringify({
+        type: 'get_rooms'
+      }));
     };
 
     ws.onmessage = (event) => {
@@ -69,6 +76,22 @@ const TankBattle = ({ user }) => {
   // Handle WebSocket messages
   const handleWebSocketMessage = (data) => {
     switch (data.type) {
+      case 'rooms_list':
+        setAvailableRooms(data.rooms);
+        break;
+      case 'room_created':
+        setAvailableRooms(prev => [...prev, data.room]);
+        break;
+      case 'room_updated':
+        setAvailableRooms(prev => 
+          prev.map(room => room.roomId === data.room.roomId ? data.room : room)
+        );
+        break;
+      case 'room_removed':
+        setAvailableRooms(prev => 
+          prev.filter(room => room.roomId !== data.roomId)
+        );
+        break;
       case 'game_update':
         setGameState(prevState => ({
           ...prevState,
@@ -95,6 +118,9 @@ const TankBattle = ({ user }) => {
           status: 'finished',
           winner: data.winner
         }));
+        break;
+      case 'error':
+        alert(data.message);
         break;
       default:
         console.log('Unknown message type:', data.type);
@@ -255,35 +281,61 @@ const TankBattle = ({ user }) => {
 
   }, [gameState]);
 
-  const joinQueue = () => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
+  // Room management functions
+  const createRoom = () => {
+    if (socket && socket.readyState === WebSocket.OPEN && roomName.trim()) {
       socket.send(JSON.stringify({
-        type: 'join_queue',
+        type: 'create_room',
         userId: user.id,
-        username: user.name
+        username: user.name,
+        roomName: roomName.trim()
       }));
+      setRoomName('');
+      setShowCreateRoom(false);
+      setGameState(prev => ({ ...prev, status: 'waiting' }));
     }
   };
 
-  const leaveQueue = () => {
+  const joinRoom = (roomId) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({
-        type: 'leave_queue',
+        type: 'join_room',
+        userId: user.id,
+        username: user.name,
+        roomId: roomId
+      }));
+      setGameState(prev => ({ ...prev, status: 'waiting' }));
+    }
+  };
+
+  const leaveRoom = () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        type: 'leave_room',
         userId: user.id
+      }));
+      setGameState(prev => ({ ...prev, status: 'lobby' }));
+    }
+  };
+
+  const refreshRooms = () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        type: 'get_rooms'
       }));
     }
   };
 
   const startNewGame = () => {
     setGameState({
-      status: 'waiting',
+      status: 'lobby',
       players: [],
       tanks: {},
       bullets: [],
       gameRoom: null,
       winner: null
     });
-    joinQueue();
+    refreshRooms();
   };
 
   if (!user) {
@@ -301,120 +353,290 @@ const TankBattle = ({ user }) => {
     <div className="container py-5">
       <div className="row mb-4">
         <div className="col-12 text-center">
-          <h1 className="display-4 fw-bold text-primary mb-3">Tank Battle</h1>
+          <h1 className="display-4 fw-bold text-warning mb-3">
+            <i className="fas fa-gamepad me-3"></i>
+            Tank Battle Arena
+          </h1>
           <p className="lead text-muted">
-            Real-time multiplayer tank combat game for two players
+            Real-time multiplayer tank vs tank combat
           </p>
         </div>
       </div>
 
-      <div className="row">
-        <div className="col-lg-9">
-          <div className="card">
-            <div className="card-body text-center">
-              <canvas
-                ref={canvasRef}
-                width={CANVAS_WIDTH}
-                height={CANVAS_HEIGHT}
-                style={{
-                  border: '2px solid #333',
-                  backgroundColor: '#2d5a2d',
-                  maxWidth: '100%',
-                  height: 'auto'
-                }}
-              />
+      {/* Room Lobby */}
+      {gameState.status === 'lobby' && (
+        <div className="row">
+          <div className="col-12">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h3 className="text-primary mb-0">
+                <i className="fas fa-door-open me-2"></i>
+                Available Rooms
+              </h3>
+              <div className="d-flex gap-2">
+                <button 
+                  className="btn btn-outline-primary"
+                  onClick={refreshRooms}
+                >
+                  <i className="fas fa-sync me-2"></i>
+                  Refresh
+                </button>
+                <button 
+                  className="btn btn-success"
+                  onClick={() => setShowCreateRoom(true)}
+                >
+                  <i className="fas fa-plus me-2"></i>
+                  Create Room
+                </button>
+              </div>
             </div>
+
+            {/* Create Room Modal */}
+            {showCreateRoom && (
+              <div className="card border-success mb-4">
+                <div className="card-body">
+                  <h5 className="card-title">Create New Room</h5>
+                  <div className="mb-3">
+                    <label className="form-label">Room Name</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={roomName}
+                      onChange={(e) => setRoomName(e.target.value)}
+                      placeholder="Enter room name..."
+                      maxLength={30}
+                    />
+                  </div>
+                  <div className="d-flex gap-2">
+                    <button 
+                      className="btn btn-success"
+                      onClick={createRoom}
+                      disabled={!roomName.trim()}
+                    >
+                      Create Room
+                    </button>
+                    <button 
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        setShowCreateRoom(false);
+                        setRoomName('');
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Rooms List */}
+            {availableRooms.length === 0 ? (
+              <div className="card">
+                <div className="card-body text-center">
+                  <i className="fas fa-door-closed fa-3x text-muted mb-3"></i>
+                  <h5 className="text-muted">No rooms available</h5>
+                  <p className="text-muted">Create a new room to start playing!</p>
+                </div>
+              </div>
+            ) : (
+              <div className="row">
+                {availableRooms.map(room => (
+                  <div key={room.roomId} className="col-md-6 col-lg-4 mb-3">
+                    <div className="card h-100">
+                      <div className="card-body">
+                        <h6 className="card-title">
+                          <i className="fas fa-door-open me-2 text-primary"></i>
+                          {room.roomName}
+                        </h6>
+                        <p className="card-text text-muted mb-2">
+                          <small>
+                            <i className="fas fa-user me-1"></i>
+                            Created by: {room.creator.username}
+                          </small>
+                        </p>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <span className="badge bg-info">
+                            {room.playersCount}/{room.maxPlayers} players
+                          </span>
+                          <button 
+                            className={`btn btn-sm ${room.playersCount >= room.maxPlayers ? 'btn-secondary' : 'btn-primary'}`}
+                            onClick={() => joinRoom(room.roomId)}
+                            disabled={room.playersCount >= room.maxPlayers}
+                          >
+                            {room.playersCount >= room.maxPlayers ? 'Full' : 'Join'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
+      )}
 
-        <div className="col-lg-3">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="mb-0">Game Status</h5>
-            </div>
-            <div className="card-body">
-              {gameState.status === 'waiting' && (
-                <div>
-                  <p className="text-muted">Waiting for opponent...</p>
-                  <p>Players: {gameState.players.length}/2</p>
-                  {gameState.players.length === 0 ? (
-                    <button className="btn btn-primary btn-sm" onClick={joinQueue}>
-                      Join Queue
-                    </button>
-                  ) : (
-                    <button className="btn btn-secondary btn-sm" onClick={leaveQueue}>
-                      Leave Queue
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {gameState.status === 'playing' && (
-                <div>
-                  <p className="text-success fw-bold">Game Active!</p>
-                  <p>Players: {gameState.players.length}/2</p>
-                  {gameState.players.map((player, index) => (
-                    <div key={player.userId} className="mb-2">
-                      <small className={player.userId === user.id ? 'fw-bold' : ''}>
-                        {player.username} {player.userId === user.id ? '(You)' : ''}
-                      </small>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {gameState.status === 'finished' && (
-                <div>
-                  <p className="text-info fw-bold">Game Over!</p>
-                  {gameState.winner && (
-                    <p className={gameState.winner.userId === user.id ? 'text-success' : 'text-danger'}>
-                      Winner: {gameState.winner.username}
-                      {gameState.winner.userId === user.id ? ' (You!)' : ''}
-                    </p>
-                  )}
-                  <button className="btn btn-primary btn-sm" onClick={startNewGame}>
-                    Play Again
+      {/* Waiting in Room */}
+      {gameState.status === 'waiting' && (
+        <div className="row">
+          <div className="col-12">
+            <div className="card border-warning">
+              <div className="card-body text-center">
+                <h3 className="text-warning mb-3">
+                  <i className="fas fa-clock me-2"></i>
+                  Waiting for Opponent
+                </h3>
+                <p className="text-muted mb-4">
+                  You are in a room. Waiting for another player to join...
+                </p>
+                <div className="d-flex justify-content-center gap-3">
+                  <button 
+                    className="btn btn-outline-secondary"
+                    onClick={leaveRoom}
+                  >
+                    <i className="fas fa-times me-2"></i>
+                    Leave Room
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
-
-          <div className="card mt-3">
-            <div className="card-header">
-              <h6 className="mb-0">Controls</h6>
-            </div>
-            <div className="card-body">
-              <small>
-                <strong>Movement:</strong><br/>
-                W/↑ - Move forward<br/>
-                S/↓ - Move backward<br/>
-                A/← - Turn left<br/>
-                D/→ - Turn right<br/>
-                <strong>Combat:</strong><br/>
-                Spacebar - Shoot
-              </small>
-            </div>
-          </div>
-
-          <div className="card mt-3">
-            <div className="card-header">
-              <h6 className="mb-0">How to Play</h6>
-            </div>
-            <div className="card-body">
-              <small>
-                <ul className="mb-0">
-                  <li>Join the queue to find an opponent</li>
-                  <li>Move your tank and shoot at your opponent</li>
-                  <li>Each hit reduces health by 25 points</li>
-                  <li>First tank to reach 0 health loses</li>
-                  <li>Strategic movement and timing are key!</li>
-                </ul>
-              </small>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Game Playing */}
+      {gameState.status === 'playing' && (
+        <div className="row">
+          <div className="col-12">
+            {/* Game Canvas */}
+            <div className="d-flex justify-content-center mb-4">
+              <div className="border border-warning rounded" style={{ display: 'inline-block' }}>
+                <canvas
+                  ref={canvasRef}
+                  width={CANVAS_WIDTH}
+                  height={CANVAS_HEIGHT}
+                  style={{ display: 'block', background: '#2d5a2d' }}
+                />
+              </div>
+            </div>
+
+            {/* Game Controls */}
+            <div className="row">
+              <div className="col-md-6">
+                <div className="card">
+                  <div className="card-header">
+                    <h6 className="mb-0">
+                      <i className="fas fa-keyboard me-2"></i>
+                      Controls
+                    </h6>
+                  </div>
+                  <div className="card-body">
+                    <div className="row text-center">
+                      <div className="col-6">
+                        <strong>Movement</strong>
+                        <br />
+                        <span className="badge bg-primary me-1">W/↑</span> Forward
+                        <br />
+                        <span className="badge bg-primary me-1">S/↓</span> Backward
+                        <br />
+                        <span className="badge bg-primary me-1">A/←</span> Turn Left
+                        <br />
+                        <span className="badge bg-primary me-1">D/→</span> Turn Right
+                      </div>
+                      <div className="col-6">
+                        <strong>Combat</strong>
+                        <br />
+                        <span className="badge bg-danger me-1">SPACE</span> Shoot
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="col-md-6">
+                <div className="card">
+                  <div className="card-header">
+                    <h6 className="mb-0">
+                      <i className="fas fa-users me-2"></i>
+                      Players
+                    </h6>
+                  </div>
+                  <div className="card-body">
+                    {Object.entries(gameState.tanks || {}).map(([playerId, tank]) => (
+                      <div key={playerId} className="d-flex justify-content-between align-items-center mb-2">
+                        <div className="d-flex align-items-center">
+                          <div 
+                            className="rounded me-2" 
+                            style={{ 
+                              width: '20px', 
+                              height: '20px', 
+                              backgroundColor: tank.color 
+                            }}
+                          ></div>
+                          <span>{tank.username}</span>
+                        </div>
+                        <div className="progress" style={{ width: '60px', height: '15px' }}>
+                          <div 
+                            className={`progress-bar ${
+                              tank.health > 50 ? 'bg-success' : 
+                              tank.health > 25 ? 'bg-warning' : 'bg-danger'
+                            }`}
+                            style={{ width: `${tank.health}%` }}
+                          >
+                            {tank.health}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Game Finished */}
+      {gameState.status === 'finished' && (
+        <div className="row">
+          <div className="col-12">
+            <div className="card border-success">
+              <div className="card-body text-center">
+                <h3 className="text-success mb-3">
+                  <i className="fas fa-trophy me-2"></i>
+                  Battle Complete!
+                </h3>
+                {gameState.winner ? (
+                  <div className="mb-4">
+                    <h4 className="text-warning">
+                      🏆 {gameState.winner.username} Wins!
+                    </h4>
+                    <p className="text-muted">
+                      Congratulations! You've emerged victorious from the tank battle.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mb-4">
+                    <h4 className="text-info">
+                      Game Ended
+                    </h4>
+                    <p className="text-muted">
+                      The battle has concluded.
+                    </p>
+                  </div>
+                )}
+                
+                <button 
+                  className="btn btn-warning btn-lg"
+                  onClick={startNewGame}
+                >
+                  <i className="fas fa-door-open me-2"></i>
+                  Back to Lobby
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

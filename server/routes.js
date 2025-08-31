@@ -2550,10 +2550,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   let messageId = 1;
 
   // Tank Battle Game State
-  const tankBattleQueue = [];
+  const availableRooms = new Map(); // roomId -> room info
   const activeTankGames = new Map(); // gameId -> game state
   const tankBattlePlayers = new Map(); // ws -> player info
   let gameIdCounter = 1;
+  let roomIdCounter = 1;
 
   // Tank Battle Game Constants
   const CANVAS_WIDTH = 800;
@@ -2674,45 +2675,140 @@ Sitemap: ${baseUrl}/sitemap.xml`;
             console.log('[tank-battle] Player joining:', message.userId, message.username);
             break;
 
-          case 'join_queue':
-            const queuePlayer = {
-              ws: ws,
-              userId: message.userId,
-              username: message.username,
-              joinedAt: Date.now()
+          case 'get_rooms':
+            // Send list of available rooms
+            const roomsList = Array.from(availableRooms.values()).map(room => ({
+              roomId: room.roomId,
+              roomName: room.roomName,
+              creator: room.creator,
+              playersCount: room.players.length,
+              maxPlayers: room.maxPlayers,
+              status: room.status
+            }));
+            
+            ws.send(JSON.stringify({
+              type: 'rooms_list',
+              rooms: roomsList
+            }));
+            console.log('[tank-battle] Sent rooms list to:', message.userId, 'Rooms:', roomsList.length);
+            break;
+
+          case 'create_room':
+            const roomId = roomIdCounter++;
+            const newRoom = {
+              roomId: roomId,
+              roomName: message.roomName || `${message.username}'s Room`,
+              creator: { userId: message.userId, username: message.username },
+              players: [{ ws: ws, userId: message.userId, username: message.username }],
+              maxPlayers: 2,
+              status: 'waiting',
+              createdAt: Date.now()
             };
             
-            // Check if player is already in queue
-            const existingIndex = tankBattleQueue.findIndex(p => p.userId === message.userId);
-            if (existingIndex === -1) {
-              tankBattleQueue.push(queuePlayer);
-              tankBattlePlayers.set(ws, queuePlayer);
-              console.log('[tank-battle] Player joined queue:', message.username, 'Queue size:', tankBattleQueue.length);
-              
-              // Send queue status
-              ws.send(JSON.stringify({
-                type: 'game_update',
-                gameState: {
-                  status: 'waiting',
-                  players: tankBattleQueue.map(p => ({ userId: p.userId, username: p.username }))
-                }
-              }));
-
-              // If we have 2 players, start a game
-              if (tankBattleQueue.length >= 2) {
-                const player1 = tankBattleQueue.shift();
-                const player2 = tankBattleQueue.shift();
-                startTankBattleGame(player1, player2);
+            availableRooms.set(roomId, newRoom);
+            tankBattlePlayers.set(ws, { roomId: roomId, userId: message.userId, username: message.username });
+            
+            // Broadcast room created to all players
+            broadcastToAllTankPlayers({
+              type: 'room_created',
+              room: {
+                roomId: newRoom.roomId,
+                roomName: newRoom.roomName,
+                creator: newRoom.creator,
+                playersCount: newRoom.players.length,
+                maxPlayers: newRoom.maxPlayers,
+                status: newRoom.status
               }
+            });
+            
+            console.log('[tank-battle] Room created:', roomId, 'by', message.username);
+            break;
+
+          case 'join_room':
+            const roomToJoin = availableRooms.get(message.roomId);
+            if (!roomToJoin) {
+              ws.send(JSON.stringify({ type: 'error', message: 'Room not found' }));
+              break;
+            }
+            
+            if (roomToJoin.players.length >= roomToJoin.maxPlayers) {
+              ws.send(JSON.stringify({ type: 'error', message: 'Room is full' }));
+              break;
+            }
+            
+            // Check if player is already in the room
+            if (roomToJoin.players.some(p => p.userId === message.userId)) {
+              ws.send(JSON.stringify({ type: 'error', message: 'Already in room' }));
+              break;
+            }
+            
+            // Add player to room
+            roomToJoin.players.push({ ws: ws, userId: message.userId, username: message.username });
+            tankBattlePlayers.set(ws, { roomId: message.roomId, userId: message.userId, username: message.username });
+            
+            console.log('[tank-battle] Player joined room:', message.username, 'Room:', roomToJoin.roomName);
+            
+            // If room is full, start the game
+            if (roomToJoin.players.length === roomToJoin.maxPlayers) {
+              const player1 = roomToJoin.players[0];
+              const player2 = roomToJoin.players[1];
+              availableRooms.delete(message.roomId); // Remove from available rooms
+              startTankBattleGame(player1, player2);
+              
+              // Broadcast room removed
+              broadcastToAllTankPlayers({
+                type: 'room_removed',
+                roomId: message.roomId
+              });
+            } else {
+              // Broadcast room updated
+              broadcastToAllTankPlayers({
+                type: 'room_updated',
+                room: {
+                  roomId: roomToJoin.roomId,
+                  roomName: roomToJoin.roomName,
+                  creator: roomToJoin.creator,
+                  playersCount: roomToJoin.players.length,
+                  maxPlayers: roomToJoin.maxPlayers,
+                  status: roomToJoin.status
+                }
+              });
             }
             break;
 
-          case 'leave_queue':
-            const leaveIndex = tankBattleQueue.findIndex(p => p.userId === message.userId);
-            if (leaveIndex !== -1) {
-              tankBattleQueue.splice(leaveIndex, 1);
-              tankBattlePlayers.delete(ws);
-              console.log('[tank-battle] Player left queue:', message.userId);
+          case 'leave_room':
+            const playerData = tankBattlePlayers.get(ws);
+            if (playerData && playerData.roomId) {
+              const room = availableRooms.get(playerData.roomId);
+              if (room) {
+                // Remove player from room
+                room.players = room.players.filter(p => p.userId !== message.userId);
+                
+                if (room.players.length === 0) {
+                  // Delete empty room
+                  availableRooms.delete(playerData.roomId);
+                  broadcastToAllTankPlayers({
+                    type: 'room_removed',
+                    roomId: playerData.roomId
+                  });
+                } else {
+                  // Update room
+                  broadcastToAllTankPlayers({
+                    type: 'room_updated',
+                    room: {
+                      roomId: room.roomId,
+                      roomName: room.roomName,
+                      creator: room.creator,
+                      playersCount: room.players.length,
+                      maxPlayers: room.maxPlayers,
+                      status: room.status
+                    }
+                  });
+                }
+                
+                tankBattlePlayers.delete(ws);
+                console.log('[tank-battle] Player left room:', message.userId);
+              }
             }
             break;
 
@@ -2758,11 +2854,34 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       // Handle tank battle disconnect
       const tankPlayer = tankBattlePlayers.get(ws);
       if (tankPlayer) {
-        // Remove from queue
-        const queueIndex = tankBattleQueue.findIndex(p => p.userId === tankPlayer.userId);
-        if (queueIndex !== -1) {
-          tankBattleQueue.splice(queueIndex, 1);
-          console.log('[tank-battle] Player removed from queue:', tankPlayer.username);
+        // Remove from room if in one
+        if (tankPlayer.roomId) {
+          const room = availableRooms.get(tankPlayer.roomId);
+          if (room) {
+            room.players = room.players.filter(p => p.userId !== tankPlayer.userId);
+            
+            if (room.players.length === 0) {
+              // Delete empty room
+              availableRooms.delete(tankPlayer.roomId);
+              broadcastToAllTankPlayers({
+                type: 'room_removed',
+                roomId: tankPlayer.roomId
+              });
+            } else {
+              // Update room
+              broadcastToAllTankPlayers({
+                type: 'room_updated',
+                room: {
+                  roomId: room.roomId,
+                  roomName: room.roomName,
+                  creator: room.creator,
+                  playersCount: room.players.length,
+                  maxPlayers: room.maxPlayers,
+                  status: room.status
+                }
+              });
+            }
+          }
         }
 
         // End any active game
@@ -2772,6 +2891,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         }
 
         tankBattlePlayers.delete(ws);
+        console.log('[tank-battle] Player disconnected:', tankPlayer.username);
       }
     });
   });
@@ -2820,6 +2940,21 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       }
     });
     console.log(`[websocket] Message broadcasted to ${broadcastCount} clients`);
+  }
+
+  // Broadcast message to all tank battle players
+  function broadcastToAllTankPlayers(message) {
+    if (!wss) return;
+    
+    tankBattlePlayers.forEach((playerData, client) => {
+      if (client.readyState === 1) { // WebSocket.OPEN = 1
+        try {
+          client.send(JSON.stringify(message));
+        } catch (error) {
+          console.error('[websocket] Error sending message to tank player:', error);
+        }
+      }
+    });
   }
 
   // Audio Quiz Routes
