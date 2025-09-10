@@ -321,11 +321,7 @@ const AppRoutes = () => {
               <WordSorter />
             </ProtectedRoute>
           )} />
-          <Route path="/listen-to-type" component={() => (
-            <ProtectedRoute requireApproval={false}>
-              <ListenToType />
-            </ProtectedRoute>
-          )} />
+          <Route path="/listen-to-type" component={() => <ListenToType />} />
           <Route path="/code-evolution" component={() => (
             <ProtectedRoute requireApproval={false}>
               <CodeEvolutionVisualization />

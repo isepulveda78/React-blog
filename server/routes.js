@@ -2399,24 +2399,18 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
-  // Get user chatrooms - accessible to all authenticated users (students and teachers)
+  // Get user chatrooms - accessible to everyone (no authentication required)
   app.get('/api/chatrooms', async (req, res) => {
     try {
-      console.log('[API] /api/chatrooms - Session user:', req.session?.user);
+      console.log('[API] /api/chatrooms - Public access, no authentication required');
       console.log('[API] /api/chatrooms - Session ID:', req.sessionID);
       
-      if (!req.session.user) {
-        console.log('[API] /api/chatrooms - No authenticated user');
-        return res.status(401).json({ message: "Authentication required" });
-      }
-
       console.log('[API] /api/chatrooms - Fetching all chatrooms...');
       const allChatrooms = await storage.getChatrooms();
       console.log('[API] /api/chatrooms - All chatrooms:', allChatrooms.length);
       
-      // Allow all authenticated users (students, teachers, admins) to access all chatrooms
-      // This enables collaborative learning for everyone
-      console.log('[API] /api/chatrooms - User chatrooms for', req.session.user.email + ':', allChatrooms.length);
+      // Allow everyone to access all chatrooms for public collaboration
+      console.log('[API] /api/chatrooms - Public chatrooms available:', allChatrooms.length);
       res.json(allChatrooms);
     } catch (error) {
       console.error('Error fetching user chatrooms:', error);
