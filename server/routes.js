@@ -2418,6 +2418,153 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
+  // Access Code API routes
+  app.get('/api/admin/access-codes', async (req, res) => {
+    try {
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const accessCodes = await storage.getAccessCodes();
+      res.json(accessCodes);
+    } catch (error) {
+      console.error('Error fetching access codes:', error);
+      res.status(500).json({ message: 'Failed to fetch access codes' });
+    }
+  });
+
+  app.post('/api/admin/access-codes', async (req, res) => {
+    try {
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { code, name, description, expiresAt, chatroomId, maxUses } = req.body;
+      
+      if (!code || !code.trim()) {
+        return res.status(400).json({ message: 'Access code is required' });
+      }
+
+      // Check if code already exists
+      const existingCode = await storage.getAccessCodeByCode(code.trim().toUpperCase());
+      if (existingCode) {
+        return res.status(400).json({ message: 'Access code already exists' });
+      }
+
+      const accessCodeData = {
+        code: code.trim().toUpperCase(),
+        name: name?.trim() || '',
+        description: description?.trim() || '',
+        createdBy: req.session.user.id,
+        createdByName: req.session.user.name,
+        chatroomId: chatroomId || null,
+        expiresAt: expiresAt || null,
+        maxUses: maxUses || null,
+        currentUses: 0,
+        isActive: true
+      };
+
+      const accessCode = await storage.createAccessCode(accessCodeData);
+      res.status(201).json(accessCode);
+    } catch (error) {
+      console.error('Error creating access code:', error);
+      res.status(500).json({ message: 'Failed to create access code' });
+    }
+  });
+
+  app.put('/api/admin/access-codes/:id', async (req, res) => {
+    try {
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      const { code, name, description, expiresAt, chatroomId, maxUses, isActive } = req.body;
+
+      const updateData = {};
+      if (code !== undefined) {
+        const trimmedCode = code.trim().toUpperCase();
+        // Check if new code already exists (if different from current)
+        const existingCode = await storage.getAccessCodeByCode(trimmedCode);
+        if (existingCode && existingCode.id !== id) {
+          return res.status(400).json({ message: 'Access code already exists' });
+        }
+        updateData.code = trimmedCode;
+      }
+      if (name !== undefined) updateData.name = name.trim();
+      if (description !== undefined) updateData.description = description.trim();
+      if (expiresAt !== undefined) updateData.expiresAt = expiresAt;
+      if (chatroomId !== undefined) updateData.chatroomId = chatroomId;
+      if (maxUses !== undefined) updateData.maxUses = maxUses;
+      if (isActive !== undefined) updateData.isActive = isActive;
+
+      const accessCode = await storage.updateAccessCode(id, updateData);
+      if (!accessCode) {
+        return res.status(404).json({ message: 'Access code not found' });
+      }
+
+      res.json(accessCode);
+    } catch (error) {
+      console.error('Error updating access code:', error);
+      res.status(500).json({ message: 'Failed to update access code' });
+    }
+  });
+
+  app.delete('/api/admin/access-codes/:id', async (req, res) => {
+    try {
+      if (!req.session.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      const success = await storage.deleteAccessCode(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: 'Access code not found' });
+      }
+
+      res.json({ message: 'Access code deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting access code:', error);
+      res.status(500).json({ message: 'Failed to delete access code' });
+    }
+  });
+
+  // Validate access code - public endpoint for chatroom access
+  app.post('/api/validate-access-code', async (req, res) => {
+    try {
+      const { code } = req.body;
+      
+      if (!code || !code.trim()) {
+        return res.status(400).json({ message: 'Access code is required' });
+      }
+
+      const accessCode = await storage.validateAccessCode(code.trim().toUpperCase());
+      if (!accessCode) {
+        return res.status(404).json({ message: 'Invalid or expired access code' });
+      }
+
+      // Check usage limits
+      if (accessCode.maxUses && accessCode.currentUses >= accessCode.maxUses) {
+        return res.status(403).json({ message: 'Access code usage limit reached' });
+      }
+
+      // Increment usage count
+      await storage.updateAccessCode(accessCode.id, {
+        currentUses: (accessCode.currentUses || 0) + 1
+      });
+
+      res.json({
+        valid: true,
+        chatroomId: accessCode.chatroomId,
+        name: accessCode.name,
+        description: accessCode.description
+      });
+    } catch (error) {
+      console.error('Error validating access code:', error);
+      res.status(500).json({ message: 'Failed to validate access code' });
+    }
+  });
+
   // Quick password reset for development - remove in production
   app.post('/api/auth/dev-reset-password', async (req, res) => {
     try {

@@ -22,6 +22,12 @@ const ListenToType = ({ user }) => {
   const [selectedChatroom, setSelectedChatroom] = useState(null);
   const [loadingChatrooms, setLoadingChatrooms] = useState(false);
   const [connectedUsers, setConnectedUsers] = useState(new Set());
+  
+  // Access code state
+  const [accessCode, setAccessCode] = useState("");
+  const [isAccessCodeValid, setIsAccessCodeValid] = useState(false);
+  const [validatingCode, setValidatingCode] = useState(false);
+  const [codeError, setCodeError] = useState("");
 
   const chatMessagesRef = useRef(null);
   const { showToast, ToastContainer } = useToast();
@@ -183,17 +189,85 @@ const ListenToType = ({ user }) => {
     }
   };
 
-  // Load chatrooms when component mounts or user changes
+  // Validate access code
+  const validateAccessCode = async (e) => {
+    e.preventDefault();
+    
+    if (!accessCode.trim()) {
+      setCodeError("Please enter an access code");
+      return;
+    }
+
+    setValidatingCode(true);
+    setCodeError("");
+
+    try {
+      console.log("[ListenToType] Validating access code:", accessCode);
+      
+      const response = await fetch("/api/validate-access-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ code: accessCode.trim().toUpperCase() })
+      });
+
+      console.log("[ListenToType] Validation response status:", response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("[ListenToType] Access code validation successful:", data);
+        setIsAccessCodeValid(true);
+        setCodeError("");
+        showToast(`Access granted! ${data.description || "You can now join chatrooms."}`, "success", 3000);
+        
+        // Now fetch chatrooms since access is granted
+        fetchAvailableChatrooms();
+      } else {
+        const errorData = await response.json();
+        console.error("[ListenToType] Access code validation failed:", errorData);
+        setCodeError(errorData.message || "Invalid access code");
+        setIsAccessCodeValid(false);
+        showToast("Invalid access code. Please try again.", "error", 3000);
+      }
+    } catch (error) {
+      console.error("Error validating access code:", error);
+      setCodeError("Failed to validate access code. Please try again.");
+      setIsAccessCodeValid(false);
+      showToast("Connection error. Please try again.", "error", 3000);
+    } finally {
+      setValidatingCode(false);
+    }
+  };
+
+  // Reset access code validation
+  const resetAccessCode = () => {
+    setAccessCode("");
+    setIsAccessCodeValid(false);
+    setCodeError("");
+    setAvailableChatrooms([]);
+    setSelectedChatroom(null);
+    setIsChatJoined(false);
+    if (socket) {
+      socket.close();
+    }
+    setSocket(null);
+    setMessages([]);
+    setConnectedUsers(new Set());
+  };
+
+  // Load chatrooms when component mounts or user changes (only if access code is valid)
   useEffect(() => {
-    if (user) {
+    if (user && isAccessCodeValid) {
       fetchAvailableChatrooms();
     }
-  }, [user]);
+  }, [user, isAccessCodeValid]);
 
-  // Also try to load chatrooms after a delay to handle session sync
+  // Also try to load chatrooms after a delay to handle session sync (only if access code is valid)
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (user && availableChatrooms.length === 0) {
+      if (user && isAccessCodeValid && availableChatrooms.length === 0) {
         console.log(
           "[ListenToType] Delayed chatroom fetch for session sync...",
         );
@@ -201,7 +275,7 @@ const ListenToType = ({ user }) => {
       }
     }, 2000);
     return () => clearTimeout(timer);
-  }, [user, availableChatrooms.length]);
+  }, [user, isAccessCodeValid, availableChatrooms.length]);
 
   // Direct login to fix session sync
   const handleDirectLogin = async () => {
@@ -427,10 +501,85 @@ const ListenToType = ({ user }) => {
                 </h5>
               </div>
               <div className="card-body">
-                {/* Chatroom Selection */}
-                {!selectedChatroom && (
+                {/* Access Code Entry */}
+                {!isAccessCodeValid && (
                   <div className="mb-4">
-                    <h6 className="mb-3">Select a chatroom to join:</h6>
+                    <div className="text-center mb-4">
+                      <i className="fas fa-key fa-3x text-primary mb-3"></i>
+                      <h5>Enter Access Code</h5>
+                      <p className="text-muted">You need an access code to join chatrooms</p>
+                    </div>
+                    
+                    <form onSubmit={validateAccessCode} className="row g-3 justify-content-center">
+                      <div className="col-md-8">
+                        <div className="input-group">
+                          <span className="input-group-text">
+                            <i className="fas fa-key"></i>
+                          </span>
+                          <input
+                            type="text"
+                            className={`form-control ${codeError ? 'is-invalid' : ''}`}
+                            placeholder="Enter your access code"
+                            value={accessCode}
+                            onChange={(e) => {
+                              setAccessCode(e.target.value.toUpperCase());
+                              setCodeError("");
+                            }}
+                            maxLength="20"
+                            disabled={validatingCode}
+                            data-testid="input-access-code"
+                          />
+                          <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={validatingCode || !accessCode.trim()}
+                            data-testid="button-validate-code"
+                          >
+                            {validatingCode ? (
+                              <>
+                                <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                                Validating...
+                              </>
+                            ) : (
+                              <>
+                                <i className="fas fa-check me-2"></i>
+                                Validate
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        {codeError && (
+                          <div className="invalid-feedback d-block mt-2" data-testid="text-code-error">
+                            <i className="fas fa-exclamation-triangle me-1"></i>
+                            {codeError}
+                          </div>
+                        )}
+                      </div>
+                    </form>
+                    
+                    <div className="text-center mt-4">
+                      <small className="text-muted">
+                        <i className="fas fa-info-circle me-1"></i>
+                        Don't have an access code? Ask your teacher for one.
+                      </small>
+                    </div>
+                  </div>
+                )}
+
+                {/* Chatroom Selection */}
+                {isAccessCodeValid && !selectedChatroom && (
+                  <div className="mb-4">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h6 className="mb-0">Select a chatroom to join:</h6>
+                      <button
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={resetAccessCode}
+                        title="Change access code"
+                        data-testid="button-change-code"
+                      >
+                        <i className="fas fa-key me-1"></i>Change Code
+                      </button>
+                    </div>
                     {loadingChatrooms ? (
                       <div className="text-center">
                         <div

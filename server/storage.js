@@ -10,6 +10,7 @@ class MemStorage {
     this.categories = [];
     this.comments = [];
     this.chatrooms = [];
+    this.accessCodes = [];
     this.audioQuizzes = [];
     this.quizGrades = [];
     this.textQuizzes = [];
@@ -202,6 +203,44 @@ class MemStorage {
     if (index === -1) return false;
     this.chatrooms.splice(index, 1);
     return true;
+  }
+
+  // Access Code methods
+  async getAccessCodes() { return this.accessCodes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
+  async getAccessCodeByCode(code) { return this.accessCodes.find(c => c.code === code); }
+  async getAccessCodeById(id) { return this.accessCodes.find(c => c.id === id); }
+  async createAccessCode(codeData) {
+    const accessCode = { 
+      id: nanoid(), 
+      ...codeData, 
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    this.accessCodes.push(accessCode);
+    return accessCode;
+  }
+  async updateAccessCode(id, codeData) {
+    const index = this.accessCodes.findIndex(c => c.id === id);
+    if (index === -1) return null;
+    this.accessCodes[index] = { ...this.accessCodes[index], ...codeData, updatedAt: new Date().toISOString() };
+    return this.accessCodes[index];
+  }
+  async deleteAccessCode(id) {
+    const index = this.accessCodes.findIndex(c => c.id === id);
+    if (index === -1) return false;
+    this.accessCodes.splice(index, 1);
+    return true;
+  }
+  async validateAccessCode(code) {
+    const accessCode = this.accessCodes.find(c => c.code === code && c.isActive);
+    if (!accessCode) return null;
+    
+    // Check if code has expired
+    if (accessCode.expiresAt && new Date() > new Date(accessCode.expiresAt)) {
+      return null;
+    }
+    
+    return accessCode;
   }
 
   // Audio Quiz Methods
@@ -1505,6 +1544,63 @@ export class MongoStorage {
     await this.connect();
     const result = await this.db.collection('chatrooms').deleteOne({ id: chatroomId });
     return result.deletedCount > 0;
+  }
+
+  // Access Code methods
+  async getAccessCodes() {
+    await this.connect();
+    return await this.db.collection('accessCodes').find({}).sort({ createdAt: -1 }).toArray();
+  }
+
+  async getAccessCodeByCode(code) {
+    await this.connect();
+    return await this.db.collection('accessCodes').findOne({ code });
+  }
+
+  async getAccessCodeById(id) {
+    await this.connect();
+    return await this.db.collection('accessCodes').findOne({ id });
+  }
+
+  async createAccessCode(codeData) {
+    await this.connect();
+    const accessCode = {
+      id: nanoid(),
+      ...codeData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    await this.db.collection('accessCodes').insertOne(accessCode);
+    return accessCode;
+  }
+
+  async updateAccessCode(id, codeData) {
+    await this.connect();
+    const result = await this.db.collection('accessCodes').findOneAndUpdate(
+      { id },
+      { $set: { ...codeData, updatedAt: new Date().toISOString() } },
+      { returnDocument: 'after' }
+    );
+    return result.value;
+  }
+
+  async deleteAccessCode(id) {
+    await this.connect();
+    const result = await this.db.collection('accessCodes').deleteOne({ id });
+    return result.deletedCount > 0;
+  }
+
+  async validateAccessCode(code) {
+    await this.connect();
+    const accessCode = await this.db.collection('accessCodes').findOne({ code, isActive: true });
+    if (!accessCode) return null;
+    
+    // Check if code has expired
+    if (accessCode.expiresAt && new Date() > new Date(accessCode.expiresAt)) {
+      return null;
+    }
+    
+    return accessCode;
   }
 
   // Audio Quiz Methods
