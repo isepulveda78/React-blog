@@ -113,15 +113,6 @@ const EducationalTools = ({ user }) => {
       buttonClass: 'btn btn-danger',
       route: '/google-slides',
       visibleToStudents: true
-    },
-    {
-      id: 'tank-battle',
-      title: 'Tank Battle',
-      description: 'Real-time multiplayer tank vs tank battles - compete with your classmates!',
-      icon: 'fas fa-gamepad fa-3x text-warning',
-      buttonClass: 'btn btn-warning',
-      route: '/tank-battle',
-      visibleToStudents: true
     }
   ];
 
