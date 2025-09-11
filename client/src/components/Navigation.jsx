@@ -382,6 +382,15 @@ const Navigation = ({ user, onLogout }) => {
                 </Link>
               </li>
 
+              <li className="nav-item">
+                <Link
+                  href="/listen-to-type"
+                  className={`nav-link ${isActive("/listen-to-type") ? "active" : ""}`}
+                >
+                  Chatrooms
+                </Link>
+              </li>
+
               {user && user.approved && (
                 <li className="nav-item">
                   <Link
@@ -389,17 +398,6 @@ const Navigation = ({ user, onLogout }) => {
                     className={`nav-link ${isActive("/profile") ? "active" : ""}`}
                   >
                     My Profile
-                  </Link>
-                </li>
-              )}
-
-              {user && user.approved && (
-                <li className="nav-item">
-                  <Link
-                    href="/listen-to-type"
-                    className={`nav-link ${isActive("/listen-to-type") ? "active" : ""}`}
-                  >
-                    Chatroom
                   </Link>
                 </li>
               )}
