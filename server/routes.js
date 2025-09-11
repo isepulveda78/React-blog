@@ -9,6 +9,7 @@ import { WebSocketServer } from "ws";
 import path from "path";
 import crypto from 'crypto';
 import url from 'url';
+import signature from 'cookie-signature';
 import { 
   validateEmail, 
   validateUsername, 
@@ -136,6 +137,7 @@ passport.deserializeUser(async (id, done) => {
 function validateWebSocketSession(req, sessionStore, secret, callback) {
   try {
     const cookies = req.headers.cookie;
+    
     if (!cookies) {
       return callback(new Error('No cookies provided'));
     }
@@ -151,30 +153,20 @@ function validateWebSocketSession(req, sessionStore, secret, callback) {
     // URL decode the session ID
     sessionId = decodeURIComponent(sessionId);
     
-    // Remove signature if present (format: s:sessionId.signature)
+    // Handle signed cookies using the same library as express-session
     if (sessionId.startsWith('s:')) {
-      const parts = sessionId.slice(2).split('.');
-      if (parts.length < 2) {
-        return callback(new Error('Invalid session cookie format'));
+      try {
+        // Use cookie-signature library to unsign the cookie
+        const unsigned = signature.unsign(sessionId.slice(2), secret);
+        
+        if (unsigned === false) {
+          return callback(new Error('Session signature invalid'));
+        }
+        sessionId = unsigned;
+      } catch (signatureError) {
+        console.log('[websocket] Signature verification failed:', signatureError.message);
+        return callback(new Error('Session signature verification failed'));
       }
-      
-      const unsigned = parts[0];
-      const signature = parts.slice(1).join('.');
-      
-      // Verify signature
-      const expectedSignature = crypto
-        .createHmac('sha256', secret)
-        .update(unsigned)
-        .digest('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '');
-      
-      if (signature !== expectedSignature) {
-        return callback(new Error('Session signature invalid'));
-      }
-      
-      sessionId = unsigned;
     }
 
     // Get session from store
