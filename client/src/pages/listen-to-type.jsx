@@ -557,31 +557,31 @@ const ListenToType = ({ user }) => {
                       </div>
                     </div>
 
-                    {/* Teacher Section - Show Available Chatrooms with Keys */}
-                    {(user?.isAdmin || user?.role === 'teacher') && (
-                      <div className="mt-5">
-                        <div className="border-top pt-4">
-                          <h6 className="text-success mb-3">
-                            <i className="fas fa-chalkboard-teacher me-2"></i>
-                            Teacher Dashboard - Active Chatrooms
-                          </h6>
-                          
-                          {loadingChatrooms ? (
-                            <div className="text-center">
-                              <div className="spinner-border text-primary" role="status">
-                                <span className="visually-hidden">Loading chatrooms...</span>
-                              </div>
+                    {/* Available Chatrooms - Public Access */}
+                    <div className="mt-5">
+                      <div className="border-top pt-4">
+                        <h6 className="text-info mb-3">
+                          <i className="fas fa-comments me-2"></i>
+                          Available Chatrooms
+                        </h6>
+                        
+                        {loadingChatrooms ? (
+                          <div className="text-center">
+                            <div className="spinner-border text-primary" role="status">
+                              <span className="visually-hidden">Loading chatrooms...</span>
                             </div>
-                          ) : availableChatrooms.length > 0 ? (
-                            <div className="row">
-                              {availableChatrooms.filter(room => room.isActive).map((chatroom) => (
-                                <div key={chatroom.id} className="col-md-6 mb-3">
-                                  <div className="card border-success">
-                                    <div className="card-body">
-                                      <div className="d-flex justify-content-between align-items-start mb-2">
-                                        <h6 className="card-title text-success mb-0">
-                                          {decodeHtmlEntities(chatroom.name)}
-                                        </h6>
+                          </div>
+                        ) : availableChatrooms.length > 0 ? (
+                          <div className="row">
+                            {availableChatrooms.filter(room => room.isActive).map((chatroom) => (
+                              <div key={chatroom.id} className="col-md-6 mb-3">
+                                <div className="card border-info">
+                                  <div className="card-body">
+                                    <div className="d-flex justify-content-between align-items-start mb-2">
+                                      <h6 className="card-title text-info mb-0">
+                                        {decodeHtmlEntities(chatroom.name)}
+                                      </h6>
+                                      {(user?.isAdmin || user?.role === 'teacher') && (
                                         <button
                                           className="btn btn-sm btn-outline-danger"
                                           onClick={() => generateNewKey(chatroom.id)}
@@ -591,54 +591,50 @@ const ListenToType = ({ user }) => {
                                           <i className="fas fa-sync me-1"></i>
                                           New Key
                                         </button>
-                                      </div>
-                                      <div className="alert alert-success mb-2 text-center">
-                                        <strong className="fs-3" style={{ letterSpacing: '0.2em' }}>
-                                          {chatroom.accessKey}
-                                        </strong>
-                                        <br />
-                                        <small>Share this code with your students</small>
-                                      </div>
-                                      {chatroom.description && (
-                                        <p className="card-text small text-muted">
-                                          {decodeHtmlEntities(chatroom.description)}
-                                        </p>
                                       )}
-                                      <button
-                                        className="btn btn-sm btn-success"
-                                        onClick={() => setSelectedChatroom(chatroom)}
-                                        data-testid={`button-join-${chatroom.id}`}
-                                      >
-                                        <i className="fas fa-sign-in-alt me-1"></i>
-                                        Join This Room
-                                      </button>
                                     </div>
+                                    <div className="alert alert-info mb-2 text-center">
+                                      <strong className="fs-3" style={{ letterSpacing: '0.2em' }}>
+                                        {chatroom.accessKey}
+                                      </strong>
+                                      <br />
+                                      <small>Use this code to join the conversation</small>
+                                    </div>
+                                    {chatroom.description && (
+                                      <p className="card-text small text-muted">
+                                        {decodeHtmlEntities(chatroom.description)}
+                                      </p>
+                                    )}
+                                    <button
+                                      className="btn btn-sm btn-info"
+                                      onClick={() => {
+                                        setAccessKey(chatroom.accessKey);
+                                        setSelectedChatroom(chatroom);
+                                      }}
+                                      data-testid={`button-join-${chatroom.id}`}
+                                    >
+                                      <i className="fas fa-sign-in-alt me-1"></i>
+                                      Join This Room
+                                    </button>
                                   </div>
                                 </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="text-center text-muted">
-                              <i className="fas fa-comment-slash fa-2x mb-3"></i>
-                              <p>No active chatrooms. Create one from the admin panel.</p>
-                              <a href="/admin" className="btn btn-success btn-sm">
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center text-muted">
+                            <i className="fas fa-comment-slash fa-2x mb-3"></i>
+                            <p>No active chatrooms available.</p>
+                            {(user?.isAdmin || user?.role === 'teacher') && (
+                              <a href="/admin" className="btn btn-info btn-sm">
                                 <i className="fas fa-plus me-1"></i>Create Chatroom
                               </a>
-                            </div>
-                          )}
-                        </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
 
-                    {/* Info for Non-Teachers */}
-                    {!user?.isAdmin && user?.role !== 'teacher' && (
-                      <div className="mt-4">
-                        <div className="alert alert-info">
-                          <i className="fas fa-info-circle me-2"></i>
-                          <strong>Students:</strong> Ask your teacher for the 6-digit room code to join the chatroom.
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
 
