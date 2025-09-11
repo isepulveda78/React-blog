@@ -16,7 +16,6 @@ import AdminCategories from './components/AdminCategories.jsx'
 import AdminPostEditor from './components/AdminPostEditor.jsx'
 import SEOManagement from './components/SEOManagement.jsx'
 import AdminChatrooms from './components/AdminChatrooms.jsx'
-import AdminAccessCodes from './components/AdminAccessCodes.jsx'
 import AdminQuizGradesDashboard from './components/AdminQuizGradesDashboard.jsx'
 import AdminTextQuizGradesDashboard from './components/AdminTextQuizGradesDashboard.jsx'
 
@@ -280,11 +279,6 @@ const AppRoutes = () => {
           <Route path="/admin/chatrooms" component={() => (
             <ProtectedRoute requireAdmin={true}>
               <AdminChatrooms />
-            </ProtectedRoute>
-          )} />
-          <Route path="/admin/access-codes" component={() => (
-            <ProtectedRoute requireAdmin={true}>
-              <AdminAccessCodes />
             </ProtectedRoute>
           )} />
           <Route path="/admin" component={() => (

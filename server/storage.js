@@ -10,7 +10,6 @@ class MemStorage {
     this.categories = [];
     this.comments = [];
     this.chatrooms = [];
-    this.accessCodes = [];
     this.audioQuizzes = [];
     this.quizGrades = [];
     this.textQuizzes = [];
@@ -203,86 +202,6 @@ class MemStorage {
     if (index === -1) return false;
     this.chatrooms.splice(index, 1);
     return true;
-  }
-
-  // Access Code methods
-  async getAccessCodes() { return this.accessCodes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
-  async getAccessCodeByCode(code) { return this.accessCodes.find(c => c.code === code); }
-  async getAccessCodeById(id) { return this.accessCodes.find(c => c.id === id); }
-  async createAccessCode(codeData) {
-    // Ensure consistent date format for expiration
-    const now = new Date().toISOString();
-    const accessCode = { 
-      id: nanoid(), 
-      ...codeData, 
-      createdAt: now,
-      updatedAt: now
-    };
-    
-    // If expiresAt is provided, ensure it's in ISO format
-    if (accessCode.expiresAt) {
-      const expiresDate = new Date(accessCode.expiresAt);
-      if (isNaN(expiresDate.getTime())) {
-        throw new Error('Invalid expiration date format');
-      }
-      accessCode.expiresAt = expiresDate.toISOString();
-    }
-    
-    this.accessCodes.push(accessCode);
-    return accessCode;
-  }
-  async updateAccessCode(id, codeData) {
-    const index = this.accessCodes.findIndex(c => c.id === id);
-    if (index === -1) return null;
-    this.accessCodes[index] = { ...this.accessCodes[index], ...codeData, updatedAt: new Date().toISOString() };
-    return this.accessCodes[index];
-  }
-  async deleteAccessCode(id) {
-    const index = this.accessCodes.findIndex(c => c.id === id);
-    if (index === -1) return false;
-    this.accessCodes.splice(index, 1);
-    return true;
-  }
-  async validateAccessCode(code) {
-    const accessCode = this.accessCodes.find(c => c.code === code && c.isActive);
-    if (!accessCode) return null;
-    
-    // Check if code has expired
-    if (accessCode.expiresAt) {
-      const now = new Date();
-      
-      // Ensure expiresAt is a proper Date object, handle different input formats
-      let expiresAt;
-      if (typeof accessCode.expiresAt === 'string') {
-        // Handle ISO string format or any date string
-        expiresAt = new Date(accessCode.expiresAt);
-      } else if (accessCode.expiresAt instanceof Date) {
-        expiresAt = accessCode.expiresAt;
-      } else {
-        // Handle timestamp
-        expiresAt = new Date(accessCode.expiresAt);
-      }
-      
-      // Validate the dates are valid
-      if (isNaN(expiresAt.getTime())) {
-        console.error(`[MemStorage] Invalid expiration date for access code "${code}": ${accessCode.expiresAt}`);
-        return null;
-      }
-      
-      console.log(`[MemStorage] Access code validation for "${code}":`);
-      console.log(`[MemStorage] Current time: ${now.toISOString()} (${now.getTime()})`);
-      console.log(`[MemStorage] Expires at: ${expiresAt.toISOString()} (${expiresAt.getTime()})`);
-      console.log(`[MemStorage] Time difference: ${expiresAt.getTime() - now.getTime()}ms`);
-      console.log(`[MemStorage] Raw expiresAt: ${accessCode.expiresAt}`);
-      console.log(`[MemStorage] Is expired: ${now.getTime() > expiresAt.getTime()}`);
-      
-      if (now.getTime() > expiresAt.getTime()) {
-        console.log(`[MemStorage] Access code "${code}" has expired`);
-        return null;
-      }
-    }
-    
-    return accessCode;
   }
 
   // Audio Quiz Methods
@@ -1586,107 +1505,6 @@ export class MongoStorage {
     await this.connect();
     const result = await this.db.collection('chatrooms').deleteOne({ id: chatroomId });
     return result.deletedCount > 0;
-  }
-
-  // Access Code methods
-  async getAccessCodes() {
-    await this.connect();
-    return await this.db.collection('accessCodes').find({}).sort({ createdAt: -1 }).toArray();
-  }
-
-  async getAccessCodeByCode(code) {
-    await this.connect();
-    return await this.db.collection('accessCodes').findOne({ code });
-  }
-
-  async getAccessCodeById(id) {
-    await this.connect();
-    return await this.db.collection('accessCodes').findOne({ id });
-  }
-
-  async createAccessCode(codeData) {
-    await this.connect();
-    
-    // Ensure consistent date format for expiration
-    const now = new Date().toISOString();
-    const accessCode = {
-      id: nanoid(),
-      ...codeData,
-      createdAt: now,
-      updatedAt: now
-    };
-    
-    // If expiresAt is provided, ensure it's in ISO format
-    if (accessCode.expiresAt) {
-      const expiresDate = new Date(accessCode.expiresAt);
-      if (isNaN(expiresDate.getTime())) {
-        throw new Error('Invalid expiration date format');
-      }
-      accessCode.expiresAt = expiresDate.toISOString();
-    }
-    
-    await this.db.collection('accessCodes').insertOne(accessCode);
-    return accessCode;
-  }
-
-  async updateAccessCode(id, codeData) {
-    await this.connect();
-    const result = await this.db.collection('accessCodes').findOneAndUpdate(
-      { id },
-      { $set: { ...codeData, updatedAt: new Date().toISOString() } },
-      { returnDocument: 'after' }
-    );
-    return result.value;
-  }
-
-  async deleteAccessCode(id) {
-    await this.connect();
-    const result = await this.db.collection('accessCodes').deleteOne({ id });
-    return result.deletedCount > 0;
-  }
-
-  async validateAccessCode(code) {
-    await this.connect();
-    const accessCode = await this.db.collection('accessCodes').findOne({ code, isActive: true });
-    if (!accessCode) return null;
-    
-    // Check if code has expired
-    if (accessCode.expiresAt) {
-      const now = new Date();
-      
-      // Ensure expiresAt is a proper Date object, handle different input formats
-      let expiresAt;
-      if (typeof accessCode.expiresAt === 'string') {
-        // Handle ISO string format or any date string
-        expiresAt = new Date(accessCode.expiresAt);
-      } else if (accessCode.expiresAt instanceof Date) {
-        expiresAt = accessCode.expiresAt;
-      } else {
-        // Handle timestamp or MongoDB Date object
-        expiresAt = new Date(accessCode.expiresAt);
-      }
-      
-      // Validate the dates are valid
-      if (isNaN(expiresAt.getTime())) {
-        console.error(`[MongoDB] Invalid expiration date for access code "${code}": ${accessCode.expiresAt}`);
-        return null;
-      }
-      
-      console.log(`[MongoDB] Access code validation for "${code}":`);
-      console.log(`[MongoDB] Current time: ${now.toISOString()} (${now.getTime()})`);
-      console.log(`[MongoDB] Expires at: ${expiresAt.toISOString()} (${expiresAt.getTime()})`);
-      console.log(`[MongoDB] Time difference: ${expiresAt.getTime() - now.getTime()}ms`);
-      console.log(`[MongoDB] Raw expiresAt from DB: ${accessCode.expiresAt}`);
-      console.log(`[MongoDB] Raw expiresAt type: ${typeof accessCode.expiresAt}`);
-      console.log(`[MongoDB] Is expired: ${now.getTime() > expiresAt.getTime()}`);
-      
-      if (now.getTime() > expiresAt.getTime()) {
-        console.log(`[MongoDB] Access code "${code}" has expired`);
-        return null;
-      }
-    }
-    
-    return accessCode;
   }
 
   // Audio Quiz Methods

@@ -149,23 +149,6 @@ const AdminDashboard = ({ user }) => {
         <div className="col-md-6 col-lg-4">
           <div className="card h-100 shadow-sm hover-shadow">
             <div className="card-body text-center">
-              <div className="display-6 text-warning mb-3">🔑</div>
-              <h5 className="card-title">Manage Access Codes</h5>
-              <p className="card-text">Create and manage access codes for chatroom entry.</p>
-              <button
-                className="btn btn-warning"
-                onClick={() => navigate('/admin/access-codes')}
-                data-testid="button-access-codes"
-              >
-                Go to Access Codes
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-6 col-lg-4">
-          <div className="card h-100 shadow-sm hover-shadow">
-            <div className="card-body text-center">
               <div className="display-6 text-primary mb-3">🎧</div>
               <h5 className="card-title">Audio Quiz Grades</h5>
               <p className="card-text">View and manage audio quiz grades from students.</p>
