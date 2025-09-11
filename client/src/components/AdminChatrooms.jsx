@@ -1,6 +1,14 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const { toast } = window;
+// Use browser alert instead of toast for now to avoid undefined errors
+const toast = ({ title, description, variant }) => {
+  const message = `${title}: ${description}`;
+  if (variant === 'destructive') {
+    alert(`❌ ${message}`);
+  } else {
+    alert(`✅ ${message}`);
+  }
+};
 
 export default function AdminChatrooms({ user }) {
   const [chatrooms, setChatrooms] = useState([]);
@@ -185,6 +193,42 @@ export default function AdminChatrooms({ user }) {
     }
   };
 
+  const generateNewAccessKey = async (chatroomId, chatroomName) => {
+    try {
+      const response = await fetch(`/api/admin/chatrooms/${chatroomId}/new-key`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Update the chatroom in state with new access key
+        setChatrooms(prev => prev.map(c => 
+          c.id === chatroomId ? result.chatroom : c
+        ));
+
+        toast({
+          title: "New Access Key Generated",
+          description: `New access key for "${chatroomName}": ${result.accessKey}`,
+          variant: "success"
+        });
+      } else {
+        throw new Error('Failed to generate new access key');
+      }
+    } catch (error) {
+      console.error('Error generating new access key:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate new access key",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center p-4">
@@ -275,6 +319,14 @@ export default function AdminChatrooms({ user }) {
                                 title={chatroom.isActive ? 'Deactivate' : 'Activate'}
                               >
                                 <i className={`fas fa-${chatroom.isActive ? 'pause' : 'play'}`}></i>
+                              </button>
+                              <button
+                                className="btn btn-outline-primary"
+                                onClick={() => generateNewAccessKey(chatroom.id, chatroom.name)}
+                                title="Generate New Access Key"
+                                data-testid={`generate-key-${chatroom.id}`}
+                              >
+                                <i className="fas fa-key"></i>
                               </button>
                               <button
                                 className="btn btn-outline-danger"

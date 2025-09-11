@@ -2312,8 +2312,8 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   // Chatroom API routes
   app.get('/api/admin/chatrooms', async (req, res) => {
     try {
-      if (!req.session.user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
+      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
       }
       const chatrooms = await storage.getChatrooms();
       res.json(chatrooms);
@@ -2325,8 +2325,8 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
   app.post('/api/admin/chatrooms', async (req, res) => {
     try {
-      if (!req.session.user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
+      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
       }
       
       const { name, description, invitedUserIds } = req.body;
@@ -2354,8 +2354,8 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
   app.put('/api/admin/chatrooms/:id', async (req, res) => {
     try {
-      if (!req.session.user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
+      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
       }
 
       const { id } = req.params;
@@ -2387,8 +2387,8 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
   app.delete('/api/admin/chatrooms/:id', async (req, res) => {
     try {
-      if (!req.session.user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
+      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
       }
 
       const { id } = req.params;

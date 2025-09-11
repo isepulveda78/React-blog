@@ -619,6 +619,11 @@ export class MongoStorage {
     this.connected = false;
   }
 
+  // Generate a 6-digit random access key like Kahoot/Wayground
+  generateAccessKey() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
   async connect() {
     if (this.connected) return;
 
@@ -1527,6 +1532,26 @@ export class MongoStorage {
     await this.connect();
     const result = await this.db.collection('chatrooms').deleteOne({ id: chatroomId });
     return result.deletedCount > 0;
+  }
+
+  async generateNewAccessKey(chatroomId) {
+    await this.connect();
+    const chatroom = await this.db.collection('chatrooms').findOne({ id: chatroomId });
+    if (!chatroom) return null;
+    
+    const newKey = this.generateAccessKey();
+    const updatedChatroom = {
+      ...chatroom,
+      accessKey: newKey,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await this.db.collection('chatrooms').updateOne(
+      { id: chatroomId },
+      { $set: { accessKey: newKey, updatedAt: updatedChatroom.updatedAt } }
+    );
+    
+    return updatedChatroom;
   }
 
   // Audio Quiz Methods

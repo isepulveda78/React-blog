@@ -176,7 +176,7 @@ const AppRoutes = () => {
   console.log('[Router] User:', user ? user.name : 'No user')
 
   // Protected route wrapper
-  const ProtectedRoute = ({ children, requireAdmin = false, requireApproval = true }) => {
+  const ProtectedRoute = ({ children, requireAdmin = false, requireApproval = true, customValidation }) => {
     // Only use user from valid server session - no localStorage fallback
     const currentUser = user;
     
@@ -216,6 +216,19 @@ const AppRoutes = () => {
           <div className="alert alert-danger">
             <h4>Access Denied</h4>
             <p>You need admin privileges to access this page.</p>
+          </div>
+        </div>
+      )
+    }
+
+    // Check custom validation if provided
+    if (customValidation && !customValidation(currentUser)) {
+      console.log('[ProtectedRoute] Custom validation failed');
+      return (
+        <div className="container py-5">
+          <div className="alert alert-danger">
+            <h4>Access Denied</h4>
+            <p>You need teacher or admin privileges to access this page.</p>
           </div>
         </div>
       )
@@ -277,7 +290,8 @@ const AppRoutes = () => {
             </ProtectedRoute>
           )} />
           <Route path="/admin/chatrooms" component={() => (
-            <ProtectedRoute requireAdmin={true}>
+            <ProtectedRoute requireAdmin={false} 
+              customValidation={(user) => user?.isAdmin || user?.role === 'teacher'}>
               <AdminChatrooms />
             </ProtectedRoute>
           )} />
