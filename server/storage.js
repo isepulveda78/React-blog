@@ -184,10 +184,20 @@ class MemStorage {
   }
 
   // Chatroom methods
+  generateAccessKey() {
+    // Generate a 6-digit random number like Kahoot/Wayground
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
   async getChatrooms() { return this.chatrooms.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); }
   async getChatroomById(id) { return this.chatrooms.find(c => c.id === id); }
   async createChatroom(chatroomData) {
-    const chatroom = { id: nanoid(), ...chatroomData, createdAt: new Date().toISOString() };
+    const chatroom = { 
+      id: nanoid(), 
+      accessKey: this.generateAccessKey(),
+      ...chatroomData, 
+      createdAt: new Date().toISOString() 
+    };
     this.chatrooms.push(chatroom);
     return chatroom;
   }
@@ -195,6 +205,18 @@ class MemStorage {
     const index = this.chatrooms.findIndex(c => c.id === id);
     if (index === -1) return null;
     this.chatrooms[index] = { ...this.chatrooms[index], ...chatroomData, updatedAt: new Date().toISOString() };
+    return this.chatrooms[index];
+  }
+
+  async generateNewAccessKey(chatroomId) {
+    const index = this.chatrooms.findIndex(c => c.id === chatroomId);
+    if (index === -1) return null;
+    const newKey = this.generateAccessKey();
+    this.chatrooms[index] = { 
+      ...this.chatrooms[index], 
+      accessKey: newKey, 
+      updatedAt: new Date().toISOString() 
+    };
     return this.chatrooms[index];
   }
   async deleteChatroom(chatroomId) {

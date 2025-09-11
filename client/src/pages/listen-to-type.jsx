@@ -22,6 +22,10 @@ const ListenToType = ({ user }) => {
   const [selectedChatroom, setSelectedChatroom] = useState(null);
   const [loadingChatrooms, setLoadingChatrooms] = useState(false);
   const [connectedUsers, setConnectedUsers] = useState(new Set());
+  
+  // Access key functionality
+  const [accessKey, setAccessKey] = useState("");
+  const [joiningWithKey, setJoiningWithKey] = useState(false);
 
   const chatMessagesRef = useRef(null);
   const { showToast, ToastContainer } = useToast();
@@ -183,25 +187,23 @@ const ListenToType = ({ user }) => {
     }
   };
 
-  // Load chatrooms when component mounts or user changes
+  // Load chatrooms when component mounts (public access, no authentication needed)
   useEffect(() => {
-    if (user) {
-      fetchAvailableChatrooms();
-    }
-  }, [user]);
+    fetchAvailableChatrooms();
+  }, []);
 
-  // Also try to load chatrooms after a delay to handle session sync
+  // Also try to load chatrooms after a delay to handle any issues
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (user && availableChatrooms.length === 0) {
+      if (availableChatrooms.length === 0) {
         console.log(
-          "[ListenToType] Delayed chatroom fetch for session sync...",
+          "[ListenToType] Delayed chatroom fetch...",
         );
         fetchAvailableChatrooms();
       }
     }, 2000);
     return () => clearTimeout(timer);
-  }, [user, availableChatrooms.length]);
+  }, [availableChatrooms.length]);
 
   // Direct login to fix session sync
   const handleDirectLogin = async () => {
@@ -213,6 +215,85 @@ const ListenToType = ({ user }) => {
         encodeURIComponent(window.location.pathname);
     } catch (error) {
       console.error("Login redirect error:", error);
+    }
+  };
+
+  // Join chatroom with access key
+  const joinWithAccessKey = async () => {
+    if (!accessKey.trim()) {
+      showToast("Please enter an access key", "error", 3000);
+      return;
+    }
+
+    try {
+      setJoiningWithKey(true);
+      console.log("[ListenToType] Joining with access key:", accessKey);
+
+      const response = await fetch("/api/chatrooms/join", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ accessKey: accessKey.trim() }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("[ListenToType] Successfully joined chatroom:", data.chatroom);
+        setSelectedChatroom(data.chatroom);
+        showToast(`Joined ${data.chatroom.name}!`, "success", 3000);
+      } else {
+        const error = await response.text();
+        console.error("[ListenToType] Error joining with key:", error);
+        showToast("Invalid access key or chatroom is not active", "error", 3000);
+      }
+    } catch (error) {
+      console.error("Error joining with access key:", error);
+      showToast("Failed to join chatroom. Please try again.", "error", 3000);
+    } finally {
+      setJoiningWithKey(false);
+    }
+  };
+
+  // Generate new access key (teachers/admins only)
+  const generateNewKey = async (chatroomId) => {
+    if (!user?.isAdmin && user?.role !== 'teacher') {
+      showToast("Only teachers and admins can generate new keys", "error", 3000);
+      return;
+    }
+
+    try {
+      console.log("[ListenToType] Generating new key for chatroom:", chatroomId);
+
+      const response = await fetch(`/api/admin/chatrooms/${chatroomId}/new-key`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("[ListenToType] New key generated:", data.accessKey);
+        
+        // Update the selectedChatroom with new key if it's the current one
+        if (selectedChatroom && selectedChatroom.id === chatroomId) {
+          setSelectedChatroom(data.chatroom);
+        }
+        
+        // Refresh available chatrooms to show updated keys
+        fetchAvailableChatrooms();
+        
+        showToast(`New access key generated: ${data.accessKey}`, "success", 5000);
+      } else {
+        const error = await response.text();
+        console.error("[ListenToType] Error generating new key:", error);
+        showToast("Failed to generate new key", "error", 3000);
+      }
+    } catch (error) {
+      console.error("Error generating new key:", error);
+      showToast("Failed to generate new key. Please try again.", "error", 3000);
     }
   };
 
@@ -427,111 +508,134 @@ const ListenToType = ({ user }) => {
                 </h5>
               </div>
               <div className="card-body">
-                {/* Chatroom Selection */}
+                {/* Access Key Input - Public Access */}
                 {!selectedChatroom && (
                   <div className="mb-4">
-                    <h6 className="mb-3">Select a chatroom to join:</h6>
-                    {loadingChatrooms ? (
-                      <div className="text-center">
-                        <div
-                          className="spinner-border text-primary"
-                          role="status"
-                        >
-                          <span className="visually-hidden">
-                            Loading chatrooms...
-                          </span>
+                    <div className="text-center mb-4">
+                      <h5 className="text-primary">
+                        <i className="fas fa-key me-2"></i>
+                        Join Chatroom with Access Key
+                      </h5>
+                      <p className="text-muted">
+                        Enter the 6-digit code from your teacher to join the conversation
+                      </p>
+                    </div>
+
+                    <div className="row justify-content-center">
+                      <div className="col-md-6">
+                        <div className="input-group mb-3">
+                          <input
+                            type="text"
+                            className="form-control text-center fs-4"
+                            placeholder="123456"
+                            maxLength="6"
+                            value={accessKey}
+                            onChange={(e) => setAccessKey(e.target.value.replace(/\D/g, ''))}
+                            onKeyPress={(e) => e.key === "Enter" && joinWithAccessKey()}
+                            style={{ letterSpacing: '0.3em' }}
+                            data-testid="input-access-key"
+                          />
+                          <button
+                            className="btn btn-primary btn-lg"
+                            onClick={joinWithAccessKey}
+                            disabled={joiningWithKey || accessKey.length !== 6}
+                            data-testid="button-join-chatroom"
+                          >
+                            {joiningWithKey ? (
+                              <>
+                                <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                                Joining...
+                              </>
+                            ) : (
+                              <>
+                                <i className="fas fa-sign-in-alt me-1"></i>
+                                Join
+                              </>
+                            )}
+                          </button>
                         </div>
                       </div>
-                    ) : availableChatrooms.length > 0 ? (
-                      <div className="row">
-                        {availableChatrooms.map((chatroom) => (
-                          <div key={chatroom.id} className="col-md-6 mb-2">
-                            <div
-                              className="card border-primary cursor-pointer h-100"
-                              style={{ cursor: "pointer" }}
-                              onClick={() => setSelectedChatroom(chatroom)}
-                            >
-                              <div className="card-body text-center">
-                                <h6 className="card-title text-primary">
-                                  {decodeHtmlEntities(chatroom.name)}
-                                </h6>
-                                {chatroom.description && (
-                                  <p className="card-text small text-muted">
-                                    {decodeHtmlEntities(chatroom.description)}
-                                  </p>
-                                )}
-                                <button className="btn btn-sm btn-primary">
-                                  <i className="fas fa-sign-in-alt me-1"></i>
-                                  Join
-                                </button>
+                    </div>
+
+                    {/* Teacher Section - Show Available Chatrooms with Keys */}
+                    {(user?.isAdmin || user?.role === 'teacher') && (
+                      <div className="mt-5">
+                        <div className="border-top pt-4">
+                          <h6 className="text-success mb-3">
+                            <i className="fas fa-chalkboard-teacher me-2"></i>
+                            Teacher Dashboard - Active Chatrooms
+                          </h6>
+                          
+                          {loadingChatrooms ? (
+                            <div className="text-center">
+                              <div className="spinner-border text-primary" role="status">
+                                <span className="visually-hidden">Loading chatrooms...</span>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center text-muted">
-                        <i className="fas fa-comment-slash fa-3x mb-3"></i>
-                        <p>No chatrooms available yet.</p>
-                        <p className="small">
-                          Ask your teacher to create a chatroom for you!
-                        </p>
-                        <div className="mt-3">
-                          <button
-                            className="btn btn-primary btn-sm me-2"
-                            onClick={() => fetchAvailableChatrooms()}
-                          >
-                            <i className="fas fa-sync me-1"></i>Refresh
-                          </button>
-                          <button
-                            className="btn btn-warning btn-sm me-2"
-                            onClick={handleDirectLogin}
-                            title="Click this to fix authentication and see chatrooms"
-                          >
-                            <i className="fas fa-sign-in-alt me-1"></i>Fix
-                            Session
-                          </button>
-                          <a
-                            href="/api/auth/quick-login"
-                            className="btn btn-success btn-sm me-2"
-                            title="Login as Admin/Teacher"
-                          >
-                            <i className="fas fa-key me-1"></i>Teacher Login
-                          </a>
-                          <a
-                            href="/api/auth/quick-login?type=student"
-                            className="btn btn-info btn-sm me-2"
-                            title="Login as Student"
-                          >
-                            <i className="fas fa-user me-1"></i>Student Login
-                          </a>
-                          {user?.isAdmin && (
-                            <a
-                              href="/admin"
-                              className="btn btn-outline-primary btn-sm"
-                            >
-                              <i className="fas fa-plus me-1"></i>Create
-                            </a>
-                          )}
-                          <div className="mt-2">
-                            <small className="text-muted">
-                              Debug: User {user?.email || "not logged in"} (
-                              {user?.role || "no role"})
-                            </small>
-                          </div>
-                          <div className="mt-2">
-                            <div className="alert alert-info alert-sm">
-                              <i className="fas fa-info-circle me-1"></i>
-                              <strong>Can't see chatrooms?</strong> Click
-                              "Direct Login" to authenticate and access
-                              chatrooms.
-                              <br />
-                              <small>
-                                All students and teachers can access chatrooms
-                                for collaborative learning!
-                              </small>
+                          ) : availableChatrooms.length > 0 ? (
+                            <div className="row">
+                              {availableChatrooms.filter(room => room.isActive).map((chatroom) => (
+                                <div key={chatroom.id} className="col-md-6 mb-3">
+                                  <div className="card border-success">
+                                    <div className="card-body">
+                                      <div className="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 className="card-title text-success mb-0">
+                                          {decodeHtmlEntities(chatroom.name)}
+                                        </h6>
+                                        <button
+                                          className="btn btn-sm btn-outline-danger"
+                                          onClick={() => generateNewKey(chatroom.id)}
+                                          title="Generate new access key"
+                                          data-testid={`button-new-key-${chatroom.id}`}
+                                        >
+                                          <i className="fas fa-sync me-1"></i>
+                                          New Key
+                                        </button>
+                                      </div>
+                                      <div className="alert alert-success mb-2 text-center">
+                                        <strong className="fs-3" style={{ letterSpacing: '0.2em' }}>
+                                          {chatroom.accessKey}
+                                        </strong>
+                                        <br />
+                                        <small>Share this code with your students</small>
+                                      </div>
+                                      {chatroom.description && (
+                                        <p className="card-text small text-muted">
+                                          {decodeHtmlEntities(chatroom.description)}
+                                        </p>
+                                      )}
+                                      <button
+                                        className="btn btn-sm btn-success"
+                                        onClick={() => setSelectedChatroom(chatroom)}
+                                        data-testid={`button-join-${chatroom.id}`}
+                                      >
+                                        <i className="fas fa-sign-in-alt me-1"></i>
+                                        Join This Room
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          </div>
+                          ) : (
+                            <div className="text-center text-muted">
+                              <i className="fas fa-comment-slash fa-2x mb-3"></i>
+                              <p>No active chatrooms. Create one from the admin panel.</p>
+                              <a href="/admin" className="btn btn-success btn-sm">
+                                <i className="fas fa-plus me-1"></i>Create Chatroom
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Info for Non-Teachers */}
+                    {!user?.isAdmin && user?.role !== 'teacher' && (
+                      <div className="mt-4">
+                        <div className="alert alert-info">
+                          <i className="fas fa-info-circle me-2"></i>
+                          <strong>Students:</strong> Ask your teacher for the 6-digit room code to join the chatroom.
                         </div>
                       </div>
                     )}

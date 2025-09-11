@@ -2367,9 +2367,15 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       if (invitedUserIds !== undefined) updateData.invitedUserIds = invitedUserIds;
       if (isActive !== undefined) updateData.isActive = isActive;
 
-      const chatroom = await storage.updateChatroom(id, updateData);
+      let chatroom = await storage.updateChatroom(id, updateData);
       if (!chatroom) {
         return res.status(404).json({ message: 'Chatroom not found' });
+      }
+
+      // If chatroom was reactivated, generate a new access key for security
+      if (isActive === true) {
+        console.log('[API] Chatroom reactivated, generating new access key for security');
+        chatroom = await storage.generateNewAccessKey(id);
       }
 
       res.json(chatroom);
@@ -2396,6 +2402,61 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     } catch (error) {
       console.error('Error deleting chatroom:', error);
       res.status(500).json({ message: 'Failed to delete chatroom' });
+    }
+  });
+
+  // Generate new access key for chatroom (teachers/admins only)
+  app.post('/api/admin/chatrooms/:id/new-key', async (req, res) => {
+    try {
+      if (!req.session.user?.isAdmin && req.session.user?.role !== 'teacher') {
+        return res.status(403).json({ message: "Teacher or admin access required" });
+      }
+
+      const { id } = req.params;
+      const chatroom = await storage.generateNewAccessKey(id);
+      
+      if (!chatroom) {
+        return res.status(404).json({ message: 'Chatroom not found' });
+      }
+
+      res.json({ 
+        message: 'New access key generated successfully',
+        accessKey: chatroom.accessKey,
+        chatroom: chatroom
+      });
+    } catch (error) {
+      console.error('Error generating new access key:', error);
+      res.status(500).json({ message: 'Failed to generate new access key' });
+    }
+  });
+
+  // Join chatroom with access key (public endpoint)
+  app.post('/api/chatrooms/join', async (req, res) => {
+    try {
+      const { accessKey } = req.body;
+      
+      if (!accessKey) {
+        return res.status(400).json({ message: 'Access key is required' });
+      }
+
+      console.log('[API] /api/chatrooms/join - Attempting to join with key:', accessKey);
+      
+      const allChatrooms = await storage.getChatrooms();
+      const chatroom = allChatrooms.find(c => c.accessKey === accessKey && c.isActive);
+      
+      if (!chatroom) {
+        console.log('[API] /api/chatrooms/join - No active chatroom found for key:', accessKey);
+        return res.status(404).json({ message: 'Invalid access key or chatroom is not active' });
+      }
+
+      console.log('[API] /api/chatrooms/join - Successfully joined chatroom:', chatroom.name);
+      res.json({
+        message: 'Successfully joined chatroom',
+        chatroom: chatroom
+      });
+    } catch (error) {
+      console.error('Error joining chatroom:', error);
+      res.status(500).json({ message: 'Failed to join chatroom' });
     }
   });
 
