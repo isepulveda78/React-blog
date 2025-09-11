@@ -32,6 +32,9 @@ Inline editing preference: User requires stable cursor behavior during WYSIWYG e
 - **Audio Proxy System**: Server-side proxy at `/api/audio-proxy` for converting Google Drive/Dropbox sharing URLs to direct download format, handling CORS, and streaming audio files with range request support.
 - **Content Storage**: HTML content stored in database with proper entity encoding/decoding. HTML entity decoding applied to all blog API endpoints for correct display.
 - **Security Enhancements**: Helmet.js for security headers, rate limiting, comprehensive input validation, `express-mongo-sanitize` for NoSQL injection prevention, security event logging, secure cookies, strong password requirements, XSS protection, and restricted file uploads. Content Security Policy configured to allow iframe embedding from Google Docs, Google Drive, YouTube, Vimeo.
+- **Chatroom Authentication**: Complete end-to-end authentication requirement for chatroom access. Backend API endpoints `/api/chatrooms` and `/api/chatrooms/join` require user authentication (401 for non-authenticated). Frontend components show authentication required page for non-authenticated users. Navigation hides chatroom access for non-authenticated users.
+- **WebSocket Security**: WebSocket connections require session-based authentication to prevent unauthorized chat access. Connection verification includes session cookie validation and user authentication checks.
+- **Sensitive Data Protection**: Access keys and sensitive information are masked in server logs to prevent data exposure. Only partial keys are logged for debugging purposes.
 
 ### Project Structure
 - **Simplified Layout**: Consolidated architecture with minimal file structure.
