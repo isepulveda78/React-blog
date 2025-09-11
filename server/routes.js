@@ -7,6 +7,8 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
 import path from "path";
+import crypto from 'crypto';
+import url from 'url';
 import { 
   validateEmail, 
   validateUsername, 
@@ -130,10 +132,81 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
+// Session validation function for WebSocket connections
+function validateWebSocketSession(req, sessionStore, secret, callback) {
+  try {
+    const cookies = req.headers.cookie;
+    if (!cookies) {
+      return callback(new Error('No cookies provided'));
+    }
+
+    // Extract session ID from cookies
+    const sessionCookieMatch = cookies.match(/connect\.sid=([^;]+)/);
+    if (!sessionCookieMatch) {
+      return callback(new Error('No session cookie found'));
+    }
+
+    let sessionId = sessionCookieMatch[1];
+    
+    // URL decode the session ID
+    sessionId = decodeURIComponent(sessionId);
+    
+    // Remove signature if present (format: s:sessionId.signature)
+    if (sessionId.startsWith('s:')) {
+      const parts = sessionId.slice(2).split('.');
+      if (parts.length < 2) {
+        return callback(new Error('Invalid session cookie format'));
+      }
+      
+      const unsigned = parts[0];
+      const signature = parts.slice(1).join('.');
+      
+      // Verify signature
+      const expectedSignature = crypto
+        .createHmac('sha256', secret)
+        .update(unsigned)
+        .digest('base64')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+      
+      if (signature !== expectedSignature) {
+        return callback(new Error('Session signature invalid'));
+      }
+      
+      sessionId = unsigned;
+    }
+
+    // Get session from store
+    sessionStore.get(sessionId, (err, session) => {
+      if (err) {
+        return callback(new Error('Session store error: ' + err.message));
+      }
+      
+      if (!session) {
+        return callback(new Error('Session not found'));
+      }
+      
+      if (!session.user) {
+        return callback(new Error('No user in session'));
+      }
+      
+      // Session is valid
+      callback(null, session);
+    });
+  } catch (error) {
+    callback(new Error('Session validation error: ' + error.message));
+  }
+}
+
 export function registerRoutes(app) {
   // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Get session store and secret for WebSocket validation
+  const sessionStore = app.get('sessionStore');
+  const sessionSecret = app.get('sessionSecret');
 
   // Audio proxy to handle CORS and hotlinking restrictions from cloud storage
   app.get('/api/audio-proxy', async (req, res) => {
@@ -2430,29 +2503,38 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
-  // Join chatroom with access key (public endpoint)
+  // Join chatroom with access key (requires authentication)
   app.post('/api/chatrooms/join', async (req, res) => {
     try {
+      // Require user authentication
+      if (!req.session.user) {
+        return res.status(401).json({ message: 'Authentication required to join chatrooms' });
+      }
+
       const { accessKey } = req.body;
       
       if (!accessKey) {
         return res.status(400).json({ message: 'Access key is required' });
       }
 
-      console.log('[API] /api/chatrooms/join - Attempting to join with key:', accessKey);
+      console.log('[API] /api/chatrooms/join - User:', req.session.user.name, 'attempting to join with key:', accessKey ? `${accessKey.substring(0, 4)}***[REDACTED]***` : 'undefined');
       
       const allChatrooms = await storage.getChatrooms();
       const chatroom = allChatrooms.find(c => c.accessKey === accessKey && c.isActive);
       
       if (!chatroom) {
-        console.log('[API] /api/chatrooms/join - No active chatroom found for key:', accessKey);
+        console.log('[API] /api/chatrooms/join - No active chatroom found for key:', accessKey ? `${accessKey.substring(0, 4)}***[REDACTED]***` : 'undefined');
         return res.status(404).json({ message: 'Invalid access key or chatroom is not active' });
       }
 
       console.log('[API] /api/chatrooms/join - Successfully joined chatroom:', chatroom.name);
+      
+      // CRITICAL SECURITY FIX: Sanitize response by removing sensitive accessKey field
+      const { accessKey: _, ...sanitizedChatroom } = chatroom;
+      
       res.json({
         message: 'Successfully joined chatroom',
-        chatroom: chatroom
+        chatroom: sanitizedChatroom
       });
     } catch (error) {
       console.error('Error joining chatroom:', error);
@@ -2460,19 +2542,29 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
   });
 
-  // Get user chatrooms - accessible to everyone (no authentication required)
+  // Get user chatrooms - requires authentication
   app.get('/api/chatrooms', async (req, res) => {
     try {
-      console.log('[API] /api/chatrooms - Public access, no authentication required');
+      // Require user authentication
+      if (!req.session.user) {
+        return res.status(401).json({ message: 'Authentication required to view chatrooms' });
+      }
+
+      console.log('[API] /api/chatrooms - Authenticated user:', req.session.user.name);
       console.log('[API] /api/chatrooms - Session ID:', req.sessionID);
       
       console.log('[API] /api/chatrooms - Fetching all chatrooms...');
       const allChatrooms = await storage.getChatrooms();
       console.log('[API] /api/chatrooms - All chatrooms:', allChatrooms.length);
       
-      // Allow everyone to access all chatrooms for public collaboration
-      console.log('[API] /api/chatrooms - Public chatrooms available:', allChatrooms.length);
-      res.json(allChatrooms);
+      // CRITICAL SECURITY FIX: Sanitize chatrooms by removing sensitive accessKey fields
+      const sanitizedChatrooms = allChatrooms.map(chatroom => {
+        const { accessKey: _, ...sanitized } = chatroom;
+        return sanitized;
+      });
+      
+      console.log('[API] /api/chatrooms - Sanitized chatrooms available for authenticated user:', sanitizedChatrooms.length);
+      res.json(sanitizedChatrooms);
     } catch (error) {
       console.error('Error fetching user chatrooms:', error);
       res.status(500).json({ message: 'Failed to fetch chatrooms' });
@@ -2574,13 +2666,30 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     wss = new WebSocketServer({ 
       server: httpServer, 
       path: '/ws',
-      verifyClient: (info) => {
+      verifyClient: (info, cb) => {
         console.log('[websocket] Verifying client connection:', {
           origin: info.origin,
           host: info.req.headers.host,
           url: info.req.url
         });
-        return true; // Accept all connections for now
+        
+        // Validate session synchronously
+        validateWebSocketSession(info.req, sessionStore, sessionSecret, (err, session) => {
+          if (err) {
+            console.log('[websocket] Connection rejected:', err.message);
+            logSecurityEvent('WEBSOCKET_AUTH_FAILED', {
+              error: err.message,
+              ip: info.req.socket.remoteAddress,
+              userAgent: info.req.headers['user-agent']
+            });
+            return cb(false, 401, 'Unauthorized');
+          }
+          
+          console.log('[websocket] Connection approved for user:', session.user.email);
+          // Store session info for use during connection
+          info.req.session = session;
+          cb(true);
+        });
       }
     });
     
@@ -2613,6 +2722,18 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       'sec-websocket-version': req.headers['sec-websocket-version']
     });
     
+    // Store authenticated user from session validation
+    ws.user = req.session?.user;
+    ws.sessionId = req.session?.id;
+    
+    if (!ws.user) {
+      console.error('[websocket] No authenticated user found in session');
+      ws.close(1008, 'Authentication required');
+      return;
+    }
+    
+    console.log('[websocket] Authenticated user connected:', ws.user.email);
+    
     // Add error handler for the WebSocket connection
     ws.on('error', (error) => {
       console.error('[websocket] WebSocket connection error:', error);
@@ -2626,10 +2747,29 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         
         switch (message.type) {
           case 'join':
-            // User joins the chat - fallback to username if name not provided (for compatibility)
-            const userName = message.name || message.username || 'Anonymous';
-            const userRole = message.role || 'student';
+            // Verify user is authenticated via WebSocket connection
+            if (!ws.user) {
+              console.log('[websocket] Join rejected: User not authenticated on connection');
+              logSecurityEvent('WEBSOCKET_UNAUTHORIZED_JOIN', {
+                sessionId: ws.sessionId,
+                messageData: sanitizeInput(JSON.stringify(message)),
+                ip: ws._socket?.remoteAddress
+              });
+              const authErrorMessage = {
+                type: 'auth_error',
+                reason: 'Authentication required to join chatrooms',
+                timestamp: new Date().toISOString()
+              };
+              ws.send(JSON.stringify(authErrorMessage));
+              ws.close(1008, 'Authentication required');
+              return;
+            }
+            
+            // User joins the chat - use authenticated user data
+            const userName = ws.user.name || ws.user.username || 'Anonymous';
+            const userRole = ws.user.role || 'student';
             const chatroomId = message.chatroom;
+            const userId = ws.user.id;
             
             console.log('[websocket] Join data - name:', userName, 'role:', userRole, 'chatroom:', chatroomId);
           console.log('[websocket] 🔍 IMPORTANT: To test multi-user chat, open this same URL in a different browser (Chrome + Firefox) or incognito window');
@@ -2661,13 +2801,17 @@ Sitemap: ${baseUrl}/sitemap.xml`;
               return;
             }
             
-            // Add user to chatroom and global user tracking
+            // Add user to chatroom and global user tracking with authentication info
             currentChatroomUsers.add(userName);
             chatUsers.set(ws, {
               name: userName,
               role: userRole,
               chatroom: chatroomId,
-              joinedAt: new Date()
+              userId: userId,
+              sessionId: ws.sessionId,
+              joinedAt: new Date(),
+              authenticated: true,
+              user: ws.user // Store full user object for security checks
             });
             
             // Broadcast user joined message to all users in this chatroom
@@ -2686,9 +2830,28 @@ Sitemap: ${baseUrl}/sitemap.xml`;
             break;
             
           case 'message':
-            // User sends a chat message
+            // User sends a chat message  
             const user = chatUsers.get(ws);
-            console.log('[websocket] Message from user:', user);
+            console.log('[websocket] Message from user:', user?.name);
+            
+            // Verify user is authenticated via WebSocket connection
+            if (!ws.user || !user || !user.authenticated) {
+              console.log('[websocket] Message rejected: User not authenticated');
+              logSecurityEvent('WEBSOCKET_UNAUTHORIZED_MESSAGE', {
+                sessionId: ws.sessionId,
+                messageData: sanitizeInput(JSON.stringify(message)),
+                ip: ws._socket?.remoteAddress
+              });
+              const authErrorMessage = {
+                type: 'auth_error', 
+                reason: 'Authentication required to send messages',
+                timestamp: new Date().toISOString()
+              };
+              ws.send(JSON.stringify(authErrorMessage));
+              ws.close(1008, 'Authentication required');
+              return;
+            }
+            
             if (user) {
               const chatMessage = {
                 type: 'message',

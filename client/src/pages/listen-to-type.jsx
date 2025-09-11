@@ -466,7 +466,58 @@ const ListenToType = ({ user }) => {
     });
   };
 
-  // Chatroom interface for all users - this is the ONLY content
+  // Check if user is authenticated - chatrooms are now private
+  if (!user) {
+    return (
+      <>
+        <div className="container py-4">
+          <div className="row">
+            <div className="col-md-8 mx-auto">
+              <div className="card shadow">
+                <div className="card-header bg-warning">
+                  <h5 className="mb-0">
+                    <i className="fas fa-lock me-2"></i>
+                    Authentication Required
+                  </h5>
+                </div>
+                <div className="card-body text-center">
+                  <div className="my-4">
+                    <i className="fas fa-users fa-4x text-muted mb-3"></i>
+                    <h4 className="text-primary">Welcome to Our Chatrooms!</h4>
+                    <p className="text-muted mb-4">
+                      Chatrooms are now private and require you to log in with your account.
+                      <br />
+                      Please log in to join the conversation with your classmates and teacher.
+                    </p>
+                    <button
+                      className="btn btn-primary btn-lg"
+                      onClick={() => {
+                        window.location.href = '/api/auth/quick-login?redirect=' + encodeURIComponent(window.location.pathname + window.location.hash);
+                      }}
+                    >
+                      <i className="fas fa-sign-in-alt me-2"></i>
+                      Log In to Access Chatrooms
+                    </button>
+                  </div>
+                  <div className="alert alert-info">
+                    <small>
+                      <i className="fas fa-info-circle me-1"></i>
+                      <strong>Why do I need to log in?</strong>
+                      <br />
+                      This helps create a safe learning environment where your teacher can track participation and maintain classroom order.
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ToastContainer />
+      </>
+    );
+  }
+
+  // Chatroom interface for authenticated users only
   return (
     <>
       <div className="container py-4">

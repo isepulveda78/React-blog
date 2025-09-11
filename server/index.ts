@@ -82,16 +82,22 @@ app.use(mongoSanitize());
 
 // Use memory store instead of requiring PostgreSQL
 const MemStore = MemoryStore(session);
+const sessionStore = new MemStore({
+  checkPeriod: 86400000 // prune expired entries every 24h
+});
+const sessionSecret = process.env.SESSION_SECRET || (() => {
+  console.warn('[SECURITY WARNING] Using fallback session secret. Set SESSION_SECRET environment variable in production!');
+  return 'blogcraft-secret-key-12345';
+})();
+
+// Store session config for WebSocket validation
+app.set('sessionStore', sessionStore);
+app.set('sessionSecret', sessionSecret);
 
 // Session configuration - ensure consistency between dev and production
 app.use(session({
-  store: new MemStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
-  }),
-  secret: process.env.SESSION_SECRET || (() => {
-    console.warn('[SECURITY WARNING] Using fallback session secret. Set SESSION_SECRET environment variable in production!');
-    return 'blogcraft-secret-key-12345';
-  })(),
+  store: sessionStore,
+  secret: sessionSecret,
   resave: true, // Changed to true to ensure sessions are saved
   saveUninitialized: true, // Changed to true to save new sessions
   name: 'connect.sid', // Use standard session name
