@@ -210,12 +210,24 @@ class MemStorage {
   async getAccessCodeByCode(code) { return this.accessCodes.find(c => c.code === code); }
   async getAccessCodeById(id) { return this.accessCodes.find(c => c.id === id); }
   async createAccessCode(codeData) {
+    // Ensure consistent date format for expiration
+    const now = new Date().toISOString();
     const accessCode = { 
       id: nanoid(), 
       ...codeData, 
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: now,
+      updatedAt: now
     };
+    
+    // If expiresAt is provided, ensure it's in ISO format
+    if (accessCode.expiresAt) {
+      const expiresDate = new Date(accessCode.expiresAt);
+      if (isNaN(expiresDate.getTime())) {
+        throw new Error('Invalid expiration date format');
+      }
+      accessCode.expiresAt = expiresDate.toISOString();
+    }
+    
     this.accessCodes.push(accessCode);
     return accessCode;
   }
@@ -236,8 +248,38 @@ class MemStorage {
     if (!accessCode) return null;
     
     // Check if code has expired
-    if (accessCode.expiresAt && new Date() > new Date(accessCode.expiresAt)) {
-      return null;
+    if (accessCode.expiresAt) {
+      const now = new Date();
+      
+      // Ensure expiresAt is a proper Date object, handle different input formats
+      let expiresAt;
+      if (typeof accessCode.expiresAt === 'string') {
+        // Handle ISO string format or any date string
+        expiresAt = new Date(accessCode.expiresAt);
+      } else if (accessCode.expiresAt instanceof Date) {
+        expiresAt = accessCode.expiresAt;
+      } else {
+        // Handle timestamp
+        expiresAt = new Date(accessCode.expiresAt);
+      }
+      
+      // Validate the dates are valid
+      if (isNaN(expiresAt.getTime())) {
+        console.error(`[MemStorage] Invalid expiration date for access code "${code}": ${accessCode.expiresAt}`);
+        return null;
+      }
+      
+      console.log(`[MemStorage] Access code validation for "${code}":`);
+      console.log(`[MemStorage] Current time: ${now.toISOString()} (${now.getTime()})`);
+      console.log(`[MemStorage] Expires at: ${expiresAt.toISOString()} (${expiresAt.getTime()})`);
+      console.log(`[MemStorage] Time difference: ${expiresAt.getTime() - now.getTime()}ms`);
+      console.log(`[MemStorage] Raw expiresAt: ${accessCode.expiresAt}`);
+      console.log(`[MemStorage] Is expired: ${now.getTime() > expiresAt.getTime()}`);
+      
+      if (now.getTime() > expiresAt.getTime()) {
+        console.log(`[MemStorage] Access code "${code}" has expired`);
+        return null;
+      }
     }
     
     return accessCode;
@@ -1564,12 +1606,25 @@ export class MongoStorage {
 
   async createAccessCode(codeData) {
     await this.connect();
+    
+    // Ensure consistent date format for expiration
+    const now = new Date().toISOString();
     const accessCode = {
       id: nanoid(),
       ...codeData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: now,
+      updatedAt: now
     };
+    
+    // If expiresAt is provided, ensure it's in ISO format
+    if (accessCode.expiresAt) {
+      const expiresDate = new Date(accessCode.expiresAt);
+      if (isNaN(expiresDate.getTime())) {
+        throw new Error('Invalid expiration date format');
+      }
+      accessCode.expiresAt = expiresDate.toISOString();
+    }
+    
     await this.db.collection('accessCodes').insertOne(accessCode);
     return accessCode;
   }
@@ -1596,8 +1651,39 @@ export class MongoStorage {
     if (!accessCode) return null;
     
     // Check if code has expired
-    if (accessCode.expiresAt && new Date() > new Date(accessCode.expiresAt)) {
-      return null;
+    if (accessCode.expiresAt) {
+      const now = new Date();
+      
+      // Ensure expiresAt is a proper Date object, handle different input formats
+      let expiresAt;
+      if (typeof accessCode.expiresAt === 'string') {
+        // Handle ISO string format or any date string
+        expiresAt = new Date(accessCode.expiresAt);
+      } else if (accessCode.expiresAt instanceof Date) {
+        expiresAt = accessCode.expiresAt;
+      } else {
+        // Handle timestamp or MongoDB Date object
+        expiresAt = new Date(accessCode.expiresAt);
+      }
+      
+      // Validate the dates are valid
+      if (isNaN(expiresAt.getTime())) {
+        console.error(`[MongoDB] Invalid expiration date for access code "${code}": ${accessCode.expiresAt}`);
+        return null;
+      }
+      
+      console.log(`[MongoDB] Access code validation for "${code}":`);
+      console.log(`[MongoDB] Current time: ${now.toISOString()} (${now.getTime()})`);
+      console.log(`[MongoDB] Expires at: ${expiresAt.toISOString()} (${expiresAt.getTime()})`);
+      console.log(`[MongoDB] Time difference: ${expiresAt.getTime() - now.getTime()}ms`);
+      console.log(`[MongoDB] Raw expiresAt from DB: ${accessCode.expiresAt}`);
+      console.log(`[MongoDB] Raw expiresAt type: ${typeof accessCode.expiresAt}`);
+      console.log(`[MongoDB] Is expired: ${now.getTime() > expiresAt.getTime()}`);
+      
+      if (now.getTime() > expiresAt.getTime()) {
+        console.log(`[MongoDB] Access code "${code}" has expired`);
+        return null;
+      }
     }
     
     return accessCode;
