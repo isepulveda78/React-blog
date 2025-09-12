@@ -283,6 +283,7 @@ export default function AdminChatrooms({ user }) {
                         <th>Description</th>
                         <th>Invited Users</th>
                         <th>Status</th>
+                        <th>Access Key</th>
                         <th>Created</th>
                         <th>Actions</th>
                       </tr>
@@ -305,6 +306,30 @@ export default function AdminChatrooms({ user }) {
                             <span className={`badge ${chatroom.isActive ? 'bg-success' : 'bg-secondary'}`}>
                               {chatroom.isActive ? 'Active' : 'Inactive'}
                             </span>
+                          </td>
+                          <td>
+                            <div className="d-flex align-items-center">
+                              <code className="bg-light p-1 rounded me-2" style={{ fontSize: '0.8em' }}>
+                                {chatroom.accessKey || 'No key'}
+                              </code>
+                              {chatroom.accessKey && (
+                                <button
+                                  className="btn btn-sm btn-outline-secondary"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(chatroom.accessKey);
+                                    toast({
+                                      title: "Copied!",
+                                      description: "Access key copied to clipboard",
+                                      variant: "success"
+                                    });
+                                  }}
+                                  title="Copy access key"
+                                  data-testid={`copy-key-${chatroom.id}`}
+                                >
+                                  <i className="fas fa-copy"></i>
+                                </button>
+                              )}
+                            </div>
                           </td>
                           <td>
                             <small className="text-muted">
