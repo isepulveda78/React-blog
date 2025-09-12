@@ -1,5 +1,6 @@
 import express from "express";
 import session from "express-session";
+import MongoStore from "connect-mongo";
 import MemoryStore from "memorystore";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -80,11 +81,25 @@ app.use('/api/auth/', authLimiter);
 // Prevent NoSQL injection attacks
 app.use(mongoSanitize());
 
-// Use memory store instead of requiring PostgreSQL
-const MemStore = MemoryStore(session);
-const sessionStore = new MemStore({
-  checkPeriod: 86400000 // prune expired entries every 24h
-});
+// Use MongoDB store for robust session management
+// Fallback to in-memory if MongoDB is not available
+let sessionStore;
+if (process.env.MONGODB_URI) {
+  console.log('[session] Using MongoDB for session storage');
+  sessionStore = MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    touchAfter: 24 * 3600, // lazy session update - only update if session changes
+    ttl: 24 * 60 * 60, // 24 hours session expiry
+    collectionName: 'sessions',
+    stringify: false // Don't stringify session data
+  });
+} else {
+  console.log('[session] MongoDB not available, falling back to in-memory sessions');
+  const MemStore = MemoryStore(session);
+  sessionStore = new MemStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  });
+}
 const sessionSecret = process.env.SESSION_SECRET || (() => {
   console.warn('[SECURITY WARNING] Using fallback session secret. Set SESSION_SECRET environment variable in production!');
   return 'blogcraft-secret-key-12345';
