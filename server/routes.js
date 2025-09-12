@@ -2757,8 +2757,8 @@ Sitemap: ${baseUrl}/sitemap.xml`;
               return;
             }
             
-            // User joins the chat - use authenticated user data
-            const userName = ws.user.name || ws.user.username || 'Anonymous';
+            // User joins the chat - prioritize typed name over authenticated user name
+            const userName = message.name?.trim() || ws.user.name || ws.user.username || 'Anonymous';
             const userRole = ws.user.role || 'student';
             const chatroomId = message.chatroom;
             const userId = ws.user.id;
