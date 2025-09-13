@@ -1511,6 +1511,7 @@ export class MongoStorage {
     await this.connect();
     const chatroom = {
       id: nanoid(),
+      accessKey: this.generateAccessKey(),
       ...chatroomData,
       createdAt: new Date().toISOString()
     };
