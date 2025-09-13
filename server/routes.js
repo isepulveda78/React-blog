@@ -2484,29 +2484,6 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         return res.status(404).json({ message: 'Chatroom not found' });
       }
 
-      // Broadcast the new access key to all clients (real-time update)
-      const accessKeyUpdateMessage = {
-        type: 'access_key_updated',
-        chatroomId: id,
-        accessKey: chatroom.accessKey,
-        chatroomName: chatroom.name,
-        timestamp: new Date().toISOString()
-      };
-      
-      // Broadcast to all users, not just chatroom users (so they can see updated keys on the main list)
-      if (wss) {
-        wss.clients.forEach(client => {
-          if (client.readyState === 1) { // WebSocket.OPEN
-            try {
-              client.send(JSON.stringify(accessKeyUpdateMessage));
-            } catch (error) {
-              console.error('[websocket] Error broadcasting access key update:', error);
-            }
-          }
-        });
-        console.log(`[websocket] Broadcasted access key update for chatroom: ${chatroom.name}`);
-      }
-
       res.json({ 
         message: 'New access key generated successfully',
         accessKey: chatroom.accessKey,
