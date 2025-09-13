@@ -748,6 +748,40 @@ export class MongoStorage {
     }
   }
 
+  async migrateChatroomsAccessKeys() {
+    await this.connect();
+    console.log('[mongodb] Migrating chatrooms without access keys...');
+    
+    // Find chatrooms that don't have accessKey field
+    const chatroomsWithoutKeys = await this.db.collection('chatrooms')
+      .find({ accessKey: { $exists: false } })
+      .toArray();
+    
+    if (chatroomsWithoutKeys.length === 0) {
+      console.log('[mongodb] All chatrooms already have access keys');
+      return;
+    }
+    
+    console.log(`[mongodb] Found ${chatroomsWithoutKeys.length} chatrooms without access keys, adding them...`);
+    
+    // Update each chatroom with a new access key
+    for (const chatroom of chatroomsWithoutKeys) {
+      const accessKey = this.generateAccessKey();
+      await this.db.collection('chatrooms').updateOne(
+        { _id: chatroom._id },
+        { 
+          $set: { 
+            accessKey: accessKey,
+            updatedAt: new Date().toISOString()
+          } 
+        }
+      );
+      console.log(`[mongodb] Added access key ${accessKey} to chatroom: ${chatroom.name}`);
+    }
+    
+    console.log('[mongodb] Access key migration completed');
+  }
+
   async initializeSampleData() {
     // Check if data already exists
     const existingUsers = await this.db.collection('users').countDocuments();
@@ -756,6 +790,8 @@ export class MongoStorage {
       await this.fixAdminUser();
       // Fix the test post slug if it exists
       await this.fixTestPostSlug();
+      // Migrate existing chatrooms to have access keys
+      await this.migrateChatroomsAccessKeys();
       return; // Data already exists
     }
     

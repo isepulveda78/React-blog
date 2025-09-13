@@ -304,6 +304,43 @@ const ListenToType = ({ user }) => {
     }
   }, [messages]);
 
+  // Listen for WebSocket access key updates
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleMessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'access_key_updated') {
+          console.log('[ListenToType] Access key updated via WebSocket:', data);
+          
+          // Refresh available chatrooms to show the new key
+          fetchAvailableChatrooms();
+          
+          // Show toast notification about the new key
+          showToast(`New access key for ${data.chatroomName}: ${data.accessKey}`, "info", 5000);
+          
+          // Update selected chatroom if it matches
+          if (selectedChatroom && selectedChatroom.id === data.chatroomId) {
+            setSelectedChatroom(prev => ({
+              ...prev,
+              accessKey: data.accessKey
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('[ListenToType] Error parsing WebSocket message:', error);
+      }
+    };
+    
+    socket.addEventListener('message', handleMessage);
+    
+    return () => {
+      socket.removeEventListener('message', handleMessage);
+    };
+  }, [socket, selectedChatroom, fetchAvailableChatrooms, showToast]);
+
   const connectToChat = () => {
     const displayName = user?.name || chatName;
     if (!displayName.trim() || !selectedChatroom) return;
