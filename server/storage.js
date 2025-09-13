@@ -608,6 +608,48 @@ class MemStorage {
     };
 
     this.comments.push(comment1, comment2, comment3, reply1, reply2);
+
+    // Add sample chatrooms
+    const chatroom1 = {
+      id: nanoid(),
+      name: "General Discussion",
+      description: "Main chatroom for class discussions and questions",
+      createdBy: adminUser.id,
+      createdByName: adminUser.name,
+      invitedUserIds: [adminUser.id, regularUser.id],
+      accessKey: this.generateAccessKey(),
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const chatroom2 = {
+      id: nanoid(),
+      name: "Study Group", 
+      description: "Collaborative learning and homework help",
+      createdBy: adminUser.id,
+      createdByName: adminUser.name,
+      invitedUserIds: [adminUser.id, regularUser.id],
+      accessKey: this.generateAccessKey(),
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const chatroom3 = {
+      id: nanoid(),
+      name: "Typing Practice",
+      description: "Practice typing with friends and get tips",
+      createdBy: adminUser.id,
+      createdByName: adminUser.name,
+      invitedUserIds: [adminUser.id, regularUser.id],
+      accessKey: this.generateAccessKey(),
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    this.chatrooms.push(chatroom1, chatroom2, chatroom3);
   }
 }
 
@@ -1029,6 +1071,7 @@ export class MongoStorage {
       createdBy: adminUser.id,
       createdByName: adminUser.name,
       invitedUserIds: [adminUser.id, regularUser.id],
+      accessKey: this.generateAccessKey(),
       isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -1041,6 +1084,7 @@ export class MongoStorage {
       createdBy: adminUser.id,
       createdByName: adminUser.name,
       invitedUserIds: [adminUser.id, regularUser.id],
+      accessKey: this.generateAccessKey(),
       isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -1053,6 +1097,7 @@ export class MongoStorage {
       createdBy: adminUser.id,
       createdByName: adminUser.name,
       invitedUserIds: [adminUser.id, regularUser.id],
+      accessKey: this.generateAccessKey(),
       isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
