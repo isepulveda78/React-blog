@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const { toast } = window;
+// Removed toast dependency to fix password reset error
 
 const AdminUsers = ({ user }) => {
   const [users, setUsers] = useState([]);
@@ -84,11 +84,7 @@ const AdminUsers = ({ user }) => {
 
   const toggleUserAdmin = async (userId, currentAdmin) => {
     if (userId === user.id) {
-      toast({
-        title: "Action Not Allowed",
-        description: "You cannot change your own admin status",
-        variant: "destructive"
-      });
+      alert("Action Not Allowed: You cannot change your own admin status");
       return;
     }
     
@@ -106,17 +102,9 @@ const AdminUsers = ({ user }) => {
         
         // Show success message with refresh instruction
         if (!currentAdmin) {
-          toast({
-            title: "Admin Access Granted",
-            description: `${updatedUser.name} has been granted admin access! They may need to refresh their browser to see the admin dashboard.`,
-            variant: "default"
-          });
+          alert(`Admin Access Granted: ${updatedUser.name} has been granted admin access! They may need to refresh their browser to see the admin dashboard.`);
         } else {
-          toast({
-            title: "Admin Access Removed",
-            description: `${updatedUser.name}'s admin access has been removed.`,
-            variant: "default"
-          });
+          alert(`Admin Access Removed: ${updatedUser.name}'s admin access has been removed.`);
         }
       }
     } catch (error) {
@@ -126,11 +114,7 @@ const AdminUsers = ({ user }) => {
 
   const changeUserRole = async (userId, newRole) => {
     if (userId === user.id) {
-      toast({
-        title: "Action Not Allowed",
-        description: "You cannot change your own role",
-        variant: "destructive"
-      });
+      alert("Action Not Allowed: You cannot change your own role");
       return;
     }
     
@@ -146,29 +130,17 @@ const AdminUsers = ({ user }) => {
         const updatedUser = await response.json();
         setUsers(users.map(u => u.id === userId ? updatedUser : u));
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to update user role",
-          variant: "destructive"
-        });
+        alert("Error: Failed to update user role");
       }
     } catch (error) {
       console.error('Error updating user role:', error);
-      toast({
-        title: "Error",
-        description: "Error updating user role",
-        variant: "destructive"
-      });
+      alert("Error: Error updating user role");
     }
   };
 
   const deleteUser = async (userId) => {
     if (userId === user.id) {
-      toast({
-        title: "Action Not Allowed",
-        description: "You cannot delete your own account",
-        variant: "destructive"
-      });
+      alert("Action Not Allowed: You cannot delete your own account");
       return;
     }
     
@@ -182,24 +154,12 @@ const AdminUsers = ({ user }) => {
       
       if (response.ok) {
         setUsers(users.filter(u => u.id !== userId));
-        toast({
-          title: "Success",
-          description: "User deleted successfully",
-          variant: "default"
-        });
+        alert("Success: User deleted successfully");
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete user",
-          variant: "destructive"
-        });
+        alert("Error: Failed to delete user");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error deleting user",
-        variant: "destructive"
-      });
+      alert("Error: Error deleting user");
     }
   };
 
@@ -228,8 +188,6 @@ const AdminUsers = ({ user }) => {
     setIsResettingPassword(true);
 
     try {
-      console.log('Password reset request starting for user:', selectedUser.id);
-      
       const response = await fetch(`/api/admin/users/${selectedUser.id}/password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -237,27 +195,15 @@ const AdminUsers = ({ user }) => {
         body: JSON.stringify({ newPassword })
       });
 
-      console.log('Password reset response status:', response.status);
-      console.log('Password reset response ok:', response.ok);
-
       if (response.ok) {
-        const responseData = await response.json();
-        console.log('Password reset success response:', responseData);
-        
-        toast({
-          title: "Success",
-          description: `Password reset successfully for ${selectedUser.name || selectedUser.username}`,
-          variant: "default"
-        });
+        // Show success message and close modal
+        alert(`Password reset successfully for ${selectedUser.name || selectedUser.username}`);
         setShowPasswordModal(false);
       } else {
-        console.log('Password reset failed with status:', response.status);
         const errorData = await response.json();
-        console.log('Password reset error data:', errorData);
         setPasswordError(errorData.message || 'Failed to reset password');
       }
     } catch (error) {
-      console.error('Password reset catch error:', error);
       setPasswordError('Failed to reset password');
     } finally {
       setIsResettingPassword(false);

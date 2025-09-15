@@ -839,41 +839,28 @@ export function registerRoutes(app) {
   // Admin password reset
   app.put("/api/admin/users/:userId/password", requireAuth, async (req, res) => {
     try {
-      console.log(`[ADMIN_PASSWORD_RESET] Request received for userId: ${req.params.userId}`);
-      
       const currentUser = await storage.getUserById(req.session.userId);
-      console.log(`[ADMIN_PASSWORD_RESET] Current user: ${currentUser?.email}, isAdmin: ${currentUser?.isAdmin}`);
-      
       if (!currentUser?.isAdmin) {
-        console.log(`[ADMIN_PASSWORD_RESET] Access denied - user is not admin`);
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const { userId } = req.params;
       const { newPassword } = req.body;
-      
-      console.log(`[ADMIN_PASSWORD_RESET] Password length: ${newPassword?.length}, userId: ${userId}`);
 
       if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
-        console.log(`[ADMIN_PASSWORD_RESET] Invalid password provided`);
         return res.status(400).json({ message: "Password must be at least 6 characters long" });
       }
 
       const user = await storage.getUserById(userId);
-      console.log(`[ADMIN_PASSWORD_RESET] Target user found: ${user?.email}`);
-      
       if (!user) {
-        console.log(`[ADMIN_PASSWORD_RESET] User not found with ID: ${userId}`);
         return res.status(404).json({ message: "User not found" });
       }
 
       // Hash new password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
-      console.log(`[ADMIN_PASSWORD_RESET] Password hashed successfully`);
 
       // Update password
       await storage.updateUserPassword(userId, hashedPassword);
-      console.log(`[ADMIN_PASSWORD_RESET] Password updated successfully for user: ${user.email}`);
 
       res.json({ message: "Password updated successfully" });
     } catch (error) {
