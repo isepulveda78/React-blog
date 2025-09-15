@@ -16,6 +16,7 @@ class MemStorage {
     this.textQuizGrades = [];
     this.audioLists = [];
     this.lessonPlans = [];
+    this.passwordResets = [];
     console.log('[storage] Using in-memory storage');
     this.initializeSampleData();
   }
@@ -56,6 +57,73 @@ class MemStorage {
     if (index === -1) return null;
     this.users[index] = { ...this.users[index], googleId };
     return this.users[index];
+  }
+
+  async updateUserPassword(userId, hashedPassword) {
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return null;
+    this.users[index] = { 
+      ...this.users[index], 
+      password: hashedPassword, 
+      updatedAt: new Date().toISOString() 
+    };
+    return this.users[index];
+  }
+
+  // Password Reset Token Methods
+  async createPasswordReset(userId, tokenDigest, expiresAt, meta = {}) {
+    // Invalidate existing resets for this user first
+    await this.invalidateResetsForUser(userId);
+    
+    const passwordReset = {
+      id: nanoid(),
+      userId,
+      tokenDigest,
+      expiresAt,
+      usedAt: null,
+      createdAt: new Date().toISOString(),
+      requestedIp: meta.ip || null,
+      userAgent: meta.userAgent || null
+    };
+    
+    this.passwordResets.push(passwordReset);
+    return passwordReset;
+  }
+
+  async findValidPasswordResetByDigest(tokenDigest) {
+    const now = new Date().toISOString();
+    return this.passwordResets.find(reset => 
+      reset.tokenDigest === tokenDigest && 
+      reset.expiresAt > now && 
+      !reset.usedAt
+    );
+  }
+
+  async markPasswordResetUsed(resetId) {
+    const index = this.passwordResets.findIndex(r => r.id === resetId);
+    if (index === -1) return null;
+    
+    this.passwordResets[index] = { 
+      ...this.passwordResets[index], 
+      usedAt: new Date().toISOString() 
+    };
+    return this.passwordResets[index];
+  }
+
+  async invalidateResetsForUser(userId) {
+    const now = new Date().toISOString();
+    this.passwordResets = this.passwordResets.map(reset => {
+      if (reset.userId === userId && !reset.usedAt) {
+        return { ...reset, usedAt: now };
+      }
+      return reset;
+    });
+    
+    // Clean up expired tokens periodically
+    this.passwordResets = this.passwordResets.filter(reset => {
+      const isExpired = reset.expiresAt <= now;
+      return !isExpired;
+    });
   }
 
   async getPosts() { 
@@ -1261,6 +1329,75 @@ export class MongoStorage {
       { returnDocument: 'after' }
     );
     return result.value;
+  }
+
+  // Password Reset Token Methods
+  async createPasswordReset(userId, tokenDigest, expiresAt, meta = {}) {
+    await this.connect();
+    
+    // Invalidate existing resets for this user first
+    await this.invalidateResetsForUser(userId);
+    
+    const passwordReset = {
+      id: nanoid(),
+      userId,
+      tokenDigest,
+      expiresAt: new Date(expiresAt),
+      usedAt: null,
+      createdAt: new Date(),
+      requestedIp: meta.ip || null,
+      userAgent: meta.userAgent || null
+    };
+    
+    await this.db.collection('passwordResets').insertOne(passwordReset);
+    
+    // Create TTL index for automatic cleanup of expired tokens
+    await this.db.collection('passwordResets').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+    
+    // Create unique index on tokenDigest
+    try {
+      await this.db.collection('passwordResets').createIndex({ tokenDigest: 1 }, { unique: true });
+    } catch (error) {
+      // Index may already exist, ignore error
+    }
+    
+    return passwordReset;
+  }
+
+  async findValidPasswordResetByDigest(tokenDigest) {
+    await this.connect();
+    const now = new Date();
+    return await this.db.collection('passwordResets').findOne({
+      tokenDigest,
+      expiresAt: { $gt: now },
+      usedAt: null
+    });
+  }
+
+  async markPasswordResetUsed(resetId) {
+    await this.connect();
+    const result = await this.db.collection('passwordResets').findOneAndUpdate(
+      { id: resetId },
+      { $set: { usedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+    return result.value;
+  }
+
+  async invalidateResetsForUser(userId) {
+    await this.connect();
+    const now = new Date();
+    
+    // Mark all unused resets for this user as used
+    await this.db.collection('passwordResets').updateMany(
+      { userId, usedAt: null },
+      { $set: { usedAt: now } }
+    );
+    
+    // Clean up expired tokens (TTL index should handle this, but clean manually too)
+    await this.db.collection('passwordResets').deleteMany({
+      expiresAt: { $lte: now }
+    });
   }
 
   // Post methods

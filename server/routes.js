@@ -567,6 +567,185 @@ export function registerRoutes(app) {
     res.json({ message: "Logged out successfully" });
   });
 
+  // Simple in-memory rate limiting for password reset requests
+  const passwordResetLimits = new Map();
+  const RESET_RATE_LIMIT = 5; // Max 5 requests per hour per IP/email
+  const RESET_RATE_WINDOW = 60 * 60 * 1000; // 1 hour
+
+  const isPasswordResetRateLimited = (key) => {
+    const now = Date.now();
+    const requests = passwordResetLimits.get(key) || [];
+    
+    // Remove old requests outside the window
+    const recentRequests = requests.filter(time => now - time < RESET_RATE_WINDOW);
+    
+    if (recentRequests.length >= RESET_RATE_LIMIT) {
+      return true;
+    }
+    
+    // Add current request
+    recentRequests.push(now);
+    passwordResetLimits.set(key, recentRequests);
+    
+    return false;
+  };
+
+  // Password Reset - Request Token
+  app.post("/api/auth/password-reset/request", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      // Validate email format
+      if (!validateEmail(email)) {
+        logSecurityEvent('INVALID_EMAIL_RESET_REQUEST', { email: sanitizeInput(email), ip: req.ip });
+        // Always return success to prevent user enumeration
+        return res.json({ message: "If an account exists with that email, a password reset link will be sent." });
+      }
+
+      // Rate limiting by IP and email
+      const ipKey = `ip:${req.ip}`;
+      const emailKey = `email:${email.toLowerCase()}`;
+      
+      if (isPasswordResetRateLimited(ipKey) || isPasswordResetRateLimited(emailKey)) {
+        logSecurityEvent('PASSWORD_RESET_RATE_LIMIT', { email: sanitizeInput(email), ip: req.ip });
+        return res.status(429).json({ message: "Too many password reset requests. Please try again later." });
+      }
+
+      // Check if user exists (but always return success)
+      const user = await storage.getUserByEmail(email.toLowerCase().trim());
+      
+      if (user) {
+        // Generate secure token (32 bytes = 64 hex characters)
+        const token = crypto.randomBytes(32).toString('hex');
+        
+        // Hash the token for storage (using SHA-256 for deterministic hashing)
+        const tokenDigest = crypto.createHash('sha256').update(token).digest('hex');
+        
+        // Token expires in 30 minutes
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+        
+        // Store the reset token
+        await storage.createPasswordReset(user.id, tokenDigest, expiresAt, {
+          ip: req.ip,
+          userAgent: req.get('User-Agent')
+        });
+        
+        // In development, log the token to console for easy testing
+        if (process.env.NODE_ENV !== 'production') {
+          const resetLink = `${req.protocol}://${req.get('host')}/reset?token=${token}`;
+          console.log(`[PASSWORD_RESET] Password reset requested for: ${email}`);
+          console.log(`[PASSWORD_RESET] Reset link: ${resetLink}`);
+          console.log(`[PASSWORD_RESET] Token: ${token}`);
+        }
+        
+        logSecurityEvent('PASSWORD_RESET_REQUESTED', { email: sanitizeInput(email), ip: req.ip });
+      }
+      
+      // Always return success (prevents user enumeration)
+      res.json({ message: "If an account exists with that email, a password reset link will be sent." });
+      
+    } catch (error) {
+      console.error("Password reset request error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Password Reset - Verify Token
+  app.post("/api/auth/password-reset/verify", async (req, res) => {
+    try {
+      const { token } = req.body;
+      
+      if (!token || typeof token !== 'string' || token.length !== 64) {
+        return res.status(400).json({ message: "Invalid reset token" });
+      }
+
+      // Generate token digest for lookup
+      const tokenDigest = crypto.createHash('sha256').update(token).digest('hex');
+      
+      // Find password reset by token digest
+      let foundReset = null;
+      try {
+        foundReset = await storage.findValidPasswordResetByDigest(tokenDigest);
+      } catch (err) {
+        // Token lookup failed
+        console.error('Password reset verify error:', err);
+      }
+      
+      if (!foundReset) {
+        logSecurityEvent('INVALID_PASSWORD_RESET_TOKEN', { token: token.substring(0, 8) + '...', ip: req.ip });
+        return res.status(400).json({ message: "Invalid or expired reset token" });
+      }
+      
+      res.json({ message: "Token is valid" });
+      
+    } catch (error) {
+      console.error("Password reset verify error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Password Reset - Confirm with New Password
+  app.post("/api/auth/password-reset/confirm", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || typeof token !== 'string' || token.length !== 64) {
+        return res.status(400).json({ message: "Invalid reset token" });
+      }
+
+      // Validate new password
+      const passwordValidation = validatePassword(newPassword);
+      if (!passwordValidation.valid) {
+        return res.status(400).json({ message: passwordValidation.message });
+      }
+
+      // Generate token digest for lookup
+      const tokenDigest = crypto.createHash('sha256').update(token).digest('hex');
+      
+      // Find valid reset token
+      let foundReset = null;
+      try {
+        foundReset = await storage.findValidPasswordResetByDigest(tokenDigest);
+      } catch (err) {
+        console.error('Password reset confirm error:', err);
+      }
+
+      if (!foundReset) {
+        logSecurityEvent('INVALID_PASSWORD_RESET_CONFIRMATION', { token: token.substring(0, 8) + '...', ip: req.ip });
+        return res.status(400).json({ message: "Invalid or expired reset token" });
+      }
+
+      // Get the user
+      const user = await storage.getUserById(foundReset.userId);
+      if (!user) {
+        return res.status(400).json({ message: "User not found" });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update user password
+      await storage.updateUserPassword(user.id, hashedPassword);
+      
+      // Mark reset token as used
+      await storage.markPasswordResetUsed(foundReset.id);
+      
+      // Invalidate all other reset tokens for this user
+      await storage.invalidateResetsForUser(user.id);
+      
+      // Optional: Destroy all user sessions to force re-login
+      // This would require session store access which we don't have here
+      
+      logSecurityEvent('PASSWORD_RESET_COMPLETED', { email: sanitizeInput(user.email), ip: req.ip });
+      
+      res.json({ message: "Password has been reset successfully. Please log in with your new password." });
+      
+    } catch (error) {
+      console.error("Password reset confirm error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Authentication middleware
   const requireAuth = (req, res, next) => {
     if (req.session && req.session.userId) {
