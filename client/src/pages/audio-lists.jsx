@@ -11,6 +11,9 @@ const AudioLists = ({ user }) => {
     audioFiles: []
   });
   const [loadingAudio, setLoadingAudio] = useState({}); // Track loading state for each audio file
+  const [playingPlaylist, setPlayingPlaylist] = useState(null); // Track which playlist is playing
+  const [currentAudioIndex, setCurrentAudioIndex] = useState(0); // Track current audio in playlist
+  const [currentAudio, setCurrentAudio] = useState(null); // Track current Audio object
 
   // Debug user permissions
   console.log('[Audio Lists] User received:', user);
@@ -149,7 +152,21 @@ const AudioLists = ({ user }) => {
     return url;
   };
 
+  const stopCurrentAudio = () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      setCurrentAudio(null);
+    }
+    setPlayingPlaylist(null);
+    setCurrentAudioIndex(0);
+    setLoadingAudio({});
+  };
+
   const playAudio = (audioUrl, audioName, listId, audioIndex) => {
+    // Stop any currently playing audio
+    stopCurrentAudio();
+    
     const audioKey = `${listId}-${audioIndex}`;
     
     // Set loading state for this specific audio file
@@ -160,6 +177,7 @@ const AudioLists = ({ user }) => {
     
     const audio = new Audio(proxyUrl);
     audio.volume = 0.7;
+    setCurrentAudio(audio);
     
     // Clear loading state when audio can play
     audio.addEventListener('canplay', () => {
@@ -174,12 +192,78 @@ const AudioLists = ({ user }) => {
     // Clear loading state when audio ends
     audio.addEventListener('ended', () => {
       setLoadingAudio(prev => ({ ...prev, [audioKey]: false }));
+      setCurrentAudio(null);
     });
     
     audio.play().catch(error => {
       console.error('Error playing audio:', error);
       setLoadingAudio(prev => ({ ...prev, [audioKey]: false }));
+      setCurrentAudio(null);
       alert(`Failed to play "${audioName}". Please check the audio URL.`);
+    });
+  };
+
+  const playAllAudios = (list) => {
+    if (!list.audioFiles || list.audioFiles.length === 0) {
+      alert('No audio files in this list to play.');
+      return;
+    }
+
+    // Stop any currently playing audio
+    stopCurrentAudio();
+    
+    setPlayingPlaylist(list.id);
+    setCurrentAudioIndex(0);
+    playNextInPlaylist(list, 0);
+  };
+
+  const playNextInPlaylist = (list, index) => {
+    if (index >= list.audioFiles.length) {
+      // Playlist finished
+      setPlayingPlaylist(null);
+      setCurrentAudioIndex(0);
+      setCurrentAudio(null);
+      return;
+    }
+
+    const audioFile = list.audioFiles[index];
+    const audioKey = `${list.id}-${index}`;
+    
+    // Set loading state for this specific audio file
+    setLoadingAudio(prev => ({ ...prev, [audioKey]: true }));
+    
+    // Use the existing audio proxy system for Google Drive files
+    const proxyUrl = `/api/audio-proxy?url=${encodeURIComponent(convertGoogleDriveUrl(audioFile.url))}`;
+    
+    const audio = new Audio(proxyUrl);
+    audio.volume = 0.7;
+    setCurrentAudio(audio);
+    setCurrentAudioIndex(index);
+    
+    // Clear loading state when audio can play
+    audio.addEventListener('canplay', () => {
+      setLoadingAudio(prev => ({ ...prev, [audioKey]: false }));
+    });
+    
+    // Clear loading state on error and move to next
+    audio.addEventListener('error', () => {
+      setLoadingAudio(prev => ({ ...prev, [audioKey]: false }));
+      console.error(`Failed to load audio: ${audioFile.name}`);
+      // Move to next audio after a brief delay
+      setTimeout(() => playNextInPlaylist(list, index + 1), 1000);
+    });
+    
+    // When audio ends, play the next one
+    audio.addEventListener('ended', () => {
+      setLoadingAudio(prev => ({ ...prev, [audioKey]: false }));
+      playNextInPlaylist(list, index + 1);
+    });
+    
+    audio.play().catch(error => {
+      console.error('Error playing audio:', error);
+      setLoadingAudio(prev => ({ ...prev, [audioKey]: false }));
+      // Move to next audio after error
+      setTimeout(() => playNextInPlaylist(list, index + 1), 1000);
     });
   };
 
@@ -389,24 +473,62 @@ const AudioLists = ({ user }) => {
                       )}
                       
                       <div className="audio-files">
-                        <h6 className="mb-2">
-                          <i className="fas fa-headphones me-2"></i>
-                          Audio Files ({list.audioFiles?.length || 0})
-                        </h6>
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <h6 className="mb-0">
+                            <i className="fas fa-headphones me-2"></i>
+                            Audio Files ({list.audioFiles?.length || 0})
+                          </h6>
+                          {list.audioFiles && list.audioFiles.length > 1 && (
+                            <div className="btn-group" role="group">
+                              <button
+                                className="btn btn-success btn-sm"
+                                onClick={() => playAllAudios(list)}
+                                disabled={playingPlaylist === list.id}
+                                data-testid={`button-play-all-${list.id}`}
+                              >
+                                <i className="fas fa-play me-1"></i>
+                                Play All
+                              </button>
+                              {playingPlaylist === list.id && (
+                                <button
+                                  className="btn btn-danger btn-sm"
+                                  onClick={stopCurrentAudio}
+                                  data-testid={`button-stop-${list.id}`}
+                                >
+                                  <i className="fas fa-stop me-1"></i>
+                                  Stop
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                         
                         {list.audioFiles?.map((audio, index) => {
                           const audioKey = `${list.id}-${index}`;
                           const isLoadingThis = loadingAudio[audioKey];
+                          const isCurrentlyPlaying = playingPlaylist === list.id && currentAudioIndex === index;
                           
                           return (
-                            <div key={index} className="d-flex justify-content-between align-items-center p-2 border rounded mb-2">
+                            <div 
+                              key={index} 
+                              className={`d-flex justify-content-between align-items-center p-2 border rounded mb-2 ${
+                                isCurrentlyPlaying ? 'border-success bg-success bg-opacity-10' : ''
+                              }`}
+                            >
                               <div className="flex-grow-1">
-                                <div className="fw-medium">{audio.name}</div>
+                                <div className={`fw-medium ${isCurrentlyPlaying ? 'text-success' : ''}`}>
+                                  {isCurrentlyPlaying && <i className="fas fa-music me-2"></i>}
+                                  {audio.name}
+                                </div>
+                                {isCurrentlyPlaying && (
+                                  <small className="text-success">Currently playing...</small>
+                                )}
                               </div>
                               <button
                                 className="btn btn-primary btn-sm"
                                 onClick={() => playAudio(audio.url, audio.name, list.id, index)}
                                 disabled={isLoadingThis}
+                                data-testid={`button-play-${list.id}-${index}`}
                               >
                                 {isLoadingThis ? (
                                   <div className="spinner-border spinner-border-sm" role="status">
