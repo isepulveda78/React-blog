@@ -228,6 +228,8 @@ const AdminUsers = ({ user }) => {
     setIsResettingPassword(true);
 
     try {
+      console.log('Password reset request starting for user:', selectedUser.id);
+      
       const response = await fetch(`/api/admin/users/${selectedUser.id}/password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -235,7 +237,13 @@ const AdminUsers = ({ user }) => {
         body: JSON.stringify({ newPassword })
       });
 
+      console.log('Password reset response status:', response.status);
+      console.log('Password reset response ok:', response.ok);
+
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('Password reset success response:', responseData);
+        
         toast({
           title: "Success",
           description: `Password reset successfully for ${selectedUser.name || selectedUser.username}`,
@@ -243,10 +251,13 @@ const AdminUsers = ({ user }) => {
         });
         setShowPasswordModal(false);
       } else {
+        console.log('Password reset failed with status:', response.status);
         const errorData = await response.json();
+        console.log('Password reset error data:', errorData);
         setPasswordError(errorData.message || 'Failed to reset password');
       }
     } catch (error) {
+      console.error('Password reset catch error:', error);
       setPasswordError('Failed to reset password');
     } finally {
       setIsResettingPassword(false);
