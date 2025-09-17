@@ -10,6 +10,7 @@ const AdminUsers = ({ user }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   if (!user || !user.isAdmin) {
@@ -168,6 +169,7 @@ const AdminUsers = ({ user }) => {
     setNewPassword('');
     setConfirmPassword('');
     setPasswordError('');
+    setPasswordSuccess('');
     setShowPasswordModal(true);
   };
 
@@ -196,9 +198,13 @@ const AdminUsers = ({ user }) => {
       });
 
       if (response.ok) {
-        // Show success message and close modal
-        alert(`Password reset successfully for ${selectedUser.name || selectedUser.username}`);
-        setShowPasswordModal(false);
+        // Show success message in modal
+        setPasswordSuccess(`Password reset successfully for ${selectedUser.name || selectedUser.username}`);
+        setPasswordError('');
+        // Auto-close modal after 2 seconds
+        setTimeout(() => {
+          setShowPasswordModal(false);
+        }, 2000);
       } else {
         const errorData = await response.json();
         setPasswordError(errorData.message || 'Failed to reset password');
@@ -341,55 +347,76 @@ const AdminUsers = ({ user }) => {
               </div>
               <form onSubmit={handlePasswordReset}>
                 <div className="modal-body">
-                  {passwordError && (
-                    <div className="alert alert-danger">{passwordError}</div>
+                  {passwordSuccess ? (
+                    <div className="alert alert-success">
+                      <i className="fas fa-check-circle me-2"></i>
+                      {passwordSuccess}
+                    </div>
+                  ) : (
+                    <>
+                      {passwordError && (
+                        <div className="alert alert-danger">{passwordError}</div>
+                      )}
+                      <div className="mb-3">
+                        <label className="form-label">New Password</label>
+                        <input
+                          type="password"
+                          className="form-control"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          minLength="6"
+                          required
+                        />
+                        <div className="form-text">Minimum 6 characters</div>
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Confirm Password</label>
+                        <input
+                          type="password"
+                          className="form-control"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          minLength="6"
+                          required
+                        />
+                      </div>
+                    </>
                   )}
-                  <div className="mb-3">
-                    <label className="form-label">New Password</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      minLength="6"
-                      required
-                    />
-                    <div className="form-text">Minimum 6 characters</div>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Confirm Password</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      minLength="6"
-                      required
-                    />
-                  </div>
                 </div>
                 <div className="modal-footer">
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary" 
-                    onClick={() => setShowPasswordModal(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary"
-                    disabled={isResettingPassword}
-                  >
-                    {isResettingPassword ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2"></span>
-                        Resetting...
-                      </>
-                    ) : (
-                      'Reset Password'
-                    )}
-                  </button>
+                  {passwordSuccess ? (
+                    <button 
+                      type="button" 
+                      className="btn btn-success" 
+                      onClick={() => setShowPasswordModal(false)}
+                    >
+                      Close
+                    </button>
+                  ) : (
+                    <>
+                      <button 
+                        type="button" 
+                        className="btn btn-secondary" 
+                        onClick={() => setShowPasswordModal(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary"
+                        disabled={isResettingPassword}
+                      >
+                        {isResettingPassword ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2"></span>
+                            Resetting...
+                          </>
+                        ) : (
+                          'Reset Password'
+                        )}
+                      </button>
+                    </>
+                  )}
                 </div>
               </form>
             </div>
