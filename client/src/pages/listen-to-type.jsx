@@ -26,6 +26,14 @@ const ListenToType = ({ user }) => {
   // Access key functionality
   const [accessKey, setAccessKey] = useState("");
   const [joiningWithKey, setJoiningWithKey] = useState(false);
+  
+  // Reconnection state
+  const [isReconnecting, setIsReconnecting] = useState(false);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const reconnectTimerRef = useRef(null);
+  const isChatJoinedRef = useRef(false);
+  const manualDisconnectRef = useRef(false);
+  const maxReconnectAttempts = 10;
 
   const chatMessagesRef = useRef(null);
   const { showToast, ToastContainer } = useToast();
@@ -304,20 +312,37 @@ const ListenToType = ({ user }) => {
     }
   }, [messages]);
 
-  const connectToChat = () => {
+  // Cleanup reconnection timer on component unmount
+  useEffect(() => {
+    return () => {
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+      }
+    };
+  }, []);
+
+  const connectToChat = (isReconnect = false) => {
     const displayName = user?.name || chatName;
     if (!displayName.trim() || !selectedChatroom) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
 
-    console.log("[chat] Connecting to WebSocket:", wsUrl);
+    console.log("[chat] Connecting to WebSocket:", wsUrl, isReconnect ? "(reconnect attempt)" : "");
 
     const newSocket = new WebSocket(wsUrl);
     setSocket(newSocket);
 
     newSocket.onopen = () => {
       console.log("[chat] WebSocket connected");
+      
+      // Reset reconnection state on successful connection
+      setIsReconnecting(false);
+      setReconnectAttempts(0);
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
       
       // Small delay to ensure connection is fully established
       setTimeout(() => {
@@ -383,6 +408,7 @@ const ListenToType = ({ user }) => {
         if (data.name === ourName) {
           console.log("[chat] ✅ Successfully joined chatroom as:", ourName);
           setIsChatJoined(true);
+          isChatJoinedRef.current = true;
         }
       } else if (data.type === "user_left") {
         setConnectedUsers((prev) => {
@@ -409,11 +435,38 @@ const ListenToType = ({ user }) => {
 
     newSocket.onclose = (event) => {
       console.log("[chat] WebSocket disconnected - code:", event.code, "reason:", event.reason);
-      if (isChatJoined) {
-        showToast("Chat connection lost. Please rejoin.", "warning", 3000);
-      }
       setSocket(null);
-      setIsChatJoined(false);
+      
+      // Only attempt reconnection if not manual disconnect and under max attempts
+      if (!manualDisconnectRef.current && event.code !== 1000 && reconnectAttempts < maxReconnectAttempts) {
+        setIsReconnecting(true);
+        const newAttempts = reconnectAttempts + 1;
+        setReconnectAttempts(newAttempts);
+        
+        // Exponential backoff with jitter: 500ms, 1s, 2s, 4s, 8s, up to 10s max
+        const baseDelay = Math.min(500 * Math.pow(2, newAttempts - 1), 10000);
+        const jitter = baseDelay * 0.2 * (Math.random() - 0.5); // ±10% jitter
+        const delay = Math.max(500, baseDelay + jitter);
+        
+        console.log(`[chat] Attempting reconnection ${newAttempts}/${maxReconnectAttempts} in ${Math.round(delay)}ms`);
+        showToast(`Connection lost. Reconnecting in ${Math.round(delay/1000)}s... (${newAttempts}/${maxReconnectAttempts})`, "warning", Math.round(delay));
+        
+        reconnectTimerRef.current = setTimeout(() => {
+          console.log(`[chat] Executing reconnection attempt ${newAttempts}`);
+          connectToChat(true);
+        }, delay);
+      } else {
+        // Final disconnection or manual disconnect
+        setIsChatJoined(false);
+        isChatJoinedRef.current = false;
+        setIsReconnecting(false);
+        if (reconnectAttempts >= maxReconnectAttempts) {
+          showToast("Unable to reconnect after multiple attempts. Please refresh the page.", "error", 5000);
+          setReconnectAttempts(0);
+        } else if (event.code === 1000 && !manualDisconnectRef.current) {
+          showToast("Disconnected from chat.", "info", 2000);
+        }
+      }
     };
 
     newSocket.onerror = (error) => {
@@ -448,15 +501,32 @@ const ListenToType = ({ user }) => {
   };
 
   const disconnectFromChat = () => {
+    // Set manual disconnect flag to prevent reconnection attempts
+    manualDisconnectRef.current = true;
+    
+    // Clear reconnection state and timer
+    setIsReconnecting(false);
+    setReconnectAttempts(0);
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
+    
     if (socket) {
-      socket.close();
+      socket.close(1000, 'Manual disconnect'); // Use code 1000 for clean disconnect
     }
     setIsChatJoined(false);
+    isChatJoinedRef.current = false;
     setSocket(null);
     setMessages([]);
     setConnectedUsers(new Set());
     setChatName("");
     setSelectedChatroom(null);
+    
+    // Reset manual disconnect flag after cleanup
+    setTimeout(() => {
+      manualDisconnectRef.current = false;
+    }, 100);
   };
 
   const formatTime = (timestamp) => {

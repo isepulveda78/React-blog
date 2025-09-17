@@ -2841,6 +2841,7 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     wss = new WebSocketServer({ 
       server: httpServer, 
       path: '/ws',
+      perMessageDeflate: false, // Disable compression to prevent CPU/memory issues under load
       verifyClient: (info, cb) => {
         console.log('[websocket] Verifying client connection:', {
           origin: info.origin,
@@ -2888,6 +2889,40 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   const chatroomUsers = new Map(); // Map of chatroom ID -> Set of user names
   let messageId = 1;
 
+  // Set up heartbeat interval to prevent proxy timeouts and keep sessions alive
+  if (wss) {
+    const heartbeatInterval = setInterval(() => {
+      wss.clients.forEach((ws) => {
+        if (ws.isAlive === false) {
+          console.log('[websocket] Terminating inactive connection');
+          return ws.terminate();
+        }
+        
+        // Reset alive flag and ping client
+        ws.isAlive = false;
+        ws.ping();
+        
+        // Refresh session TTL to prevent session expiration during WebSocket use
+        if (ws.sessionId && sessionStore) {
+          sessionStore.get(ws.sessionId, (err, session) => {
+            if (!err && session) {
+              sessionStore.touch(ws.sessionId, session, (touchErr) => {
+                if (touchErr) {
+                  console.error('[websocket] Failed to refresh session:', touchErr);
+                }
+              });
+            }
+          });
+        }
+      });
+    }, 30000); // 30 second heartbeat interval
+    
+    // Clean up interval when server shuts down
+    wss.on('close', () => {
+      clearInterval(heartbeatInterval);
+    });
+  }
+
   if (wss) {
     wss.on('connection', (ws, req) => {
     console.log('[websocket] New client connected from:', req.socket.remoteAddress);
@@ -2908,6 +2943,14 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     }
     
     console.log('[websocket] Authenticated user connected:', ws.user.email);
+    
+    // Initialize heartbeat mechanism to prevent proxy timeouts and session expiration
+    ws.isAlive = true;
+    ws.sessionId = req.sessionID;
+    
+    ws.on('pong', () => {
+      ws.isAlive = true;
+    });
     
     // Add error handler for the WebSocket connection
     ws.on('error', (error) => {
@@ -3081,12 +3124,28 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   });
   } // Close the if (wss) block
 
-  // Broadcast message to all connected clients except sender
+  // Broadcast message to all connected clients except sender - with backpressure protection
   function broadcast(message, excludeWs = null) {
     if (!wss) return; // Guard against missing WebSocket server
+    const messageStr = JSON.stringify(message);
+    
     wss.clients.forEach((client) => {
       if (client !== excludeWs && client.readyState === 1) { // WebSocket.OPEN = 1
-        client.send(JSON.stringify(message));
+        try {
+          // Check for backpressure - if buffer is too large, skip this client to prevent blocking
+          if (client.bufferedAmount > 1024 * 1024) { // 1MB buffer limit
+            console.warn('[websocket] Skipping client with high buffer amount:', client.bufferedAmount);
+            return;
+          }
+          
+          client.send(messageStr);
+        } catch (error) {
+          console.error('[websocket] Error sending message to client:', error);
+          // Gracefully close problematic connection
+          if (client.readyState === 1) {
+            client.terminate();
+          }
+        }
       }
     });
   }
@@ -3111,15 +3170,27 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     console.log(`[websocket] Users in chatroom ${chatroomId}:`, chatroomUsersInChat);
     
     let broadcastCount = 0;
+    const messageStr = JSON.stringify(message);
+    
     wss.clients.forEach((client) => {
       const user = chatUsers.get(client);
       if (client !== excludeWs && client.readyState === 1 && user && user.chatroom === chatroomId) {
         try {
-          client.send(JSON.stringify(message));
+          // Check for backpressure - if buffer is too large, skip this client to prevent blocking
+          if (client.bufferedAmount > 1024 * 1024) { // 1MB buffer limit
+            console.warn('[websocket] Skipping client with high buffer amount:', client.bufferedAmount, 'for user:', user.name);
+            return;
+          }
+          
+          client.send(messageStr);
           broadcastCount++;
           console.log(`[websocket] Sent message to: ${user.name} (${user.role})`);
         } catch (error) {
           console.error('[websocket] Error sending message to client:', error);
+          // Gracefully close problematic connection
+          if (client.readyState === 1) {
+            client.terminate();
+          }
         }
       }
     });
