@@ -15,6 +15,21 @@ const AdminUsers = ({ user }) => {
   const [notification, setNotification] = useState({ message: '', type: '' });
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, userId: null, userName: '' });
 
+  // ALL useEffects must be at the top level, before any conditional returns
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Auto-dismiss notification after 4 seconds
+  useEffect(() => {
+    if (notification.message) {
+      const timer = setTimeout(() => {
+        setNotification({ message: '', type: '' });
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification.message]);
+
   if (!user || !user.isAdmin) {
     return (
       <div className="container py-5">
@@ -24,10 +39,6 @@ const AdminUsers = ({ user }) => {
       </div>
     );
   }
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const fetchUsers = async () => {
     try {
@@ -224,16 +235,6 @@ const AdminUsers = ({ user }) => {
       </div>
     );
   }
-
-  // Auto-dismiss notification after 4 seconds
-  React.useEffect(() => {
-    if (notification.message) {
-      const timer = setTimeout(() => {
-        setNotification({ message: '', type: '' });
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification.message]);
 
   return (
     <div className="container py-5">
