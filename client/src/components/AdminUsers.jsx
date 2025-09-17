@@ -12,6 +12,8 @@ const AdminUsers = ({ user }) => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [notification, setNotification] = useState({ message: '', type: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, userId: null, userName: '' });
 
   if (!user || !user.isAdmin) {
     return (
@@ -66,6 +68,11 @@ const AdminUsers = ({ user }) => {
   };
 
   const updateUserRole = async (userId, newRole) => {
+    if (userId === user.id) {
+      setNotification({ message: "You cannot change your own role", type: 'error' });
+      return;
+    }
+    
     try {
       const response = await fetch(`/api/users/${userId}/role`, {
         method: 'PATCH',
@@ -77,15 +84,19 @@ const AdminUsers = ({ user }) => {
       if (response.ok) {
         const updatedUser = await response.json();
         setUsers(users.map(u => u.id === userId ? updatedUser : u));
+        setNotification({ message: `Role updated successfully for ${updatedUser.name || updatedUser.username}`, type: 'success' });
+      } else {
+        setNotification({ message: "Failed to update user role", type: 'error' });
       }
     } catch (error) {
       console.error('Error updating user role:', error);
+      setNotification({ message: "Error updating user role", type: 'error' });
     }
   };
 
   const toggleUserAdmin = async (userId, currentAdmin) => {
     if (userId === user.id) {
-      alert("Action Not Allowed: You cannot change your own admin status");
+      setNotification({ message: "You cannot change your own admin status", type: 'error' });
       return;
     }
     
@@ -103,49 +114,35 @@ const AdminUsers = ({ user }) => {
         
         // Show success message with refresh instruction
         if (!currentAdmin) {
-          alert(`Admin Access Granted: ${updatedUser.name} has been granted admin access! They may need to refresh their browser to see the admin dashboard.`);
+          setNotification({ message: `${updatedUser.name} has been granted admin access! They may need to refresh their browser to see the admin dashboard.`, type: 'success' });
         } else {
-          alert(`Admin Access Removed: ${updatedUser.name}'s admin access has been removed.`);
+          setNotification({ message: `${updatedUser.name}'s admin access has been removed.`, type: 'success' });
         }
+      } else {
+        setNotification({ message: "Failed to update admin status", type: 'error' });
       }
     } catch (error) {
       console.error('Error updating user admin status:', error);
+      setNotification({ message: "Error updating admin status", type: 'error' });
     }
   };
 
-  const changeUserRole = async (userId, newRole) => {
-    if (userId === user.id) {
-      alert("Action Not Allowed: You cannot change your own role");
-      return;
-    }
-    
-    try {
-      const response = await fetch(`/api/users/${userId}/role`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ role: newRole })
-      });
-      
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setUsers(users.map(u => u.id === userId ? updatedUser : u));
-      } else {
-        alert("Error: Failed to update user role");
-      }
-    } catch (error) {
-      console.error('Error updating user role:', error);
-      alert("Error: Error updating user role");
-    }
-  };
+  // Remove duplicate function - consolidated into updateUserRole
 
   const deleteUser = async (userId) => {
     if (userId === user.id) {
-      alert("Action Not Allowed: You cannot delete your own account");
+      setNotification({ message: "You cannot delete your own account", type: 'error' });
       return;
     }
     
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    // Show delete confirmation instead of browser confirm
+    const userToDelete = users.find(u => u.id === userId);
+    setDeleteConfirm({ show: true, userId, userName: userToDelete.name || userToDelete.username });
+  };
+
+  const confirmDeleteUser = async () => {
+    const { userId } = deleteConfirm;
+    setDeleteConfirm({ show: false, userId: null, userName: '' });
     
     try {
       const response = await fetch(`/api/users/${userId}`, {
@@ -155,12 +152,12 @@ const AdminUsers = ({ user }) => {
       
       if (response.ok) {
         setUsers(users.filter(u => u.id !== userId));
-        alert("Success: User deleted successfully");
+        setNotification({ message: "User deleted successfully", type: 'success' });
       } else {
-        alert("Error: Failed to delete user");
+        setNotification({ message: "Failed to delete user", type: 'error' });
       }
     } catch (error) {
-      alert("Error: Error deleting user");
+      setNotification({ message: "Error deleting user", type: 'error' });
     }
   };
 
@@ -228,9 +225,32 @@ const AdminUsers = ({ user }) => {
     );
   }
 
+  // Auto-dismiss notification after 4 seconds
+  React.useEffect(() => {
+    if (notification.message) {
+      const timer = setTimeout(() => {
+        setNotification({ message: '', type: '' });
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification.message]);
+
   return (
     <div className="container py-5">
       <h1 className="display-4 fw-bold text-primary mb-4">Manage Users</h1>
+      
+      {/* Notification Display */}
+      {notification.message && (
+        <div className={`alert ${notification.type === 'success' ? 'alert-success' : 'alert-danger'} alert-dismissible`}>
+          <i className={`fas ${notification.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'} me-2`}></i>
+          {notification.message}
+          <button 
+            type="button" 
+            className="btn-close" 
+            onClick={() => setNotification({ message: '', type: '' })}
+          ></button>
+        </div>
+      )}
 
       <div className="table-responsive">
         <table className="table table-striped">
@@ -419,6 +439,48 @@ const AdminUsers = ({ user }) => {
                   )}
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.show && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirm Delete</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setDeleteConfirm({ show: false, userId: null, userName: '' })}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="alert alert-warning">
+                  <i className="fas fa-exclamation-triangle me-2"></i>
+                  Are you sure you want to delete <strong>{deleteConfirm.userName}</strong>?
+                </div>
+                <p className="text-muted">This action cannot be undone.</p>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setDeleteConfirm({ show: false, userId: null, userName: '' })}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-danger"
+                  onClick={confirmDeleteUser}
+                >
+                  <i className="fas fa-trash me-2"></i>
+                  Delete User
+                </button>
+              </div>
             </div>
           </div>
         </div>
