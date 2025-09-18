@@ -456,7 +456,6 @@ const AdminUsers = ({ user }) => {
           <thead className="table-dark">
             <tr>
               <th>User</th>
-              <th>Email</th>
               <th>Status</th>
               <th>Role</th>
               <th>Teacher Assignment</th>
@@ -481,10 +480,11 @@ const AdminUsers = ({ user }) => {
                       <strong>{userItem.name || userItem.username}</strong>
                       <br />
                       <small className="text-muted">@{userItem.username}</small>
+                      <br />
+                      <small className="text-muted">{userItem.email}</small>
                     </div>
                   </div>
                 </td>
-                <td>{userItem.email}</td>
                 <td>
                   <span className={`badge ${userItem.approved ? 'bg-success' : 'bg-warning'}`}>
                     {userItem.approved ? 'Approved' : 'Pending'}
