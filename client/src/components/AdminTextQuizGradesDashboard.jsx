@@ -182,7 +182,7 @@ const AdminTextQuizGradesDashboard = ({ user }) => {
           </div>
         </div>
         <div className="col-md-3">
-          <div className="card text-center bg-primary text-white">
+          <div className="card text-center bg-danger text-white">
             <div className="card-body">
               <h3 className="card-title">{passedCount}</h3>
               <p className="card-text">Passed (≥70%)</p>

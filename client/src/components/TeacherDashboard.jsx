@@ -124,7 +124,7 @@ const TeacherDashboard = ({ user }) => {
       </div>
       
       <div className="col-md-6 col-lg-3">
-        <div className="card h-100 bg-primary text-white">
+        <div className="card h-100 bg-danger text-white">
           <div className="card-body text-center">
             <div className="display-4 mb-2">👥</div>
             <h3 className="card-title">{students.length}</h3>
