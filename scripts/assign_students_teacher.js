@@ -5,13 +5,17 @@
  * Usage: node scripts/assign_students_teacher.js [--dry-run] [--override-existing]
  */
 
-const { MongoClient } = require('mongodb');
-const fs = require('fs');
-const path = require('path');
+import { MongoClient } from 'mongodb';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configuration
 const TARGET_TEACHER_EMAIL = 'sepulveda.israel@gmail.com';
-const MONGODB_URI = process.env.DATABASE_URL || 'mongodb://localhost:27017/blogcraft';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/blogcraft';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
