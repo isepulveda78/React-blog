@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 
 const EducationalTools = ({ user }) => {
+  const [location, setLocation] = useLocation();
+  
   // Check if user is a teacher or admin
   const isTeacherOrAdmin = user && (user.isAdmin || user.role === 'teacher');
   
@@ -125,8 +128,8 @@ const EducationalTools = ({ user }) => {
   });
 
   const handleToolNavigation = (route) => {
-    // Use hash-based routing
-    window.location.hash = route;
+    // Use proper router navigation
+    setLocation(route);
   };
 
   return (
