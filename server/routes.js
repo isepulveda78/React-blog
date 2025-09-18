@@ -1629,6 +1629,58 @@ export function registerRoutes(app) {
     }
   });
 
+  // Update student teacher assignment
+  app.patch('/api/users/:userId/teacher', async (req, res) => {
+    try {
+      console.log('[student-teacher] Request from:', req.session.user?.email, 'isAdmin:', req.session.user?.isAdmin);
+      console.log('[student-teacher] Target userId:', req.params.userId);
+      console.log('[student-teacher] Request body:', req.body);
+      
+      // Check if user is admin
+      if (!req.session.user?.isAdmin) {
+        console.log('[student-teacher] Access denied - user is not admin');
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const { teacherId } = req.body;
+
+      // teacherId can be null to remove assignment
+      if (teacherId !== null && typeof teacherId !== 'string') {
+        console.log('[student-teacher] Invalid teacherId value:', typeof teacherId, teacherId);
+        return res.status(400).json({ message: 'teacherId must be a string or null' });
+      }
+
+      console.log('[student-teacher] Calling storage.updateStudentTeacher...');
+      const updatedUser = await storage.updateStudentTeacher(userId, teacherId);
+      
+      if (!updatedUser) {
+        console.log('[student-teacher] Student not found or teacher invalid:', userId);
+        return res.status(404).json({ message: 'Student not found or teacher invalid' });
+      }
+
+      console.log('[student-teacher] Student teacher assignment updated successfully:', updatedUser.email, 'teacherId:', updatedUser.teacherId);
+
+      // Return safe user data including teacherId
+      const safeUser = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        username: updatedUser.username,
+        name: updatedUser.name,
+        isAdmin: updatedUser.isAdmin,
+        approved: updatedUser.approved,
+        role: updatedUser.role,
+        teacherId: updatedUser.teacherId,
+        createdAt: updatedUser.createdAt
+      };
+
+      res.json(safeUser);
+    } catch (error) {
+      console.error('[student-teacher] Error updating student teacher assignment:', error);
+      res.status(500).json({ message: 'Failed to update teacher assignment' });
+    }
+  });
+
   // Update user role (student/teacher)
   app.patch('/api/users/:userId/role', async (req, res) => {
     try {

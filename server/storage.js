@@ -52,6 +52,13 @@ class MemStorage {
     return this.users[index];
   }
 
+  async updateStudentTeacher(userId, teacherId) {
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return null;
+    this.users[index] = { ...this.users[index], teacherId, updatedAt: new Date().toISOString() };
+    return this.users[index];
+  }
+
   async updateUserAdminStatus(userId, isAdmin) {
     const index = this.users.findIndex(u => u.id === userId);
     if (index === -1) return null;
@@ -1342,6 +1349,48 @@ export class MongoStorage {
     const result = await this.db.collection('users').findOneAndUpdate(
       { id: userId },
       { $set: { isAdmin, updatedAt: new Date().toISOString() } },
+      { returnDocument: 'after' }
+    );
+    
+    console.log('[mongodb] Update result:', result);
+    return result || result.value;
+  }
+
+  async updateStudentTeacher(userId, teacherId) {
+    await this.connect();
+    console.log('[mongodb] Looking for student with id:', userId);
+    
+    // First check if user exists
+    const existingUser = await this.db.collection('users').findOne({ id: userId });
+    if (!existingUser) {
+      console.log('[mongodb] User not found with id:', userId);
+      return null;
+    }
+    
+    // Check if the user is a student
+    if (existingUser.role !== 'student') {
+      console.log('[mongodb] User is not a student:', existingUser.email);
+      return null;
+    }
+    
+    // If teacherId is provided, verify the teacher exists
+    if (teacherId) {
+      const teacher = await this.db.collection('users').findOne({ 
+        id: teacherId, 
+        role: 'teacher', 
+        approved: true 
+      });
+      if (!teacher) {
+        console.log('[mongodb] Teacher not found or not approved with id:', teacherId);
+        return null;
+      }
+    }
+    
+    console.log('[mongodb] Found student:', existingUser.email, 'updating teacherId to:', teacherId);
+    
+    const result = await this.db.collection('users').findOneAndUpdate(
+      { id: userId },
+      { $set: { teacherId, updatedAt: new Date().toISOString() } },
       { returnDocument: 'after' }
     );
     
