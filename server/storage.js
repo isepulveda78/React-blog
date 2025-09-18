@@ -825,13 +825,17 @@ export class MongoStorage {
       return;
     }
 
-    // Assign all students without a teacherId to the admin teacher
+    // Assign ALL students to the admin teacher (not just those without teacherId)
     const result = await this.db.collection('users').updateMany(
-      { role: "student", teacherId: { $exists: false } },
+      { role: "student" },
       { $set: { teacherId: adminTeacher.id } }
     );
     
     console.log('[mongodb] Student assignment fix result:', result.modifiedCount, 'students assigned to teacher');
+    
+    // Also log how many students total exist
+    const studentCount = await this.db.collection('users').countDocuments({ role: "student" });
+    console.log('[mongodb] Total students in database:', studentCount);
   }
 
   async fixTestPostSlug() {
