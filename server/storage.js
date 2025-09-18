@@ -811,6 +811,29 @@ export class MongoStorage {
     console.log('[mongodb] Admin user fix result:', result.modifiedCount, 'documents modified');
   }
 
+  async fixStudentAssignments() {
+    console.log('[mongodb] Fixing student assignments to teachers...');
+    
+    // Get the admin teacher
+    const adminTeacher = await this.db.collection('users').findOne({ 
+      email: "admin@example.com", 
+      role: "teacher" 
+    });
+    
+    if (!adminTeacher) {
+      console.log('[mongodb] No admin teacher found, skipping student assignment fix');
+      return;
+    }
+
+    // Assign all students without a teacherId to the admin teacher
+    const result = await this.db.collection('users').updateMany(
+      { role: "student", teacherId: { $exists: false } },
+      { $set: { teacherId: adminTeacher.id } }
+    );
+    
+    console.log('[mongodb] Student assignment fix result:', result.modifiedCount, 'students assigned to teacher');
+  }
+
   async fixTestPostSlug() {
     console.log('[mongodb] Fixing test post slug...');
     const testPost = await this.db.collection('posts').findOne({ title: "test" });
@@ -829,6 +852,8 @@ export class MongoStorage {
     if (existingUsers > 0) {
       // Fix admin user if data exists
       await this.fixAdminUser();
+      // Fix student assignments to teachers
+      await this.fixStudentAssignments();
       // Fix the test post slug if it exists
       await this.fixTestPostSlug();
       return; // Data already exists
@@ -861,11 +886,52 @@ export class MongoStorage {
       role: "student",
       isAdmin: false,
       approved: true,
+      teacherId: adminUser.id,  // Assign to the admin teacher
+      createdAt: new Date().toISOString()
+    };
+
+    // Create additional sample students assigned to the teacher
+    const student2 = {
+      id: nanoid(),
+      email: "student2@example.com",
+      username: "student2",
+      name: "Maria Garcia",
+      password: await bcrypt.hash("password", 10),
+      role: "student",
+      isAdmin: false,
+      approved: true,
+      teacherId: adminUser.id,
+      createdAt: new Date().toISOString()
+    };
+
+    const student3 = {
+      id: nanoid(),
+      email: "student3@example.com", 
+      username: "student3",
+      name: "James Wilson",
+      password: await bcrypt.hash("password", 10),
+      role: "student",
+      isAdmin: false,
+      approved: true,
+      teacherId: adminUser.id,
+      createdAt: new Date().toISOString()
+    };
+
+    const student4 = {
+      id: nanoid(),
+      email: "student4@example.com",
+      username: "student4", 
+      name: "Sarah Kim",
+      password: await bcrypt.hash("password", 10),
+      role: "student",
+      isAdmin: false,
+      approved: true,
+      teacherId: adminUser.id,
       createdAt: new Date().toISOString()
     };
     
-    await this.db.collection('users').insertMany([adminUser, regularUser]);
-    console.log('[mongodb] Sample users created');
+    await this.db.collection('users').insertMany([adminUser, regularUser, student2, student3, student4]);
+    console.log('[mongodb] Sample users created (1 teacher + 4 students)');
     
     // Create sample categories
     const techCategory = {
