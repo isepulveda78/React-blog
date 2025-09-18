@@ -44,7 +44,7 @@ const Navigation = ({ user, onLogout }) => {
       password: "",
       username: "",
       name: "",
-      role: "",
+      role: "student", // Force to student since backend only allows students
       teacherId: "",
     });
     const [error, setError] = useState("");
@@ -52,14 +52,10 @@ const Navigation = ({ user, onLogout }) => {
     const [teachers, setTeachers] = useState([]);
     const [loadingTeachers, setLoadingTeachers] = useState(false);
 
-    // Fetch teachers when role changes to student
+    // Fetch teachers on component mount since all new users are students
     useEffect(() => {
-      if (formData.role === 'student') {
-        fetchTeachers();
-      } else {
-        setFormData(prev => ({ ...prev, teacherId: "" })); // Clear teacher selection
-      }
-    }, [formData.role]);
+      fetchTeachers();
+    }, []);
 
     const fetchTeachers = async () => {
       setLoadingTeachers(true);
@@ -267,33 +263,9 @@ const Navigation = ({ user, onLogout }) => {
                   }),
                 ),
 
-              // Role selection for registration
-              !isLoginMode &&
-                React.createElement(
-                  "div",
-                  { className: "mb-3" },
-                  React.createElement(
-                    "label",
-                    { className: "form-label" },
-                    "I am a:",
-                  ),
-                  React.createElement(
-                    "select",
-                    {
-                      className: "form-select",
-                      name: "role",
-                      value: formData.role,
-                      onChange: handleChange,
-                      required: true,
-                    },
-                    React.createElement("option", { value: "" }, "Select your role"),
-                    React.createElement("option", { value: "teacher" }, "Teacher"),
-                    React.createElement("option", { value: "student" }, "Student"),
-                  ),
-                ),
 
-              // Teacher selection for students
-              !isLoginMode && formData.role === 'student' &&
+              // Teacher selection (required for all new students)
+              !isLoginMode &&
                 React.createElement(
                   "div",
                   { className: "mb-3" },
