@@ -105,4 +105,4 @@ test-*.html
 # attached_assets/
 
 # User-specific files
-editingQuiz
+editingQuizscripts/rollback_assign_teacher_*.json
