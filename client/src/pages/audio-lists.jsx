@@ -5,6 +5,7 @@ const AudioLists = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingList, setEditingList] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -22,6 +23,29 @@ const AudioLists = ({ user }) => {
 
   const isTeacherOrAdmin = user && (user.isAdmin || user.role === 'teacher');
   console.log('[Audio Lists] isTeacherOrAdmin:', isTeacherOrAdmin);
+
+  // Filter audio lists based on search query
+  const filteredAudioLists = audioLists.filter(list => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    
+    // Search in title
+    if (list.title.toLowerCase().includes(query)) return true;
+    
+    // Search in description
+    if (list.description && list.description.toLowerCase().includes(query)) return true;
+    
+    // Search in creator name
+    if (list.creatorName && list.creatorName.toLowerCase().includes(query)) return true;
+    
+    // Search in audio file names
+    if (list.audioFiles && list.audioFiles.some(audio => 
+      audio.name.toLowerCase().includes(query)
+    )) return true;
+    
+    return false;
+  });
 
   useEffect(() => {
     fetchAudioLists();
@@ -305,6 +329,44 @@ const AudioLists = ({ user }) => {
             )}
           </div>
 
+          {/* Search Bar */}
+          {audioLists.length > 0 && (
+            <div className="mb-4">
+              <div className="row justify-content-center">
+                <div className="col-md-6">
+                  <div className="input-group">
+                    <span className="input-group-text">
+                      <i className="fas fa-search"></i>
+                    </span>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Search audio lists by title, description, creator, or audio file names..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      data-testid="search-audio-lists"
+                    />
+                    {searchQuery && (
+                      <button
+                        className="btn btn-outline-secondary"
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        title="Clear search"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    )}
+                  </div>
+                  {searchQuery && (
+                    <small className="text-muted">
+                      Found {filteredAudioLists.length} of {audioLists.length} audio lists
+                    </small>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Create/Edit Form */}
           {showCreateForm && (
             <div className="card mb-4">
@@ -437,9 +499,23 @@ const AudioLists = ({ user }) => {
                 }
               </p>
             </div>
+          ) : filteredAudioLists.length === 0 ? (
+            <div className="text-center py-5">
+              <i className="fas fa-search fa-4x text-muted mb-3"></i>
+              <h3 className="text-muted">No Results Found</h3>
+              <p className="text-muted">
+                No audio lists match your search for "{searchQuery}"
+              </p>
+              <button 
+                className="btn btn-outline-primary"
+                onClick={() => setSearchQuery('')}
+              >
+                Clear Search
+              </button>
+            </div>
           ) : (
             <div className="row">
-              {audioLists.map((list) => (
+              {filteredAudioLists.map((list) => (
                 <div key={list.id} className="col-md-6 col-lg-4 mb-4">
                   <div className="card h-100">
                     <div className="card-header d-flex justify-content-between align-items-start">
