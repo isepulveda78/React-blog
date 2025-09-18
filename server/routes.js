@@ -1645,18 +1645,52 @@ export function registerRoutes(app) {
       const { userId } = req.params;
       const { teacherId } = req.body;
 
-      // teacherId can be null to remove assignment
-      if (teacherId !== null && typeof teacherId !== 'string') {
-        console.log('[student-teacher] Invalid teacherId value:', typeof teacherId, teacherId);
-        return res.status(400).json({ message: 'teacherId must be a string or null' });
+      // Validate userId is provided
+      if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
       }
 
-      console.log('[student-teacher] Calling storage.updateStudentTeacher...');
+      // teacherId can be null to remove assignment
+      if (teacherId !== null && (typeof teacherId !== 'string' || teacherId.trim() === '')) {
+        console.log('[student-teacher] Invalid teacherId value:', typeof teacherId, teacherId);
+        return res.status(400).json({ message: 'teacherId must be a non-empty string or null' });
+      }
+
+      // First verify the target user exists and is a student
+      const targetUser = await storage.getUserById(userId);
+      if (!targetUser) {
+        console.log('[student-teacher] Target user not found:', userId);
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      if (targetUser.role !== 'student') {
+        console.log('[student-teacher] Target user is not a student:', targetUser.email, 'role:', targetUser.role);
+        return res.status(400).json({ message: 'Only students can be assigned to teachers' });
+      }
+
+      // If teacherId is provided, verify it's a valid approved teacher
+      if (teacherId) {
+        const teacher = await storage.getUserById(teacherId);
+        if (!teacher) {
+          console.log('[student-teacher] Teacher not found:', teacherId);
+          return res.status(400).json({ message: 'Teacher not found' });
+        }
+        if (teacher.role !== 'teacher') {
+          console.log('[student-teacher] User is not a teacher:', teacher.email, 'role:', teacher.role);
+          return res.status(400).json({ message: 'Selected user is not a teacher' });
+        }
+        if (!teacher.approved) {
+          console.log('[student-teacher] Teacher is not approved:', teacher.email);
+          return res.status(400).json({ message: 'Teacher is not approved' });
+        }
+      }
+
+      console.log('[student-teacher] Admin', req.session.user.email, 'updating student', targetUser.email, 'teacherId to:', teacherId);
       const updatedUser = await storage.updateStudentTeacher(userId, teacherId);
       
       if (!updatedUser) {
-        console.log('[student-teacher] Student not found or teacher invalid:', userId);
-        return res.status(404).json({ message: 'Student not found or teacher invalid' });
+        console.log('[student-teacher] Failed to update student teacher assignment:', userId);
+        return res.status(500).json({ message: 'Failed to update teacher assignment' });
       }
 
       console.log('[student-teacher] Student teacher assignment updated successfully:', updatedUser.email, 'teacherId:', updatedUser.teacherId);

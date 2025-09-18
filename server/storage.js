@@ -55,6 +55,20 @@ class MemStorage {
   async updateStudentTeacher(userId, teacherId) {
     const index = this.users.findIndex(u => u.id === userId);
     if (index === -1) return null;
+    
+    // Check if the user is a student
+    if (this.users[index].role !== 'student') {
+      return null;
+    }
+    
+    // If teacherId is provided, verify the teacher exists and is approved
+    if (teacherId) {
+      const teacher = this.users.find(u => u.id === teacherId && u.role === 'teacher' && u.approved);
+      if (!teacher) {
+        return null;
+      }
+    }
+    
     this.users[index] = { ...this.users[index], teacherId, updatedAt: new Date().toISOString() };
     return this.users[index];
   }
@@ -1373,7 +1387,7 @@ export class MongoStorage {
       return null;
     }
     
-    // If teacherId is provided, verify the teacher exists
+    // If teacherId is provided, verify the teacher exists and is approved
     if (teacherId) {
       const teacher = await this.db.collection('users').findOne({ 
         id: teacherId, 
@@ -1388,9 +1402,14 @@ export class MongoStorage {
     
     console.log('[mongodb] Found student:', existingUser.email, 'updating teacherId to:', teacherId);
     
+    // Use $set for valid teacherId or $unset for null/removal
+    const updateOperation = teacherId 
+      ? { $set: { teacherId, updatedAt: new Date().toISOString() } }
+      : { $unset: { teacherId: "" }, $set: { updatedAt: new Date().toISOString() } };
+    
     const result = await this.db.collection('users').findOneAndUpdate(
       { id: userId },
-      { $set: { teacherId, updatedAt: new Date().toISOString() } },
+      updateOperation,
       { returnDocument: 'after' }
     );
     

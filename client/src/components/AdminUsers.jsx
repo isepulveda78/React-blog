@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 const AdminUsers = ({ user }) => {
   const [users, setUsers] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -22,6 +23,7 @@ const AdminUsers = ({ user }) => {
   // ALL useEffects must be at the top level, before any conditional returns
   useEffect(() => {
     fetchUsers();
+    fetchTeachers();
   }, []);
 
   // Auto-dismiss notification after 4 seconds
@@ -98,6 +100,23 @@ const AdminUsers = ({ user }) => {
     setLoading(false);
   };
 
+  const fetchTeachers = async () => {
+    try {
+      console.log('[AdminUsers] Fetching teachers...');
+      const response = await fetch('/api/teachers', { credentials: 'include' });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('[AdminUsers] Teachers received:', data.length);
+        setTeachers(data);
+      } else {
+        console.error('[AdminUsers] Error fetching teachers:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+    }
+  };
+
   const toggleUserApproval = async (userId, currentApproval) => {
     try {
       const response = await fetch(`/api/users/${userId}/approval`, {
@@ -134,12 +153,44 @@ const AdminUsers = ({ user }) => {
         const updatedUser = await response.json();
         setUsers(users.map(u => u.id === userId ? updatedUser : u));
         setNotification({ message: `Role updated successfully for ${updatedUser.name || updatedUser.username}`, type: 'success' });
+        // Refresh teachers list if the role was changed to/from teacher
+        if (newRole === 'teacher' || users.find(u => u.id === userId)?.role === 'teacher') {
+          fetchTeachers();
+        }
       } else {
         setNotification({ message: "Failed to update user role", type: 'error' });
       }
     } catch (error) {
       console.error('Error updating user role:', error);
       setNotification({ message: "Error updating user role", type: 'error' });
+    }
+  };
+
+  const updateStudentTeacher = async (userId, teacherId) => {
+    try {
+      const response = await fetch(`/api/users/${userId}/teacher`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ teacherId: teacherId || null })
+      });
+      
+      if (response.ok) {
+        const updatedUser = await response.json();
+        setUsers(users.map(u => u.id === userId ? updatedUser : u));
+        const studentName = updatedUser.name || updatedUser.username;
+        const teacherName = teacherId ? teachers.find(t => t.id === teacherId)?.name || 'Unknown Teacher' : 'No Teacher';
+        setNotification({ 
+          message: `${studentName} assigned to ${teacherName}`, 
+          type: 'success' 
+        });
+      } else {
+        const errorData = await response.json();
+        setNotification({ message: errorData.message || "Failed to update teacher assignment", type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error updating student teacher assignment:', error);
+      setNotification({ message: "Error updating teacher assignment", type: 'error' });
     }
   };
 
@@ -408,6 +459,7 @@ const AdminUsers = ({ user }) => {
               <th>Email</th>
               <th>Status</th>
               <th>Role</th>
+              <th>Teacher Assignment</th>
               <th>Joined</th>
               <th>Actions</th>
             </tr>
@@ -453,6 +505,25 @@ const AdminUsers = ({ user }) => {
                       <span className="badge bg-danger">Admin</span>
                     )}
                   </div>
+                </td>
+                <td>
+                  {userItem.role === 'student' ? (
+                    <select 
+                      className="form-select form-select-sm"
+                      value={userItem.teacherId || ''}
+                      onChange={(e) => updateStudentTeacher(userItem.id, e.target.value)}
+                      data-testid={`teacher-assignment-${userItem.id}`}
+                    >
+                      <option value="">No Teacher Assigned</option>
+                      {teachers.map(teacher => (
+                        <option key={teacher.id} value={teacher.id}>
+                          {teacher.name || teacher.username}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-muted">N/A</span>
+                  )}
                 </td>
                 <td>{new Date(userItem.createdAt).toLocaleDateString()}</td>
                 <td>
