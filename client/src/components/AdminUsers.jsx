@@ -14,6 +14,10 @@ const AdminUsers = ({ user }) => {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [notification, setNotification] = useState({ message: '', type: '' });
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, userId: null, userName: '' });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [adminFilter, setAdminFilter] = useState('all');
 
   // ALL useEffects must be at the top level, before any conditional returns
   useEffect(() => {
@@ -29,6 +33,40 @@ const AdminUsers = ({ user }) => {
       return () => clearTimeout(timer);
     }
   }, [notification.message]);
+
+  // Filter users based on search query and filter options
+  const filteredUsers = users.filter(userItem => {
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = 
+        (userItem.name && userItem.name.toLowerCase().includes(query)) ||
+        (userItem.username && userItem.username.toLowerCase().includes(query)) ||
+        (userItem.email && userItem.email.toLowerCase().includes(query));
+      
+      if (!matchesSearch) return false;
+    }
+    
+    // Status filter
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'approved' && !userItem.approved) return false;
+      if (statusFilter === 'pending' && userItem.approved) return false;
+    }
+    
+    // Role filter
+    if (roleFilter !== 'all') {
+      if (roleFilter === 'teacher' && userItem.role !== 'teacher') return false;
+      if (roleFilter === 'student' && userItem.role !== 'student') return false;
+    }
+    
+    // Admin filter
+    if (adminFilter !== 'all') {
+      if (adminFilter === 'admin' && !userItem.isAdmin) return false;
+      if (adminFilter === 'non-admin' && userItem.isAdmin) return false;
+    }
+    
+    return true;
+  });
 
   if (!user || !user.isAdmin) {
     return (
@@ -259,6 +297,109 @@ const AdminUsers = ({ user }) => {
         </div>
       )}
 
+      {/* Search and Filter Controls */}
+      {users.length > 0 && (
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="card">
+              <div className="card-body">
+                <div className="row g-3">
+                  {/* Search Bar */}
+                  <div className="col-md-6">
+                    <div className="input-group">
+                      <span className="input-group-text">
+                        <i className="fas fa-search"></i>
+                      </span>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search by name, username, or email..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        data-testid="search-users"
+                      />
+                      {searchQuery && (
+                        <button
+                          className="btn btn-outline-secondary"
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          title="Clear search"
+                        >
+                          <i className="fas fa-times"></i>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Status Filter */}
+                  <div className="col-md-2">
+                    <select
+                      className="form-select"
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      data-testid="filter-status"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="approved">Approved</option>
+                      <option value="pending">Pending</option>
+                    </select>
+                  </div>
+
+                  {/* Role Filter */}
+                  <div className="col-md-2">
+                    <select
+                      className="form-select"
+                      value={roleFilter}
+                      onChange={(e) => setRoleFilter(e.target.value)}
+                      data-testid="filter-role"
+                    >
+                      <option value="all">All Roles</option>
+                      <option value="teacher">Teachers</option>
+                      <option value="student">Students</option>
+                    </select>
+                  </div>
+
+                  {/* Admin Filter */}
+                  <div className="col-md-2">
+                    <select
+                      className="form-select"
+                      value={adminFilter}
+                      onChange={(e) => setAdminFilter(e.target.value)}
+                      data-testid="filter-admin"
+                    >
+                      <option value="all">All Users</option>
+                      <option value="admin">Admins</option>
+                      <option value="non-admin">Non-Admins</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Filter Results Summary */}
+                {(searchQuery || statusFilter !== 'all' || roleFilter !== 'all' || adminFilter !== 'all') && (
+                  <div className="mt-3">
+                    <small className="text-muted">
+                      Showing {filteredUsers.length} of {users.length} users
+                      {searchQuery && ` matching "${searchQuery}"`}
+                    </small>
+                    <button 
+                      className="btn btn-link btn-sm p-0 ms-2"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setStatusFilter('all');
+                        setRoleFilter('all');
+                        setAdminFilter('all');
+                      }}
+                    >
+                      Clear all filters
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="table-responsive">
         <table className="table table-striped">
           <thead className="table-dark">
@@ -272,7 +413,7 @@ const AdminUsers = ({ user }) => {
             </tr>
           </thead>
           <tbody>
-            {users.map(userItem => (
+            {filteredUsers.map(userItem => (
               <tr key={userItem.id}>
                 <td>
                   <div className="d-flex align-items-center">
@@ -351,11 +492,30 @@ const AdminUsers = ({ user }) => {
         </table>
       </div>
 
-      {users.length === 0 && (
+      {users.length === 0 ? (
         <div className="text-center py-5">
           <h4>No users found</h4>
         </div>
-      )}
+      ) : filteredUsers.length === 0 ? (
+        <div className="text-center py-5">
+          <i className="fas fa-search fa-3x text-muted mb-3"></i>
+          <h4 className="text-muted">No Users Match Your Filters</h4>
+          <p className="text-muted">
+            Try adjusting your search criteria or clearing filters to see more users.
+          </p>
+          <button 
+            className="btn btn-outline-primary"
+            onClick={() => {
+              setSearchQuery('');
+              setStatusFilter('all');
+              setRoleFilter('all');
+              setAdminFilter('all');
+            }}
+          >
+            Clear All Filters
+          </button>
+        </div>
+      ) : null}
 
       {/* Password Reset Modal */}
       {showPasswordModal && (
