@@ -343,6 +343,7 @@ const Navigation = ({ user, onLogout }) => {
           <Link
             href="/"
             className="navbar-brand fw-bold text-white ama-font shadow-for-ama text-decoration-none fs-1"
+            onClick={() => setIsNavOpen(false)}
           >
             Mr. S Teaches 
           </Link>
@@ -368,6 +369,7 @@ const Navigation = ({ user, onLogout }) => {
                 <Link
                   href="/blog"
                   className={`nav-link ${isActive("/blog") ? "active" : ""}`}
+                  onClick={() => setIsNavOpen(false)}
                 >
                  Lessons
                 </Link>
@@ -377,6 +379,7 @@ const Navigation = ({ user, onLogout }) => {
                 <Link
                   href="/educational-tools"
                   className={`nav-link ${isActive("/educational-tools") ? "active" : ""}`}
+                  onClick={() => setIsNavOpen(false)}
                 >
                   Tools
                 </Link>
@@ -387,6 +390,7 @@ const Navigation = ({ user, onLogout }) => {
                   <Link
                     href="/listen-to-type"
                     className={`nav-link ${isActive("/listen-to-type") ? "active" : ""}`}
+                    onClick={() => setIsNavOpen(false)}
                   >
                     Chatrooms
                   </Link>
@@ -398,6 +402,7 @@ const Navigation = ({ user, onLogout }) => {
                   <Link
                     href="/profile"
                     className={`nav-link ${isActive("/profile") ? "active" : ""}`}
+                    onClick={() => setIsNavOpen(false)}
                   >
                     My Profile
                   </Link>
@@ -411,6 +416,7 @@ const Navigation = ({ user, onLogout }) => {
                 <Link
                   href="/admin"
                   className="btn btn-info btn-sm me-2"
+                  onClick={() => setIsNavOpen(false)}
                 >
                   Admin Dashboard
                 </Link>
