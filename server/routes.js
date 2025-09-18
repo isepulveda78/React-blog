@@ -449,7 +449,7 @@ export function registerRoutes(app) {
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { email, username, name, password, role } = req.body;
+      const { email, username, name, password, role, teacherId } = req.body;
 
       // Input validation
       if (!validateEmail(email)) {
@@ -493,8 +493,27 @@ export function registerRoutes(app) {
         return res.status(400).json({ message: "Please select a valid role (teacher or student)" });
       }
 
+      // Validate teacher selection for students
+      if (role === 'student') {
+        if (!teacherId) {
+          return res.status(400).json({ message: "Students must select a teacher" });
+        }
+        
+        // Verify the selected teacher exists and is approved
+        const selectedTeacher = await storage.getUserById(teacherId);
+        if (!selectedTeacher) {
+          return res.status(400).json({ message: "Selected teacher not found" });
+        }
+        if (selectedTeacher.role !== 'teacher') {
+          return res.status(400).json({ message: "Selected user is not a teacher" });
+        }
+        if (!selectedTeacher.approved) {
+          return res.status(400).json({ message: "Selected teacher is not approved" });
+        }
+      }
+
       // Create user
-      const user = await storage.createUser({
+      const userData = {
         email: email.toLowerCase().trim(), // Normalize email
         username: username.trim(),
         name: name.trim(),
@@ -502,7 +521,14 @@ export function registerRoutes(app) {
         role: role,
         isAdmin: false,
         approved: true   // New users can read posts immediately
-      });
+      };
+
+      // Add teacher relationship for students
+      if (role === 'student' && teacherId) {
+        userData.teacherId = teacherId;
+      }
+
+      const user = await storage.createUser(userData);
 
       logSecurityEvent('USER_REGISTERED', { 
         email: sanitizeInput(email), 
