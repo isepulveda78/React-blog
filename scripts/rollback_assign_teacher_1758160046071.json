@@ -1,0 +1,378 @@
+{
+  "timestamp": "2025-09-18T01:47:26.070Z",
+  "operation": "assign_students_teacher",
+  "targetTeacher": {
+    "id": "deMdFi4U3DtFOZuNkfrHA",
+    "name": "Israel Sepulveda",
+    "email": "sepulveda.israel@gmail.com"
+  },
+  "studentsModified": [
+    {
+      "userId": "g6gtWUBUNL-1uOwirpRv_",
+      "name": "Israel Sepulveda",
+      "email": "sepulveda.israel@yahoo.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "RyORfLddo0RcUslb3o0tU",
+      "name": "Alicia Sepulveda",
+      "email": "alicia.sepulveda@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "k6A1S9BfSqpUWdJiwEYQX",
+      "name": "Test Student",
+      "email": "student@example.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "Iuz9n8--YI8MEBe-Awdcl",
+      "name": "Jessica Ringler",
+      "email": "jrringler13759@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "9xE8VvVbPUVbuswXWWbCe",
+      "name": "W'rayn",
+      "email": "wrayn94@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "UwYZ7lXnBKLiD5qAqLTAg",
+      "name": "Kevin gbeblewou",
+      "email": "kgbeblewou5@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "XG8OVPaWCpU4z-2y1lBkY",
+      "name": "Stephen Stockton",
+      "email": "jaydensocks0@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "J9ufN4wDdNOJd2AE6qQAh",
+      "name": "harold steven kinley",
+      "email": "qoyza07@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "HHQS5lwmK4_7aqxu3vISY",
+      "name": "Kylie gray",
+      "email": "graykylie016@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "4ZcQ1FhxiGoz3IxxlO68N",
+      "name": "Amaya",
+      "email": "aberry0221@icloud.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "38oOzAqOFnAIJQg04i6Is",
+      "name": "Shaniya",
+      "email": "niya36596@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "p4v6zTvUhT60jUghYLCgm",
+      "name": "Cristian Aguilar-portillo",
+      "email": "pabilow549@adroh.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "dZGE0cDtnBIdTn6rhcHwo",
+      "name": "Tavon",
+      "email": "sonichegehogt@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "oJb_SImXPxMnTkdZxTtv7",
+      "name": "jayla whitehead",
+      "email": "jaylawhitehead07@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "6PkN5jUUkBm_Z5FTSvdTt",
+      "name": "Jordan Suggs",
+      "email": "jordansuggs23@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "Cun9z6GOnuSoqO5YevDwR",
+      "name": "ZyMir Melvin",
+      "email": "melvinzymir7@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "leinZ1JsmM0xOsUtHjOJP",
+      "name": "Joseph kpa",
+      "email": "josephkpa236@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "dHUBOUGlsKI8YVCyYNdgw",
+      "name": "Love Asifiwe",
+      "email": "kumbukaasifiwe@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "zpF92RYU6pOcBbeH4M75c",
+      "name": "swanz",
+      "email": "hayzliear@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "e1LFbuuK_YswzY7GXtQPO",
+      "name": "Victoria Tenney",
+      "email": "behavioriski@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "V9K4oT2j-e3HsQyO2MPmi",
+      "name": "Daniellys garcia",
+      "email": "cgyfhdufhcu@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "ubcfYIgBDMGzvLnqAWVJg",
+      "name": "michael story",
+      "email": "storym916@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "o1Rk51lmbm4Y6RpbIQh-O",
+      "name": "harold steven kinley",
+      "email": "qoyza28@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "_8nYLm4ne8-NkLiNPmMc8",
+      "name": "Victoria Tenney",
+      "email": "behaviorism@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "zcbg40ND069loXpzrhhbQ",
+      "name": "Daniellys",
+      "email": "hvrxcgvt7t@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "kwF4NAmljldSwkLkd9N0X",
+      "name": "Kiato Trexler",
+      "email": "kiatothree@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "QYX_8zn6nMbWyEv8rU6sj",
+      "name": "Shequoia M Locklear",
+      "email": "locklearshequoia@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "IGAMkcKz9N9bCTTAL1E6y",
+      "name": "dijae",
+      "email": "dijaew1@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "6DCUJ-wFsnpO5c-nsZhyh",
+      "name": "Kelsie",
+      "email": "girlykelsie789@icloud.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "fWSuW0a5WwPyx0pWBpWCV",
+      "name": "Joel Kato",
+      "email": "joelkato2534@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "QTO8Aw8gZLVmiCu0MoeXa",
+      "name": "Matthew Jimenez",
+      "email": "matthewbjimenez88@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "aDVNSd9Ry4w2E3mG1g9Mq",
+      "name": "hope lawary",
+      "email": "hopeclawary@icloud.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "QnlS61AGycBLCwe3uajN0",
+      "name": "Ronald Ecam",
+      "email": "ronaldekcam@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "wLp41oiTnqeio8h6IsGCe",
+      "name": "karlin collins",
+      "email": "spongebob3434@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "nZponovDc3BwT1lZgF13k",
+      "name": "Jeff Tzic Lopez",
+      "email": "jeffthegoat@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "qI0h2MjA2XqV0Fn5cJ6sQ",
+      "name": "Jonathan yarborough",
+      "email": "twinbros1616@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "ovQnQrpsVUBAFR9Hw85Lx",
+      "name": "Jurneeloveprice",
+      "email": "jurneelove@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "_ve3eIaJfwVZ0ZE5mVfQP",
+      "name": "Sa&#x27;Brea hawkins",
+      "email": "sabreahawkins23@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "IXpMrE4fGAZxiXHoZgBrD",
+      "name": "Jamira",
+      "email": "carterjamira8@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "iKZwPQTqr_D1HQoY8_SMk",
+      "name": "kinory",
+      "email": "kinoryt@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "D1EGtJWFSzfi-9JResHIZ",
+      "name": "Isabella Corea",
+      "email": "isabellamcorea@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "N8p7VBOPeXOSNkZCRaO0I",
+      "name": "Imanuel Dews",
+      "email": "eeeetnotredison@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "REL5dGyVJRXfLytvRQP9x",
+      "name": "Chris",
+      "email": "notgudat@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "YwtOedirpdjesDM0wXBqj",
+      "name": "Bram K",
+      "email": "kbram741@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "LNb_lqV9K1EdsZzEvqKy6",
+      "name": "Jalil Jenkins",
+      "email": "jalilj11@icloud.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "14AU43O_375NyPLFAR3Wv",
+      "name": "Bryan Soukhaphon",
+      "email": "bsouk82@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "F0WUsswsjBmFMd6uhVq_t",
+      "name": "Cheyenne Allen-Eaton",
+      "email": "okthatsnotrigt@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "MqlsUEBk49Bc1sJPmq81g",
+      "name": "Joshua C",
+      "email": "marquellfromda336@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "9vfuVpv569h5GI_F1hrDG",
+      "name": "storm",
+      "email": "lunastarsh@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "sJwmYzDs3Jk4wjeVhlnni",
+      "name": "hannah",
+      "email": "skyhannah72@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "qMRJQQL_EjaFd14I7qjic",
+      "name": "ray johnson",
+      "email": "wrayn6343@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "z07X6f6oac2ouQal5P3eW",
+      "name": "jayna R",
+      "email": "reavesj4599@stu.gcsnc.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "-krWoqcUUNwyub3Iw6lZJ",
+      "name": "izayah",
+      "email": "izayahdines4@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "GpeK3QugNAPXeVxYuY-19",
+      "name": "Timothy Potts",
+      "email": "pottst936@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "DB5Q7ZdmRYO5RsNrOBkD_",
+      "name": "dexter",
+      "email": "kailynmarshall21@icloud.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "YYzHLCYpnHjgXad3Sorbz",
+      "name": "TrentonJordan",
+      "email": "jtrenton419@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "HVC1pV8S3tdmqDEbaGMZM",
+      "name": "Ahyland Friday",
+      "email": "hearts4mii@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "1uQLxn71a1lWdbk-HanSz",
+      "name": "kaniya",
+      "email": "253125527@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "ZbJj9CKxqGcMOYMyqAzUu",
+      "name": "imann",
+      "email": "imanminimila0@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "bg0KxgTtk_1PA1rZcA80v",
+      "name": "LUKASCHANKHA",
+      "email": "adbdhhhviutvji@gmail.com",
+      "previousTeacherId": null
+    },
+    {
+      "userId": "JEj1akJIU1c4Wo0Faf2pH",
+      "name": "spongebob",
+      "email": "spongebob23@gmail.com",
+      "previousTeacherId": null
+    }
+  ],
+  "totalModified": 61
+}
