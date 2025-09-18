@@ -238,7 +238,13 @@ const AdminUsers = ({ user }) => {
 
   return (
     <div className="container py-5">
-      <h1 className="display-4 fw-bold text-primary mb-4">Manage Users</h1>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="display-4 fw-bold text-primary mb-0">Manage Users</h1>
+        <div className="badge bg-primary fs-6" data-testid="user-count-badge">
+          <i className="fas fa-users me-2"></i>
+          Total Users: {users.length}
+        </div>
+      </div>
       
       {/* Notification Display */}
       {notification.message && (
