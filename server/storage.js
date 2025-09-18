@@ -29,10 +29,13 @@ class MemStorage {
   async getUserByGoogleId(googleId) { return this.users.find(u => u.googleId === googleId); }
   async getTeachers() { return this.users.filter(u => u.role === 'teacher' && u.approved); }
   async createUser(userData) {
+    // Remove any client-provided role to prevent privilege escalation
+    const { role: clientRole, ...safeUserData } = userData;
+    
     const user = { 
       id: nanoid(), 
-      role: "student", // Default new users to student role
-      ...userData, 
+      ...safeUserData,
+      role: "student", // Force all new users to student role for security
       createdAt: new Date().toISOString() 
     };
     this.users.push(user);
@@ -1209,10 +1212,13 @@ export class MongoStorage {
 
   async createUser(userData) {
     await this.connect();
+    // Remove any client-provided role to prevent privilege escalation
+    const { role: clientRole, ...safeUserData } = userData;
+    
     const user = {
       id: nanoid(),
-      role: "student", // Default new users to student role
-      ...userData,
+      ...safeUserData,
+      role: "student", // Force all new users to student role for security
       createdAt: new Date().toISOString()
     };
     await this.db.collection('users').insertOne(user);

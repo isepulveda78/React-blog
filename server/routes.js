@@ -449,7 +449,7 @@ export function registerRoutes(app) {
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { email, username, name, password, role, teacherId } = req.body;
+      const { email, username, name, password, teacherId } = req.body;
 
       // Input validation
       if (!validateEmail(email)) {
@@ -488,17 +488,8 @@ export function registerRoutes(app) {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Validate role
-      if (!role || !['teacher', 'student'].includes(role)) {
-        return res.status(400).json({ message: "Please select a valid role (teacher or student)" });
-      }
-
-      // Validate teacher selection for students
-      if (role === 'student') {
-        if (!teacherId) {
-          return res.status(400).json({ message: "Students must select a teacher" });
-        }
-        
+      // Validate teacher selection (all new users are students by default)
+      if (teacherId) {
         // Verify the selected teacher exists and is approved
         const selectedTeacher = await storage.getUserById(teacherId);
         if (!selectedTeacher) {
@@ -510,30 +501,29 @@ export function registerRoutes(app) {
         if (!selectedTeacher.approved) {
           return res.status(400).json({ message: "Selected teacher is not approved" });
         }
+      } else {
+        // Require teacher selection for new student registrations
+        return res.status(400).json({ message: "Please select a teacher" });
       }
 
-      // Create user
+      // Create user (all new users are students by default)
       const userData = {
         email: email.toLowerCase().trim(), // Normalize email
         username: username.trim(),
         name: name.trim(),
         password: hashedPassword,
-        role: role,
+        teacherId: teacherId, // Always include teacher for new students
         isAdmin: false,
         approved: true   // New users can read posts immediately
       };
-
-      // Add teacher relationship for students
-      if (role === 'student' && teacherId) {
-        userData.teacherId = teacherId;
-      }
 
       const user = await storage.createUser(userData);
 
       logSecurityEvent('USER_REGISTERED', { 
         email: sanitizeInput(email), 
         username: sanitizeInput(username), 
-        role: role, 
+        role: 'student', // All new users are students
+        teacherId: teacherId ? sanitizeInput(teacherId) : null,
         ip: req.ip 
       });
 
