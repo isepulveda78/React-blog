@@ -464,6 +464,18 @@ const Navigation = ({ user, onLogout }) => {
                   Admin Dashboard
                 </Link>
               )}
+              
+              {/* Quick teacher access button - only show if user is authenticated teacher */}
+              {user && user.role === 'teacher' && !user.isAdmin && (
+                <Link
+                  href="/teacher"
+                  className="btn btn-success btn-sm me-2"
+                  onClick={() => setIsNavOpen(false)}
+                  data-testid="link-teacher-dashboard"
+                >
+                  Teacher Dashboard
+                </Link>
+              )}
               {/* Always visible logout button for testing */}
 
               {user ? (

@@ -446,6 +446,49 @@ export function registerRoutes(app) {
     }
   });
 
+  // Get students for a specific teacher
+  app.get("/api/teacher/students", async (req, res) => {
+    try {
+      // Check if user is teacher or admin
+      if (!req.session.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      if (req.session.user.role !== 'teacher' && !req.session.user.isAdmin) {
+        return res.status(403).json({ message: "Teacher or admin access required" });
+      }
+
+      const { teacherId } = req.query;
+      
+      // If teacherId is not provided, use current user's ID (for teachers viewing their own students)
+      const targetTeacherId = teacherId || req.session.user.id;
+      
+      // If the requesting user is not an admin, they can only view their own students
+      if (!req.session.user.isAdmin && targetTeacherId !== req.session.user.id) {
+        return res.status(403).json({ message: "You can only view your own students" });
+      }
+
+      console.log(`[teacher/students] Fetching students for teacher: ${targetTeacherId}`);
+      
+      const students = await storage.getStudentsByTeacher(targetTeacherId);
+      
+      // Return safe student data
+      const safeStudents = students.map(student => ({
+        id: student.id,
+        email: student.email,
+        name: student.name,
+        username: student.username,
+        approved: student.approved,
+        createdAt: student.createdAt
+      }));
+      
+      res.json(safeStudents);
+    } catch (error) {
+      console.error("Error fetching students for teacher:", error);
+      res.status(500).json({ message: "Failed to fetch students" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
@@ -3346,15 +3389,38 @@ Sitemap: ${baseUrl}/sitemap.xml`;
       
       if (quizId && userId) {
         // Specific user and quiz combination
+        // For teachers, verify they can access this specific user's grades
+        if (user.role === 'teacher' && !user.isAdmin && userId !== user.id) {
+          const teacherStudents = await storage.getStudentsByTeacher(user.id);
+          const studentIds = teacherStudents.map(student => student.id);
+          if (!studentIds.includes(userId)) {
+            return res.status(403).json({ message: "Access denied - student not assigned to you" });
+          }
+        }
         grades = await storage.getQuizGradesByUserAndQuiz(userId, quizId);
       } else if (canViewAll) {
         // Admin/Teacher can view all grades
         if (quizId) {
           grades = await storage.getQuizGradesByQuizId(quizId);
         } else if (userId) {
+          // For teachers, verify they can access this specific user's grades
+          if (user.role === 'teacher' && !user.isAdmin && userId !== user.id) {
+            const teacherStudents = await storage.getStudentsByTeacher(user.id);
+            const studentIds = teacherStudents.map(student => student.id);
+            if (!studentIds.includes(userId)) {
+              return res.status(403).json({ message: "Access denied - student not assigned to you" });
+            }
+          }
           grades = await storage.getQuizGradesByUserId(userId);
         } else {
           grades = await storage.getQuizGrades();
+        }
+        
+        // If user is a teacher (but not admin), filter to only their students' grades
+        if (user.role === 'teacher' && !user.isAdmin) {
+          const teacherStudents = await storage.getStudentsByTeacher(user.id);
+          const studentIds = teacherStudents.map(student => student.id);
+          grades = grades.filter(grade => studentIds.includes(grade.userId));
         }
       } else {
         // Regular users can only view their own grades
@@ -3521,6 +3587,15 @@ Sitemap: ${baseUrl}/sitemap.xml`;
           return res.status(403).json({ message: "Access denied" });
         }
         
+        // For teachers, verify they can access this specific user's grades
+        if (user.role === 'teacher' && !user.isAdmin && userId !== user.id) {
+          const teacherStudents = await storage.getStudentsByTeacher(user.id);
+          const studentIds = teacherStudents.map(student => student.id);
+          if (!studentIds.includes(userId)) {
+            return res.status(403).json({ message: "Access denied - student not assigned to you" });
+          }
+        }
+        
         if (quizId) {
           // Get grades for specific user and quiz
           const grades = await storage.getTextQuizGradesByUserAndQuiz(userId, quizId);
@@ -3535,7 +3610,16 @@ Sitemap: ${baseUrl}/sitemap.xml`;
         if (!user?.isAdmin && user?.role !== 'teacher') {
           return res.status(403).json({ message: "Admin or teacher access required" });
         }
-        const grades = await storage.getTextQuizGrades();
+        
+        let grades = await storage.getTextQuizGrades();
+        
+        // If user is a teacher (but not admin), filter to only their students' grades
+        if (user.role === 'teacher' && !user.isAdmin) {
+          const teacherStudents = await storage.getStudentsByTeacher(user.id);
+          const studentIds = teacherStudents.map(student => student.id);
+          grades = grades.filter(grade => studentIds.includes(grade.userId));
+        }
+        
         res.json(grades);
       }
     } catch (error) {

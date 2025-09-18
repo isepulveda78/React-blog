@@ -18,6 +18,7 @@ import SEOManagement from './components/SEOManagement.jsx'
 import AdminChatrooms from './components/AdminChatrooms.jsx'
 import AdminQuizGradesDashboard from './components/AdminQuizGradesDashboard.jsx'
 import AdminTextQuizGradesDashboard from './components/AdminTextQuizGradesDashboard.jsx'
+import TeacherDashboard from './components/TeacherDashboard.jsx'
 
 // Clean imports without debug logs
 import Footer from './components/Footer.jsx'
@@ -280,12 +281,14 @@ const AppRoutes = () => {
             </ProtectedRoute>
           )} />
           <Route path="/admin/quiz-grades-dashboard" component={() => (
-            <ProtectedRoute requireAdmin={true}>
+            <ProtectedRoute requireAdmin={false} 
+              customValidation={(user) => user?.isAdmin || user?.role === 'teacher'}>
               <AdminQuizGradesDashboard />
             </ProtectedRoute>
           )} />
           <Route path="/admin/text-quiz-grades-dashboard" component={() => (
-            <ProtectedRoute requireAdmin={true}>
+            <ProtectedRoute requireAdmin={false} 
+              customValidation={(user) => user?.isAdmin || user?.role === 'teacher'}>
               <AdminTextQuizGradesDashboard />
             </ProtectedRoute>
           )} />
@@ -298,6 +301,12 @@ const AppRoutes = () => {
           <Route path="/admin" component={() => (
             <ProtectedRoute requireAdmin={true}>
               <AdminDashboard />
+            </ProtectedRoute>
+          )} />
+          <Route path="/teacher" component={() => (
+            <ProtectedRoute requireAdmin={false} 
+              customValidation={(user) => user?.role === 'teacher' || user?.isAdmin}>
+              <TeacherDashboard user={user} />
             </ProtectedRoute>
           )} />
           <Route path="/blog/:slug" component={({ params }) => (
