@@ -45,9 +45,42 @@ const Navigation = ({ user, onLogout }) => {
       username: "",
       name: "",
       role: "",
+      teacherId: "",
     });
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [teachers, setTeachers] = useState([]);
+    const [loadingTeachers, setLoadingTeachers] = useState(false);
+
+    // Fetch teachers when role changes to student
+    useEffect(() => {
+      if (formData.role === 'student') {
+        fetchTeachers();
+      } else {
+        setFormData(prev => ({ ...prev, teacherId: "" })); // Clear teacher selection
+      }
+    }, [formData.role]);
+
+    const fetchTeachers = async () => {
+      setLoadingTeachers(true);
+      try {
+        const response = await fetch('/api/teachers', {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const teachersData = await response.json();
+          setTeachers(teachersData);
+        } else {
+          console.error('Failed to fetch teachers');
+          setTeachers([]);
+        }
+      } catch (error) {
+        console.error('Error fetching teachers:', error);
+        setTeachers([]);
+      } finally {
+        setLoadingTeachers(false);
+      }
+    };
 
     const handleChange = (e) => {
       setFormData({
@@ -257,6 +290,44 @@ const Navigation = ({ user, onLogout }) => {
                     React.createElement("option", { value: "teacher" }, "Teacher"),
                     React.createElement("option", { value: "student" }, "Student"),
                   ),
+                ),
+
+              // Teacher selection for students
+              !isLoginMode && formData.role === 'student' &&
+                React.createElement(
+                  "div",
+                  { className: "mb-3" },
+                  React.createElement(
+                    "label",
+                    { className: "form-label" },
+                    "Select Your Teacher:",
+                  ),
+                  loadingTeachers
+                    ? React.createElement(
+                        "div",
+                        { className: "form-control d-flex align-items-center" },
+                        React.createElement("div", { className: "spinner-border spinner-border-sm me-2" }),
+                        "Loading teachers..."
+                      )
+                    : React.createElement(
+                        "select",
+                        {
+                          className: "form-select",
+                          name: "teacherId",
+                          value: formData.teacherId,
+                          onChange: handleChange,
+                          required: formData.role === 'student',
+                          "data-testid": "select-teacher"
+                        },
+                        React.createElement("option", { value: "" }, "Choose your teacher"),
+                        teachers.map(teacher =>
+                          React.createElement(
+                            "option",
+                            { key: teacher.id, value: teacher.id },
+                            teacher.name
+                          )
+                        )
+                      )
                 ),
 
               // Email field
