@@ -466,7 +466,7 @@ const Navigation = ({ user, onLogout }) => {
               )}
               
               {/* Quick teacher access button - only show if user is authenticated teacher */}
-              {user && user.role === 'teacher' && !user.isAdmin && (
+              {user && user.role === 'teacher' && (
                 <Link
                   href="/teacher"
                   className="btn btn-success btn-sm me-2"
