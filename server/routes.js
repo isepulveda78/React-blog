@@ -429,6 +429,23 @@ export function registerRoutes(app) {
     }
   });
 
+  // Get teachers list for registration
+  app.get("/api/teachers", async (req, res) => {
+    try {
+      const teachers = await storage.getTeachers();
+      // Return only necessary information for the dropdown
+      const teacherList = teachers.map(teacher => ({
+        id: teacher.id,
+        name: teacher.name,
+        username: teacher.username
+      }));
+      res.json(teacherList);
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+      res.status(500).json({ message: "Failed to fetch teachers" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {

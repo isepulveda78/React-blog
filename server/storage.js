@@ -27,6 +27,7 @@ class MemStorage {
   async getUserByEmail(email) { return this.users.find(u => u.email === email); }
   async getUserByUsername(username) { return this.users.find(u => u.username === username); }
   async getUserByGoogleId(googleId) { return this.users.find(u => u.googleId === googleId); }
+  async getTeachers() { return this.users.filter(u => u.role === 'teacher' && u.approved); }
   async createUser(userData) {
     const user = { 
       id: nanoid(), 
@@ -1199,6 +1200,11 @@ export class MongoStorage {
   async getUserByGoogleId(googleId) {
     await this.connect();
     return await this.db.collection('users').findOne({ googleId });
+  }
+
+  async getTeachers() {
+    await this.connect();
+    return await this.db.collection('users').find({ role: 'teacher', approved: true }).toArray();
   }
 
   async createUser(userData) {
